@@ -1,0 +1,487 @@
+/* Variáveis de cores para consistência */
+:root {
+    --color-primary: #16368a;
+    --color-secondary: #f7d320;
+    --color-text-primary: #333;
+    --color-text-secondary: #666;
+    --color-background-primary: #f4f4f4;
+    --color-white: #fff;
+    --shadow-small: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilos gerais */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: var(--color-background-primary);
+    line-height: 1.6;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Container central */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    flex: 1;
+}
+
+/* Cabeçalho fixo */
+header {
+    background-color: var(--color-secondary);
+    color: var(--color-primary);
+    padding: 10px 0;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-small);
+}
+
+.logo-img {
+    max-width: 150px;
+}
+
+/* Navegação */
+.main-nav {
+    margin-top: 10px;
+}
+
+.main-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.main-nav a {
+    color: var(--color-primary);
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.main-nav a:hover {
+    background-color: var(--color-primary);
+    color: var(--color-secondary);
+}
+
+/* Seções de conteúdo */
+.about,
+.cta,
+.page-container {
+    margin: 40px auto;
+    text-align: center;
+    max-width: 800px;
+    background-color: var(--color-white);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-small);
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: var(--color-primary);
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 2rem;
+    color: var(--color-primary);
+    margin-bottom: 20px;
+}
+
+.about p,
+.cta p,
+.page-container p {
+    font-size: 1.2rem;
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto 20px auto;
+}
+
+/* Galeria de imagens */
+.container-img {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.container-img img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: var(--shadow-small);
+    transition: transform 0.3s ease;
+}
+
+.container-img img:hover {
+    transform: scale(1.05);
+}
+
+/* Estilo do botão primário */
+.btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.3s;
+    display: inline-block;
+}
+
+.btn-primary:hover {
+    background-color: #112869;
+    transform: translateY(-2px);
+}
+
+/* Banner de notícias */
+.news-banner {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    text-align: center;
+    padding: 50px 20px;
+    border-radius: 8px;
+    margin: 40px 0;
+    box-shadow: var(--shadow-medium);
+}
+
+.news-banner h2 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: var(--color-white);
+}
+
+.news-banner p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: #f0f0f0;
+}
+
+.btn-news {
+    background-color: var(--color-secondary);
+    color: var(--color-primary);
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    text-decoration: none;
+    border-radius: 50px;
+    box-shadow: var(--shadow-small);
+    transition: background-color 0.3s, transform 0.3s;
+    font-weight: bold;
+}
+
+.btn-news:hover {
+    background-color: #ffc107;
+    transform: translateY(-2px);
+}
+
+/* Seção CTA */
+.cta-buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Rodapé */
+footer {
+    background-color: var(--color-secondary);
+    color: var(--color-primary);
+    text-align: center;
+    padding: 20px;
+    margin-top: auto;
+}
+
+.footer-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.footer-link:hover {
+    color: var(--color-white);
+}
+
+.footer-links {
+    margin: 10px 0;
+}
+
+.footer-links a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: var(--color-white);
+}
+
+footer p {
+    margin: 10px 0 0;
+    font-size: 0.9rem;
+}
+
+/* Botão flutuante do WhatsApp */
+.whatsapp-float {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #25d366;
+    padding: 15px;
+    border-radius: 50%;
+    box-shadow: var(--shadow-medium);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    text-decoration: none;
+    animation: pulse 2s infinite;
+    transition: all 0.3s ease-in-out;
+}
+
+.whatsapp-float img {
+    width: 50px;
+    height: 50px;
+}
+
+.whatsapp-float:hover {
+    background-color: #128c7e;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.4);
+    transform: scale(1.15);
+    animation: none;
+}
+
+/* Efeito pulsante */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Banner de cookies */
+.cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #333;
+    color: var(--color-white);
+    padding: 15px;
+    text-align: center;
+    font-size: 14px;
+    z-index: 1000;
+    display: none;
+}
+
+.cookie-banner p {
+    margin: 0;
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.cookie-banner a {
+    color: #ff9800;
+    text-decoration: none;
+}
+
+.cookie-banner button {
+    background-color: #ff4500;
+    color: var(--color-white);
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.cookie-banner button:hover {
+    background-color: #ff6347;
+}
+
+/* Estilos de notícias */
+.news-list-header {
+    text-align: center;
+    margin: 40px auto;
+    max-width: 800px;
+}
+
+#news-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+}
+
+.news-item {
+    display: flex;
+    background-color: var(--color-white);
+    border-radius: 12px;
+    box-shadow: var(--shadow-small);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.news-item:hover {
+    transform: translateY(-5px);
+}
+
+.news-item img {
+    width: 250px;
+    height: 160px;
+    object-fit: cover;
+}
+
+.news-item .content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.news-item h2 {
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: var(--color-primary);
+}
+
+.news-item h2 a {
+    text-decoration: none;
+    color: var(--color-primary);
+}
+
+.news-item h2 a:hover {
+    text-decoration: underline;
+}
+
+.news-item p {
+    font-size: 1rem;
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.news-item .read-more {
+    font-weight: bold;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.news-item .read-more:hover {
+    text-decoration: underline;
+}
+
+/* Estilos de notícia detalhada */
+.news-detail-container {
+    background-color: var(--color-white);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-small);
+    max-width: 800px;
+    margin: 40px auto;
+}
+
+.news-detail-container .main-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.news-detail-container h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.news-detail-container .meta {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+}
+
+.news-detail-container p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.share-buttons {
+    margin-top: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-share {
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: var(--color-white);
+    font-weight: bold;
+    transition: opacity 0.3s;
+}
+
+.btn-share:hover {
+    opacity: 0.8;
+}
+
+.whatsapp-share { background-color: #25D366; }
+.facebook-share { background-color: #3b5998; }
+.twitter-share { background-color: #1DA1F2; }
+
+/* Responsividade geral */
+@media (max-width: 768px) {
+    header { padding: 10px; }
+    .logo-img { max-width: 120px; }
+    .main-nav ul { flex-direction: column; gap: 5px; }
+    .main-nav a { font-size: 1rem; }
+    
+    .news-item {
+        flex-direction: column;
+        align-items: center;
+    }
+    .news-item img {
+        width: 100%;
+        height: auto;
+    }
+    .news-item .content {
+        padding: 15px;
+    }
+    .news-item h2 { font-size: 1.2rem; }
+    .news-item p { font-size: 0.9rem; }
+    
+    .news-detail-container { padding: 20px; }
+    .news-detail-container h1 { font-size: 1.8rem; }
+    .news-detail-container p { font-size: 1rem; }
+    .share-buttons { justify-content: flex-start; }
+}
+
+@media (max-width: 480px) {
+    .container-img { flex-direction: column; }
+    .cta-buttons { flex-direction: column; }
+    .btn-primary, .btn-news, .btn-share {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}

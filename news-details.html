@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google AdSense e Google News -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9784159624415038"
+        crossorigin="anonymous"></script>
+    <script async type="application/javascript" src="https://news.google.com/swg/js/v1/swg-basic.js"></script>
+    <script>
+        (self.SWG_BASIC = self.SWG_BASIC || []).push(basicSubscriptions => {
+            basicSubscriptions.init({
+                type: "NewsArticle",
+                isPartOfType: ["Product"],
+                isPartOfProductId: "CAow-e3ZCw:openaccess",
+                clientOptions: { theme: "light", lang: "pt-BR" },
+            });
+        });
+    </script>
+
+    <title>Detalhes da Notícia</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Meta tags dinâmicas serão adicionadas pelo JavaScript -->
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="container header-content">
+            <div class="logo">
+                <a href="#inicio">
+                    <img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Logo Eu Amo Urânia" class="logo-img">
+                </a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#inicio">Início</a></li>
+                    <li><a href="news/index.html">Notícias</a></li>
+                    <li><a href="#sobre">Sobre Nós</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="newsDetails">
+        <!-- Detalhes da notícia serão carregados aqui via JavaScript -->
+    </main>
+    
+    <footer>
+        <div class="container">
+            <a href="mailto:euamourania@gmail.com" class="footer-link">Entre em contato por e-mail</a>
+            <div class="footer-links">
+                <a href="termos-de-servico.html">Termos de Serviço</a> |
+                <a href="politica-de-privacidade.html">Política de Privacidade</a>
+            </div>
+            <p>&copy; <span id="year"></span> Eu Amo Urânia - Todos os direitos reservados</p>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/+5517981344558" class="whatsapp-float" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
+    </a>
+
+    <div id="cookie-banner" class="cookie-banner">
+        <p>Este site utiliza cookies para melhorar a sua experiência. Ao continuar a navegar, você concorda com o uso de cookies. <a href="politica-de-privacidade.html">Leia mais</a></p>
+        <button id="accept-cookies">Aceitar</button>
+    </div>
+
+    <script>
+        // Função para buscar e exibir os detalhes da notícia do arquivo JSON
+        async function fetchAndDisplayNewsDetails() {
+            const params = new URLSearchParams(window.location.search);
+            const newsId = params.get('id');
+            const newsDetails = document.getElementById('newsDetails');
+            
+            try {
+                const response = await fetch('news-data.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const newsArray = await response.json();
+
+                const news = newsArray.find(item => item.id === Number(newsId));
+                
+                if (news) {
+                    // Atualiza o título e meta tags da página dinamicamente
+                    document.title = news.title + ' - Eu Amo Urânia';
+                    
+                    const ogTitle = document.createElement('meta');
+                    ogTitle.setAttribute('property', 'og:title');
+                    ogTitle.setAttribute('content', news.title);
+                    document.head.appendChild(ogTitle);
+
+                    const ogDescription = document.createElement('meta');
+                    ogDescription.setAttribute('property', 'og:description');
+                    ogDescription.setAttribute('content', news.content.substring(0, 150) + '...');
+                    document.head.appendChild(ogDescription);
+
+                    const ogImage = document.createElement('meta');
+                    ogImage.setAttribute('property', 'og:image');
+                    ogImage.setAttribute('content', news.image);
+                    document.head.appendChild(ogImage);
+
+                    const ogUrl = document.createElement('meta');
+                    ogUrl.setAttribute('property', 'og:url');
+                    ogUrl.setAttribute('content', window.location.href);
+                    document.head.appendChild(ogUrl);
+                    
+                    // Renderiza o conteúdo da notícia
+                    const fullContent = news.content.replace(/\n/g, '<br>');
+                    newsDetails.innerHTML = `
+                        <div class="news-detail-container">
+                            <img src="${news.image}" alt="${news.title}" class="main-image">
+                            <div class="content">
+                                <h1>${news.title}</h1>
+                                <p class="meta">Por ${news.author} | ${news.date}</p>
+                                <p>${fullContent}</p>
+                                <div class="share-buttons">
+                                    <p>Compartilhe esta notícia:</p>
+                                    <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(news.title + ' - ' + window.location.href)}" target="_blank" class="btn-share whatsapp-share">WhatsApp</a>
+                                    <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}" target="_blank" class="btn-share facebook-share">Facebook</a>
+                                    <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(news.title)}&url=${encodeURIComponent(window.location.href)}" target="_blank" class="btn-share twitter-share">Twitter</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    document.title = "Notícia não encontrada";
+                    newsDetails.innerHTML = '<p class="not-found-message">Notícia não encontrada.</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao buscar os detalhes da notícia:', error);
+                newsDetails.innerHTML = '<p class="not-found-message">Não foi possível carregar a notícia. Tente novamente mais tarde.</p>';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', fetchAndDisplayNewsDetails);
+    </script>
+    <script src="script.js"></script>
+</body>
+
+</html>

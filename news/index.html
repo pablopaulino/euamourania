@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9784159624415038"
+        crossorigin="anonymous"></script>
+    <script async type="application/javascript" src="https://news.google.com/swg/js/v1/swg-basic.js"></script>
+    <script>
+        (self.SWG_BASIC = self.SWG_BASIC || []).push(basicSubscriptions => {
+            basicSubscriptions.init({
+                type: "NewsArticle",
+                isPartOfType: ["Product"],
+                isPartOfProductId: "CAow-e3ZCw:openaccess",
+                clientOptions: { theme: "light", lang: "pt-BR" },
+            });
+        });
+    </script>
+     <link rel="shortcut icon" href="../assets/Design sem nome (9).png" type="image/x-icon">
+    <title>Últimas Notícias de Urânia</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="container header-content">
+            <div class="logo">
+                <a href="../index.html">
+                    <img src="../assets/1505 - Urania - Logo Horizontal - 1.png" alt="Logo Eu Amo Urânia" class="logo-img">
+                </a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="../index.html">Início</a></li>
+                    <li><a href="./index.html">Notícias</a></li>
+                    <li><a href="../index.html#sobre">Sobre Nós</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="news-list-header">
+                <h1>Últimas Notícias</h1>
+                <p>Fique por dentro de tudo que acontece em nossa cidade.</p>
+            </div>
+            <div id="news-container">
+                </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <a href="mailto:euamourania@gmail.com" class="footer-link">Entre em contato por e-mail</a>
+            <div class="footer-links">
+                <a href="../termos-de-servico.html">Termos de Serviço</a> |
+                <a href="../politica-de-privacidade.html">Política de Privacidade</a>
+            </div>
+            <p>&copy; <span id="year"></span> Eu Amo Urânia - Todos os direitos reservados</p>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/+5517981344558" class="whatsapp-float" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
+    </a>
+    
+    <div id="cookie-banner" class="cookie-banner">
+        <p>Este site utiliza cookies para melhorar a sua experiência. Ao continuar a navegar, você concorda com o uso de cookies. <a href="../politica-de-privacidade.html">Leia mais</a></p>
+        <button id="accept-cookies">Aceitar</button>
+    </div>
+
+    <script>
+        // Função para buscar e exibir as notícias do arquivo JSON
+        async function fetchAndDisplayNews() {
+            try {
+                const response = await fetch('../news-data.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const newsArray = await response.json();
+        
+                // Ordena as notícias pela data (do mais recente para o mais antigo)
+                newsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+                const newsContainer = document.getElementById('news-container');
+                newsContainer.innerHTML = ''; // Limpa o container
+        
+                newsArray.forEach(news => {
+                    const newsItem = document.createElement('div');
+                    newsItem.classList.add('news-item');
+        
+                    newsItem.innerHTML = `
+                        <img src="${news.image}" alt="Imagem de ${news.title}">
+                        <div class="content">
+                            <h2><a href="../news-details.html?id=${news.id}">${news.title}</a></h2>
+                            <p>${news.content.substring(0, 150)}...</p>
+                            <a href="../news-details.html?id=${news.id}" class="read-more">Leia mais</a>
+                        </div>
+                    `;
+                    newsContainer.appendChild(newsItem);
+                });
+            } catch (error) {
+                console.error('Erro ao buscar as notícias:', error);
+                const newsContainer = document.getElementById('news-container');
+                newsContainer.innerHTML = '<p>Não foi possível carregar as notícias. Tente novamente mais tarde.</p>';
+            }
+        }
+        
+        // Chamada da função para exibir as notícias
+        document.addEventListener('DOMContentLoaded', fetchAndDisplayNews);
+    </script>
+    <script src="../script.js"></script>
+</body>
+
+</html>
