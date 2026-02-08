@@ -513,56 +513,87 @@ footer p {
         max-height: 40px; 
     }
 
-    /* --- NOVO MENU MOBILE (Rolagem Lateral) --- */
-    .main-nav {
-        width: 100%;
-        overflow-x: auto; /* Permite rolar para o lado */
-        white-space: nowrap; /* Impede que os itens quebrem linha */
-        padding: 5px 0 15px 0; /* Espaço para o dedo rolar */
-        -webkit-overflow-scrolling: touch; /* Rolagem suave no iPhone */
+/*================================================================================
+ 4. Responsividade (Menu Otimizado e Corrigido)
+================================================================================*/
+@media (max-width: 768px) {
+    /* Ajuste de tamanho dos títulos */
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.5rem; }
+
+    /* Cabeçalho */
+    header {
+        padding: 10px 0;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background-color: var(--color-surface);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
-    /* Esconde a barra de rolagem feia */
+    .header-content {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .logo-img { 
+        max-height: 40px; 
+    }
+
+    /* --- MENU MOBILE COM ROLAGEM LATERAL --- */
+    .main-nav {
+        width: 100%;
+        /* Garante que o container não tente crescer como no PC */
+        flex-grow: 0 !important; 
+        overflow-x: auto; /* Permite rolar para o lado */
+        white-space: nowrap;
+        padding: 5px 0 15px 0;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Esconde a barra de rolagem visualmente */
     .main-nav::-webkit-scrollbar {
         display: none;
     }
 
     .main-nav ul {
         display: flex;
-        flex-direction: row; /* Garante linha horizontal */
-        justify-content: flex-start; /* Começa da esquerda */
+        flex-direction: row;
+        /* A CORREÇÃO MÁGICA ESTÁ AQUI EMBAIXO: */
+        justify-content: flex-start !important; /* Força alinhar à esquerda */
         gap: 10px;
-        padding: 0 15px; /* Margem nas pontas */
+        padding: 0 20px; /* Margem lateral para não colar na borda */
         margin: 0;
+        width: auto; /* Garante que a lista tenha o tamanho do conteúdo */
     }
 
     .main-nav li {
-        flex: 0 0 auto; /* Impede que o item encolha */
+        flex: 0 0 auto; /* Impede que os botões encolham */
     }
 
     .main-nav a {
         display: inline-block;
         padding: 8px 16px;
-        background-color: #f0f4f8; /* Fundo cinza claro tipo botão */
-        border-radius: 20px; /* Borda redonda tipo "pill" */
+        background-color: #f0f4f8;
+        border-radius: 20px;
         font-size: 0.9rem;
         color: var(--color-text-dark);
         text-decoration: none;
         font-weight: 600;
     }
 
-    /* Destaque para o botão ativo ou importante */
+    /* Correção da cor do texto no botão amarelo */
     .main-nav a[href*="guia"] {
         background-color: var(--color-secondary);
-        color: var(--color-primary);
+        color: var(--color-primary) !important; /* Texto Azul escuro forçado */
     }
 
-    /* Remove o sublinhado antigo */
     .main-nav a::after {
         display: none;
     }
 
-    /* Ajuste dos Cards de Notícia no Mobile */
+    /* Ajustes gerais do Mobile (Notícias e Botões) */
     .news-item {
         flex-direction: column;
         margin-bottom: 20px;
@@ -584,15 +615,25 @@ footer p {
         margin: 20px auto;
     }
 
-    /* Ajuste dos botões CTA */
     .btn-primary, .btn-secondary, .btn-news {
         width: 100%;
         display: block;
         text-align: center;
         margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+    
+    /* Ajuste do botão WhatsApp */
+    .whatsapp-float {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .whatsapp-float img {
+        width: 28px;
+        height: 28px;
     }
 }
-
 
 
 /* --- NOVO MENU MOBILE (Rolagem Lateral) --- */
