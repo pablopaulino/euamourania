@@ -595,6 +595,42 @@ footer p {
 
 
 
+/* --- NOVO MENU MOBILE (Rolagem Lateral) --- */
+    .main-nav {
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 5px 0 15px 0;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .main-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .main-nav ul {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 0 15px;
+        margin: 0;
+    }
+
+    .main-nav li {
+        flex: 0 0 auto;
+    }
+
+    .main-nav a {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #f0f4f8;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        color: var(--color-text-dark);
+        text-decoration: none;
+        font-weight: 600;
+    }
 
     /* CORREÇÃO AQUI: Forçamos a cor azul com !important */
     .main-nav a[href*="guia"] {
