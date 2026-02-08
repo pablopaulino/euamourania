@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descubra Urânia - Guia Turístico e Comercial</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="shortcut icon" href="./assets/Design sem nome (9).png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Estilos específicos do Guia */
+        .filtros-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 30px 0;
+            padding: 0 20px;
+        }
+
+        .btn-filtro {
+            background: white;
+            border: 2px solid var(--color-primary);
+            color: var(--color-primary);
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-filtro:hover, .btn-filtro.ativo {
+            background: var(--color-primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .guia-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card-guia {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-light);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .card-guia:hover {
+            transform: translateY(-5px);
+        }
+
+        .badge-destaque {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--color-secondary);
+            color: var(--color-primary);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .card-img-top {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-title {
+            color: var(--color-primary);
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .card-text {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .btn-whatsapp {
+            background-color: #25D366;
+            color: white;
+            display: block;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .btn-whatsapp:hover { background-color: #1ebc57; color: white; }
+    </style>
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="container header-content">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Logo Eu Amo Urânia" class="logo-img">
+                </a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="guia.html" style="color: var(--color-secondary);">Guia Turístico</a></li>
+                    <li><a href="news/index.html">Notícias</a></li>
+                    <li><a href="index.html#sobre">Sobre Nós</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-banner" style="background: var(--color-primary); color: white; padding: 60px 20px;">
+            <div class="container">
+                <h1>Descubra Urânia</h1>
+                <p>Onde comer, onde ficar e o que fazer na nossa região.</p>
+            </div>
+        </section>
+
+        <div class="filtros-container">
+            <button class="btn-filtro ativo" onclick="filtrar('todos')">Todos</button>
+            <button class="btn-filtro" onclick="filtrar('gastronomia')"><i class="fas fa-utensils"></i> Onde Comer</button>
+            <button class="btn-filtro" onclick="filtrar('turismo')"><i class="fas fa-camera"></i> O que Fazer</button>
+            <button class="btn-filtro" onclick="filtrar('hospedagem')"><i class="fas fa-bed"></i> Onde Ficar</button>
+            <button class="btn-filtro" onclick="filtrar('servicos')"><i class="fas fa-concierge-bell"></i> Serviços</button>
+        </div>
+
+        <div id="guia-container" class="guia-grid">
+            </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; <span id="year"></span> Eu Amo Urânia - Todos os direitos reservados</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // Script Específico para Carregar o Guia
+        let locaisData = [];
+
+        async function carregarGuia() {
+            try {
+                const response = await fetch('guia-data.json');
+                locaisData = await response.json();
+                renderizarCards(locaisData);
+            } catch (error) {
+                console.error('Erro ao carregar guia:', error);
+                document.getElementById('guia-container').innerHTML = '<p>Erro ao carregar locais.</p>';
+            }
+        }
+
+        function renderizarCards(dados) {
+            const container = document.getElementById('guia-container');
+            container.innerHTML = '';
+
+            dados.forEach(local => {
+                const destaqueHTML = local.destaque ? '<span class="badge-destaque"><i class="fas fa-star"></i> Recomendado</span>' : '';
+                const whatsappHTML = local.whatsapp ? 
+                    `<a href="https://wa.me/${local.whatsapp}" target="_blank" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Chamar no Zap</a>` : '';
+
+                const html = `
+                    <div class="card-guia">
+                        ${destaqueHTML}
+                        <img src="${local.imagem}" class="card-img-top" alt="${local.nome}">
+                        <div class="card-body">
+                            <h3 class="card-title">${local.nome}</h3>
+                            <p class="card-text">${local.descricao}</p>
+                            <p style="font-size: 0.8rem; color: #888;"><i class="fas fa-map-marker-alt"></i> ${local.endereco}</p>
+                            ${whatsappHTML}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function filtrar(categoria) {
+            // Atualiza visual dos botões
+            document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('ativo'));
+            event.target.closest('button').classList.add('ativo');
+
+            if (categoria === 'todos') {
+                renderizarCards(locaisData);
+            } else {
+                const filtrados = locaisData.filter(item => item.categoria === categoria);
+                renderizarCards(filtrados);
+            }
+        }
+
+        // Inicia
+        document.addEventListener('DOMContentLoaded', carregarGuia);
+    </script>
+</body>
+</html>
