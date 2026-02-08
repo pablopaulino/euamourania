@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "nome": "Restaurant",
+    "categoria": "gastronomia",
+    "imagem": "assets/rest.jpg", 
+    "descricao": "O melhor cardapio da cidade. Entregamos no conforto da sua casa.",
+    "endereco": "Centro, Urânia - SP",
+    "whatsapp": "5517999999999",
+    "instagram": "https://instagram.com/euamourania",
+    "destaque": true
+  },
+  {
+    "id": 2,
+    "nome": "Borboletário Municipal",
+    "categoria": "turismo",
+    "imagem": "assets/AD3A1763-min (1).jpg",
+    "descricao": "O primeiro borboletário do Noroeste Paulista. Um passeio encantador para a família.",
+    "endereco": "Parque Municipal",
+    "whatsapp": "",
+    "instagram": "",
+    "destaque": true
+  },
+  {
+    "id": 3,
+    "nome": "Hotel Central",
+    "categoria": "hospedagem",
+    "imagem": "https://via.placeholder.com/400x300", 
+    "descricao": "Conforto e comodidade no coração da cidade.",
+    "endereco": "Av. Brasil, 500",
+    "whatsapp": "5517999999999",
+    "instagram": "",
+    "destaque": false
+  }
+]
