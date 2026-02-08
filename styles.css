@@ -485,66 +485,110 @@ footer p {
 }
 
 /*================================================================================
- 4. Responsividade
+ 4. Responsividade (Menu Otimizado)
 ================================================================================*/
 @media (max-width: 768px) {
-    h1 { font-size: 2rem; }
-    h2 { font-size: 1.6rem; }
+    /* Ajuste do Título */
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.5rem; }
+
+    /* Cabeçalho mais compacto */
+    header {
+        padding: 10px 0;
+        position: sticky;
+        top: 0;
+        z-index: 1000; /* Garante que fique acima de tudo */
+        background-color: var(--color-surface);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
 
     .header-content {
         flex-direction: column;
         align-items: center;
+        gap: 10px;
+    }
+
+    /* Logo um pouco menor */
+    .logo-img { 
+        max-height: 40px; 
+    }
+
+    /* --- NOVO MENU MOBILE (Rolagem Lateral) --- */
+    .main-nav {
+        width: 100%;
+        overflow-x: auto; /* Permite rolar para o lado */
+        white-space: nowrap; /* Impede que os itens quebrem linha */
+        padding: 5px 0 15px 0; /* Espaço para o dedo rolar */
+        -webkit-overflow-scrolling: touch; /* Rolagem suave no iPhone */
+    }
+
+    /* Esconde a barra de rolagem feia */
+    .main-nav::-webkit-scrollbar {
+        display: none;
     }
 
     .main-nav ul {
-        flex-direction: column;
-        gap: var(--spacing-sm);
-        margin-top: var(--spacing-sm);
-        align-items: center;
+        display: flex;
+        flex-direction: row; /* Garante linha horizontal */
+        justify-content: flex-start; /* Começa da esquerda */
+        gap: 10px;
+        padding: 0 15px; /* Margem nas pontas */
+        margin: 0;
+    }
+
+    .main-nav li {
+        flex: 0 0 auto; /* Impede que o item encolha */
     }
 
     .main-nav a {
-        font-size: 1rem;
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #f0f4f8; /* Fundo cinza claro tipo botão */
+        border-radius: 20px; /* Borda redonda tipo "pill" */
+        font-size: 0.9rem;
+        color: var(--color-text-dark);
+        text-decoration: none;
+        font-weight: 600;
     }
 
+    /* Destaque para o botão ativo ou importante */
+    .main-nav a[href*="guia"] {
+        background-color: var(--color-secondary);
+        color: var(--color-primary);
+    }
+
+    /* Remove o sublinhado antigo */
+    .main-nav a::after {
+        display: none;
+    }
+
+    /* Ajuste dos Cards de Notícia no Mobile */
     .news-item {
         flex-direction: column;
+        margin-bottom: 20px;
     }
     
     .news-item img {
         width: 100%;
-        height: auto;
-        max-height: 200px;
-        min-width: 100%;
+        height: 180px;
+        max-height: 180px;
         border-radius: 12px 12px 0 0;
     }
 
+    .news-item .content {
+        padding: 15px;
+    }
+
     .news-detail-container {
-        padding: var(--spacing-md);
-    }
-}
-
-@media (max-width: 480px) {
-    .butterfly-gallery {
-        grid-template-columns: 1fr;
+        padding: 15px;
+        margin: 20px auto;
     }
 
-    .cta-buttons {
-        flex-direction: column;
-    }
-
+    /* Ajuste dos botões CTA */
     .btn-primary, .btn-secondary, .btn-news {
         width: 100%;
-        box-sizing: border-box;
-    }
-
-    .whatsapp-float {
-        width: 45px;
-        height: 45px;
-    }
-    
-    .whatsapp-float img {
-        width: 25px;
-        height: 25px;
+        display: block;
+        text-align: center;
+        margin-bottom: 10px;
     }
 }
