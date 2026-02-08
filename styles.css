@@ -605,3 +605,22 @@ footer p {
     .main-nav a::after {
         display: none;
     }
+
+/* --- Cabeçalho e Navegação (PC) --- */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Adicionamos flex-grow para empurrar o menu */
+.main-nav {
+    flex-grow: 1; 
+}
+
+.main-nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: flex-end; /* AQUI: Muda de center para flex-end (Direita) */
+    gap: var(--spacing-lg);
+}
