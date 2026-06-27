@@ -1,8 +1,0 @@
-@media (max-width: 620px) {
-  .hero-visual > img {
-    height: 320px;
-    aspect-ratio: auto;
-    object-fit: cover;
-    object-position: center 45%;
-  }
-}
