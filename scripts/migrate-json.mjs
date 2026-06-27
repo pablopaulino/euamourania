@@ -1,13 +1,13 @@
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 
-const { SUPABASE_URL, SUPABASE_SECRET_KEY } = process.env;
-if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) {
-  console.error("Defina SUPABASE_URL e SUPABASE_SECRET_KEY somente neste terminal local.");
+const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
+  console.error("Defina SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, ADMIN_EMAIL e ADMIN_PASSWORD neste terminal local.");
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
+const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false }
 });
 
@@ -67,10 +67,27 @@ const guia = guiaAntigo.map((item) => ({
 }));
 
 try {
+  const { data: login, error: loginError } = await supabase.auth.signInWithPassword({
+    email: ADMIN_EMAIL,
+    password: ADMIN_PASSWORD
+  });
+  if (loginError) throw new Error(`Login: ${loginError.message}`);
+
+  const { data: admin, error: adminError } = await supabase
+    .from("usuarios_admin")
+    .select("id,ativo")
+    .eq("id", login.user.id)
+    .eq("ativo", true)
+    .maybeSingle();
+  if (adminError) throw adminError;
+  if (!admin) throw new Error("O usuário autenticado ainda não está ativo em usuarios_admin.");
+
   await upsert("noticias", noticias);
   await upsert("guia_comercial", guia);
-  console.log("Migração concluída. Confira os registros no painel antes de publicar o site.");
+  console.log("Migração concluída. Confira os registros no painel.");
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;
+} finally {
+  await supabase.auth.signOut({ scope: "local" });
 }
