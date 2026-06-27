@@ -1,6 +1,6 @@
 // Chaves publicáveis podem ficar no front-end. Nunca use secret/service_role aqui.
-export const SUPABASE_URL = "COLE_AQUI_SUA_SUPABASE_URL";
-export const SUPABASE_PUBLISHABLE_KEY = "COLE_AQUI_SUA_SUPABASE_PUBLISHABLE_KEY";
+export const SUPABASE_URL = "https://omhcpbphvtihqwdkbsbf.supabase.co";
+export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_m02B2sC8Ddh4fCtnvsGePg_TqwUanoM";
 
 export function supabaseConfigurado() {
   return SUPABASE_URL.startsWith("https://") &&
