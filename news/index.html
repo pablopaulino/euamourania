@@ -1,117 +1,51 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9784159624415038"
-        crossorigin="anonymous"></script>
-    <script async type="application/javascript" src="https://news.google.com/swg/js/v1/swg-basic.js"></script>
-    <script>
-        (self.SWG_BASIC = self.SWG_BASIC || []).push(basicSubscriptions => {
-            basicSubscriptions.init({
-                type: "NewsArticle",
-                isPartOfType: ["Product"],
-                isPartOfProductId: "CAow-e3ZCw:openaccess",
-                clientOptions: { theme: "light", lang: "pt-BR" },
-            });
-        });
-    </script>
-     <link rel="shortcut icon" href="../assets/Design sem nome (9).png" type="image/x-icon">
-    <title>Últimas Notícias de Urânia</title>
-    <link rel="stylesheet" href="../styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Notícias, acontecimentos e novidades de Urânia.">
+  <meta name="theme-color" content="#0b4f6c">
+  <title>Últimas notícias | Eu Amo Urânia</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../inner-pages.css">
+  <link rel="icon" href="../assets/Design sem nome (9).png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-
-<body>
-    <header class="main-header">
-        <div class="container header-content">
-            <div class="logo">
-                <a href="../index.html">
-                    <img src="../assets/1505 - Urania - Logo Horizontal - 1.png" alt="Logo Eu Amo Urânia" class="logo-img">
-                </a>
-            </div>
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="../index.html">Início</a></li>
-                    <li><a href="./index.html">Notícias</a></li>
-                    <li><a href="../index.html#sobre">Sobre Nós</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <main>
-        <div class="container">
-            <div class="news-list-header">
-                <h1>Últimas Notícias</h1>
-                <p>Fique por dentro de tudo que acontece em nossa cidade.</p>
-            </div>
-            <div id="news-container">
-                </div>
-        </div>
-    </main>
-
-    <footer>
-        <div class="container">
-            <a href="mailto:euamourania@gmail.com" class="footer-link">Entre em contato por e-mail</a>
-            <div class="footer-links">
-                <a href="../termos-de-servico.html">Termos de Serviço</a> |
-                <a href="../politica-de-privacidade.html">Política de Privacidade</a>
-            </div>
-            <p>&copy; <span id="year"></span> Eu Amo Urânia - Todos os direitos reservados</p>
-        </div>
-    </footer>
-
-    <a href="https://wa.me/+5517981344558" class="whatsapp-float" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
-    </a>
-    
-    <div id="cookie-banner" class="cookie-banner">
-        <p>Este site utiliza cookies para melhorar a sua experiência. Ao continuar a navegar, você concorda com o uso de cookies. <a href="../politica-de-privacidade.html">Leia mais</a></p>
-        <button id="accept-cookies">Aceitar</button>
+<body class="inner-page">
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <header class="site-header">
+    <div class="container header-content">
+      <a class="brand" href="../index.html" aria-label="Eu Amo Urânia — início"><img src="../assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56"></a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal"><span class="menu-icon" aria-hidden="true"></span><span>Menu</span></button>
+      <nav class="main-nav" id="menu-principal" aria-label="Navegação principal"><ul><li><a href="../index.html">Início</a></li><li><a href="../guia.html">Guia da cidade</a></li><li><a href="index.html" aria-current="page">Notícias</a></li><li><a href="../index.html#sobre">Quem somos</a></li></ul></nav>
     </div>
-
-    <script>
-        // Função para buscar e exibir as notícias do arquivo JSON
-        async function fetchAndDisplayNews() {
-            try {
-                const response = await fetch('../news-data.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const newsArray = await response.json();
-        
-                // Ordena as notícias pela data (do mais recente para o mais antigo)
-                newsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-                const newsContainer = document.getElementById('news-container');
-                newsContainer.innerHTML = ''; // Limpa o container
-        
-                newsArray.forEach(news => {
-                    const newsItem = document.createElement('div');
-                    newsItem.classList.add('news-item');
-        
-                    newsItem.innerHTML = `
-                        <img src="${news.image}" alt="Imagem de ${news.title}">
-                        <div class="content">
-                            <h2><a href="../news-details.html?id=${news.id}">${news.title}</a></h2>
-                            <p>${news.content.substring(0, 150)}...</p>
-                            <a href="../news-details.html?id=${news.id}" class="read-more">Leia mais</a>
-                        </div>
-                    `;
-                    newsContainer.appendChild(newsItem);
-                });
-            } catch (error) {
-                console.error('Erro ao buscar as notícias:', error);
-                const newsContainer = document.getElementById('news-container');
-                newsContainer.innerHTML = '<p>Não foi possível carregar as notícias. Tente novamente mais tarde.</p>';
-            }
-        }
-        
-        // Chamada da função para exibir as notícias
-        document.addEventListener('DOMContentLoaded', fetchAndDisplayNews);
-    </script>
-    <script src="../script.js"></script>
+  </header>
+  <main id="conteudo">
+    <section class="page-hero" aria-labelledby="page-title"><div class="container"><p class="eyebrow">Informação local</p><h1 id="page-title">Notícias de Urânia</h1><p>Acontecimentos, eventos e histórias que importam para a nossa comunidade.</p></div></section>
+    <section class="inner-content"><div class="container"><div class="news-page-header"><h2>Últimas notícias</h2><p>Conteúdo atualizado para você acompanhar a cidade de perto.</p></div><div id="news-container" aria-live="polite"></div></div></section>
+  </main>
+  <a href="https://wa.me/5517981344558" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="Falar pelo WhatsApp (abre em nova aba)"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="" width="28" height="28"></a>
+  <footer class="site-footer"><div class="container footer-grid"><div><img src="../assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" class="footer-logo" width="170" height="50"><p>Informação, turismo e comunidade.</p></div><nav aria-label="Links do rodapé"><a href="mailto:euamourania@gmail.com">Contato</a><a href="../termos-de-servico.html">Termos de serviço</a><a href="../politica-de-privacidade.html">Privacidade</a></nav></div><div class="container footer-bottom"><p>&copy; <span id="year"></span> Eu Amo Urânia. Todos os direitos reservados.</p></div></footer>
+  <div id="cookie-banner" class="cookie-banner" role="region" aria-label="Aviso sobre cookies" hidden><p>Usamos cookies para melhorar sua experiência. Consulte nossa <a href="../politica-de-privacidade.html">Política de Privacidade</a>.</p><button id="accept-cookies" type="button">Entendi</button></div>
+  <script>
+    async function fetchAndDisplayNews() {
+      const container = document.getElementById('news-container');
+      try {
+        const response = await fetch('../news-data.json');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const newsArray = await response.json();
+        newsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+        container.innerHTML = newsArray.map(news => `
+          <article class="news-item"><img src="${news.image}" alt="${news.title}" loading="lazy"><div class="content"><h2><a href="../news-details.html?id=${news.id}">${news.title}</a></h2><p>${news.content.substring(0, 145)}...</p><a href="../news-details.html?id=${news.id}" class="read-more">Ler notícia <span aria-hidden="true">→</span></a></div></article>`).join('');
+      } catch (error) {
+        console.error('Erro ao buscar notícias:', error);
+        container.innerHTML = '<p>Não foi possível carregar as notícias. Tente novamente mais tarde.</p>';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', fetchAndDisplayNews);
+  </script>
+  <script src="../script.js"></script>
 </body>
-
 </html>
