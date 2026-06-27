@@ -1,12 +1,22 @@
-function loadMobileStyles() {
+function loadImageStyles() {
   const style = document.createElement("style");
   style.textContent = `
+    .hero-visual > img {
+      height: 680px;
+      aspect-ratio: auto;
+      object-fit: cover;
+      object-position: center 45%;
+    }
+
+    @media (max-width: 900px) {
+      .hero-visual > img {
+        height: 560px;
+      }
+    }
+
     @media (max-width: 620px) {
       .hero-visual > img {
-        height: 320px;
-        aspect-ratio: auto;
-        object-fit: cover;
-        object-position: center 45%;
+        height: 400px;
       }
     }
   `;
@@ -67,7 +77,7 @@ function setupCookieBanner() {
   }
 }
 
-loadMobileStyles();
+loadImageStyles();
 
 document.addEventListener("DOMContentLoaded", () => {
   updateFooterYear();
