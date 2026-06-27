@@ -1,11 +1,4 @@
-window.__previewSourceUrl = window.location.hostname === "htmlpreview.github.io"
-  ? decodeURIComponent(window.location.search.slice(1))
-  : "";
-
-function normalizePreviewArticleParams() {
-  if (!window.__previewSourceUrl || !window.location.hash.startsWith("#id=")) return;
-  history.replaceState(null, "", `${window.location.pathname}?${window.location.hash.slice(1)}`);
-}
+window.__previewSourceUrl = window.location.hostname === "htmlpreview.github.io" ? decodeURIComponent(window.location.search.slice(1)) : "";
 
 function loadImageStyles() {
   const style = document.createElement("style");
@@ -22,7 +15,6 @@ function updateAboutLinks() {
     const pageSource = window.__previewSourceUrl || window.location.href;
     const inNewsFolder = new URL(pageSource).pathname.includes("/news/");
     const relativeTarget = inNewsFolder ? "../quem-somos.html" : "quem-somos.html";
-
     if (window.__previewSourceUrl) {
       const rawTarget = new URL(relativeTarget, window.__previewSourceUrl).href;
       link.href = `https://htmlpreview.github.io/?${rawTarget}`;
@@ -41,7 +33,6 @@ function setupPreviewNavigation() {
     if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
     if (href.includes("htmlpreview.github.io/?https://raw.githubusercontent.com/")) return;
     if (/^https?:\/\//i.test(href)) return;
-
     event.preventDefault();
     const target = new URL(href, window.__previewSourceUrl);
     if (target.pathname.endsWith("news-details.html") && target.search) {
@@ -85,7 +76,6 @@ function setupCookieBanner() {
   }
 }
 
-normalizePreviewArticleParams();
 loadImageStyles();
 setupPreviewNavigation();
 
