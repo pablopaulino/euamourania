@@ -18,8 +18,17 @@ function loadImageStyles() {
 }
 
 function updateAboutLinks() {
-  document.querySelectorAll('a[href="#sobre"], a[href="index.html#sobre"], a[href="../index.html#sobre"]').forEach(link => {
-    link.href = link.getAttribute("href").startsWith("../") ? "../quem-somos.html" : "quem-somos.html";
+  document.querySelectorAll('a[href*="#sobre"]').forEach(link => {
+    const pageSource = window.__previewSourceUrl || window.location.href;
+    const inNewsFolder = new URL(pageSource).pathname.includes("/news/");
+    const relativeTarget = inNewsFolder ? "../quem-somos.html" : "quem-somos.html";
+
+    if (window.__previewSourceUrl) {
+      const rawTarget = new URL(relativeTarget, window.__previewSourceUrl).href;
+      link.href = `https://htmlpreview.github.io/?${rawTarget}`;
+    } else {
+      link.href = relativeTarget;
+    }
   });
 }
 
@@ -29,7 +38,9 @@ function setupPreviewNavigation() {
     const link = event.target.closest("a");
     if (!link || link.target === "_blank") return;
     const href = link.getAttribute("href");
-    if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:") || /^https?:\/\//i.test(href)) return;
+    if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+    if (href.includes("htmlpreview.github.io/?https://raw.githubusercontent.com/")) return;
+    if (/^https?:\/\//i.test(href)) return;
 
     event.preventDefault();
     const target = new URL(href, window.__previewSourceUrl);
