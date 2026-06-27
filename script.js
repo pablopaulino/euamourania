@@ -1,36 +1,59 @@
-// Este script é usado em todas as páginas para funcionalidades globais.
-
-// Função para obter o ano atual e inserir no rodapé
 function updateFooterYear() {
-    const currentYear = new Date().getFullYear();
-    const yearElement = document.getElementById('year');
-    if (yearElement) {
-        yearElement.textContent = currentYear;
-    }
+  const yearElement = document.getElementById("year");
+  if (yearElement) yearElement.textContent = new Date().getFullYear();
 }
 
-// Função para lidar com o banner de cookies
-function handleCookieBanner() {
-    const cookieConsent = localStorage.getItem("cookieConsent");
-    const cookieBanner = document.getElementById("cookie-banner");
-    
-    if (!cookieConsent && cookieBanner) {
-        cookieBanner.style.display = "block";
-    }
+function setupMenu() {
+  const button = document.querySelector(".menu-toggle");
+  const navigation = document.querySelector(".main-nav");
+  if (!button || !navigation) return;
 
-    const acceptCookiesBtn = document.getElementById("accept-cookies");
-    if (acceptCookiesBtn) {
-        acceptCookiesBtn.addEventListener("click", () => {
-            localStorage.setItem("cookieConsent", "true");
-            if (cookieBanner) {
-                cookieBanner.style.display = "none";
-            }
-        });
+  const closeMenu = () => {
+    button.setAttribute("aria-expanded", "false");
+    navigation.classList.remove("is-open");
+  };
+
+  button.addEventListener("click", () => {
+    const willOpen = button.getAttribute("aria-expanded") !== "true";
+    button.setAttribute("aria-expanded", String(willOpen));
+    navigation.classList.toggle("is-open", willOpen);
+  });
+
+  navigation.addEventListener("click", (event) => {
+    if (event.target.closest("a")) closeMenu();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMenu();
+      button.focus();
     }
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 900) closeMenu();
+  });
 }
 
-// Executa as funções quando a página é carregada
+function setupCookieBanner() {
+  const banner = document.getElementById("cookie-banner");
+  const acceptButton = document.getElementById("accept-cookies");
+  if (!banner || !acceptButton) return;
+
+  try {
+    if (!localStorage.getItem("cookieConsent")) banner.hidden = false;
+    acceptButton.addEventListener("click", () => {
+      localStorage.setItem("cookieConsent", "accepted");
+      banner.hidden = true;
+    });
+  } catch {
+    banner.hidden = false;
+    acceptButton.addEventListener("click", () => { banner.hidden = true; });
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    updateFooterYear();
-    handleCookieBanner();
+  updateFooterYear();
+  setupMenu();
+  setupCookieBanner();
 });
