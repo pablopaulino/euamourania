@@ -1,3 +1,11 @@
+function loadMobileStyles() {
+  const stylesheet = document.createElement("link");
+  stylesheet.rel = "stylesheet";
+  stylesheet.href = "mobile.css";
+  stylesheet.media = "(max-width: 620px)";
+  document.head.appendChild(stylesheet);
+}
+
 function updateFooterYear() {
   const yearElement = document.getElementById("year");
   if (yearElement) yearElement.textContent = new Date().getFullYear();
@@ -51,6 +59,8 @@ function setupCookieBanner() {
     acceptButton.addEventListener("click", () => { banner.hidden = true; });
   }
 }
+
+loadMobileStyles();
 
 document.addEventListener("DOMContentLoaded", () => {
   updateFooterYear();
