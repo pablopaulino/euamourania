@@ -1,9 +1,16 @@
 function loadMobileStyles() {
-  const stylesheet = document.createElement("link");
-  stylesheet.rel = "stylesheet";
-  stylesheet.href = "mobile.css";
-  stylesheet.media = "(max-width: 620px)";
-  document.head.appendChild(stylesheet);
+  const style = document.createElement("style");
+  style.textContent = `
+    @media (max-width: 620px) {
+      .hero-visual > img {
+        height: 320px;
+        aspect-ratio: auto;
+        object-fit: cover;
+        object-position: center 45%;
+      }
+    }
+  `;
+  document.head.appendChild(style);
 }
 
 function updateFooterYear() {
