@@ -7,14 +7,15 @@
 </head>
 <body class="inner-page">
   <a class="skip-link" href="#newsDetails">Pular para a notícia</a>
-  <header class="site-header"><div class="container header-content"><a class="brand" href="index.html" aria-label="Eu Amo Urânia — início"><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56"></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal"><span class="menu-icon" aria-hidden="true"></span><span>Menu</span></button><nav class="main-nav" id="menu-principal" aria-label="Navegação principal"><ul><li><a href="index.html">Início</a></li><li><a href="guia.html">Guia da cidade</a></li><li><a href="news/index.html" aria-current="page">Notícias</a></li><li><a href="index.html#sobre">Quem somos</a></li></ul></nav></div></header>
+  <header class="site-header"><div class="container header-content"><a class="brand" href="index.html" aria-label="Eu Amo Urânia — início"><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56"></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal"><span class="menu-icon" aria-hidden="true"></span><span>Menu</span></button><nav class="main-nav" id="menu-principal" aria-label="Navegação principal"><ul><li><a href="index.html">Início</a></li><li><a href="guia.html">Guia da cidade</a></li><li><a href="news/index.html" aria-current="page">Notícias</a></li><li><a href="quem-somos.html">Quem somos</a></li></ul></nav></div></header>
   <main id="newsDetails" class="article-main" aria-live="polite"></main>
   <a href="https://wa.me/5517981344558" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="Falar pelo WhatsApp (abre em nova aba)"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="" width="28" height="28"></a>
   <footer class="site-footer"><div class="container footer-grid"><div><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" class="footer-logo" width="170" height="50"><p>Informação, turismo e comunidade.</p></div><nav aria-label="Links do rodapé"><a href="mailto:euamourania@gmail.com">Contato</a><a href="termos-de-servico.html">Termos de serviço</a><a href="politica-de-privacidade.html">Privacidade</a></nav></div><div class="container footer-bottom"><p>&copy; <span id="year"></span> Eu Amo Urânia. Todos os direitos reservados.</p></div></footer>
   <div id="cookie-banner" class="cookie-banner" role="region" aria-label="Aviso sobre cookies" hidden><p>Usamos cookies para melhorar sua experiência. Consulte nossa <a href="politica-de-privacidade.html">Política de Privacidade</a>.</p><button id="accept-cookies" type="button">Entendi</button></div>
   <script>
     async function fetchAndDisplayNewsDetails() {
-      const newsId = new URLSearchParams(window.location.search).get('id');
+      const parameterSource = window.location.hash.startsWith('#id=') ? window.location.hash.slice(1) : window.location.search;
+      const newsId = new URLSearchParams(parameterSource).get('id');
       const container = document.getElementById('newsDetails');
       try {
         const response = await fetch('news-data.json');
