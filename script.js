@@ -1,3 +1,12 @@
+window.__previewSourceUrl = window.location.hostname === "htmlpreview.github.io"
+  ? decodeURIComponent(window.location.search.slice(1))
+  : "";
+
+function normalizePreviewArticleParams() {
+  if (!window.__previewSourceUrl || !window.location.hash.startsWith("#id=")) return;
+  history.replaceState(null, "", `${window.location.pathname}?${window.location.hash.slice(1)}`);
+}
+
 function loadImageStyles() {
   const style = document.createElement("style");
   style.textContent = `
@@ -15,20 +24,15 @@ function updateAboutLinks() {
 }
 
 function setupPreviewNavigation() {
-  if (window.location.hostname !== "htmlpreview.github.io") return;
-
+  if (!window.__previewSourceUrl) return;
   document.addEventListener("click", event => {
     const link = event.target.closest("a");
     if (!link || link.target === "_blank") return;
-
     const href = link.getAttribute("href");
     if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:") || /^https?:\/\//i.test(href)) return;
 
-    const sourceUrl = decodeURIComponent(window.location.search.slice(1));
-    if (!sourceUrl.startsWith("https://raw.githubusercontent.com/")) return;
-
     event.preventDefault();
-    const target = new URL(href, sourceUrl);
+    const target = new URL(href, window.__previewSourceUrl);
     if (target.pathname.endsWith("news-details.html") && target.search) {
       target.hash = target.search.slice(1);
       target.search = "";
@@ -46,21 +50,14 @@ function setupMenu() {
   const button = document.querySelector(".menu-toggle");
   const navigation = document.querySelector(".main-nav");
   if (!button || !navigation) return;
-
-  const closeMenu = () => {
-    button.setAttribute("aria-expanded", "false");
-    navigation.classList.remove("is-open");
-  };
-
+  const closeMenu = () => { button.setAttribute("aria-expanded", "false"); navigation.classList.remove("is-open"); };
   button.addEventListener("click", () => {
     const willOpen = button.getAttribute("aria-expanded") !== "true";
     button.setAttribute("aria-expanded", String(willOpen));
     navigation.classList.toggle("is-open", willOpen);
   });
   navigation.addEventListener("click", event => { if (event.target.closest("a")) closeMenu(); });
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape") { closeMenu(); button.focus(); }
-  });
+  document.addEventListener("keydown", event => { if (event.key === "Escape") { closeMenu(); button.focus(); } });
   window.addEventListener("resize", () => { if (window.innerWidth > 900) closeMenu(); });
 }
 
@@ -77,6 +74,7 @@ function setupCookieBanner() {
   }
 }
 
+normalizePreviewArticleParams();
 loadImageStyles();
 setupPreviewNavigation();
 
