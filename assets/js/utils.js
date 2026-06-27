@@ -34,4 +34,7 @@ export function definirMeta({ titulo, descricao, imagem, url = window.location.h
     if (!meta) { meta = document.createElement("meta"); meta.setAttribute(property ? "property" : "name", nome); document.head.appendChild(meta); }
     meta.content = conteudo;
   });
+  let canonical = document.head.querySelector('link[rel="canonical"]');
+  if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
+  canonical.href = url;
 }
