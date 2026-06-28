@@ -1,27 +1,8 @@
 import { listarBanners } from "../services/bannersService.js";
 import { supabaseConfigurado } from "../services/supabaseClient.js";
-
 const esc=(v="")=>String(v).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
-const safe=v=>/^https?:\/\//i.test(v||"")||/^\/?assets\//.test(v||"")?esc(v):"";
-let banners=[];
-
-function markup(posicao){
-  const itens=banners.filter(b=>b.posicao===posicao&&safe(b.imagem_url));
-  if(!itens.length)return "";
-  return `<aside class="banner-zone" data-banner="${esc(posicao)}" aria-label="Publicidade"><div class="container banner-list">${itens.map(b=>{const imagem=`<img src="${safe(b.imagem_url)}" alt="${esc(b.titulo||"Banner")}" loading="lazy">`;const texto=b.titulo||b.subtitulo?`<div class="banner-item-content">${b.titulo?`<strong>${esc(b.titulo)}</strong>`:""}${b.subtitulo?`<span>${esc(b.subtitulo)}</span>`:""}</div>`:"";return safe(b.link_url)?`<a class="banner-item" href="${safe(b.link_url)}" target="_blank" rel="noopener sponsored">${imagem}${texto}</a>`:`<div class="banner-item">${imagem}${texto}</div>`}).join("")}</div></aside>`;
-}
-function insert(posicao,target,where="beforebegin"){
-  if(document.querySelector(`[data-banner="${posicao}"]`))return;
-  const html=markup(posicao),el=document.querySelector(target);if(html&&el)el.insertAdjacentHTML(where,html);
-}
-function render(){
-  const path=location.pathname;
-  if(path==="/"||path.endsWith("/index.html")){insert("home_topo",".hero");insert("home_meio",".destination");insert("home_rodape",".site-footer")}
-  if(/\/news\/?(?:index\.html)?$/.test(path)){insert("noticias_topo",".page-hero");insert("noticias_meio","#news-container","afterend")}
-  if(path.includes("news-details")||path.startsWith("/noticias/")){insert("noticia_individual_meio",".article-copy","afterend");insert("noticia_individual_final",".related-news")}
-  if(path.endsWith("guia.html")){insert("guia_topo",".page-hero");insert("guia_meio","#guia-container","afterend")}
-  if(path.endsWith("turismo.html")){insert("turismo_topo",".page-hero");insert("turismo_meio","#turismo-container","afterend")}
-  if(path.includes("/eventos")){insert("eventos_topo",".page-hero")}
-}
-async function init(){if(!supabaseConfigurado())return;try{banners=await listarBanners();render();if(banners.length){const observer=new MutationObserver(()=>render());observer.observe(document.body,{childList:true,subtree:true});setTimeout(()=>observer.disconnect(),10000)}}catch(error){console.error("Banners:",error)}}
-init();
+const safe=v=>/^https?:\/\//i.test(v||"")||/^\/?assets\//.test(v||"")?esc(v):"";let banners=[];
+function markup(posicao){const itens=banners.filter(b=>b.posicao===posicao&&safe(b.imagem_url));if(!itens.length)return"";return `<aside class="banner-zone" data-banner="${esc(posicao)}" aria-label="Publicidade"><div class="container banner-list">${itens.map(b=>{const imagem=`<img src="${safe(b.imagem_url)}" alt="${esc(b.titulo||"Banner")}" loading="lazy">`,texto=b.titulo||b.subtitulo?`<div class="banner-item-content">${b.titulo?`<strong>${esc(b.titulo)}</strong>`:""}${b.subtitulo?`<span>${esc(b.subtitulo)}</span>`:""}</div>`:"";return safe(b.link_url)?`<a class="banner-item" href="${safe(b.link_url)}" target="_blank" rel="noopener sponsored">${imagem}${texto}</a>`:`<div class="banner-item">${imagem}${texto}</div>`}).join("")}</div></aside>`}
+function insert(posicao,target,where="beforebegin"){if(document.querySelector(`[data-banner="${posicao}"]`))return;const html=markup(posicao),el=document.querySelector(target);if(html&&el)el.insertAdjacentHTML(where,html)}
+function render(){const path=location.pathname;if(path==="/"||path==="/index.html"){insert("home_topo",".hero");insert("home_meio",".destination");insert("home_rodape",".site-footer")}if(/\/news\/?(?:index\.html)?$/.test(path)){insert("noticias_topo",".page-hero");insert("noticias_meio","#news-container","afterend")}if(path.includes("news-details")||path.startsWith("/noticias/")){insert("noticia_individual_meio",".article-copy","afterend");insert("noticia_individual_final",".related-news")}if(path.endsWith("guia.html")){insert("guia_topo",".page-hero");insert("guia_meio","#guia-container","afterend")}if(path.endsWith("turismo.html")){insert("turismo_topo",".page-hero");insert("turismo_meio","#turismo-container","afterend")}if(path.includes("/eventos")){insert("eventos_topo",".page-hero")}}
+async function init(){if(!supabaseConfigurado())return;try{banners=await listarBanners();render();if(banners.length){const observer=new MutationObserver(render);observer.observe(document.body,{childList:true,subtree:true});setTimeout(()=>observer.disconnect(),10000)}}catch(error){console.error("Banners:",error)}}init();
