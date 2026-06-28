@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 
-Sitemap: https://www.euamourania.site/sitemap.xml
+Sitemap: https://euamourania.com.br/sitemap.xml
