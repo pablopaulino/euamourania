@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /api/
 
 Sitemap: https://euamourania.com.br/sitemap.xml
+Sitemap: https://euamourania.com.br/news-sitemap.xml
