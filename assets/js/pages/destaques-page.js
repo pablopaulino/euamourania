@@ -2,7 +2,7 @@ import { getSupabase } from "../services/supabaseClient.js";
 const esc=(v="")=>String(v).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
 const img=v=>/^https?:\/\//i.test(v||"")?esc(v):"";
 async function init(){
- const home=location.pathname==="/"||location.pathname.endsWith("/index.html")&&!location.pathname.includes("/news/");
+ const home=location.pathname==="/"||location.pathname==="/index.html";
  const news=/\/news\/?(?:index\.html)?$/.test(location.pathname);if(!home&&!news)return;
  const {data,error}=await getSupabase().from("noticias").select("titulo,slug,resumo,imagem_url,categoria_nome,publicado_em").eq("status","publicado").eq("destaque",true).order("publicado_em",{ascending:false}).limit(home?3:1);if(error||!data?.length)return;
  const cards=data.map(n=>`<a class="featured-news-card" href="/noticias/${encodeURIComponent(n.slug)}">${img(n.imagem_url)?`<img src="${img(n.imagem_url)}" alt="${esc(n.titulo)}" loading="lazy">`:""}<div><p class="eyebrow">${esc(n.categoria_nome||"Destaque")}</p><h3>${esc(n.titulo)}</h3>${n.resumo?`<p>${esc(n.resumo.slice(0,150))}</p>`:""}<span class="read-more">Ler notícia →</span></div></a>`).join("");
