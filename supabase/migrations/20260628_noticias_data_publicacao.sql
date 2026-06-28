@@ -6,6 +6,13 @@ set publicado_em = criado_em
 where status = 'publicado'
   and publicado_em is null;
 
+-- Repara somente o valor exato sobrescrito pela regressão no editor.
+-- A condição protege uma eventual alteração manual posterior.
+update public.noticias
+set publicado_em = '2024-12-03 12:00:00-03'::timestamptz
+where slug = 'borboletario-de-urania-comemora-2-anos'
+  and publicado_em = '2026-06-28 14:16:56.516+00'::timestamptz;
+
 drop policy if exists "noticias_publicadas_publicas" on public.noticias;
 
 create policy "noticias_publicadas_publicas"
