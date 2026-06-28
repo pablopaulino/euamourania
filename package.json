@@ -1,0 +1,11 @@
+{
+  "name": "euamourania-portal",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node scripts/validate-project.mjs",
+    "validate": "node scripts/validate-project.mjs",
+    "smoke": "node scripts/smoke-test.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
