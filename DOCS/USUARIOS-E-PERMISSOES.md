@@ -23,13 +23,14 @@ A criação, alteração e exclusão de contas passa por `/api/admin-users`. Ess
 1. Execute, nesta ordem, no SQL Editor:
    - `supabase/migrations/20260628_admin_rbac.sql`
    - `supabase/migrations/20260628_admin_rbac_02_acoes.sql`
+   - `supabase/migrations/20260628_admin_rbac_03_super_admin.sql`
 2. Confirme que `euamourania@gmail.com` aparece em `usuarios_admin` como `super_admin` e ativo.
 3. Na Vercel, configure `SUPABASE_SERVICE_ROLE_KEY` somente nos ambientes necessários e faça novo deploy.
 4. Nunca envie essa chave por mensagem, formulário ou commit.
 
 ## Uso
 
-Acesse `/admin/usuarios.html`. O Super Admin pode criar conta com senha temporária, editar nome/e-mail/função, trocar senha, ativar, desativar e excluir. Não é permitido desativar/excluir a própria conta nem remover o último Super Admin ativo.
+Acesse `/admin/usuarios.html`. O Super Admin pode criar conta com senha temporária, editar nome/e-mail/função, trocar senha, ativar, desativar e excluir. Não é permitido desativar/excluir a própria conta nem remover o último Super Admin ativo. Um trigger no banco também impede a remoção do último Super Admin por chamadas diretas.
 
 ## Checklist por função
 
