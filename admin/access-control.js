@@ -22,25 +22,42 @@ function mainAction(button){
   if(button.dataset.delete||button.dataset.genericDelete)return[module,"excluir"];
   return null;
 }
+function pageAction(button){
+  const path=location.pathname;
+  if(path.endsWith("publicidade.html")){
+    if(button.id==="new-campaign")return["publicidade","criar"];
+    if(button.dataset.edit)return["publicidade","editar"];
+    if(button.dataset.delete)return["publicidade","excluir"];
+    return null;
+  }
+  if(path.endsWith("comunicacao.html")){
+    if(["add-subscriber"].includes(button.id)||button.dataset.subEdit||button.dataset.subDelete)return["assinantes","gerenciar"];
+    if(["new-newsletter","add-news"].includes(button.id)||button.dataset.newsCopy)return["comunicacao","criar"];
+    if(button.dataset.newsEdit)return["comunicacao","editar"];
+    if(button.dataset.newsTest||button.dataset.newsSend)return["comunicacao","enviar"];
+    if(button.dataset.newsDelete)return["comunicacao","excluir"];
+    return null;
+  }
+  return mainAction(button);
+}
 export function aplicarControleAcesso(access,can){
   if(!access?.admin)return;
   const role=access.admin.funcao;
   document.documentElement.dataset.adminRole=role;
-  const allowed=(module,action="acessar")=>can(access.admin,module,action);
+  const allowed=(module,action="acessar")=>module==="assinantes"&&action==="gerenciar"?["super_admin","administrador"].includes(role):can(access.admin,module,action);
+  const requested=viewModules[location.hash.slice(1)];
+  if(requested&&!allowed(requested)){history.replaceState(null,"",`${location.pathname}#dashboard`)}
   const apply=()=>{
     document.querySelectorAll(".admin-nav button").forEach(button=>{const module=navModule(button);if(module)button.hidden=!allowed(module)});
     const path=location.pathname;
-    if(path.endsWith("/admin/index.html")||path.endsWith("/admin/")||path.endsWith("/admin")){
-      document.querySelectorAll("button").forEach(button=>{const action=mainAction(button);if(action&&!allowed(...action))button.hidden=true});
-    }
+    if(path.endsWith("/admin/index.html")||path.endsWith("/admin/")||path.endsWith("/admin"))document.querySelectorAll("button").forEach(button=>{const action=mainAction(button);if(action&&!allowed(...action))button.hidden=true});
     if(path.endsWith("publicidade.html")){
       document.querySelectorAll("#new-campaign").forEach(x=>x.hidden=!allowed("publicidade","criar"));
       document.querySelectorAll("[data-edit]").forEach(x=>x.hidden=!allowed("publicidade","editar"));
       document.querySelectorAll("[data-delete]").forEach(x=>x.hidden=!allowed("publicidade","excluir"));
     }
     if(path.endsWith("comunicacao.html")){
-      const manageSubscribers=["super_admin","administrador"].includes(role);
-      document.querySelectorAll("#add-subscriber,[data-sub-edit],[data-sub-delete]").forEach(x=>x.hidden=!manageSubscribers);
+      document.querySelectorAll("#add-subscriber,[data-sub-edit],[data-sub-delete]").forEach(x=>x.hidden=!allowed("assinantes","gerenciar"));
       document.querySelectorAll("#new-newsletter,#add-news").forEach(x=>x.hidden=!allowed("comunicacao","criar"));
       document.querySelectorAll("[data-news-edit]").forEach(x=>x.hidden=!allowed("comunicacao","editar"));
       document.querySelectorAll("[data-news-test],[data-news-send]").forEach(x=>x.hidden=!allowed("comunicacao","enviar"));
@@ -50,9 +67,5 @@ export function aplicarControleAcesso(access,can){
   };
   apply();
   new MutationObserver(apply).observe(document.body,{childList:true,subtree:true});
-  document.addEventListener("click",event=>{
-    const button=event.target.closest("button");if(!button)return;
-    const module=button.closest(".admin-nav")?navModule(button):null,action=mainAction(button);
-    if((module&&!allowed(module))||(action&&!allowed(...action))){event.preventDefault();event.stopImmediatePropagation()}
-  },true);
+  document.addEventListener("click",event=>{const button=event.target.closest("button");if(!button)return;const module=button.closest(".admin-nav")?navModule(button):null,action=pageAction(button);if((module&&!allowed(module))||(action&&!allowed(...action))){event.preventDefault();event.stopImmediatePropagation()}},true);
 }
