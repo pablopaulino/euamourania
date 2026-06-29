@@ -7,7 +7,7 @@ const plain=(v="")=>String(v).replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim()
 const validDomain=v=>{try{const u=new URL(v);return /^https?:$/.test(u.protocol)?u.origin:DEFAULT_DOMAIN}catch{return DEFAULT_DOMAIN}};
 const absolute=(v,domain,fallback=DEFAULT_LOGO)=>{try{return new URL(v||fallback,`${domain}/`).href}catch{return new URL(fallback,`${domain}/`).href}};
 async function getConfig(){
-  const keys="nome_site,seo_publicador,seo_logo,dominio_principal,imagem_compartilhamento,imagem_padrao_noticia,logo_cabecalho,favicon";
+  const keys="nome_site,seo_publicador,seo_logo,dominio_principal,imagem_compartilhamento,imagem_padrao_noticia,logo_principal,favicon";
   try{
     const response=await fetch(`${SUPABASE_URL}/rest/v1/configuracoes_site?select=chave,valor&chave=in.(${keys})`,{headers:{apikey:SUPABASE_KEY}});
     if(!response.ok)return{};
@@ -28,7 +28,7 @@ module.exports=async(req,res)=>{
     const domain=validDomain(config.dominio_principal||DEFAULT_DOMAIN);
     const siteName=config.nome_site||"Eu Amo Urânia";
     const publisher=config.seo_publicador||siteName;
-    const logo=absolute(config.seo_logo||config.logo_cabecalho,domain);
+    const logo=absolute(config.seo_logo||config.logo_principal,domain);
     const favicon=absolute(config.favicon,domain);
     const canonical=`${domain}/noticias/${encodeURIComponent(n.slug)}`;
     const description=(n.seo_descricao||n.resumo||plain(n.conteudo_html)).slice(0,160);
