@@ -28,7 +28,8 @@ export async function entrar(email,password){
   if(error)throw error;
   const autorizado=await verificarAdministrador(data.user.id);
   if(!autorizado){await getSupabase().auth.signOut({scope:"local"});throw new Error("Usuário sem permissão para acessar o CMS.")}
-  await getSupabase().rpc("registrar_login_admin").catch(()=>{});
+  const{error:loginError}=await getSupabase().rpc("registrar_login_admin");
+  if(loginError)console.warn("Não foi possível registrar o último login.");
   return data;
 }
 
@@ -47,6 +48,7 @@ export async function exigirAdministrador(){
   acessoAtual={configurado:true,user:session.user,admin};
   const pagina=location.pathname.split("/").pop()||"index.html",modulo=rotaModulo[pagina];
   if(modulo&&!temPermissao(admin,modulo,"acessar")){location.replace("index.html?erro=acesso-negado");return null}
+  try{const{aplicarControleAcesso}=await import("./access-control.js");aplicarControleAcesso(acessoAtual,temPermissao)}catch(error){console.warn("Controle visual de acesso indisponível.")}
   return acessoAtual;
 }
 
