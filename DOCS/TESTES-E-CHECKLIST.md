@@ -15,6 +15,8 @@
 - Criar/editar/publicar notícia; destaque; categoria; guia; evento; campanha.
 - Redator envia rascunho; Editor solicita ajustes, aprova e publica; tentativa direta é bloqueada.
 - Audiência: períodos, comparação, rankings, publicidade e exportação CSV.
+- GA4: recusar não carrega a tag; aceitar carrega somente o ID público.
+- Google: endpoint de audiência rejeita visitante sem sessão e nunca retorna a credencial.
 - Enviar newsletter de teste e validar descadastro.
 - Canonical, OG, sitemap e robots.
 - Teclado, foco, labels, alt e contraste básico.
