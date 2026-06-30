@@ -9,12 +9,13 @@
 - `configuracoes_site`: configurações chave/valor.
 - `campanhas_publicitarias`, `campanha_posicoes`, `publicidade_metricas_diarias`, `anunciantes`: publicidade e métricas.
 - `analytics_eventos`: page views e cliques básicos.
+- `solicitacoes_aprovacao`: envios, decisões e comentários do fluxo editorial.
 - `newsletter_assinantes`, `newsletters`, `newsletter_envios`: comunicação.
 - `cms_atividades`: trilha de alterações.
 
 ## Functions/RPC
 
-`is_admin`, `registrar_evento_publicidade`, `registrar_evento_site`, `assinar_newsletter`, `descadastrar_newsletter`, `registrar_evento_newsletter` e funções auxiliares de categorias.
+`is_admin`, `enviar_noticia_revisao`, `revisar_noticia`, `obter_audiencia_avancada`, `registrar_evento_publicidade`, `registrar_evento_site`, `assinar_newsletter`, `descadastrar_newsletter`, `registrar_evento_newsletter` e funções auxiliares de categorias.
 
 ## RLS
 

@@ -13,6 +13,8 @@ function mainAction(button){
   const view=location.hash.slice(1)||"dashboard",module=viewModules[view]||view;
   if(button.hasAttribute("data-news-new"))return["noticias","criar"];
   if(button.dataset.newsEdit)return["noticias","editar"];
+  if(button.dataset.sendApproval)return["noticias","editar"];
+  if(button.dataset.approvalReview||button.dataset.requestChanges||button.dataset.approveNews||button.dataset.publishNews)return["noticias","publicar"];
   if(button.dataset.newsFeature||button.dataset.saveStatus==="publicado")return["noticias","publicar"];
   if(button.dataset.catEdit)return["categorias","editar"];
   if(button.hasAttribute("data-cat-new"))return["categorias","criar"];

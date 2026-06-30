@@ -87,3 +87,4 @@ async function init(){
   const nav=document.querySelector(`[data-view="${currentView}"]`);if(nav)nav.click();else dashboard();
 }
 init();
+import("./editorial-audience.js").catch(error=>console.error("Módulos editorial/audiência:",error));
