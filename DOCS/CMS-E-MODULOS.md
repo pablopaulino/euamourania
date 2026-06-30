@@ -6,7 +6,13 @@ O painel reúne Notícias, Guia, Turismo, Eventos, Links, Categorias, Publicidad
 
 ## Fluxo editorial
 
-Crie como rascunho, complete título/slug/resumo/conteúdo/imagem/categoria/SEO, use a prévia e publique. `destaque` controla a área especial da home e o topo de notícias; sem itens ativos a área desaparece.
+Crie como rascunho, complete título/slug/resumo/conteúdo/imagem/categoria/SEO e use a prévia. Redatores enviam para aprovação; Editores, Administradores e Super Admins revisam, solicitam ajustes, aprovam ou publicam. O estado editorial é separado do status público e a proteção também existe no banco. Consulte `FLUXO-EDITORIAL-E-AUDIENCIA.md`.
+
+`destaque` controla a área especial da home e o topo de notícias; sem itens ativos a área desaparece.
+
+## Audiência
+
+A Central de audiência usa eventos próprios do Supabase, comparação de períodos, origens, dispositivos, conteúdos, cliques, pesquisas, publicidade e exportação CSV. Não armazena IP nem dados pessoais. GA4 e Search Console permanecem opcionais e devem usar credenciais somente no backend.
 
 ## Comunicação
 

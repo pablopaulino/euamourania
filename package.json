@@ -3,10 +3,11 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "test": "node scripts/validate-project.mjs && node scripts/test-rbac.mjs && node scripts/test-site-config.mjs",
+    "test": "node scripts/validate-project.mjs && node scripts/test-rbac.mjs && node scripts/test-site-config.mjs && node scripts/test-editorial-audience.mjs",
     "validate": "node scripts/validate-project.mjs",
     "test:rbac": "node scripts/test-rbac.mjs",
     "test:config": "node scripts/test-site-config.mjs",
+    "test:editorial-audience": "node scripts/test-editorial-audience.mjs",
     "smoke": "node scripts/smoke-test.mjs"
   },
   "engines": { "node": ">=20" }

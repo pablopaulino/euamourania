@@ -13,6 +13,8 @@
 - Sem erro no console ou requisição 4xx/5xx inesperada.
 - Login/logout e autorização de não administrador.
 - Criar/editar/publicar notícia; destaque; categoria; guia; evento; campanha.
+- Redator envia rascunho; Editor solicita ajustes, aprova e publica; tentativa direta é bloqueada.
+- Audiência: períodos, comparação, rankings, publicidade e exportação CSV.
 - Enviar newsletter de teste e validar descadastro.
 - Canonical, OG, sitemap e robots.
 - Teclado, foco, labels, alt e contraste básico.
