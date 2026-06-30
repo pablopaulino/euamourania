@@ -33,5 +33,12 @@
 .audience-bar-wrap{display:flex;flex:1 0 26px;min-width:26px;max-width:56px;flex-direction:column;justify-content:flex-end;align-items:center;gap:.35rem}
 .audience-bar{width:70%;min-height:4px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#18a57d,#006b78)}
 .audience-bar-wrap small{font-size:.65rem;color:#677f87;writing-mode:vertical-rl;transform:rotate(180deg)}
+.google-status{border-top:5px solid #4285f4}
+.google-status.error{border-color:#d45b3c}.google-status.error p{margin-bottom:0;color:#9b341b}
+.google-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}.google-heading h2{margin-bottom:.5rem}.google-heading>span{padding:.4rem .65rem;border-radius:999px;background:#eef4ff;color:#2f5f9e;font-size:.72rem;font-weight:800}
+.google-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin:1.2rem 0}
+.google-metrics article{padding:1rem;border:1px solid #dce6ee;border-radius:12px;background:#f8fbfd}.google-metrics span{display:block;color:#607780;font-size:.75rem;font-weight:700}.google-metrics strong{display:block;margin-top:.35rem;color:#003b49;font-size:1.5rem}
+.integration-warning{margin:.7rem 0;padding:.75rem 1rem;border-radius:10px;background:#fff3cd;color:#725600}
+.google-chart{margin-top:1.25rem}.google-chart h3{font-size:1rem}
 @media(max-width:1050px){.audience-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.audience-head{display:block}.audience-filters{justify-content:flex-start}}
-@media(max-width:640px){.audience-metrics{grid-template-columns:1fr}.dialog-actions>*{width:100%}.audience-filters>*{width:100%}}
+@media(max-width:640px){.audience-metrics,.google-metrics{grid-template-columns:1fr}.google-heading{display:block}.dialog-actions>*{width:100%}.audience-filters>*{width:100%}}

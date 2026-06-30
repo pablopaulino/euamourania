@@ -12,6 +12,9 @@
 
 `vercel.json` mantém URLs amigáveis de notícias e redireciona links antigos. Funções em `api/` entregam metadados dinâmicos, sitemaps e operações protegidas de comunicação.
 
+- `/api/google-config`: entrega somente o ID público do GA4 e usa cache curto.
+- `/api/google-audience`: exige sessão com `insights:ler` e consulta GA4/Search Console com credencial exclusiva do backend.
+
 ## Contrato das APIs
 
 - Validar método, sessão, autorização administrativa e payload.

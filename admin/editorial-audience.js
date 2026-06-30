@@ -242,15 +242,50 @@ function chart(series=[]){
  const max=Math.max(1,...series.map(item=>Number(item.visualizacoes||0)));
  return`<div class="audience-chart" aria-label="Visualizações por dia">${series.map(item=>`<div class="audience-bar-wrap" title="${esc(item.dia)}: ${item.visualizacoes}"><div class="audience-bar" style="height:${Math.max(4,Math.round(item.visualizacoes/max*150))}px"></div><small>${esc(item.dia.slice(5))}</small></div>`).join("")||'<div class="empty-state">Sem visualizações no período.</div>'}</div>`;
 }
+async function googleAudience(start,end){
+ const {data:{session}}=await db.auth.getSession();
+ if(!session?.access_token)return{error:"Sessão administrativa não encontrada."};
+ const response=await fetch(`/api/google-audience?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,{
+  headers:{Authorization:`Bearer ${session.access_token}`,Accept:"application/json"}
+ });
+ const data=await response.json().catch(()=>({}));
+ if(!response.ok)return{error:data.error||"Integração Google indisponível."};
+ return data;
+}
+const percent=value=>`${(Number(value||0)*100).toFixed(1).replace(".",",")}%`;
+function googlePanels(google){
+ if(google?.error)return`<section class="panel wide google-status error"><h2>Google Analytics e Search Console</h2><p>${esc(google.error)}</p></section>`;
+ const ga=google?.ga4||{},search=google?.searchConsole||{},summary=ga.summary||{},searchSummary=search.summary||{};
+ const gaError=ga.error?`<div class="integration-warning"><strong>Google Analytics:</strong> ${esc(ga.error)}</div>`:"";
+ const searchError=search.error?`<div class="integration-warning"><strong>Search Console:</strong> ${esc(search.error)}</div>`:"";
+ const daily=(ga.daily||[]).map(item=>({dia:item.date,visualizacoes:item.screenPageViews||0}));
+ return`<section class="panel wide google-status"><div class="google-heading"><div><p class="eyebrow">Dados Google</p><h2>Google Analytics 4 e Search Console</h2></div><span>Atualização com cache de 10 minutos</span></div>${gaError}${searchError}
+  <div class="google-metrics">
+   <article><span>Usuários ativos</span><strong>${Number(summary.activeUsers||0).toLocaleString("pt-BR")}</strong></article>
+   <article><span>Sessões</span><strong>${Number(summary.sessions||0).toLocaleString("pt-BR")}</strong></article>
+   <article><span>Visualizações GA4</span><strong>${Number(summary.screenPageViews||0).toLocaleString("pt-BR")}</strong></article>
+   <article><span>Cliques no Google</span><strong>${Number(searchSummary.clicks||0).toLocaleString("pt-BR")}</strong></article>
+   <article><span>Impressões no Google</span><strong>${Number(searchSummary.impressions||0).toLocaleString("pt-BR")}</strong></article>
+   <article><span>CTR da pesquisa</span><strong>${percent(searchSummary.ctr)}</strong></article>
+  </div>
+  ${daily.length?`<div class="google-chart"><h3>Visualizações registradas pelo GA4</h3>${chart(daily)}</div>`:""}
+ </section>
+ <section class="panel"><header class="panel-header"><h2>Páginas no GA4</h2></header>${(ga.pages||[]).map((item,index)=>`<div class="rank-item"><span>${index+1}</span><strong>${esc(item.pagePath)}</strong><small>${Number(item.screenPageViews||0).toLocaleString("pt-BR")}</small></div>`).join("")||'<div class="empty-state">O GA4 ainda não possui dados.</div>'}</section>
+ <section class="panel"><header class="panel-header"><h2>Canais de aquisição</h2></header>${(ga.channels||[]).map((item,index)=>`<div class="rank-item"><span>${index+1}</span><strong>${esc(item.sessionDefaultChannelGroup||"Não identificado")}</strong><small>${Number(item.sessions||0).toLocaleString("pt-BR")} sessões</small></div>`).join("")||'<div class="empty-state">Sem dados de aquisição.</div>'}</section>
+ <section class="panel"><header class="panel-header"><h2>Consultas no Google</h2></header>${(search.queries||[]).map((item,index)=>`<div class="rank-item"><span>${index+1}</span><div><strong>${esc(item.item)}</strong><small>Posição média ${Number(item.position||0).toFixed(1)}</small></div><small>${item.clicks} cliques · ${item.impressions} impressões</small></div>`).join("")||'<div class="empty-state">O Search Console ainda não retornou consultas.</div>'}</section>
+ <section class="panel"><header class="panel-header"><h2>Páginas na Pesquisa Google</h2></header>${(search.pages||[]).map((item,index)=>`<div class="rank-item"><span>${index+1}</span><div><strong>${esc(item.item.replace("https://euamourania.com.br","")||"/")}</strong><small>CTR ${percent(item.ctr)}</small></div><small>${item.clicks} cliques</small></div>`).join("")||'<div class="empty-state">Sem páginas no período.</div>'}</section>`;
+}
 async function renderAudience(days=30,customStart=null,customEnd=null){
  setActive("audience-nav","Audiência","audiencia");
  loading();
  try{
   const end=customEnd?new Date(`${customEnd}T12:00:00`):new Date();
   const start=customStart?new Date(`${customStart}T12:00:00`):new Date(end.getTime()-(days-1)*864e5);
-  const [data,ads]=await Promise.all([
-   obterAudienciaAvancada(isoDate(start),isoDate(end)),
-   db.from("publicidade_resumo").select("nome,impressoes,cliques,ctr").order("impressoes",{ascending:false}).limit(8)
+  const startString=isoDate(start),endString=isoDate(end);
+  const [data,ads,google]=await Promise.all([
+   obterAudienciaAvancada(startString,endString),
+   db.from("publicidade_resumo").select("nome,impressoes,cliques,ctr").order("impressoes",{ascending:false}).limit(8),
+   googleAudience(startString,endString)
   ]);
   data.recursos=await resourceNames(data.recursos||[]);
   audienceData=data;
@@ -268,6 +303,7 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
   </section>
   <div class="insight-grid audience-metrics">${metrics.map(([label,value,change])=>`<article class="metric-card"><span>${label}</span><strong>${Number(value).toLocaleString("pt-BR")}</strong><small class="${change.startsWith("-")?"down":"up"}">${change} vs. período anterior</small></article>`).join("")}</div>
   <div class="insight-layout audience-layout">
+   ${googlePanels(google)}
    <section class="panel wide"><header class="panel-header"><h2>Acessos por dia</h2></header>${chart(data.serie)}</section>
    <section class="panel"><header class="panel-header"><h2>Páginas mais acessadas</h2></header>${rankList(data.paginas,"pagina")}</section>
    <section class="panel"><header class="panel-header"><h2>Conteúdos mais acessados</h2></header>${content.map((item,index)=>`<div class="rank-item"><span>${index+1}</span><div><strong>${esc(item.nome)}</strong><small>${esc(item.tipo)}</small></div><small>${item.total}</small></div>`).join("")||'<div class="empty-state">Sem dados.</div>'}</section>

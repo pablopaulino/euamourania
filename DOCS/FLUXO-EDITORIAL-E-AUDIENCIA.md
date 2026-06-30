@@ -37,13 +37,18 @@ O identificador de sessão é aleatório, fica no `sessionStorage` e não identi
 
 ## Google Analytics e Search Console
 
-As métricas próprias funcionam sem Google. Para uma etapa futura, configure no backend da Vercel:
+As métricas próprias funcionam mesmo se o Google estiver temporariamente indisponível. A integração complementar usa:
 
+- `GA_MEASUREMENT_ID`;
 - `GA4_PROPERTY_ID`;
 - `GOOGLE_SERVICE_ACCOUNT_JSON`;
 - `SEARCH_CONSOLE_SITE_URL`.
 
-Conceda à conta de serviço somente leitura na propriedade GA4 e no Search Console. Antes de ativar scripts que criem cookies, revise o consentimento/LGPD. Nunca exponha o JSON da conta de serviço no frontend.
+O site consulta `/api/google-config` e recebe somente o ID público de medição. O GA4 é carregado apenas depois de o visitante escolher **Aceitar** no aviso de cookies. A recusa mantém o portal disponível e não carrega a tag do Google.
+
+O painel autenticado consulta `/api/google-audience`, que valida a permissão `insights:ler`, gera um token OAuth da conta de serviço no backend e combina GA4 Data API e Search Console API. As respostas ficam em cache por dez minutos.
+
+Conceda à conta de serviço somente leitura na propriedade GA4 e acesso de leitura no Search Console. Nunca exponha o JSON da conta de serviço no frontend, em logs ou no GitHub.
 
 ## Validação por função
 
