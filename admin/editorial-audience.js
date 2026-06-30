@@ -228,7 +228,7 @@ function rankList(rows,label,value="total"){
  return(rows||[]).map((row,index)=>`<div class="rank-item"><span>${index+1}</span><strong>${esc(row[label]||"Não identificado")}</strong><small>${Number(row[value]||0).toLocaleString("pt-BR")}</small></div>`).join("")||'<div class="empty-state">Sem dados no período.</div>';
 }
 async function resourceNames(resources=[]){
- const config={noticia:["noticias","titulo"],guia:["guia_comercial","nome"],evento:["eventos","titulo"],turismo:["turismo","nome"]};
+ const config={noticia:["noticias","titulo"],guia:["guia_comercial","nome"],evento:["eventos","titulo"],turismo:["turismo","nome"],link:["links","titulo"]};
  const map=new Map();
  await Promise.all(Object.entries(config).map(async([type,[table,label]])=>{
   const ids=[...new Set(resources.filter(item=>item.tipo===type).map(item=>item.id).filter(Boolean))];
@@ -295,9 +295,10 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
    ["Visitantes",summary.visitantes||0,variation(summary.visitantes||0,previous.visitantes||0)],
    ["Notícias lidas",summary.noticias||0,variation(summary.noticias||0,previous.noticias||0)],
    ["Cliques WhatsApp",summary.whatsapp||0,variation(summary.whatsapp||0,previous.whatsapp||0)],
-   ["Links externos",summary.externos||0,variation(summary.externos||0,previous.externos||0)]
+   ["Links externos",summary.externos||0,variation(summary.externos||0,previous.externos||0)],
+   ["Cliques em conteúdos",summary.cliques_conteudo||0,"—"]
   ];
-  const content=(data.recursos||[]).filter(item=>["noticia","guia","evento","turismo"].includes(item.tipo)).slice(0,12);
+  const content=(data.recursos||[]).filter(item=>["noticia","guia","evento","turismo","link"].includes(item.tipo)).slice(0,12);
   app.innerHTML=`<section class="audience-head panel"><div><h2>Central de audiência</h2><p>Dados próprios do portal, sem armazenamento de IP ou informações pessoais.</p></div>
    <div class="audience-filters"><select id="audience-period"><option value="7">7 dias</option><option value="30" ${days===30?"selected":""}>30 dias</option><option value="90" ${days===90?"selected":""}>90 dias</option><option value="custom">Personalizado</option></select><input id="audience-start" type="date" value="${isoDate(start)}"><input id="audience-end" type="date" value="${isoDate(end)}"><button class="admin-button secondary" id="audience-apply">Aplicar</button><button class="admin-button secondary" id="audience-export">Exportar CSV</button></div>
   </section>
