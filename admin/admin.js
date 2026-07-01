@@ -69,7 +69,7 @@ async function editForm(table,id) {
 
 async function handleClick(event) {
   const button=event.target.closest("button");if(!button)return;
-  if(button.dataset.view){currentView=button.dataset.view;location.hash=currentView;document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b===button));sidebar.classList.remove("open");return currentView==="dashboard"?dashboard():resourceList(currentView);}
+  if(button.dataset.view){currentView=button.dataset.view;location.hash=currentView;document.querySelectorAll(".admin-nav button").forEach(b=>b.classList.toggle("active",b===button));sidebar.classList.remove("open");return currentView==="dashboard"?dashboard():resourceList(currentView);}
   if(button.dataset.new)return editForm(button.dataset.new);
   if(button.dataset.edit)return editForm(button.dataset.edit,button.dataset.id);
   if(button.dataset.cancel)return resourceList(button.dataset.cancel);
