@@ -43,15 +43,28 @@ record("page_view");
 
 document.addEventListener("click",event=>{
  const link=event.target.closest("a[href]");if(!link)return;
- const href=link.href||"",guide=link.closest("[data-guide-id]"),eventCard=link.closest("[data-event-id]"),tourism=link.closest("[data-tourism-id]");
- const resource=guide?{recursoTipo:"guia",recursoId:guide.dataset.guideId}:eventCard?{recursoTipo:"evento",recursoId:eventCard.dataset.eventId}:tourism?{recursoTipo:"turismo",recursoId:tourism.dataset.tourismId}:{};
- if(guide)record("guia_view",resource);
- if(eventCard)record("evento_view",resource);
- if(tourism)record("turismo_view",resource);
+ const href=link.href||"",guide=link.closest("[data-guide-id]"),eventCard=link.closest("[data-event-id]"),tourism=link.closest("[data-tourism-id]"),channel=link.closest("[data-link-id]");
+ const resource=guide?{recursoTipo:"guia",recursoId:guide.dataset.guideId}:eventCard?{recursoTipo:"evento",recursoId:eventCard.dataset.eventId}:tourism?{recursoTipo:"turismo",recursoId:tourism.dataset.tourismId}:channel?{recursoTipo:"link",recursoId:channel.dataset.linkId}:{};
+ if(guide)record("guia_click",resource);
+ if(eventCard)record("evento_click",resource);
+ if(tourism)record("turismo_click",resource);
+ if(channel)record("link_click",{...resource,destino:href});
  if(/wa\.me|whatsapp\.com/i.test(href))record("whatsapp_click",{...resource,destino:href});
  else if(/instagram\.com/i.test(href))record("instagram_click",{...resource,destino:href});
  else if(/^https?:/i.test(href)&&new URL(href).origin!==location.origin)record("external_click",{...resource,destino:href});
 });
+
+function observeCards(selector,tipo,datasetKey,recursoTipo){
+ if(!("IntersectionObserver" in window))return;
+ const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
+  if(!entry.isIntersecting)return;
+  const id=entry.target.dataset[datasetKey];
+  if(id)record(tipo,{recursoTipo,recursoId:id});
+  observer.unobserve(entry.target);
+ }),{threshold:.5});
+ document.querySelectorAll(selector).forEach(card=>observer.observe(card));
+}
+document.addEventListener("guia:renderizado",()=>observeCards("[data-guide-id]","guia_view","guideId","guia"));
 
 document.addEventListener("submit",event=>{
  const search=event.target.querySelector('input[type="search"],input[name="q"],input[name="busca"]');

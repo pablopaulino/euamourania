@@ -30,5 +30,22 @@ export async function obterAudienciaAvancada(inicio,fim){
     p_inicio:inicio,p_fim:fim
   });
   if(error) throw error;
-  return data||{};
+  const inicioIso=`${inicio}T00:00:00-03:00`;
+  const fimDate=new Date(`${fim}T00:00:00-03:00`);
+  fimDate.setDate(fimDate.getDate()+1);
+  const {data:clicks,error:clickError}=await getSupabase().from("analytics_eventos")
+    .select("tipo,recurso_tipo,recurso_id")
+    .in("tipo",["guia_click","turismo_click","evento_click","link_click"])
+    .gte("criado_em",inicioIso).lt("criado_em",fimDate.toISOString()).limit(5000);
+  if(clickError) throw clickError;
+  const result=data||{};
+  const grouped=new Map();
+  (clicks||[]).forEach(item=>{
+    const key=`${item.recurso_tipo}:${item.recurso_id}:${item.tipo}`;
+    const current=grouped.get(key)||{tipo:item.recurso_tipo,id:item.recurso_id,evento:item.tipo,total:0};
+    current.total++;grouped.set(key,current);
+  });
+  result.resumo={...(result.resumo||{}),cliques_conteudo:(clicks||[]).length};
+  result.recursos=[...(result.recursos||[]),...grouped.values()].sort((a,b)=>b.total-a.total);
+  return result;
 }

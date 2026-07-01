@@ -13,7 +13,7 @@ async function carregarLinks() {
     const links = await listarLinks();
     if (!links.length) { status.textContent = "Nenhum link publicado."; return; }
     status.hidden = true;
-    container.innerHTML = links.map(link => `<a href="${safeUrl(link.url)}" class="link-button" target="_blank" rel="noopener noreferrer"><span>${link.icone ? `${escapeHtml(link.icone)} ` : ""}${escapeHtml(link.titulo)}</span><span aria-hidden="true">↗</span></a>`).join("");
+    container.innerHTML = links.map(link => `<a href="${safeUrl(link.url)}" class="link-button" data-link-id="${link.id}" target="_blank" rel="noopener noreferrer"><span>${link.icone ? `${escapeHtml(link.icone)} ` : ""}${escapeHtml(link.titulo)}</span><span aria-hidden="true">↗</span></a>`).join("");
   } catch (error) { console.error(error); status.textContent = "Não foi possível carregar os links."; }
 }
 carregarLinks();
