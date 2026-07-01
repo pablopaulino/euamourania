@@ -193,31 +193,62 @@ async function fileFromUrl(item){
 async function openLibraryPicker({folder,preset,onSelect}){
  const rows=await listarMidiasDisponiveis();
  return new Promise(resolve=>{
+  const previousActive=document.activeElement;
+  const previousOverflow=document.body.style.overflow;
   const modal=document.createElement("div");
   modal.className="cms-library-picker-backdrop";
   modal.innerHTML=`<section class="cms-library-picker" role="dialog" aria-modal="true" aria-labelledby="library-picker-title">
    <header><div><p class="eyebrow">Biblioteca do CMS</p><h2 id="library-picker-title">Escolher imagem existente</h2></div><button type="button" class="cms-editor-close" data-library-close aria-label="Fechar">×</button></header>
-   <div class="cms-library-toolbar"><input type="search" data-library-search placeholder="Pesquisar por nome ou pasta…"><span>${rows.length} imagem(ns)</span></div>
+   <div class="cms-library-toolbar"><input type="search" data-library-search placeholder="Pesquisar por nome ou pasta…"><span data-library-count>${rows.length} imagem(ns)</span></div>
    <div class="cms-library-picker-grid">${rows.map(item=>`<article class="cms-library-picker-card" data-search="${safe(`${item.nome_original||""} ${item.pasta||""}`.toLowerCase())}">
     <img src="${safe(item.url)}" alt="${safe(item.nome_original||"Imagem da biblioteca")}" loading="lazy">
-    <div><strong>${safe(item.nome_original||item.caminho.split("/").pop())}</strong><small>${safe(item.pasta)} · ${item.largura&&item.altura?`${item.largura}×${item.altura}`:"dimensão não registrada"}</small></div>
+    <div><strong title="${safe(item.nome_original||item.caminho.split("/").pop())}">${safe(item.nome_original||item.caminho.split("/").pop())}</strong><small title="${safe(item.pasta)}">${safe(item.pasta)} · ${item.largura&&item.altura?`${item.largura}×${item.altura}`:"dimensão não registrada"}</small></div>
     <div class="cms-library-card-actions"><button type="button" class="admin-button secondary" data-library-edit="${item.id}">Editar / outro formato</button><button type="button" class="admin-button" data-library-use="${item.id}">Usar imagem</button></div>
    </article>`).join("")||'<div class="empty-state">Nenhuma imagem disponível. Envie a primeira imagem pelo formulário.</div>'}</div>
    <p class="cms-library-picker-status" aria-live="polite"></p>
   </section>`;
+  document.body.style.overflow="hidden";
   document.body.append(modal);
   const status=modal.querySelector(".cms-library-picker-status");
-  const close=value=>{modal.remove();resolve(value)};
+  let settled=false;
+  const close=value=>{
+   if(settled)return;
+   settled=true;
+   document.removeEventListener("keydown",onKeydown);
+   document.body.style.overflow=previousOverflow;
+   modal.remove();
+   previousActive?.focus?.();
+   resolve(value);
+  };
+  const onKeydown=event=>{if(event.key==="Escape")close(null)};
+  document.addEventListener("keydown",onKeydown);
   modal.querySelector("[data-library-close]").addEventListener("click",()=>close(null));
+  modal.addEventListener("click",event=>{if(event.target===modal)close(null)});
   modal.querySelector("[data-library-search]").addEventListener("input",event=>{
    const term=event.target.value.trim().toLowerCase();
-   modal.querySelectorAll(".cms-library-picker-card").forEach(card=>card.hidden=!card.dataset.search.includes(term));
+   let visible=0;
+   modal.querySelectorAll(".cms-library-picker-card").forEach(card=>{
+    card.hidden=!card.dataset.search.includes(term);
+    if(!card.hidden)visible+=1;
+   });
+   modal.querySelector("[data-library-count]").textContent=term?`${visible} de ${rows.length} imagem(ns)`:`${rows.length} imagem(ns)`;
   });
+  modal.querySelector("[data-library-search]").focus();
   modal.addEventListener("click",async event=>{
    const button=event.target.closest("button");if(!button)return;
    const useId=button.dataset.libraryUse,editId=button.dataset.libraryEdit;
    const item=rows.find(row=>row.id===(useId||editId));if(!item)return;
-   if(useId){onSelect(item.url);close(item.url);return}
+   if(useId){
+    button.disabled=true;status.className="cms-library-picker-status";status.textContent="Selecionando imagem…";
+    try{
+     await onSelect(item.url);
+     close(item.url);
+    }catch(error){
+     status.className="cms-library-picker-status error";status.textContent=error.message||"Não foi possível usar esta imagem.";
+     button.disabled=false;
+    }
+    return;
+   }
    button.disabled=true;status.className="cms-library-picker-status";status.textContent="Abrindo imagem para edição…";
    try{
     const file=await fileFromUrl(item);
