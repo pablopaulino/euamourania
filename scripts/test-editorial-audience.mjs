@@ -1,10 +1,12 @@
 import{readFile}from"node:fs/promises";
 const root=new URL("../",import.meta.url),read=path=>readFile(new URL(path,root),"utf8");
 const must=(condition,message)=>{if(!condition)throw new Error(message)};
-const[migration,auditMigration,admin,analytics,index,categoryFields,guide,docs]=await Promise.all([
+const[migration,directMigration,auditMigration,admin,cms,analytics,index,categoryFields,guide,docs]=await Promise.all([
  read("supabase/migrations/20260630_fluxo_editorial_audiencia.sql"),
+ read("supabase/migrations/20260701_super_admin_publicacao_direta.sql"),
  read("supabase/migrations/20260630_auditoria_categorias_metricas.sql"),
  read("admin/editorial-audience.js"),
+ read("admin/cms-v2.js"),
  read("assets/js/pages/analytics-page.js"),
  read("admin/admin.js"),
  read("admin/category-fields.js"),
@@ -16,6 +18,12 @@ for(const fn of["enviar_noticia_revisao","revisar_noticia","obter_audiencia_avan
 must(migration.includes("noticias_publicacao_aprovada_check"),"Publicação não exige aprovação");
 must(migration.includes("current_user in('anon','authenticated')"),"Estado editorial pode ser alterado diretamente");
 must(migration.includes("criado_por is distinct from (select auth.uid())"),"Redator sem proteção de propriedade");
+must(directMigration.includes("publicar_noticia_super_admin")&&directMigration.includes("funcao_admin_atual()<>'super_admin'"),"Publicação direta não está restrita ao Super Admin");
+must(directMigration.includes("before insert or update")&&directMigration.includes("status_editorial<>'rascunho'"),"Insert pode contornar o fluxo editorial");
+must(directMigration.includes("impedir_autorrevisao_noticia")&&directMigration.includes("old.enviado_por=(select auth.uid())"),"Editor pode aprovar a própria matéria");
+must(admin.includes('funcao==="super_admin"')&&admin.includes("Publicar agora")&&admin.includes("Aguardando outro revisor"),"Interface não diferencia Super Admin e revisores");
+must(cms.includes('import { obterAcessoAtual }')&&cms.includes('rpc("publicar_noticia_super_admin"')&&cms.includes("Notícia publicada diretamente."),"Editor não usa a publicação direta segura");
+must(admin.includes('news?.criado_por===access()?.user?.id&&state==="em_revisao"'),"Autor não fica bloqueado durante a revisão");
 must(admin.includes("Fila de aprovação")&&admin.includes("Aprovar e publicar"),"Fila editorial incompleta");
 must(admin.includes("Exportar CSV")&&admin.includes("Central de audiência"),"Dashboard de audiência incompleto");
 must(admin.includes("completeDailySeries")&&admin.includes("audience-bar-value")&&admin.includes("data-chart-bar"),"Gráfico diário sem valores visíveis ou interação móvel");

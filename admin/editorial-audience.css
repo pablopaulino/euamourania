@@ -19,6 +19,7 @@
 .editorial-form-state span{font-size:.78rem;font-weight:800;text-transform:uppercase;color:#58717a}
 .editorial-form-state strong{color:#003b49}
 .editorial-form-state p{margin:.65rem 0 0}
+.cms-actions button:disabled{opacity:.5;cursor:not-allowed}
 .editor-locked{pointer-events:none;opacity:.65}
 .approval-metric button{margin-top:.5rem;border:0;background:none;color:#006b78;font-weight:800;cursor:pointer}
 .audience-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem}
