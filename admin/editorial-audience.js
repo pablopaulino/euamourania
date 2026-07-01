@@ -48,6 +48,9 @@ function access(){
 function canReview(){
  return temPermissao(access()?.admin,"noticias","publicar");
 }
+function isSuperAdmin(){
+ return access()?.admin?.funcao==="super_admin";
+}
 function setActive(id,title,hash){
  pageTitle.textContent=title;
  location.hash=hash;
@@ -96,7 +99,7 @@ async function renderApprovals(){
     <td>${esc(item.noticia.autor||"Sem autor")}</td>
     <td><span class="editorial-status ${item.status}">${esc(requestLabel(item.status))}</span></td>
     <td>${fmtDate(item.enviado_em)}</td>
-    <td><div class="cms-actions"><button data-approval-preview="${item.noticia.id}">Prévia</button>${item.status==="pendente"?`<button class="primary-action" data-approval-review="${item.noticia.id}">Revisar</button>`:""}${item.comentario?`<button data-approval-comment="${item.id}">Comentário</button>`:""}</div></td>
+    <td><div class="cms-actions"><button data-approval-preview="${item.noticia.id}">Prévia</button>${item.status==="pendente"?`<button class="primary-action" data-approval-review="${item.noticia.id}" ${item.enviado_por===access()?.user?.id&&!isSuperAdmin()?'disabled title="Sua matéria deve ser revisada por outra pessoa"':""}>${item.enviado_por===access()?.user?.id&&!isSuperAdmin()?"Aguardando outro revisor":"Revisar"}</button>`:""}${item.comentario?`<button data-approval-comment="${item.id}">Comentário</button>`:""}</div></td>
    </tr>`).join("")||'<tr><td colspan="5"><div class="empty-state">Nenhuma solicitação de aprovação.</div></td></tr>'}</tbody></table></div>
   </section><div id="editorial-dialog"></div>`;
   const filter=()=>{
@@ -166,13 +169,13 @@ async function decorateNews(){
  const rows=[...document.querySelectorAll("#news-rows tr")];if(!rows.length)return;
  const ids=rows.map(row=>row.querySelector("[data-news-edit]")?.dataset.newsEdit).filter(Boolean);
  if(!ids.length)return;
- const {data}=await db.from("noticias").select("id,status_editorial").in("id",ids);
- const states=new Map((data||[]).map(item=>[item.id,item.status_editorial]));
+ const {data}=await db.from("noticias").select("id,status_editorial,criado_por").in("id",ids);
+ const states=new Map((data||[]).map(item=>[item.id,item]));
  rows.forEach(row=>{
-  const edit=row.querySelector("[data-news-edit]"),status=states.get(edit?.dataset.newsEdit);
+  const edit=row.querySelector("[data-news-edit]"),item=states.get(edit?.dataset.newsEdit),status=item?.status_editorial;
   if(!status||row.querySelector(".editorial-status"))return;
   row.querySelector(".cms-title-cell small")?.insertAdjacentHTML("afterend",`<span class="editorial-status ${status}">${esc(editorialLabel(status))}</span>`);
-  if(access()?.admin.funcao==="redator"&&status==="em_revisao"){
+  if(!isSuperAdmin()&&item.criado_por===access()?.user?.id&&status==="em_revisao"){
    edit.disabled=true;edit.title="A matéria está bloqueada durante a revisão";
   }
  });
@@ -191,21 +194,27 @@ async function decorateNewsForm(){
  }
  const state=news?.status_editorial||"rascunho";
  const publishButton=actions.querySelector('[data-save-status="publicado"]');
- if(publishButton&&state!=="aprovado")publishButton.hidden=true;
+ const directPublish=isSuperAdmin();
+ if(publishButton){
+  publishButton.hidden=!directPublish&&state!=="aprovado";
+  if(directPublish)publishButton.textContent="Publicar agora";
+ }
  const info=document.createElement("div");info.className="editorial-form-state";
  info.innerHTML=`<div><span>Fluxo editorial</span><strong>${esc(editorialLabel(state))}</strong></div>${latest?.comentario?`<p><strong>Comentário da revisão:</strong> ${esc(latest.comentario)}</p>`:""}`;
  actions.before(info);
- if(currentNewsId&&["rascunho","ajustes_solicitados"].includes(state)&&news?.status==="rascunho"){
+ if(!directPublish&&currentNewsId&&["rascunho","ajustes_solicitados"].includes(state)&&news?.status==="rascunho"){
   const send=document.createElement("button");send.type="button";send.className="admin-button";send.dataset.sendApproval=currentNewsId;send.textContent="Enviar para aprovação";
   actions.insertBefore(send,actions.querySelector('[data-save-status="publicado"]'));
  }
- if(!currentNewsId){
+ if(directPublish){
+  info.insertAdjacentHTML("beforeend","<p>Como Super Admin, você pode publicar diretamente sem enviar para aprovação.</p>");
+ }else if(!currentNewsId){
   info.insertAdjacentHTML("beforeend","<p>Salve o rascunho e abra-o novamente para enviar à aprovação.</p>");
  }
- if(currentNewsId&&state!=="aprovado"){
+ if(!directPublish&&currentNewsId&&state!=="aprovado"){
   info.insertAdjacentHTML("beforeend","<p>A publicação será liberada depois da aprovação editorial.</p>");
  }
- if(access()?.admin.funcao==="redator"&&state==="em_revisao"){
+ if(!directPublish&&news?.criado_por===access()?.user?.id&&state==="em_revisao"){
   form.querySelectorAll("input,textarea,select,button").forEach(field=>{if(!field.hasAttribute("data-back-news")&&!field.hasAttribute("data-preview"))field.disabled=true});
   document.querySelector("#editor")?.classList.add("editor-locked");
   info.insertAdjacentHTML("beforeend","<p>A edição está bloqueada enquanto a matéria estiver em revisão.</p>");

@@ -6,7 +6,7 @@ O painel reúne Notícias, Guia, Turismo, Eventos, Links, Categorias, Publicidad
 
 ## Fluxo editorial
 
-Crie como rascunho, complete título/slug/resumo/conteúdo/imagem/categoria/SEO e use a prévia. Redatores enviam para aprovação; Editores, Administradores e Super Admins revisam, solicitam ajustes, aprovam ou publicam. O estado editorial é separado do status público e a proteção também existe no banco. Consulte `FLUXO-EDITORIAL-E-AUDIENCIA.md`.
+Crie como rascunho, complete título/slug/resumo/conteúdo/imagem/categoria/SEO e use a prévia. Redatores, Editores e Administradores enviam as próprias matérias para aprovação e não podem revisar o próprio envio. O Super Admin pode publicar diretamente. O estado editorial é separado do status público e a proteção também existe no banco. Consulte `FLUXO-EDITORIAL-E-AUDIENCIA.md`.
 
 `destaque` controla a área especial da home e o topo de notícias; sem itens ativos a área desaparece.
 
