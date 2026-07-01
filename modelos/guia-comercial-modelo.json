@@ -1,0 +1,54 @@
+{
+  "tipo": "guia_comercial",
+  "versao": 1,
+  "instrucoes": [
+    "Preencha os objetos dentro de itens e duplique o bloco para cada empresa.",
+    "nome e categoria são obrigatórios.",
+    "slug é opcional e será criado automaticamente a partir do nome.",
+    "Telefones e WhatsApp devem ficar entre aspas.",
+    "Use somente rascunho, publicado ou arquivado no campo status.",
+    "Apague o objeto vazio antes de importar se não for utilizá-lo."
+  ],
+  "exemplo": {
+    "nome": "Padaria Exemplo",
+    "slug": "padaria-exemplo",
+    "categoria": "Gastronomia",
+    "descricao": "Pães, bolos e salgados feitos diariamente.",
+    "imagem_url": "https://exemplo.com/imagem.jpg",
+    "galeria_urls": [],
+    "whatsapp": "5517999999999",
+    "telefone": "1736340000",
+    "instagram": "https://instagram.com/padariaexemplo",
+    "facebook": "",
+    "site": "",
+    "endereco": "Rua Exemplo, 123 - Centro, Urânia - SP",
+    "horario": "Segunda a sábado, das 6h às 19h",
+    "mapa_url": "https://maps.google.com/",
+    "recomendado": false,
+    "status": "publicado",
+    "seo_titulo": "Padaria Exemplo em Urânia",
+    "seo_descricao": "Conheça a Padaria Exemplo em Urânia."
+  },
+  "itens": [
+    {
+      "nome": "",
+      "slug": "",
+      "categoria": "",
+      "descricao": "",
+      "imagem_url": "",
+      "galeria_urls": [],
+      "whatsapp": "",
+      "telefone": "",
+      "instagram": "",
+      "facebook": "",
+      "site": "",
+      "endereco": "",
+      "horario": "",
+      "mapa_url": "",
+      "recomendado": false,
+      "status": "publicado",
+      "seo_titulo": "",
+      "seo_descricao": ""
+    }
+  ]
+}
