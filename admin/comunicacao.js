@@ -1,5 +1,6 @@
 import { exigirAdministrador,sair } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
+import "./media-upload.js";
 const db=getSupabase(),app=document.getElementById("communication-app"),esc=(v="")=>String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])),fmt=n=>new Intl.NumberFormat("pt-BR").format(Number(n)||0),date=v=>v?new Date(v).toLocaleString("pt-BR"):"—";let editor;
 const interests=[["noticias","Notícias"],["eventos","Eventos"],["turismo","Turismo"],["comercio","Comércio"],["promocoes","Promoções"],["esportes","Esportes"],["politica","Política"],["tudo","Tudo"]];
 function toast(m,t="success"){const e=document.createElement("div");e.className=`toast ${t}`;e.textContent=m;document.getElementById("toasts").append(e);setTimeout(()=>e.remove(),3500)}function loading(){app.innerHTML='<div class="ads-card"><div class="skeleton"></div><div class="skeleton"></div></div>'}function tabs(v){document.querySelectorAll(".ads-tab").forEach(x=>x.classList.toggle("active",x.dataset.view===v))}function checks(name,selected=[]){return interests.map(([v,l])=>`<label class="ads-checkbox"><input type="checkbox" name="${name}" value="${v}" ${selected.includes(v)?"checked":""}> ${l}</label>`).join("")}

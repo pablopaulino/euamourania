@@ -89,3 +89,4 @@ async function init(){
 init();
 import("./editorial-audience.js").catch(error=>console.error("Módulos editorial/audiência:",error));
 import("./category-fields.js").catch(error=>console.error("Categorias dos conteúdos:",error));
+import("./media-upload.js").catch(error=>console.error("Upload de imagens:",error));
