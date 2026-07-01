@@ -46,6 +46,16 @@ export async function listarMidias(){
  return data||[];
 }
 
+export async function listarMidiasDisponiveis(){
+ const {data,error}=await getSupabase().from("cms_midias")
+  .select("id,url,caminho,pasta,nome_original,mime_type,tamanho,largura,altura,variante,criado_em")
+  .eq("variante","otimizada")
+  .order("criado_em",{ascending:false})
+  .limit(500);
+ if(error)throw error;
+ return data||[];
+}
+
 export async function excluirMidia(midia){
  if(midia.em_uso)throw new Error("Esta imagem está sendo usada e não pode ser excluída.");
  const {error:storageError}=await getSupabase().storage.from(BUCKET).remove([midia.caminho]);

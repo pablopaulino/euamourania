@@ -21,6 +21,12 @@ No editor de notícia, turismo e newsletter, **Inserir imagem no texto** envia o
 
 O campo de URL permanece disponível para imagens já hospedadas em outro serviço.
 
+## Reutilizar uma imagem
+
+Em qualquer campo de imagem, use **Escolher da biblioteca** para pesquisar e selecionar um arquivo que já foi enviado. A imagem pode ser usada diretamente ou aberta em **Editar / outro formato** para gerar um novo recorte.
+
+Depois de enviar uma imagem nova, **Criar outro formato** reabre o mesmo arquivo original sem exigir uma nova seleção. Cada recorte é salvo como uma versão independente; assim, uma versão pode ser usada como imagem principal e outra como imagem de compartilhamento.
+
 ## Originais e limpeza segura
 
 Quando **Guardar o arquivo original por 7 dias** estiver marcado, o CMS preserva o arquivo recebido e publica a versão editada. O original não pode ser removido pela limpeza antes desse prazo.

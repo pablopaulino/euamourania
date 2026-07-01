@@ -1,4 +1,4 @@
-import { uploadImagem, listarMidias, excluirMidia } from "../assets/js/services/mediaService.js";
+import { uploadImagem, listarMidias, listarMidiasDisponiveis, excluirMidia } from "../assets/js/services/mediaService.js";
 import { obterAcessoAtual } from "./auth.js";
 
 const enhanced=new WeakSet();
@@ -41,7 +41,7 @@ function canvasBlob(canvas,type="image/webp",quality=.86){
  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Não foi possível processar a imagem.")),type,quality));
 }
 
-function openImageEditor(file,initialPreset="wide"){
+function openImageEditor(file,initialPreset="wide",keepOriginal=true){
  return new Promise((resolve,reject)=>{
   const objectUrl=URL.createObjectURL(file);
   const image=new Image();
@@ -55,7 +55,7 @@ function openImageEditor(file,initialPreset="wide"){
      <label>Formato<select data-crop-preset>${Object.entries(PRESETS).map(([value,preset])=>`<option value="${value}" ${value===initialPreset?"selected":""}>${preset.label}</option>`).join("")}</select></label>
      <label>Zoom<input data-crop-zoom type="range" min="1" max="3" value="1" step="0.01"></label>
      <div class="cms-rotate-controls"><span>Rotação</span><button type="button" data-rotate="-90">↶ 90°</button><button type="button" data-rotate="90">↷ 90°</button></div>
-     <label class="cms-preserve-original"><input data-keep-original type="checkbox" checked> Guardar o arquivo original por 7 dias</label>
+     <label class="cms-preserve-original"><input data-keep-original type="checkbox" ${keepOriginal?"checked":""}> Guardar o arquivo original por 7 dias</label>
     </div>
     <footer><button type="button" class="admin-button secondary" data-use-original>Usar sem recortar</button><button type="button" class="admin-button secondary" data-crop-cancel>Cancelar</button><button type="button" class="admin-button" data-crop-apply>Aplicar recorte</button></footer>
    </section>`;
@@ -168,8 +168,8 @@ function openImageEditor(file,initialPreset="wide"){
  });
 }
 
-async function processAndUpload(file,folder,preset){
- const edited=await openImageEditor(file,preset);
+async function processAndUpload(file,folder,preset,{keepOriginal=true}={}){
+ const edited=await openImageEditor(file,preset,keepOriginal);
  if(!edited)return null;
  if(edited.original){
   await uploadImagem(edited.original,`${folder}/originais`,{
@@ -181,36 +181,113 @@ async function processAndUpload(file,folder,preset){
  });
 }
 
+async function fileFromUrl(item){
+ const response=await fetch(item.url);
+ if(!response.ok)throw new Error("Não foi possível abrir esta imagem da biblioteca.");
+ const blob=await response.blob();
+ const extension=(blob.type.split("/")[1]||"jpg").replace("jpeg","jpg");
+ const name=(item.nome_original||`imagem-${item.id}.${extension}`).replace(/[^\p{L}\p{N}_.-]+/gu,"-");
+ return new File([blob],name,{type:blob.type||item.mime_type||"image/jpeg",lastModified:Date.now()});
+}
+
+async function openLibraryPicker({folder,preset,onSelect}){
+ const rows=await listarMidiasDisponiveis();
+ return new Promise(resolve=>{
+  const modal=document.createElement("div");
+  modal.className="cms-library-picker-backdrop";
+  modal.innerHTML=`<section class="cms-library-picker" role="dialog" aria-modal="true" aria-labelledby="library-picker-title">
+   <header><div><p class="eyebrow">Biblioteca do CMS</p><h2 id="library-picker-title">Escolher imagem existente</h2></div><button type="button" class="cms-editor-close" data-library-close aria-label="Fechar">×</button></header>
+   <div class="cms-library-toolbar"><input type="search" data-library-search placeholder="Pesquisar por nome ou pasta…"><span>${rows.length} imagem(ns)</span></div>
+   <div class="cms-library-picker-grid">${rows.map(item=>`<article class="cms-library-picker-card" data-search="${safe(`${item.nome_original||""} ${item.pasta||""}`.toLowerCase())}">
+    <img src="${safe(item.url)}" alt="${safe(item.nome_original||"Imagem da biblioteca")}" loading="lazy">
+    <div><strong>${safe(item.nome_original||item.caminho.split("/").pop())}</strong><small>${safe(item.pasta)} · ${item.largura&&item.altura?`${item.largura}×${item.altura}`:"dimensão não registrada"}</small></div>
+    <div class="cms-library-card-actions"><button type="button" class="admin-button secondary" data-library-edit="${item.id}">Editar / outro formato</button><button type="button" class="admin-button" data-library-use="${item.id}">Usar imagem</button></div>
+   </article>`).join("")||'<div class="empty-state">Nenhuma imagem disponível. Envie a primeira imagem pelo formulário.</div>'}</div>
+   <p class="cms-library-picker-status" aria-live="polite"></p>
+  </section>`;
+  document.body.append(modal);
+  const status=modal.querySelector(".cms-library-picker-status");
+  const close=value=>{modal.remove();resolve(value)};
+  modal.querySelector("[data-library-close]").addEventListener("click",()=>close(null));
+  modal.querySelector("[data-library-search]").addEventListener("input",event=>{
+   const term=event.target.value.trim().toLowerCase();
+   modal.querySelectorAll(".cms-library-picker-card").forEach(card=>card.hidden=!card.dataset.search.includes(term));
+  });
+  modal.addEventListener("click",async event=>{
+   const button=event.target.closest("button");if(!button)return;
+   const useId=button.dataset.libraryUse,editId=button.dataset.libraryEdit;
+   const item=rows.find(row=>row.id===(useId||editId));if(!item)return;
+   if(useId){onSelect(item.url);close(item.url);return}
+   button.disabled=true;status.className="cms-library-picker-status";status.textContent="Abrindo imagem para edição…";
+   try{
+    const file=await fileFromUrl(item);
+    const result=await processAndUpload(file,folder,preset,{keepOriginal:false});
+    if(!result){status.textContent="Edição cancelada.";button.disabled=false;return}
+    onSelect(result.url);close(result.url);
+   }catch(error){
+    status.className="cms-library-picker-status error";status.textContent=error.message||"Não foi possível editar a imagem.";
+    button.disabled=false;
+   }
+  });
+ });
+}
+
 function attachUrlUpload(input,folder,preset){
  if(!input||enhanced.has(input))return;
  enhanced.add(input);
  const controls=document.createElement("div");
  controls.className="cms-media-upload";
- controls.innerHTML='<label class="cms-media-button">Enviar e editar imagem<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></label><span class="cms-media-state">Envie, recorte e visualize antes de salvar · máximo 8 MB.</span><div class="cms-media-preview"></div>';
+ controls.innerHTML='<div class="cms-media-actions"><label class="cms-media-button">Enviar e editar<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></label><button type="button" class="cms-media-button" data-open-library>Escolher da biblioteca</button><button type="button" class="cms-media-button" data-repeat-crop hidden>Criar outro formato</button></div><span class="cms-media-state">Envie uma imagem nova ou reutilize uma que já está na biblioteca.</span><div class="cms-media-preview"></div>';
  input.insertAdjacentElement("afterend",controls);
  const picker=controls.querySelector('input[type="file"]');
  const button=controls.querySelector(".cms-media-button");
  const status=controls.querySelector(".cms-media-state");
  const previewBox=controls.querySelector(".cms-media-preview");
+ const libraryButton=controls.querySelector("[data-open-library]");
+ const repeatButton=controls.querySelector("[data-repeat-crop]");
+ let lastFile=null;
+ const applyResult=result=>{
+  input.value=result.url;
+  input.dispatchEvent(new Event("input",{bubbles:true}));
+  input.dispatchEvent(new Event("change",{bubbles:true}));
+  preview(previewBox,result.url);
+ };
  preview(previewBox,input.value);
  input.addEventListener("change",()=>preview(previewBox,input.value));
  picker.addEventListener("change",async()=>{
   const file=picker.files?.[0];if(!file)return;
+  lastFile=file;
   button.classList.add("busy");status.className="cms-media-state";
   try{
    const result=await processAndUpload(file,folder,preset);
    if(!result){status.textContent="Envio cancelado.";return}
    status.textContent="Enviando imagem…";
-   input.value=result.url;
-   input.dispatchEvent(new Event("input",{bubbles:true}));
-   input.dispatchEvent(new Event("change",{bubbles:true}));
-   preview(previewBox,result.url);
+   applyResult(result);repeatButton.hidden=false;
    status.className="cms-media-state success";status.textContent="Imagem editada, enviada e URL preenchida.";
   }catch(error){
    status.className="cms-media-state error";status.textContent=error.message||"Não foi possível enviar a imagem.";
   }finally{
    button.classList.remove("busy");picker.value="";
   }
+ });
+ libraryButton.addEventListener("click",async()=>{
+  libraryButton.classList.add("busy");status.textContent="Carregando biblioteca…";
+  try{
+   await openLibraryPicker({folder,preset,onSelect:url=>{
+    applyResult({url});status.className="cms-media-state success";status.textContent="Imagem da biblioteca selecionada.";
+   }});
+  }catch(error){status.className="cms-media-state error";status.textContent=error.message||"Não foi possível abrir a biblioteca."}
+  finally{libraryButton.classList.remove("busy")}
+ });
+ repeatButton.addEventListener("click",async()=>{
+  if(!lastFile)return;
+  repeatButton.classList.add("busy");status.textContent="Criando outro formato…";
+  try{
+   const result=await processAndUpload(lastFile,folder,preset,{keepOriginal:false});
+   if(!result){status.textContent="Edição cancelada.";return}
+   applyResult(result);status.className="cms-media-state success";status.textContent="Novo formato criado e selecionado.";
+  }catch(error){status.className="cms-media-state error";status.textContent=error.message||"Não foi possível criar outro formato."}
+  finally{repeatButton.classList.remove("busy")}
  });
 }
 
@@ -219,27 +296,40 @@ function attachEditorUpload(editorElement,folder){
  editorElement.dataset.mediaUpload="true";
  const controls=document.createElement("div");
  controls.className="cms-inline-upload";
- controls.innerHTML='<label class="cms-media-button">Inserir imagem no texto<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></label><span class="cms-media-state">Edite a imagem e insira na posição atual do texto.</span>';
+ controls.innerHTML='<div class="cms-media-actions"><label class="cms-media-button">Enviar para o texto<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></label><button type="button" class="cms-media-button" data-open-library>Escolher da biblioteca</button></div><span class="cms-media-state">Edite uma imagem nova ou insira uma já existente na posição atual.</span>';
  editorElement.insertAdjacentElement("afterend",controls);
  const picker=controls.querySelector("input");
  const button=controls.querySelector(".cms-media-button");
  const status=controls.querySelector(".cms-media-state");
+ const libraryButton=controls.querySelector("[data-open-library]");
+ const insertUrl=url=>{
+  const editor=window.euamouraniaEditor||window.Quill?.find?.(editorElement);
+  if(!editor?.insertEmbed)throw new Error("O editor ainda não está pronto.");
+  const range=editor.getSelection(true),index=range?.index??Math.max(0,editor.getLength()-1);
+  editor.insertEmbed(index,"image",url,"user");editor.setSelection(index+1,0,"silent");
+ };
  picker.addEventListener("change",async()=>{
   const file=picker.files?.[0];if(!file)return;
   button.classList.add("busy");status.className="cms-media-state";
   try{
    const result=await processAndUpload(file,folder,"original");
    if(!result){status.textContent="Envio cancelado.";return}
-   const editor=window.euamouraniaEditor||window.Quill?.find?.(editorElement);
-   if(!editor?.insertEmbed)throw new Error("O editor ainda não está pronto.");
-   const range=editor.getSelection(true),index=range?.index??Math.max(0,editor.getLength()-1);
-   editor.insertEmbed(index,"image",result.url,"user");editor.setSelection(index+1,0,"silent");
+   insertUrl(result.url);
    status.className="cms-media-state success";status.textContent="Imagem editada e inserida no texto.";
   }catch(error){
    status.className="cms-media-state error";status.textContent=error.message||"Não foi possível inserir a imagem.";
   }finally{
    button.classList.remove("busy");picker.value="";
   }
+ });
+ libraryButton.addEventListener("click",async()=>{
+  libraryButton.classList.add("busy");status.textContent="Carregando biblioteca…";
+  try{
+   await openLibraryPicker({folder,preset:"original",onSelect:url=>{
+    insertUrl(url);status.className="cms-media-state success";status.textContent="Imagem da biblioteca inserida no texto.";
+   }});
+  }catch(error){status.className="cms-media-state error";status.textContent=error.message||"Não foi possível abrir a biblioteca."}
+  finally{libraryButton.classList.remove("busy")}
  });
 }
 
@@ -263,14 +353,24 @@ async function renderMediaLibrary(){
   mediaRows=await listarMidias();
   const unused=mediaRows.filter(item=>!item.em_uso),eligible=mediaRows.filter(item=>item.elegivel_limpeza);
   app.innerHTML=`<section class="panel media-library">
-   <div class="cms-section-head"><div><h2>Biblioteca de mídia</h2><p>${mediaRows.length} arquivo(s) · ${unused.length} sem uso · originais são preservados por pelo menos 7 dias.</p></div><button class="admin-button danger" data-media-clean ${eligible.length?"":"disabled"}>Limpar ${eligible.length} arquivo(s)</button></div>
-   <div class="media-library-grid">${mediaRows.map(item=>`<article class="media-library-card">
+   <div class="cms-section-head"><div><h2>Biblioteca de mídia</h2><p>Visualize, pesquise e acompanhe onde cada arquivo pode ser usado.</p></div><button class="admin-button danger" data-media-clean ${eligible.length?"":"disabled"}>Limpar ${eligible.length} arquivo(s)</button></div>
+   <div class="media-library-summary"><article><span>Total</span><strong>${mediaRows.length}</strong></article><article><span>Em uso</span><strong>${mediaRows.length-unused.length}</strong></article><article><span>Sem uso</span><strong>${unused.length}</strong></article><article><span>Prontas para limpeza</span><strong>${eligible.length}</strong></article></div>
+   <div class="media-library-toolbar"><input id="media-search" type="search" placeholder="Pesquisar imagem ou pasta…"><select id="media-variant"><option value="">Todas as versões</option><option value="otimizada">Otimizadas</option><option value="original">Originais</option></select><select id="media-status"><option value="">Todos os estados</option><option value="uso">Em uso</option><option value="protegida">Protegidas por 7 dias</option><option value="limpeza">Prontas para limpeza</option></select></div>
+   <div class="media-library-grid">${mediaRows.map(item=>`<article class="media-library-card" data-search="${safe(`${item.nome_original||""} ${item.pasta||""}`.toLowerCase())}" data-variant="${item.variante}" data-status="${item.em_uso?"uso":item.elegivel_limpeza?"limpeza":"protegida"}">
     <img src="${safe(item.url)}" alt="${safe(item.nome_original||"Imagem do CMS")}" loading="lazy">
-    <div><strong>${safe(item.nome_original||item.caminho.split("/").pop())}</strong><small>${safe(item.pasta)} · ${formatSize(item.tamanho)}</small><small>${item.variante==="original"?"Original temporário":"Versão otimizada"} · ${new Date(item.criado_em).toLocaleDateString("pt-BR")}</small></div>
-    <span class="status-pill ${item.em_uso?"ativo":"inativo"}">${item.em_uso?"Em uso":item.elegivel_limpeza?"Pode limpar":"Protegida por 7 dias"}</span>
-    <button type="button" class="admin-button secondary" data-media-delete="${item.id}" ${item.em_uso||!item.elegivel_limpeza?"disabled":""}>Excluir</button>
+    <div class="media-library-info"><strong title="${safe(item.nome_original||item.caminho.split("/").pop())}">${safe(item.nome_original||item.caminho.split("/").pop())}</strong><small>${safe(item.pasta)}</small><small>${item.largura&&item.altura?`${item.largura}×${item.altura} · `:""}${formatSize(item.tamanho)} · ${new Date(item.criado_em).toLocaleDateString("pt-BR")}</small></div>
+    <div class="media-library-footer"><span class="status-pill ${item.em_uso?"ativo":"inativo"}">${item.em_uso?"Em uso":item.elegivel_limpeza?"Pode limpar":item.variante==="original"?"Original protegido":"Protegida por 7 dias"}</span><span class="media-version">${item.variante==="original"?"Original":"WebP otimizada"}</span></div>
+    <button type="button" class="admin-button secondary" data-media-delete="${item.id}" ${item.em_uso||!item.elegivel_limpeza?"disabled":""}>Excluir definitivamente</button>
    </article>`).join("")||'<div class="empty-state">Nenhuma imagem enviada pelo CMS ainda.</div>'}</div>
   </section>`;
+  const filter=()=>{
+   const term=document.getElementById("media-search").value.trim().toLowerCase();
+   const variant=document.getElementById("media-variant").value,status=document.getElementById("media-status").value;
+   document.querySelectorAll(".media-library-card").forEach(card=>{
+    card.hidden=!(card.dataset.search.includes(term)&&(!variant||card.dataset.variant===variant)&&(!status||card.dataset.status===status));
+   });
+  };
+  ["media-search","media-variant","media-status"].forEach(id=>document.getElementById(id).addEventListener("input",filter));
  }catch(error){
   app.innerHTML=`<div class="ads-card empty-state"><strong>Não foi possível carregar a biblioteca</strong><p>${safe(error.message)}</p></div>`;
  }
