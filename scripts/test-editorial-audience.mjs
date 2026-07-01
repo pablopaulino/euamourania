@@ -18,6 +18,7 @@ must(migration.includes("current_user in('anon','authenticated')"),"Estado edito
 must(migration.includes("criado_por is distinct from (select auth.uid())"),"Redator sem proteção de propriedade");
 must(admin.includes("Fila de aprovação")&&admin.includes("Aprovar e publicar"),"Fila editorial incompleta");
 must(admin.includes("Exportar CSV")&&admin.includes("Central de audiência"),"Dashboard de audiência incompleto");
+must(admin.includes("completeDailySeries")&&admin.includes("audience-bar-value")&&admin.includes("data-chart-bar"),"Gráfico diário sem valores visíveis ou interação móvel");
 must(analytics.includes("sessionStorage")&&!analytics.includes("ip:"),"Rastreamento não preserva privacidade");
 for(const event of["guia_click","turismo_click","link_click"])must(auditMigration.includes(`'${event}'`)&&analytics.includes(`"${event}"`),`Métrica ausente: ${event}`);
 must(auditMigration.includes("update public.turismo set visualizacoes=visualizacoes+1"),"Turismo sem contador de visualizações");
