@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "test": "node scripts/validate-project.mjs && node scripts/test-rbac.mjs && node scripts/test-site-config.mjs && node scripts/test-editorial-audience.mjs && node scripts/test-google-integrations.mjs && node scripts/test-media-upload.mjs && node scripts/test-guide-json-import.mjs && node scripts/test-news-detail.mjs",
+    "test": "node scripts/validate-project.mjs && node scripts/test-rbac.mjs && node scripts/test-site-config.mjs && node scripts/test-editorial-audience.mjs && node scripts/test-google-integrations.mjs && node scripts/test-media-upload.mjs && node scripts/test-guide-json-import.mjs && node scripts/test-news-detail.mjs && node scripts/test-news-listing.mjs",
     "validate": "node scripts/validate-project.mjs",
     "test:rbac": "node scripts/test-rbac.mjs",
     "test:config": "node scripts/test-site-config.mjs",
@@ -12,6 +12,7 @@
     "test:media": "node scripts/test-media-upload.mjs",
     "test:guide-import": "node scripts/test-guide-json-import.mjs",
     "test:news-detail": "node scripts/test-news-detail.mjs",
+    "test:news-listing": "node scripts/test-news-listing.mjs",
     "smoke": "node scripts/smoke-test.mjs"
   },
   "engines": { "node": ">=20" }
