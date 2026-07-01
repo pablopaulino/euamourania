@@ -9,7 +9,7 @@ let dirty=false,editor=null;
 function toast(message,type="success"){const stack=document.getElementById("toasts"),el=document.createElement("div");el.className=`toast ${type}`;el.textContent=message;stack.append(el);setTimeout(()=>el.remove(),3600)}
 function loading(){app.innerHTML='<div class="ads-card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>'}
 function fail(error){app.innerHTML=`<div class="ads-card empty-state"><strong>Não foi possível carregar</strong>${esc(error.message)}</div>`;toast(error.message,"error")}
-function setView(name,label){title.textContent=label;location.hash=name;document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===name));document.getElementById("sidebar").classList.remove("open")}
+function setView(name,label){title.textContent=label;location.hash=name;document.querySelectorAll(".admin-nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===name));document.getElementById("sidebar").classList.remove("open")}
 function guard(){if(!dirty||confirm("Existem alterações não salvas. Deseja sair mesmo assim?")){dirty=false;return true}return false}
 window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue=""}});
 document.addEventListener("input",e=>{if(e.target.closest(".cms-form"))dirty=true});
