@@ -238,9 +238,19 @@ async function resourceNames(resources=[]){
  }));
  return resources.map(item=>({...item,nome:map.get(`${item.tipo}:${item.id}`)||"Conteúdo removido"}));
 }
-function chart(series=[]){
+function completeDailySeries(start,end,series=[]){
+ const values=new Map(series.map(item=>[item.dia,Number(item.visualizacoes||0)]));
+ const result=[],cursor=new Date(`${start}T12:00:00Z`),last=new Date(`${end}T12:00:00Z`);
+ while(cursor<=last){
+  const day=cursor.toISOString().slice(0,10);
+  result.push({dia:day,visualizacoes:values.get(day)||0});
+  cursor.setUTCDate(cursor.getUTCDate()+1);
+ }
+ return result;
+}
+function chart(series=[],showValues=false){
  const max=Math.max(1,...series.map(item=>Number(item.visualizacoes||0)));
- return`<div class="audience-chart" aria-label="Visualizações por dia">${series.map(item=>`<div class="audience-bar-wrap" title="${esc(item.dia)}: ${item.visualizacoes}"><div class="audience-bar" style="height:${Math.max(4,Math.round(item.visualizacoes/max*150))}px"></div><small>${esc(item.dia.slice(5))}</small></div>`).join("")||'<div class="empty-state">Sem visualizações no período.</div>'}</div>`;
+ return`<div class="audience-chart ${showValues?"show-values":""}" aria-label="Visualizações por dia">${series.map(item=>`<div class="audience-bar-wrap"><button type="button" class="audience-column" data-chart-bar title="${esc(item.dia)}: ${item.visualizacoes} visualizações" aria-label="${esc(item.dia)}: ${item.visualizacoes} visualizações"><strong class="audience-bar-value">${Number(item.visualizacoes||0).toLocaleString("pt-BR")}</strong><span class="audience-bar" style="height:${Math.max(4,Math.round(item.visualizacoes/max*150))}px"></span></button><small>${esc(item.dia.slice(5))}</small></div>`).join("")||'<div class="empty-state">Sem visualizações no período.</div>'}</div>`;
 }
 async function googleAudience(start,end){
  const {data:{session}}=await db.auth.getSession();
@@ -305,7 +315,7 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
   <div class="insight-grid audience-metrics">${metrics.map(([label,value,change])=>`<article class="metric-card"><span>${label}</span><strong>${Number(value).toLocaleString("pt-BR")}</strong><small class="${change.startsWith("-")?"down":"up"}">${change} vs. período anterior</small></article>`).join("")}</div>
   <div class="insight-layout audience-layout">
    ${googlePanels(google)}
-   <section class="panel wide"><header class="panel-header"><h2>Acessos por dia</h2></header>${chart(data.serie)}</section>
+   <section class="panel wide"><header class="panel-header"><h2>Acessos por dia</h2></header>${chart(completeDailySeries(startString,endString,data.serie),Math.round((end-start)/864e5)+1<=7)}</section>
    <section class="panel"><header class="panel-header"><h2>Páginas mais acessadas</h2></header>${rankList(data.paginas,"pagina")}</section>
    <section class="panel"><header class="panel-header"><h2>Conteúdos mais acessados</h2></header>${content.map((item,index)=>`<div class="rank-item"><span>${index+1}</span><div><strong>${esc(item.nome)}</strong><small>${esc(item.tipo)}</small></div><small>${item.total}</small></div>`).join("")||'<div class="empty-state">Sem dados.</div>'}</section>
    <section class="panel"><header class="panel-header"><h2>Origem dos acessos</h2></header>${rankList(data.origens,"origem")}</section>
@@ -346,6 +356,10 @@ async function decorateDashboard(){
 
 document.addEventListener("click",event=>{
  const button=event.target.closest("button");if(!button)return;
+ if(button.hasAttribute("data-chart-bar")){
+  document.querySelectorAll("[data-chart-bar].active").forEach(item=>{if(item!==button)item.classList.remove("active")});
+  button.classList.toggle("active");return;
+ }
  if(button.dataset.newsEdit)currentNewsId=button.dataset.newsEdit;
  if(button.hasAttribute("data-news-new"))currentNewsId=null;
  if(button.id==="editorial-approvals-nav"||button.id==="dashboard-approvals"){event.preventDefault();event.stopImmediatePropagation();renderApprovals();return}
