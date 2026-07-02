@@ -1,6 +1,5 @@
-import { buscarTurismoPorSlug } from "../services/turismoService.js";
 import { definirMeta, textoPuro } from "../utils.js";
-import { supabaseConfigurado } from "../services/supabaseClient.js";
+import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 
 const container = document.getElementById("turismo-details");
 const slug = new URLSearchParams(location.search).get("slug");
@@ -8,10 +7,15 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({ 
 const safeUrl = value => /^https?:\/\//i.test(value || "") ? escapeHtml(value) : "";
 
 async function carregar() {
-  if (!supabaseConfigurado()) { container.innerHTML = '<p class="not-found-message">Configure o Supabase para carregar este ponto turístico.</p>'; return; }
+  if (!publicSupabaseConfigured()) { container.innerHTML = '<p class="not-found-message">Configure o Supabase para carregar este ponto turístico.</p>'; return; }
   if (!slug) { container.innerHTML = '<p class="not-found-message">Ponto turístico não encontrado.</p>'; return; }
   try {
-    const item = await buscarTurismoPorSlug(slug);
+    const [item] = await fetchPublicRows("turismo", {
+      select: "*",
+      slug: `eq.${slug}`,
+      status: "eq.publicado",
+      limit: "1"
+    });
     if (!item || item.status !== "publicado") { container.innerHTML = '<p class="not-found-message">Ponto turístico não encontrado.</p>'; return; }
     definirMeta({
       titulo: `${item.seo_titulo || item.nome} | Eu Amo Urânia`,

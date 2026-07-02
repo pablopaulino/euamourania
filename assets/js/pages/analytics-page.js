@@ -1,5 +1,4 @@
-import { getSupabase } from "../services/supabaseClient.js";
-import { registrarEventoSite } from "../services/analyticsService.js";
+import { callPublicRpc, fetchPublicRows } from "../services/publicDataService.js";
 
 const once=new Set();
 const SESSION_KEY="euamourania_audience_session";
@@ -37,7 +36,12 @@ function record(tipo,data={}){
  const key=`${tipo}:${data.recursoId||data.destino||data.metadados?.termo||location.pathname}`;
  if(once.has(key)||recentlyRecorded(key))return;
  once.add(key);
- registrarEventoSite(tipo,{...data,sessaoHash:sessionId(),origem:source(),dispositivo:device()});
+ const payload={...data,sessaoHash:sessionId(),origem:source(),dispositivo:device()};
+ callPublicRpc("registrar_evento_site",{
+  p_tipo:tipo,p_pagina:payload.pagina||location.pathname,p_recurso_tipo:payload.recursoTipo||null,
+  p_recurso_id:payload.recursoId||null,p_destino:payload.destino||null,p_sessao_hash:payload.sessaoHash,
+  p_origem:payload.origem,p_dispositivo:payload.dispositivo,p_metadados:payload.metadados||{}
+ },{timeout:4000,keepalive:true}).catch(()=>{});
 }
 record("page_view");
 
@@ -74,7 +78,7 @@ document.addEventListener("submit",event=>{
 
 async function noticiaView(){
  const slug=location.pathname.match(/^\/noticias\/([^/]+)/)?.[1]||new URLSearchParams(location.search).get("slug");if(!slug)return;
- const {data}=await getSupabase().from("noticias").select("id").eq("slug",decodeURIComponent(slug)).maybeSingle();
+ const [data]=await fetchPublicRows("noticias",{select:"id",slug:`eq.${decodeURIComponent(slug)}`,limit:"1"});
  if(data?.id)record("noticia_view",{recursoTipo:"noticia",recursoId:data.id});
 }
 window.addEventListener("noticia:renderizada",noticiaView,{once:true});
@@ -85,7 +89,7 @@ async function detailView(){
  const isTourism=location.pathname.endsWith("/turismo-details.html");
  if(!isEvent&&!isTourism)return;
  const table=isEvent?"eventos":"turismo",type=isEvent?"evento":"turismo";
- const {data}=await getSupabase().from(table).select("id").eq("slug",slug).eq("status","publicado").maybeSingle();
+ const [data]=await fetchPublicRows(table,{select:"id",slug:`eq.${slug}`,status:"eq.publicado",limit:"1"});
  if(data?.id)record(`${type}_view`,{recursoTipo:type,recursoId:data.id});
 }
 detailView();

@@ -30,7 +30,7 @@ must(admin.includes("completeDailySeries")&&admin.includes("audience-bar-value")
 must(analytics.includes("sessionStorage")&&!analytics.includes("ip:"),"Rastreamento não preserva privacidade");
 for(const event of["guia_click","turismo_click","link_click"])must(auditMigration.includes(`'${event}'`)&&analytics.includes(`"${event}"`),`Métrica ausente: ${event}`);
 must(auditMigration.includes("update public.turismo set visualizacoes=visualizacoes+1"),"Turismo sem contador de visualizações");
-must(categoryFields.includes("cms_categoria_id")&&guide.includes('listarCategorias("guia")'),"Categorias não estão integradas aos conteúdos e filtros públicos");
+must(categoryFields.includes("cms_categoria_id")&&guide.includes('fetchPublicRows("categorias"')&&guide.includes('tipo:"eq.guia"'),"Categorias não estão integradas aos conteúdos e filtros públicos");
 must(index.includes('import("./editorial-audience.js")'),"Módulo administrativo não carregado");
 must(index.includes('import("./category-fields.js")'),"Campos de categoria não carregados no CMS");
 must(docs.includes("não grava IP"),"Documentação de privacidade ausente");

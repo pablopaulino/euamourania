@@ -1,6 +1,5 @@
-import { listarNoticias } from "../services/noticiasService.js";
 import { formatarData, textoPuro } from "../utils.js";
-import { supabaseConfigurado } from "../services/supabaseClient.js";
+import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 
 const container=document.getElementById("news-container");
 const featured=document.getElementById("news-featured");
@@ -66,9 +65,14 @@ searchForm.addEventListener("submit",event=>{event.preventDefault();renderFeed()
 loadMore.addEventListener("click",()=>{visibleCount+=PAGE_SIZE;renderFeed()});
 
 async function carregarNoticias(){
- if(!supabaseConfigurado()){status.textContent="Configure o Supabase para carregar as notícias.";return}
+ if(!publicSupabaseConfigured()){status.textContent="Configure o Supabase para carregar as notícias.";return}
  try{
-  const news=await listarNoticias();
+  const news=await fetchPublicRows("noticias",{
+   select:"id,titulo,slug,resumo,imagem_url,categoria_nome,publicado_em,destaque",
+   status:"eq.publicado",
+   publicado_em:`lte.${new Date().toISOString()}`,
+   order:"publicado_em.desc"
+  });
   if(!news.length){status.textContent="Nenhuma notícia publicada.";return}
   const lead=news.find(item=>item.destaque)||news[0];
   feed=news.filter(item=>item.id!==lead.id);

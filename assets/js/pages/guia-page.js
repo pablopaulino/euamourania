@@ -1,6 +1,4 @@
-import { listarGuia } from "../services/guiaService.js";
-import { listarCategorias } from "../services/categoriasService.js";
-import { supabaseConfigurado } from "../services/supabaseClient.js";
+import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 
 const container=document.getElementById("guia-container");
 const status=document.getElementById("guia-status");
@@ -33,9 +31,21 @@ function renderizarFiltros(categorias){
 }
 
 async function carregar(){
- if(!supabaseConfigurado()){status.textContent="Configure o Supabase para carregar o guia.";return}
+ if(!publicSupabaseConfigured()){status.textContent="Configure o Supabase para carregar o guia.";return}
  try{
-  const [dados,categorias]=await Promise.all([listarGuia(),listarCategorias("guia")]);
+  const [dados,categorias]=await Promise.all([
+   fetchPublicRows("guia_comercial",{
+    select:"id,nome,slug,categoria_nome,descricao,imagem_url,whatsapp,endereco,horario,recomendado",
+    status:"eq.publicado",
+    order:"recomendado.desc,nome.asc"
+   }),
+   fetchPublicRows("categorias",{
+    select:"nome,ordem",
+    tipo:"eq.guia",
+    status:"eq.ativo",
+    order:"ordem.asc,nome.asc"
+   })
+  ]);
   itens=dados;renderizarFiltros(categorias);renderizar(itens);
  }catch(error){
   console.error(error);status.textContent="Não foi possível carregar o guia.";
