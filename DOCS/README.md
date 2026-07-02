@@ -12,6 +12,7 @@ Esta pasta é a fonte oficial para manutenção do portal.
 - [Configurações globais e conteúdo administrável](CONFIGURACOES-GLOBAIS.md)
 - [CMS e módulos](CMS-E-MODULOS.md)
 - [Fluxo editorial e audiência](FLUXO-EDITORIAL-E-AUDIENCIA.md)
+- [Busca global](BUSCA-GLOBAL.md)
 - [SEO, performance e acessibilidade](SEO-PERFORMANCE-ACESSIBILIDADE.md)
 - [Operação, backup e recuperação](OPERACAO-BACKUP.md)
 - [Manual do administrador e editor](MANUAIS.md)

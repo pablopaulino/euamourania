@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Busque notícias, empresas, turismo e eventos no Eu Amo Urânia.">
+  <meta name="robots" content="noindex,follow">
+  <meta name="theme-color" content="#0b4f6c">
+  <link rel="canonical" href="https://euamourania.com.br/buscar.html">
+  <title>Busca | Eu Amo Urânia</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="inner-pages.css">
+  <link rel="stylesheet" href="assets/css/global-search.css">
+  <link rel="icon" href="assets/Design sem nome (9).png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="inner-page">
+  <a class="skip-link" href="#conteudo">Pular para os resultados</a>
+  <header class="site-header">
+    <div class="container header-content">
+      <a class="brand" href="index.html" aria-label="Eu Amo Urânia — início"><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56"></a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal"><span class="menu-icon" aria-hidden="true"></span><span>Menu</span></button>
+      <nav class="main-nav" id="menu-principal" aria-label="Navegação principal">
+        <ul>
+          <li><a href="index.html">Início</a></li>
+          <li><a href="guia.html">Guia da cidade</a></li>
+          <li><a href="turismo.html">Turismo</a></li>
+          <li><a href="news/">Notícias</a></li>
+          <li><a href="quem-somos.html">Quem somos</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="conteudo">
+    <section class="search-page-hero">
+      <div class="container">
+        <p class="eyebrow">Encontre no portal</p>
+        <h1>Busca no Eu Amo Urânia</h1>
+        <p>Notícias, empresas, lugares e eventos reunidos em uma pesquisa rápida.</p>
+        <form id="portal-search-form" class="search-page-form" role="search">
+          <label class="sr-only" for="portal-search-input">Digite o que procura</label>
+          <input id="portal-search-input" name="q" type="search" placeholder="Ex.: dentista, borboletário, prefeitura…" autocomplete="off" minlength="2" required>
+          <button class="button button-primary" type="submit">Pesquisar</button>
+        </form>
+      </div>
+    </section>
+    <section class="search-page-content">
+      <div class="container">
+        <div id="portal-search-filters" class="search-filter-bar" aria-label="Filtrar resultados"></div>
+        <p id="portal-search-count" class="search-results-count" aria-live="polite"></p>
+        <div id="portal-search-results" class="search-results-grid" aria-live="polite"></div>
+        <button id="portal-search-more" class="news-load-more" type="button" hidden>Carregar mais resultados</button>
+      </div>
+    </section>
+  </main>
+  <a href="https://wa.me/5517981344558" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="Falar pelo WhatsApp"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="" width="28" height="28"></a>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" class="footer-logo" width="170" height="50"><p>Informação, turismo e comunidade.</p></div>
+      <nav aria-label="Links do rodapé"><a href="mailto:euamourania@gmail.com">Contato</a><a href="termos-de-servico.html">Termos</a><a href="politica-de-privacidade.html">Privacidade</a></nav>
+    </div>
+    <div class="container footer-bottom"><p>&copy; <span id="year"></span> Eu Amo Urânia.</p></div>
+  </footer>
+  <div id="cookie-banner" class="cookie-banner" hidden><p>Usamos cookies para melhorar sua experiência.</p><button id="accept-cookies">Entendi</button></div>
+  <script src="script.js"></script>
+  <script type="module" src="assets/js/pages/search-page.js"></script>
+</body>
+</html>
