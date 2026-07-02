@@ -27,6 +27,7 @@ must(service.includes("score(item") && service.includes("normalizedTitle.startsW
 must(overlay.includes("data-open-global-search") && overlay.includes('role="dialog"'), "Busca global não possui abertura acessível.");
 must(overlay.includes("query.length < 2") && overlay.includes("setTimeout(() => updateSuggestions"), "Sugestões não possuem limite mínimo e debounce.");
 must(script.includes("loadGlobalSearch()"), "Busca global não é carregada nas páginas públicas.");
+must(script.includes("showGlobalSearchTrigger()")&&script.indexOf("showGlobalSearchTrigger()")<script.indexOf("loadGlobalSearch()"),"Botão de busca não aparece antes do módulo assíncrono.");
 must(html.includes('name="robots" content="noindex,follow"'), "Página de resultados pode gerar conteúdo duplicado no Google.");
 must(html.includes("portal-search-filters") && page.includes("searchTypeCounts"), "Página não possui filtros por tipo.");
 must(page.includes("history.replaceState") && page.includes("visible += PAGE_SIZE"), "Resultados não possuem URL atualizada ou paginação.");
