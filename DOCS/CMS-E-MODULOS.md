@@ -20,7 +20,9 @@ Assinantes ficam no Supabase. Campanhas podem ser rascunho, teste, envio ou agen
 
 ## Publicidade
 
-Campanhas combinam criativo, período, prioridade e posições. Exibição só ocorre quando ativa e dentro do período. Impressões/cliques são registrados sem reservar espaço para campanha inexistente.
+Campanhas combinam criativo, período, prioridade, formato e posições. O CMS oferece formatos automático, super banner, horizontal, retângulo, quadrado, vertical e nativo, além de imagem específica para celular e prévia responsiva. Posições intermediárias entram dentro das listagens ou do texto, e campanhas concorrentes no mesmo espaço podem alternar em um carrossel acessível.
+
+A exibição só ocorre quando a campanha está ativa e dentro do período. Uma impressão é registrada somente quando o anúncio fica visível, cliques continuam protegidos pela função do banco e nenhuma posição reserva espaço quando não há campanha. A visão geral também mostra a ocupação dos espaços publicitários.
 
 ## Categorias
 
