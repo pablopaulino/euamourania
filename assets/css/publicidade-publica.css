@@ -1,0 +1,74 @@
+.banner-zone{position:relative;padding:clamp(1rem,3vw,2rem) 0;background:#f5f8f8}
+.banner-zone+.banner-zone{padding-top:0}
+.banner-list{display:block}
+.ad-zone-inline{grid-column:1/-1;width:100%;margin:clamp(.5rem,2vw,1.5rem) 0;padding:0;background:transparent}
+.article-copy>.ad-zone-inline{margin:clamp(1.5rem,4vw,2.5rem) 0}
+.ad-rotator{position:relative;width:100%;margin-inline:auto}
+.ad-slide[hidden]{display:none!important}
+.ad-slide.active{animation:ad-slide-in .3s ease}
+.banner-item{position:relative;display:block;width:min(100%,var(--ad-max-width,970px));margin-inline:auto;overflow:hidden;color:inherit;background:#fff;border:1px solid rgba(7,59,76,.1);border-radius:18px;box-shadow:0 10px 32px rgba(7,59,76,.1);text-decoration:none}
+.banner-item:hover{box-shadow:0 16px 42px rgba(7,59,76,.16)}
+.ad-sponsored{position:absolute;top:8px;left:9px;z-index:4;padding:.23rem .48rem;color:#fff;background:rgba(4,35,45,.78);border-radius:999px;font-size:.58rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;backdrop-filter:blur(4px)}
+.ad-campaign-picture{display:block;width:100%;height:100%}
+.banner-item .ad-campaign-picture img{display:block;width:100%;height:100%;max-height:none;object-fit:contain;background:#edf2f3}
+.ad-campaign iframe,.ad-campaign video{display:block;width:100%;height:100%;max-height:none;aspect-ratio:16/9;border:0;background:#071e27;object-fit:contain}
+.ad-format-automatico{--ad-max-width:970px;aspect-ratio:970/250}
+.ad-format-super_banner{--ad-max-width:970px;aspect-ratio:970/250}
+.ad-format-horizontal{--ad-max-width:728px;aspect-ratio:728/90}
+.ad-format-retangulo{--ad-max-width:336px;aspect-ratio:336/280}
+.ad-format-quadrado{--ad-max-width:440px;aspect-ratio:1}
+.ad-format-vertical{--ad-max-width:300px;aspect-ratio:1/2}
+.ad-format-nativo{--ad-max-width:970px;display:grid;grid-template-columns:minmax(220px,.9fr) minmax(280px,1.1fr);aspect-ratio:auto;min-height:260px}
+.ad-format-nativo .ad-campaign-picture{min-height:260px}
+.ad-format-nativo .ad-campaign-picture img{object-fit:cover}
+.ad-campaign-copy{display:flex;position:absolute;right:0;bottom:0;left:0;z-index:3;align-items:flex-start;gap:.25rem;padding:2.8rem 1.2rem 1.1rem;color:#fff;background:linear-gradient(transparent,rgba(3,31,41,.92));flex-direction:column}
+.ad-campaign-copy strong{font-size:clamp(1rem,2vw,1.35rem);line-height:1.2}
+.ad-campaign-copy>span:not(.ad-campaign-button){color:#e4eff2;font-size:.84rem}
+.ad-format-nativo .ad-campaign-copy{position:static;align-self:stretch;justify-content:center;padding:clamp(1.4rem,3vw,2.4rem);color:var(--ink);background:#fff}
+.ad-format-nativo .ad-campaign-copy strong{color:var(--navy);font-size:clamp(1.25rem,2.5vw,1.8rem)}
+.ad-format-nativo .ad-campaign-copy>span:not(.ad-campaign-button){color:var(--muted);font-size:.92rem}
+.ad-campaign-logo{position:absolute!important;right:14px;bottom:auto;left:auto;top:12px;z-index:3;width:auto!important;height:42px!important;max-width:130px!important;padding:6px;background:rgba(255,255,255,.94);border-radius:9px;object-fit:contain!important}
+.ad-format-nativo .ad-campaign-logo{right:auto;top:44px;left:14px}
+.ad-campaign-button{display:inline-flex;position:static;right:auto;bottom:auto;align-items:center;justify-content:center;min-height:38px;margin-top:.5rem;padding:.55rem .9rem;color:#fff;background:var(--blue);border-radius:999px;font-size:.76rem;font-weight:800;box-shadow:0 5px 18px rgba(0,0,0,.16)}
+.ad-rotator-controls{display:flex;align-items:center;justify-content:center;gap:.7rem;margin-top:.75rem}
+.ad-rotator-controls>button{display:grid;width:34px;height:34px;padding:0;place-items:center;color:var(--blue);background:#fff;border:1px solid #c7d5da;border-radius:50%;font:inherit;font-size:1.25rem;cursor:pointer}
+.ad-rotator-dots{display:flex;gap:.4rem}
+.ad-rotator-dots button{width:8px;height:8px;padding:0;background:#adc2c9;border:0;border-radius:999px;cursor:pointer;transition:width .18s,background .18s}
+.ad-rotator-dots button.active{width:22px;background:var(--blue)}
+.ad-zone-inline .ad-rotator-controls{margin-bottom:.25rem}
+
+.ad-popup{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:20px}
+.ad-popup-backdrop{position:absolute;inset:0;background:rgba(2,23,32,.72);backdrop-filter:blur(4px)}
+.ad-popup-card{position:relative;z-index:1;width:min(680px,94vw);max-height:90vh;overflow:hidden;background:#fff;border-radius:20px;box-shadow:0 25px 80px rgba(0,0,0,.35);animation:ad-popup-in .28s ease}
+.ad-popup-card>a{position:relative;display:block}
+.ad-popup-card img,.ad-popup-card video,.ad-popup-card iframe{display:block;width:100%;max-height:82vh;object-fit:contain;border:0}
+.ad-popup-card iframe{aspect-ratio:16/9}
+.ad-popup-close{position:absolute;top:10px;right:10px;z-index:5;width:40px;height:40px;border:0;border-radius:50%;color:#fff;background:rgba(0,0,0,.76);font-size:1.65rem;line-height:1;cursor:pointer}
+.ad-popup .ad-campaign-button{position:absolute;right:16px;bottom:16px}
+
+@keyframes ad-slide-in{from{opacity:0;transform:translateY(5px)}}
+@keyframes ad-popup-in{from{opacity:0;transform:scale(.94) translateY(10px)}}
+
+@media(max-width:650px){
+  .banner-zone{padding:1rem 0}.banner-item{border-radius:14px}
+  .ad-zone-inline{margin:1rem 0}
+  .ad-format-automatico,.ad-format-super_banner,.ad-format-horizontal{aspect-ratio:320/100}
+  .ad-format-retangulo{--ad-max-width:100%;aspect-ratio:336/280}
+  .ad-format-quadrado{--ad-max-width:100%}
+  .ad-format-vertical{--ad-max-width:280px}
+  .ad-format-nativo{grid-template-columns:1fr;min-height:0}
+  .ad-format-nativo .ad-campaign-picture{height:190px;min-height:0}
+  .ad-format-nativo .ad-campaign-copy{padding:1.15rem}
+  .ad-campaign-copy{padding:2rem .85rem .75rem}
+  .ad-campaign-copy>span:not(.ad-campaign-button){display:none}
+  .ad-campaign-logo{right:9px;top:9px;height:32px!important;max-width:90px!important}
+  .ad-format-nativo .ad-campaign-logo{top:42px;left:9px}
+  .ad-campaign-button{min-height:32px;margin-top:.25rem;padding:.4rem .65rem;font-size:.68rem}
+  .ad-sponsored{top:6px;left:6px}
+  .ad-rotator-controls>button{width:38px;height:38px}
+  .ad-popup{padding:12px}.ad-popup-card{border-radius:15px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .ad-slide.active,.ad-popup-card{animation:none}
+}

@@ -1,0 +1,39 @@
+.position-group label{align-items:flex-start}
+.position-group label>span{display:grid;gap:2px}
+.position-group label small{color:var(--ad-muted);font-size:.68rem;line-height:1.3}
+.campaign-type{display:block;text-transform:capitalize}
+.campaign-format{display:block;margin-top:3px;color:var(--ad-muted);font-size:.68rem}
+.creative-preview-field{margin-top:.35rem;padding-top:1rem;border-top:1px solid var(--ad-line)}
+.creative-preview-head,.inventory-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem}
+.creative-preview-head label{display:block}
+.creative-preview-head small,.inventory-heading p{display:block;margin:.25rem 0 0;color:var(--ad-muted);font-size:.78rem}
+.preview-device-switch{display:flex;padding:3px;background:#eeebf1;border-radius:9px}
+.preview-device-switch button{padding:.45rem .7rem;color:var(--ad-muted);background:transparent;border:0;border-radius:7px;font:inherit;font-size:.72rem;font-weight:750;cursor:pointer}
+.preview-device-switch button.active{color:var(--ad-primary);background:#fff;box-shadow:0 2px 8px rgba(31,19,44,.08)}
+.campaign-preview{display:grid;min-height:260px;padding:20px;place-items:center;overflow:auto;background:linear-gradient(135deg,#eceff1,#f8f8f9);border:1px dashed #c9c3ce;border-radius:14px}
+.campaign-preview[data-device=mobile]{width:min(390px,100%);margin-inline:auto}
+.preview-creative{position:relative;width:min(100%,970px);overflow:hidden;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(31,19,44,.15)}
+.preview-creative>span{position:absolute;top:6px;left:7px;z-index:2;padding:3px 6px;color:#fff;background:rgba(0,0,0,.7);border-radius:999px;font-size:.55rem;text-transform:uppercase}
+.preview-creative img{display:block;width:100%;height:100%;object-fit:contain;background:#e7ebed}
+.preview-copy{position:absolute;right:0;bottom:0;left:0;padding:2rem 1rem .8rem;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+.preview-copy strong,.preview-copy p{display:block;margin:0 0 .35rem}
+.preview-copy b{display:inline-flex;padding:.4rem .65rem;background:var(--ad-primary);border-radius:999px;font-size:.68rem}
+.preview-automatico .preview-creative,.preview-super_banner .preview-creative{aspect-ratio:970/250}
+.preview-horizontal .preview-creative{width:min(100%,728px);aspect-ratio:728/90}
+.preview-retangulo .preview-creative{width:min(100%,336px);aspect-ratio:336/280}
+.preview-quadrado .preview-creative{width:min(100%,440px);aspect-ratio:1}
+.preview-vertical .preview-creative{width:min(100%,280px);aspect-ratio:1/2}
+.preview-nativo .preview-creative{display:grid;grid-template-columns:.9fr 1.1fr;min-height:240px}
+.preview-nativo .preview-copy{position:static;display:flex;justify-content:center;padding:1.5rem;color:var(--ad-ink);background:#fff;flex-direction:column}
+.preview-nativo .preview-copy p{color:var(--ad-muted);font-size:.8rem}
+.preview-empty{color:var(--ad-muted);font-size:.85rem;text-align:center}
+.inventory-heading>span{padding:.4rem .65rem;color:var(--ad-primary);background:var(--ad-primary-soft);border-radius:999px;font-size:.7rem;font-weight:800}
+.placement-inventory{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.placement-item{position:relative;min-height:98px;padding:12px;background:#f8f7f9;border:1px solid var(--ad-line);border-radius:11px}
+.placement-item.configured{background:#f0f8f4;border-color:#c6e5d6}
+.placement-item>span{display:block;padding-right:28px;color:var(--ad-ink);font-size:.7rem;font-weight:800;text-transform:capitalize}
+.placement-item strong{position:absolute;top:9px;right:9px;display:grid;width:25px;height:25px;place-items:center;color:#fff;background:#aaa;border-radius:50%;font-size:.7rem}
+.placement-item.configured strong{background:var(--ad-green)}
+.placement-item small{display:block;margin-top:10px;color:var(--ad-muted);font-size:.65rem;line-height:1.35}
+@media(max-width:1000px){.placement-inventory{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.creative-preview-head,.inventory-heading{align-items:stretch;flex-direction:column}.preview-device-switch{align-self:flex-start}.placement-inventory{grid-template-columns:repeat(2,1fr)}.campaign-preview{min-height:210px;padding:10px}.preview-nativo .preview-creative{grid-template-columns:1fr}.preview-nativo .preview-creative img{height:150px}.placement-card{padding:14px}}
