@@ -75,6 +75,8 @@
 .news-item .read-more { margin-top: auto; color: var(--blue); font-weight: 750; }
 .news-load-more { display: block; min-height: 46px; margin: 2rem auto 0; padding: .7rem 1.25rem; color: var(--blue); background: var(--white); border: 1px solid var(--blue); border-radius: 12px; font: inherit; font-weight: 750; cursor: pointer; }
 .news-load-more:hover { color: var(--white); background: var(--blue); }
+.guia-load-more-wrap { display: flex; justify-content: center; }
+.guia-load-more-wrap .news-load-more[hidden] { display: none; }
 .news-empty { grid-column: 1 / -1; }
 .news-empty strong { display: block; color: var(--navy); }
 .news-empty p { margin-bottom: 0; }
