@@ -1,5 +1,4 @@
-import { listarTurismo } from "../services/turismoService.js";
-import { supabaseConfigurado } from "../services/supabaseClient.js";
+import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 
 const container = document.getElementById("turismo-container");
 const status = document.getElementById("turismo-status");
@@ -7,9 +6,13 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({ 
 const safeImage = value => /^https?:\/\//i.test(value || "") || /^assets\//.test(value || "") ? escapeHtml(value) : "assets/Design sem nome (9).png";
 
 async function carregarTurismo() {
-  if (!supabaseConfigurado()) { status.textContent = "Configure o Supabase para carregar os pontos turísticos."; return; }
+  if (!publicSupabaseConfigured()) { status.textContent = "Configure o Supabase para carregar os pontos turísticos."; return; }
   try {
-    const itens = await listarTurismo();
+    const itens = await fetchPublicRows("turismo", {
+      select: "id,nome,slug,descricao,imagem_url,endereco,horario,destaque",
+      status: "eq.publicado",
+      order: "destaque.desc,nome.asc"
+    });
     if (!itens.length) { status.textContent = "Nenhum ponto turístico publicado."; return; }
     status.hidden = true;
     container.innerHTML = itens.map(item => {

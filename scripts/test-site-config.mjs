@@ -20,7 +20,7 @@ const missing=keys.filter(key=>!migration.includes(`'${key}'`));
 ok(!missing.length,`Chaves ausentes na migração: ${missing.join(", ")}`);
 
 ok(script.includes('assets/js/pages/site-config-page.js'),"Módulo público não está carregado globalmente");
-ok(publicModule.includes('from("configuracoes_site")'),"Módulo público não consulta configurações_site");
+ok(publicModule.includes('fetchPublicRows("configuracoes_site"'),"Módulo público não consulta configurações_site");
 ok(publicModule.includes("MutationObserver"),"Conteúdo inserido dinamicamente não é atualizado");
 ok(publicModule.includes("safeHtml")&&publicModule.includes('querySelectorAll("script,style,object,embed")'),"Conteúdo HTML institucional não está sanitizado");
 
