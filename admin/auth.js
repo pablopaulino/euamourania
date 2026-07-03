@@ -2,14 +2,14 @@ import { getSupabase, supabaseConfigurado } from "../assets/js/services/supabase
 
 const permissoesPorFuncao={
   super_admin:["*:*"] ,
-  administrador:["dashboard:acessar","insights:acessar","insights:ler","noticias:*","categorias:*","guia_comercial:*","turismo:*","eventos:*","publicidade:*","comunicacao:*","links:*"],
+  administrador:["dashboard:acessar","insights:acessar","insights:ler","noticias:*","categorias:*","guia_comercial:*","turismo:*","eventos:*","publicidade:*","comunicacao:*","notificacoes:*","links:*"],
   editor:["dashboard:acessar","noticias:acessar","noticias:ler","noticias:criar","noticias:editar","noticias:publicar","categorias:acessar","categorias:ler","categorias:criar","categorias:editar"],
   redator:["dashboard:acessar","noticias:acessar","noticias:ler","noticias:criar","noticias:editar"],
   comercial:["dashboard:acessar","guia_comercial:acessar","guia_comercial:ler","guia_comercial:criar","guia_comercial:editar","publicidade:acessar","publicidade:ler","publicidade:criar","publicidade:editar"],
-  comunicacao:["dashboard:acessar","comunicacao:acessar","comunicacao:ler","comunicacao:criar","comunicacao:editar","comunicacao:excluir","comunicacao:enviar","links:acessar","links:ler","links:criar","links:editar","links:excluir"],
-  visualizador:["dashboard:acessar","insights:acessar","insights:ler","noticias:ler","categorias:ler","guia_comercial:ler","turismo:ler","eventos:ler","publicidade:ler","comunicacao:ler","links:ler"]
+  comunicacao:["dashboard:acessar","comunicacao:acessar","comunicacao:ler","comunicacao:criar","comunicacao:editar","comunicacao:excluir","comunicacao:enviar","notificacoes:*","links:acessar","links:ler","links:criar","links:editar","links:excluir"],
+  visualizador:["dashboard:acessar","insights:acessar","insights:ler","noticias:ler","categorias:ler","guia_comercial:ler","turismo:ler","eventos:ler","publicidade:ler","comunicacao:ler","notificacoes:ler","links:ler"]
 };
-const rotaModulo={"publicidade.html":"publicidade","comunicacao.html":"comunicacao","migrar.html":"importacao","usuarios.html":"usuarios"};
+const rotaModulo={"publicidade.html":"publicidade","comunicacao.html":"comunicacao","notificacoes-app.html":"notificacoes","migrar.html":"importacao","usuarios.html":"usuarios"};
 let acessoAtual=null;
 
 export const rotulosFuncoes={super_admin:"Super Admin",administrador:"Administrador",editor:"Editor",redator:"Redator",comercial:"Comercial",comunicacao:"Comunicação",visualizador:"Visualizador"};
