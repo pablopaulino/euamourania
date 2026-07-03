@@ -1,4 +1,4 @@
-import { exigirPermissao, sair } from "./auth.js";
+import { exigirPermissao, sair, temPermissao } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 
 const app=document.getElementById("push-app"),db=getSupabase();
@@ -22,6 +22,7 @@ async function load(){
 function render(){
   const sent=notifications.filter(item=>item.status==="enviado").length;
   const accepted=notifications.reduce((sum,item)=>sum+(item.total_aceitos||0),0);
+  const canDelete=temPermissao(access.admin,"notificacoes","excluir");
   app.innerHTML=`
     <section class="push-metrics">
       <article class="metric-card"><span>Aparelhos ativos</span><strong>${deviceCounts.total}</strong></article>
@@ -30,7 +31,7 @@ function render(){
       <article class="metric-card"><span>Envios aceitos</span><strong>${accepted}</strong><em>${sent} campanhas</em></article>
     </section>
     <section class="push-card table-card">
-      <h3>Histórico</h3>
+      <div class="push-history-head"><h3>Histórico</h3>${canDelete&&notifications.length?'<button class="admin-button secondary" id="clear-history">Limpar histórico</button>':""}</div>
       <table class="push-table"><thead><tr><th>Notificação</th><th>Público</th><th>Status</th><th>Resultado</th><th>Data</th><th>Ações</th></tr></thead>
       <tbody>${notifications.map(item=>`<tr>
         <td class="push-copy"><strong>${esc(item.titulo)}</strong><small>${esc(item.mensagem)}</small></td>
@@ -38,10 +39,12 @@ function render(){
         <td><span class="status-pill ${esc(item.status)}">${esc(statusLabel(item.status))}</span></td>
         <td>${item.total_aceitos||0} aceitos${item.total_erros?` · ${item.total_erros} erros`:""}</td>
         <td>${fmt(item.enviado_em||item.criado_em)}</td>
-        <td>${["rascunho","falhou"].includes(item.status)?`<button class="admin-button" data-send="${item.id}">Enviar</button>`:"—"}</td>
+        <td><div class="push-row-actions">${["rascunho","falhou"].includes(item.status)?`<button class="admin-button" data-send="${item.id}">Enviar</button>`:""}${canDelete?`<button class="admin-button secondary" data-delete="${item.id}">Excluir</button>`:""}</div></td>
       </tr>`).join("")||'<tr><td colspan="6">Nenhuma notificação criada.</td></tr>'}</tbody></table>
     </section>`;
   app.querySelectorAll("[data-send]").forEach(button=>button.onclick=()=>send(button.dataset.send,button));
+  app.querySelectorAll("[data-delete]").forEach(button=>button.onclick=()=>removeNotification(button.dataset.delete,button));
+  const clear=document.getElementById("clear-history");if(clear)clear.onclick=()=>clearHistory(clear);
 }
 function openForm(){
   app.innerHTML=`<section class="push-card"><h3>Nova notificação</h3>
@@ -78,6 +81,22 @@ async function send(id,button){
     if(!response.ok)throw new Error(data.error||"Não foi possível enviar.");
     toast(`Notificação enviada: ${data.accepted} aceitas, ${data.errors} erros.`);await load();
   }catch(error){toast(error.message,"error");button.disabled=false;button.textContent="Enviar"}
+}
+async function removeNotification(id,button){
+  if(!confirm("Excluir esta notificação do histórico? Os aparelhos cadastrados não serão removidos."))return;
+  button.disabled=true;button.textContent="Excluindo…";
+  const{error}=await db.from("app_notificacoes").delete().eq("id",id);
+  if(error){toast(error.message,"error");button.disabled=false;button.textContent="Excluir";return}
+  toast("Notificação excluída do histórico.");await load();
+}
+async function clearHistory(button){
+  const processed=notifications.filter(item=>["enviado","falhou","cancelado"].includes(item.status));
+  if(!processed.length){toast("Não há envios concluídos para limpar.","error");return}
+  if(!confirm(`Excluir ${processed.length} registro(s) concluído(s) do histórico? Rascunhos e aparelhos cadastrados serão mantidos.`))return;
+  button.disabled=true;button.textContent="Limpando…";
+  const{error}=await db.from("app_notificacoes").delete().in("id",processed.map(item=>item.id));
+  if(error){toast(error.message,"error");button.disabled=false;button.textContent="Limpar histórico";return}
+  toast("Histórico concluído removido.");await load();
 }
 
 access=await exigirPermissao("notificacoes","acessar");
