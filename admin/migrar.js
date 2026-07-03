@@ -4,7 +4,7 @@ import { gerarSlug } from "../assets/js/utils.js";
 
 const status = document.getElementById("migration-status");
 const button = document.getElementById("run-migration");
-const linksIniciais = [["Nosso site","https://euamourania.com.br/","🌐"],["Canal WhatsApp","https://whatsapp.com/channel/0029VapPdlLGpLHTXQELk210","💬"],["WhatsApp","https://wa.me/5517981344558","📱"],["YouTube","https://www.youtube.com/@EuAmoUr%C3%A2nia","▶️"],["Instagram","https://instagram.com/euamourania","📷"],["Facebook","https://facebook.com/euamourania","👥"],["X (Twitter)","https://x.com/euamourania","𝕏"],["TikTok","https://tiktok.com/@euamourania","🎵"]].map(([titulo,url,icone],ordem)=>({titulo,url,icone,ordem,status:"ativo"}));
+const linksIniciais = [["Nosso site","https://euamourania.com.br/","🌐"],["Canal WhatsApp","https://whatsapp.com/channel/0029VapPdlLGpLHTXQELk210","💬"],["WhatsApp","https://wa.me/5517976005583","📱"],["YouTube","https://www.youtube.com/@EuAmoUr%C3%A2nia","▶️"],["Instagram","https://instagram.com/euamourania","📷"],["Facebook","https://facebook.com/euamourania","👥"],["X (Twitter)","https://x.com/euamourania","𝕏"],["TikTok","https://tiktok.com/@euamourania","🎵"]].map(([titulo,url,icone],ordem)=>({titulo,url,icone,ordem,status:"ativo"}));
 const textoPuro = (html = "") => { const el=document.createElement("div"); el.innerHTML=html; return (el.textContent||"").replace(/\s+/g," ").trim(); };
 
 async function lerJson(caminho) {

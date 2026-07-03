@@ -23,6 +23,10 @@ ok(script.includes('assets/js/pages/site-config-page.js'),"Módulo público não
 ok(publicModule.includes('fetchPublicRows("configuracoes_site"'),"Módulo público não consulta configurações_site");
 ok(publicModule.includes("MutationObserver"),"Conteúdo inserido dinamicamente não é atualizado");
 ok(publicModule.includes("safeHtml")&&publicModule.includes('querySelectorAll("script,style,object,embed")'),"Conteúdo HTML institucional não está sanitizado");
+ok(admin.includes('inputType=type==="url"?"text":type'),"Campos de imagem ainda usam a validação nativa que rejeita caminhos /assets");
+ok(admin.includes('inputmode="url" data-type="url"'),"Campos de URL perderam sua identificação semântica");
+ok(admin.includes("validSiteReference(value)"),"Links e caminhos internos não possuem validação própria");
+ok(admin.includes("/assets/imagem.jpg"),"O painel não orienta sobre caminhos internos de imagens");
 
 const rootRewrite=vercel.rewrites?.find(item=>item.source==="/");
 ok(rootRewrite?.destination==="/api/home","A home não usa o SEO dinâmico da Vercel");
