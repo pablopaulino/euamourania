@@ -36,6 +36,12 @@
 .ad-rotator-dots button{width:8px;height:8px;padding:0;background:#adc2c9;border:0;border-radius:999px;cursor:pointer;transition:width .18s,background .18s}
 .ad-rotator-dots button.active{width:22px;background:var(--blue)}
 .ad-zone-inline .ad-rotator-controls{margin-bottom:.25rem}
+.adsense-zone{transition:opacity .2s ease}
+.adsense-unit{width:min(100%,970px);min-width:0;margin-inline:auto;text-align:center}
+.adsense-label{display:block;margin-bottom:.35rem;color:#6d7f85;font-size:.58rem;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
+.adsense-unit .adsbygoogle{width:100%;min-width:250px;overflow:hidden}
+.adsense-unit .adsbygoogle[data-ad-status=unfilled]{display:none!important}
+.adsense-zone:has(.adsbygoogle[data-ad-status=unfilled]){display:none}
 
 .ad-popup{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:20px}
 .ad-popup-backdrop{position:absolute;inset:0;background:rgba(2,23,32,.72);backdrop-filter:blur(4px)}
@@ -51,6 +57,7 @@
 
 @media(max-width:650px){
   .banner-zone{padding:1rem 0}.banner-item{border-radius:14px}
+  .adsense-unit .adsbygoogle{min-width:0}
   .ad-zone-inline{margin:1rem 0}
   .ad-format-automatico,.ad-format-super_banner,.ad-format-horizontal{aspect-ratio:320/100}
   .ad-format-retangulo{--ad-max-width:100%;aspect-ratio:336/280}

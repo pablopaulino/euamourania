@@ -7,8 +7,21 @@ const safe = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(v
 const topPositions = new Set(["todas_paginas", "home_topo", "noticias_topo", "guia_topo", "turismo_topo", "eventos_topo"]);
 const placedCampaigns = new Set();
 const tracked = new Set();
+const adsenseAttempted = new Set();
+const adsense = {
+  client: "ca-pub-6427480219886739",
+  maxPerPage: 3,
+  slots: {
+    topo: "1899945573",
+    listagens: "8841557208",
+    noticias: "9680985838",
+    noticiaMeio: "6769128877",
+    finalRodape: "3031817003"
+  }
+};
 let campaigns = [];
 let legacy = false;
+let adsenseCount = 0;
 
 const config = campaign => campaign.configuracao_futura && typeof campaign.configuracao_futura === "object"
   ? campaign.configuracao_futura
@@ -87,6 +100,85 @@ function candidates(position) {
       && !placedCampaigns.has(campaign.id)
       && hasRenderableMedia(campaign))
     .sort((a, b) => Number(b.prioridade || 0) - Number(a.prioridade || 0));
+}
+
+function hasAdConsent() {
+  try {
+    return localStorage.getItem("cookieConsent") === "accepted"
+      && localStorage.getItem("cookieConsentVersion") === "2";
+  } catch {
+    return false;
+  }
+}
+
+function loadAdSenseScript() {
+  if (document.querySelector('script[data-euamourania-adsense]')) return;
+  const script = document.createElement("script");
+  script.async = true;
+  script.crossOrigin = "anonymous";
+  script.dataset.euamouraniaAdsense = "true";
+  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsense.client)}`;
+  document.head.append(script);
+}
+
+function activateAdSense(zone) {
+  const unit = zone.querySelector(".adsbygoogle");
+  if (!unit) return;
+  loadAdSenseScript();
+  try {
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  } catch (error) {
+    console.warn("AdSense indisponível:", error.message);
+  }
+  const observer = new MutationObserver(() => {
+    if (unit.dataset.adStatus === "unfilled") {
+      observer.disconnect();
+      zone.remove();
+    }
+  });
+  observer.observe(unit, { attributes: true, attributeFilter: ["data-ad-status"] });
+  setTimeout(() => {
+    observer.disconnect();
+    if (!unit.dataset.adStatus && !unit.offsetHeight) {
+      zone.remove();
+    }
+  }, 12000);
+}
+
+function insertAdSenseZone(position, slot, target, where = "beforebegin", inline = false) {
+  if (!hasAdConsent() || !slot || adsenseCount >= adsense.maxPerPage) return false;
+  if (adsenseAttempted.has(position)) return false;
+  if (document.querySelector(`[data-banner="${position}"]`) || candidates(position).length) return false;
+  const element = typeof target === "string" ? document.querySelector(target) : target;
+  if (!element) return false;
+  const classes = `banner-zone ad-zone adsense-zone ${inline ? "ad-zone-inline" : ""}`;
+  const unit = `<div class="adsense-unit"><span class="adsense-label">Publicidade</span><ins class="adsbygoogle" style="display:block" data-ad-client="${adsense.client}" data-ad-slot="${slot}" data-ad-format="auto" data-full-width-responsive="true"></ins></div>`;
+  element.insertAdjacentHTML(where, `<aside class="${classes}" data-banner="${position}" data-ad-provider="google" aria-label="Publicidade do Google">${inline ? unit : `<div class="container banner-list">${unit}</div>`}</aside>`);
+  const zone = document.querySelector(`[data-banner="${position}"][data-ad-provider="google"]`);
+  if (!zone) return false;
+  adsenseAttempted.add(position);
+  adsenseCount += 1;
+  activateAdSense(zone);
+  return true;
+}
+
+function insertAdSenseBetweenCards(position, slot, containerSelector, cardSelector, afterIndex) {
+  if (document.querySelector(`[data-banner="${position}"]`)) return;
+  const container = document.querySelector(containerSelector);
+  const cards = container ? [...container.querySelectorAll(cardSelector)] : [];
+  if (!cards.length) return;
+  insertAdSenseZone(position, slot, cards[Math.min(afterIndex, cards.length - 1)], "afterend", true);
+}
+
+function insertAdSenseInsideArticle() {
+  const position = "noticia_meio";
+  if (document.querySelector(`[data-banner="${position}"]`)) return;
+  const article = document.querySelector(".article-copy");
+  if (!article) return;
+  const blocks = [...article.children].filter(node => /^(P|H2|H3|BLOCKQUOTE|FIGURE|UL|OL)$/.test(node.tagName));
+  if (!blocks.length) return;
+  const index = Math.min(blocks.length - 1, Math.max(1, Math.floor(blocks.length / 2)));
+  insertAdSenseZone(position, adsense.slots.noticiaMeio, blocks[index], "afterend", true);
 }
 
 function zoneMarkup(position, items, inline = false) {
@@ -228,6 +320,45 @@ function render() {
   }
 }
 
+function renderAdSense() {
+  if (!hasAdConsent()) return;
+  const path = location.pathname;
+  if (path === "/" || path === "/index.html") {
+    insertAdSenseZone("home_topo", adsense.slots.topo, ".hero");
+    insertAdSenseZone("home_hero_conteudo", adsense.slots.listagens, ".hero", "afterend");
+    insertAdSenseZone("home_entre_secoes", adsense.slots.listagens, ".destination");
+    insertAdSenseZone("home_rodape", adsense.slots.finalRodape, ".site-footer");
+  }
+  if (/\/news\/?(?:index\.html)?$/.test(path) || path.endsWith("news.html")) {
+    insertAdSenseZone("noticias_topo", adsense.slots.noticias, ".page-hero");
+    insertAdSenseBetweenCards("noticias_entre_listagem", adsense.slots.listagens, "#news-container", ".news-item", 3);
+  }
+  if (path.includes("news-details") || path.includes("news-detalhes") || path.startsWith("/noticias/")) {
+    insertAdSenseInsideArticle();
+    insertAdSenseZone("noticia_final", adsense.slots.finalRodape, ".related-news");
+  }
+  if (path.endsWith("guia.html")) {
+    insertAdSenseZone("guia_topo", adsense.slots.topo, ".page-hero");
+    insertAdSenseBetweenCards("guia_entre_estabelecimentos", adsense.slots.listagens, "#guia-container", ".card-guia", 5);
+    insertAdSenseZone("guia_rodape", adsense.slots.finalRodape, ".site-footer");
+  }
+  if (path.endsWith("turismo.html")) {
+    insertAdSenseZone("turismo_topo", adsense.slots.topo, ".page-hero");
+    insertAdSenseBetweenCards("turismo_entre_cartoes", adsense.slots.listagens, "#turismo-container", ".card-guia", 2);
+    insertAdSenseZone("turismo_rodape", adsense.slots.finalRodape, ".site-footer");
+  }
+  if (path.includes("/eventos")) {
+    insertAdSenseZone("eventos_topo", adsense.slots.topo, ".page-hero");
+    insertAdSenseBetweenCards("eventos_entre_eventos", adsense.slots.listagens, "#eventos-list", ".event-card", 2);
+    insertAdSenseZone("eventos_rodape", adsense.slots.finalRodape, ".site-footer");
+  }
+}
+
+function renderAllAdvertising() {
+  render();
+  renderAdSense();
+}
+
 function canShowPopup(campaign) {
   if (campaign.popup_reexibir === "sempre") return true;
   const last = Number(localStorage.getItem(`euamourania:ad:${campaign.id}`) || 0);
@@ -286,26 +417,26 @@ function legacyToCampaign(rows) {
 }
 
 async function init() {
-  if (!publicSupabaseConfigured()) return;
-  try {
-    campaigns = await fetchPublicRows("campanhas_publicitarias", {
-      select: "*,campanha_posicoes(posicao)",
-      status: "eq.ativo",
-      order: "prioridade.desc,criado_em.desc"
-    }, { ttl: 60000 });
-  } catch (error) {
+  if (publicSupabaseConfigured()) {
     try {
-      campaigns = legacyToCampaign(await fetchPublicRows("banners", {
-        select: "*",
+      campaigns = await fetchPublicRows("campanhas_publicitarias", {
+        select: "*,campanha_posicoes(posicao)",
         status: "eq.ativo",
-        order: "ordem.asc"
-      }, { ttl: 60000 }));
-    } catch {
-      console.warn("Publicidade indisponível:", error.message);
-      return;
+        order: "prioridade.desc,criado_em.desc"
+      }, { ttl: 60000 });
+    } catch (error) {
+      try {
+        campaigns = legacyToCampaign(await fetchPublicRows("banners", {
+          select: "*",
+          status: "eq.ativo",
+          order: "ordem.asc"
+        }, { ttl: 60000 }));
+      } catch {
+        console.warn("Publicidade própria indisponível:", error.message);
+      }
     }
   }
-  render();
+  renderAllAdvertising();
   campaigns
     .filter(campaign => campaign.tipo === "popup")
     .sort((a, b) => Number(b.prioridade || 0) - Number(a.prioridade || 0))
@@ -315,11 +446,10 @@ async function init() {
     const node = event.target.closest("[data-campaign-id]");
     if (node && !event.target.closest("[data-ad-step],[data-ad-index]")) track(node.dataset.campaignId, "clique");
   });
-  if (campaigns.length) {
-    const observer = new MutationObserver(render);
-    observer.observe(document.body, { childList: true, subtree: true });
-    setTimeout(() => observer.disconnect(), 15000);
-  }
+  window.addEventListener("cookie-consent:accepted", renderAllAdvertising);
+  const observer = new MutationObserver(renderAllAdvertising);
+  observer.observe(document.body, { childList: true, subtree: true });
+  setTimeout(() => observer.disconnect(), 15000);
 }
 
 init();
