@@ -58,6 +58,22 @@ Quando houver mais de uma campanha elegível no mesmo espaço, o site cria uma r
 
 Impressões e cliques são registrados por uma função segura do banco. Uma impressão só é contabilizada quando o anúncio fica realmente visível na tela. O dashboard apresenta campanhas ativas, agendadas e encerradas, total de impressões, cliques, CTR, evolução diária e ocupação das posições.
 
+## Google AdSense
+
+O portal usa publicidade híbrida. Campanhas próprias cadastradas no CMS têm prioridade; quando uma posição compatível fica livre, o Google AdSense pode preenchê-la. São utilizados cinco blocos responsivos:
+
+- topo;
+- home e listagens;
+- topo de notícias;
+- meio da notícia;
+- final e rodapé.
+
+Para preservar a experiência, o portal limita o AdSense a três blocos por página, não usa Google nos pop-ups e remove automaticamente espaços marcados como não preenchidos. O script do Google é carregado uma única vez e somente após o visitante aceitar os cookies opcionais.
+
+O arquivo `/ads.txt` autoriza a conta `pub-6427480219886739`. Os números `ca-pub` e `data-ad-slot` são identificadores públicos do AdSense, não chaves secretas.
+
+As receitas, impressões e cliques do Google são consultados no painel do AdSense. As métricas do CMS continuam correspondendo somente às campanhas próprias.
+
 ## Segurança
 
 - O navegador continua usando somente a Project URL e a Publishable Key.
