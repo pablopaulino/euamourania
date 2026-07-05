@@ -34,7 +34,7 @@ function formatSize(bytes){
 }
 
 function preview(container,url){
- container.innerHTML=/^https?:\/\//i.test(url||"")?`<img src="${safe(url)}" alt="Prévia da imagem enviada"><small>Prévia da imagem</small>`:"";
+ container.innerHTML=/^(?:https?:\/\/|\/?assets\/)/i.test(url||"")?`<img src="${safe(url)}" alt="Prévia da imagem enviada"><small>Prévia da imagem</small>`:"";
 }
 
 function canvasBlob(canvas,type="image/webp",quality=.86){

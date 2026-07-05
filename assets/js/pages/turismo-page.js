@@ -3,7 +3,7 @@ import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDat
 const container = document.getElementById("turismo-container");
 const status = document.getElementById("turismo-status");
 const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[char]));
-const safeImage = value => /^https?:\/\//i.test(value || "") || /^assets\//.test(value || "") ? escapeHtml(value) : "assets/Design sem nome (9).png";
+const safeImage = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? escapeHtml(value) : "assets/Design sem nome (9).png";
 
 async function carregarTurismo() {
   if (!publicSupabaseConfigured()) { status.textContent = "Configure o Supabase para carregar os pontos turísticos."; return; }

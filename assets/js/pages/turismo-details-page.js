@@ -25,7 +25,7 @@ async function carregar() {
     const conteudo = window.DOMPurify
       ? window.DOMPurify.sanitize(item.conteudo_html || `<p>${escapeHtml(item.descricao)}</p>`, { ADD_TAGS: ["iframe"], ADD_ATTR: ["allow", "allowfullscreen", "frameborder"] })
       : `<p>${escapeHtml(textoPuro(item.conteudo_html || item.descricao))}</p>`;
-    const imagem = safeUrl(item.imagem_url) || (item.imagem_url?.startsWith("assets/") ? escapeHtml(item.imagem_url) : "");
+    const imagem = safeUrl(item.imagem_url) || (/^\/?assets\//.test(item.imagem_url || "") ? escapeHtml(item.imagem_url) : "");
     container.innerHTML = `<article class="news-detail-container"><p class="eyebrow">Turismo em Urânia</p><h1>${escapeHtml(item.nome)}</h1>${item.descricao ? `<p class="article-subtitle">${escapeHtml(item.descricao)}</p>` : ""}${imagem ? `<img src="${imagem}" alt="${escapeHtml(item.nome)}" class="main-image">` : ""}<div class="article-copy">${conteudo}</div><div class="tourism-info">${item.endereco ? `<p><strong>Endereço:</strong> ${escapeHtml(item.endereco)}</p>` : ""}${item.horario ? `<p><strong>Horário:</strong> ${escapeHtml(item.horario)}</p>` : ""}</div><div class="share-buttons"><p>Planeje sua visita</p>${item.whatsapp ? `<a class="btn-share" target="_blank" rel="noopener" href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}">WhatsApp</a>` : ""}${safeUrl(item.mapa_url) ? `<a class="btn-share" target="_blank" rel="noopener" href="${safeUrl(item.mapa_url)}">Abrir mapa</a>` : ""}<a class="btn-share" href="turismo.html">Ver outros lugares</a></div></article>`;
     window.dispatchEvent(new CustomEvent("turismo:renderizado",{detail:{id:item.id}}));
   } catch (error) {
