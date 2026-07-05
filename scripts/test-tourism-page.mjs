@@ -1,11 +1,15 @@
 import{readFile}from"node:fs/promises";
 const root=new URL("../",import.meta.url),read=path=>readFile(new URL(path,root),"utf8");
 const must=(condition,message)=>{if(!condition)throw new Error(message)};
-const[html,js,css,banners]=await Promise.all([read("turismo.html"),read("assets/js/pages/turismo-page.js"),read("assets/css/turismo-page.css"),read("assets/js/pages/banners-page.js")]);
+const[html,js,css,banners,detailHtml,detailJs,detailCss,analytics]=await Promise.all([read("turismo.html"),read("assets/js/pages/turismo-page.js"),read("assets/css/turismo-page.css"),read("assets/js/pages/banners-page.js"),read("turismo-details.html"),read("assets/js/pages/turismo-details-page.js"),read("assets/css/turismo-details-page.css"),read("assets/js/pages/analytics-page.js")]);
 for(const id of["turismo-busca","turismo-total","turismo-results","turismo-empty","turismo-container"])must(html.includes(`id="${id}"`),`Turismo sem interface: ${id}`);
 must(html.includes('assets/css/turismo-page.css')&&html.includes("tourism-page"),"Estilo dedicado de Turismo não foi carregado");
 for(const feature of["renderTourism","activeFilter","data-tourism-filter","normalize(","aria-pressed"])must(js.includes(feature),`Turismo sem comportamento: ${feature}`);
 for(const feature of["tourism-card-media","tourism-card-details","tourism-card-action","loading="])must(js.includes(feature),`Card de Turismo incompleto: ${feature}`);
 for(const feature of[".tourism-grid",".tourism-toolbar",".tourism-empty","@media(max-width:700px)","prefers-reduced-motion"])must(css.includes(feature),`Estilo de Turismo incompleto: ${feature}`);
 must(js.includes('class="card-guia tourism-card"')&&banners.includes('".card-guia"'),"Publicidade entre cartões de Turismo foi quebrada");
-console.log("Página de Turismo validada: busca, filtros, cards, responsividade e publicidade preservados.");
+must(detailHtml.includes("tourism-detail-page")&&detailHtml.includes("assets/css/turismo-details-page.css"),"Página individual não carrega o visual próprio");
+for(const feature of["tourism-detail-hero","tourism-detail-layout","tourism-planner","tourism-detail-actions","data-tourism-id","fallbackImage"])must(detailJs.includes(feature),`Detalhe de Turismo incompleto: ${feature}`);
+for(const feature of[".tourism-detail-hero",".tourism-planner",".tourism-action.whatsapp","position:sticky","@media(max-width:650px)"])must(detailCss.includes(feature),`Estilo do detalhe incompleto: ${feature}`);
+must(analytics.includes('tourism=link.closest("[data-tourism-id]")'),"Cliques da atração perderam identificação na audiência");
+console.log("Turismo validado: busca, cards, detalhe, planejamento da visita, responsividade e métricas.");
