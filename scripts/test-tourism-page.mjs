@@ -1,0 +1,11 @@
+import{readFile}from"node:fs/promises";
+const root=new URL("../",import.meta.url),read=path=>readFile(new URL(path,root),"utf8");
+const must=(condition,message)=>{if(!condition)throw new Error(message)};
+const[html,js,css,banners]=await Promise.all([read("turismo.html"),read("assets/js/pages/turismo-page.js"),read("assets/css/turismo-page.css"),read("assets/js/pages/banners-page.js")]);
+for(const id of["turismo-busca","turismo-total","turismo-results","turismo-empty","turismo-container"])must(html.includes(`id="${id}"`),`Turismo sem interface: ${id}`);
+must(html.includes('assets/css/turismo-page.css')&&html.includes("tourism-page"),"Estilo dedicado de Turismo não foi carregado");
+for(const feature of["renderTourism","activeFilter","data-tourism-filter","normalize(","aria-pressed"])must(js.includes(feature),`Turismo sem comportamento: ${feature}`);
+for(const feature of["tourism-card-media","tourism-card-details","tourism-card-action","loading="])must(js.includes(feature),`Card de Turismo incompleto: ${feature}`);
+for(const feature of[".tourism-grid",".tourism-toolbar",".tourism-empty","@media(max-width:700px)","prefers-reduced-motion"])must(css.includes(feature),`Estilo de Turismo incompleto: ${feature}`);
+must(js.includes('class="card-guia tourism-card"')&&banners.includes('".card-guia"'),"Publicidade entre cartões de Turismo foi quebrada");
+console.log("Página de Turismo validada: busca, filtros, cards, responsividade e publicidade preservados.");
