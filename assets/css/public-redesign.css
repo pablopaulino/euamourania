@@ -1,0 +1,815 @@
+/* Repaginação pública 2026 — Eu Amo Urânia
+   Camada visual segura: moderniza o portal público sem alterar dados, CMS ou integrações. */
+
+:root {
+  --surface: #ffffff;
+  --surface-soft: #f7faf9;
+  --surface-tint: #edf6f6;
+  --ink-soft: #334b55;
+  --muted-2: #7a8a91;
+  --line-soft: rgba(7, 59, 76, .1);
+  --shadow-soft: 0 18px 50px rgba(7, 59, 76, .08);
+  --shadow-hover: 0 24px 70px rgba(7, 59, 76, .14);
+  --radius-lg: 30px;
+  --radius-md: 18px;
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% 4%, rgba(247, 201, 72, .12), transparent 28rem),
+    linear-gradient(180deg, #ffffff 0, #fbfdfd 34rem, #f7faf9 100%);
+  color: #14313b;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.container {
+  width: min(calc(100% - clamp(2rem, 5vw, 4rem)), var(--container));
+}
+
+.site-header {
+  background: rgba(255, 255, 255, .9);
+  border-bottom-color: rgba(7, 59, 76, .08);
+  box-shadow: 0 10px 35px rgba(7, 59, 76, .04);
+}
+
+.header-content {
+  min-height: 76px;
+}
+
+.brand img {
+  width: 176px;
+}
+
+.main-nav ul {
+  gap: clamp(1.1rem, 2.4vw, 2rem);
+}
+
+.main-nav a {
+  color: #173640;
+  font-size: .91rem;
+  letter-spacing: -.01em;
+}
+
+.main-nav a:after {
+  height: 2px;
+}
+
+.global-search-trigger,
+.menu-toggle {
+  background: rgba(237, 246, 246, .72);
+  border-color: rgba(7, 59, 76, .12);
+  border-radius: 999px;
+  box-shadow: 0 8px 22px rgba(7, 59, 76, .05);
+}
+
+.global-search-trigger:hover,
+.menu-toggle:hover {
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(7, 59, 76, .09);
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -.055em;
+}
+
+p {
+  color: inherit;
+}
+
+.eyebrow {
+  color: var(--blue);
+  font-size: .72rem;
+  letter-spacing: .16em;
+}
+
+.button {
+  min-height: 48px;
+  padding-inline: 1.2rem;
+  border-radius: 999px;
+  font-size: .92rem;
+  box-shadow: none;
+}
+
+.button-primary {
+  background: linear-gradient(135deg, var(--blue), var(--navy));
+  box-shadow: 0 12px 28px rgba(7, 59, 76, .18);
+}
+
+.button-secondary {
+  color: var(--navy);
+  background: rgba(255, 255, 255, .72);
+  border-color: rgba(7, 59, 76, .16);
+}
+
+.button-secondary:hover {
+  border-color: var(--blue);
+}
+
+.button-accent {
+  box-shadow: 0 12px 26px rgba(247, 201, 72, .24);
+}
+
+.hero {
+  padding: clamp(3.6rem, 7vw, 6.4rem) 0;
+  background:
+    radial-gradient(circle at 8% 28%, rgba(247, 201, 72, .26) 0 5.5rem, transparent 5.65rem),
+    linear-gradient(135deg, #f8fcfc 0, #eef8f8 54%, #fff9df 160%);
+}
+
+.hero:after {
+  opacity: .72;
+}
+
+.hero-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, .74fr);
+  gap: clamp(2.5rem, 6vw, 5.5rem);
+}
+
+h1 {
+  max-width: 680px;
+  font-size: clamp(2.75rem, 6vw, 5rem);
+}
+
+.hero-lead {
+  max-width: 620px;
+  color: #405964;
+}
+
+.hero-topics {
+  margin-top: 1.7rem;
+}
+
+.hero-visual:before {
+  inset: -12px 12px 12px -12px;
+  border-radius: 28px;
+}
+
+.hero-visual > img {
+  height: clamp(430px, 55vw, 610px);
+  border-radius: 24px;
+  box-shadow: 0 26px 80px rgba(7, 59, 76, .16);
+}
+
+.hero-visual figcaption {
+  right: 1rem;
+  bottom: 1rem;
+  max-width: 235px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 18px;
+  background: rgba(7, 59, 76, .88);
+  backdrop-filter: blur(10px);
+}
+
+.quick-access,
+.destination,
+.community,
+.inner-content,
+.tourism-explorer {
+  padding-block: clamp(3.6rem, 7vw, 6rem);
+}
+
+.section-heading {
+  margin-bottom: 2.1rem;
+}
+
+.section-heading > p:last-child,
+.destination-content > p:not(.eyebrow),
+.story-copy p,
+.page-hero p:last-child,
+.news-masthead p:last-child,
+.tourism-section-head > div > p:last-child {
+  color: #526872;
+}
+
+.feature-grid,
+.guia-grid,
+#news-container,
+.events-grid,
+.related-grid,
+.tourism-grid {
+  gap: clamp(1rem, 2.2vw, 1.6rem);
+}
+
+.feature-card,
+.card-guia,
+.news-item,
+.event-card,
+.related-card,
+.tourism-card,
+.value-card,
+.legal-card {
+  border-color: rgba(7, 59, 76, .09);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.feature-card:hover,
+.card-guia:hover,
+.news-item:hover,
+.event-card:hover,
+.related-card:hover,
+.tourism-card:hover,
+.value-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.feature-card {
+  min-height: 285px;
+  padding: 1.7rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(255, 255, 255, .92)),
+    radial-gradient(circle at 100% 0, rgba(220, 239, 243, .65), transparent 13rem);
+}
+
+.feature-card-highlight {
+  background:
+    radial-gradient(circle at 86% 12%, rgba(247, 201, 72, .22), transparent 9rem),
+    linear-gradient(135deg, var(--blue), var(--navy));
+}
+
+.feature-number {
+  margin-bottom: 2.2rem;
+}
+
+.destination {
+  background:
+    radial-gradient(circle at 8% 20%, rgba(247, 201, 72, .14), transparent 18rem),
+    #f8f5ed;
+}
+
+.destination-gallery img,
+.destination-gallery .gallery-main {
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
+}
+
+.about {
+  background:
+    radial-gradient(circle at 82% 16%, rgba(247, 201, 72, .16), transparent 17rem),
+    linear-gradient(135deg, #073b4c, #052f3d);
+}
+
+.about .eyebrow {
+  color: var(--yellow);
+}
+
+.community-box {
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at 92% 12%, rgba(247, 201, 72, .24), transparent 12rem),
+    linear-gradient(135deg, var(--blue), var(--navy));
+}
+
+.page-hero {
+  padding: clamp(3rem, 6vw, 5.2rem) 0;
+  background:
+    radial-gradient(circle at 88% 20%, rgba(247, 201, 72, .22) 0 6.5rem, transparent 6.7rem),
+    linear-gradient(135deg, #f7fcfc, #e9f5f5);
+  color: var(--navy);
+  border-bottom: 1px solid rgba(7, 59, 76, .08);
+}
+
+.page-hero .eyebrow {
+  color: var(--blue);
+}
+
+.page-hero h1 {
+  color: var(--navy);
+}
+
+.page-hero p:last-child {
+  color: #526872;
+}
+
+.filters-shell {
+  top: 76px;
+  background: rgba(248, 252, 252, .86);
+  border-bottom-color: rgba(7, 59, 76, .08);
+}
+
+.btn-filtro,
+.news-filter,
+.tourism-filter {
+  border-color: rgba(7, 59, 76, .1);
+  background: rgba(255, 255, 255, .9);
+  color: var(--navy);
+  box-shadow: 0 6px 18px rgba(7, 59, 76, .04);
+}
+
+.filtros-container,
+.news-category-filters,
+.tourism-filters {
+  scrollbar-width: none;
+}
+
+.filtros-container::-webkit-scrollbar,
+.news-category-filters::-webkit-scrollbar,
+.tourism-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.filters-shell .filtros-container,
+.news-category-filters {
+  scroll-padding-inline: .75rem;
+}
+
+.filters-shell .filtros-container {
+  margin-inline: auto;
+}
+
+@media (max-width: 650px) {
+  .filters-shell .filtros-container,
+  .news-category-filters {
+    margin-inline: 0;
+    padding-inline: 0 .75rem;
+  }
+
+  .filters-shell .filtros-container {
+    margin-inline: auto;
+    padding-inline: 0 .75rem;
+  }
+
+  .news-service-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .85rem;
+  }
+
+  .news-today {
+    min-width: 0;
+  }
+
+  .news-today span {
+    padding: .45rem .6rem;
+    font-size: .62rem;
+    line-height: 1.1;
+  }
+
+  .news-weather {
+    align-items: center;
+    justify-self: end;
+    min-width: 132px;
+    padding: .55rem .7rem;
+    background: rgba(255, 255, 255, .78);
+    border: 1px solid rgba(7, 59, 76, .08);
+    border-radius: 18px;
+    box-shadow: 0 8px 22px rgba(7, 59, 76, .06);
+  }
+
+  .weather-copy {
+    line-height: 1.15;
+  }
+
+  .weather-copy strong {
+    font-size: .83rem;
+  }
+
+  .weather-copy small {
+    max-width: 94px;
+    font-size: .66rem;
+    line-height: 1.25;
+  }
+}
+
+.btn-filtro:hover,
+.btn-filtro.ativo,
+.btn-filtro[aria-pressed="true"],
+.news-filter:hover,
+.news-filter.active,
+.news-filter[aria-pressed="true"],
+.tourism-filter:hover,
+.tourism-filter.active {
+  color: var(--navy);
+  background: var(--yellow);
+  border-color: var(--yellow);
+  box-shadow: 0 10px 24px rgba(247, 201, 72, .22);
+}
+
+.card-img-top,
+.news-item-media img,
+.event-card img,
+.event-card .media-placeholder,
+.related-card img,
+.related-placeholder {
+  background: var(--surface-tint);
+}
+
+.card-body,
+.event-card-body,
+.related-card-body,
+.news-item .content {
+  padding: clamp(1.15rem, 2vw, 1.45rem);
+}
+
+.card-guia .card-body {
+  display: flex;
+  min-height: 260px;
+  flex-direction: column;
+}
+
+.card-guia {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-guia .card-media,
+.card-guia .card-img-top {
+  flex: 0 0 auto;
+}
+
+.card-guia .card-body {
+  flex: 1;
+}
+
+.card-guia .btn-whatsapp {
+  margin-top: auto;
+}
+
+.card-title,
+.event-card h3,
+.news-item h3,
+.related-card h3 {
+  color: var(--navy);
+}
+
+.guide-category {
+  display: inline-flex;
+  width: fit-content;
+  margin: 0 0 .52rem;
+  padding: .26rem .52rem;
+  color: var(--navy);
+  background: rgba(247, 201, 72, .24);
+  border: 1px solid rgba(247, 201, 72, .58);
+  border-radius: 999px;
+  font-size: .58rem;
+  font-weight: 850;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.guide-info {
+  display: grid;
+  gap: .55rem;
+  margin-top: auto;
+  margin-bottom: clamp(1.15rem, 3vw, 1.6rem);
+  padding-top: .2rem;
+}
+
+.guide-info p {
+  margin: 0;
+  color: #49616b;
+  font-size: .85rem;
+  line-height: 1.45;
+}
+
+.guide-info small {
+  display: block;
+  margin-bottom: .08rem;
+  color: var(--muted-2);
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.card-text,
+.card-address,
+.news-item-summary,
+.event-card p,
+.related-card p {
+  color: #5a7079;
+}
+
+.btn-whatsapp {
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1db954, #118b43);
+  box-shadow: 0 10px 22px rgba(22, 140, 70, .18);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+.btn-whatsapp:hover {
+  color: #fff;
+  filter: brightness(1.03);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(22, 140, 70, .28);
+}
+
+.btn-whatsapp:active {
+  transform: translateY(0) scale(.99);
+}
+
+.news-search-form,
+.tourism-toolbar {
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .92);
+  border: 1px solid rgba(7, 59, 76, .09);
+  box-shadow: var(--shadow-soft);
+}
+
+.news-search-form input,
+.news-search-form button {
+  min-height: 52px;
+}
+
+.news-search-form input {
+  border-color: transparent;
+  background: transparent;
+}
+
+.news-search-form button {
+  margin: .35rem;
+  border-radius: 999px;
+  background: var(--navy);
+}
+
+.news-load-more {
+  border-radius: 999px;
+  box-shadow: 0 10px 26px rgba(7, 59, 76, .08);
+}
+
+.news-page .news-filter:hover,
+.news-page .news-filter.active,
+.news-page .news-filter[aria-pressed="true"],
+.filters-shell .btn-filtro:hover,
+.filters-shell .btn-filtro.ativo,
+.filters-shell .btn-filtro[aria-pressed="true"] {
+  color: var(--navy);
+  background: var(--yellow);
+  border-color: var(--yellow);
+}
+
+.news-page .news-masthead,
+.tourism-hero {
+  background:
+    radial-gradient(circle at 88% 18%, rgba(247, 201, 72, .22) 0 6.5rem, transparent 6.7rem),
+    linear-gradient(135deg, #f7fcfc 0, #eaf5f6 100%);
+}
+
+.news-page .news-lead,
+.news-secondary,
+.news-controls {
+  border-color: rgba(7, 59, 76, .08);
+  border-radius: 26px;
+  box-shadow: var(--shadow-soft);
+}
+
+.news-page .news-item {
+  border: 1px solid rgba(7, 59, 76, .08);
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
+}
+
+.news-page .news-item:hover,
+.news-page .news-lead:hover,
+.news-secondary:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+.tourism-page .tourism-card {
+  border: 1px solid rgba(7, 59, 76, .08);
+}
+
+.links-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: clamp(1.5rem, 5vw, 3rem) 0;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(247, 201, 72, .28), transparent 13rem),
+    radial-gradient(circle at 86% 12%, rgba(220, 239, 243, .85), transparent 17rem),
+    linear-gradient(145deg, #eef8f8, #ffffff 52%, #fff8dd);
+}
+
+.links-container {
+  width: min(calc(100% - 2rem), 560px);
+  border-color: rgba(255, 255, 255, .72);
+  border-radius: 34px;
+  box-shadow: 0 28px 90px rgba(7, 59, 76, .14);
+}
+
+.links-logo {
+  width: 190px;
+}
+
+.links-container h1 {
+  font-size: clamp(2.25rem, 8vw, 3.2rem);
+}
+
+.link-button {
+  min-height: 58px;
+  padding: .85rem 1rem .85rem 1.1rem;
+  border-color: rgba(7, 59, 76, .08);
+  border-radius: 18px;
+  background: #f7faf9;
+  text-decoration: none;
+  box-shadow: 0 8px 22px rgba(7, 59, 76, .04);
+}
+
+.link-button:hover {
+  color: #fff;
+  background: linear-gradient(135deg, var(--blue), var(--navy));
+  box-shadow: 0 16px 34px rgba(7, 59, 76, .18);
+}
+
+.banner-zone {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .8), rgba(247, 250, 249, .85));
+}
+
+.banner-item,
+.ad-campaign {
+  border: 1px solid rgba(7, 59, 76, .08);
+  border-radius: 20px;
+  box-shadow: 0 14px 36px rgba(7, 59, 76, .08);
+}
+
+.site-footer {
+  background:
+    radial-gradient(circle at 12% 0, rgba(220, 239, 243, .75), transparent 18rem),
+    #f5f8f8;
+  border-top-color: rgba(7, 59, 76, .08);
+}
+
+.footer-grid {
+  align-items: flex-start;
+}
+
+.footer-grid nav a {
+  text-decoration: none;
+}
+
+.footer-grid nav a:hover {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.footer-bottom {
+  border-top-color: rgba(7, 59, 76, .08);
+}
+
+.whatsapp-float {
+  right: 1.15rem;
+  bottom: 1.15rem;
+  width: 54px;
+  height: 54px;
+  box-shadow: 0 14px 35px rgba(18, 139, 67, .28);
+}
+
+@media (max-width: 900px) {
+  .header-content {
+    min-height: 70px;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-content {
+    max-width: 680px;
+  }
+
+  .filters-shell {
+    top: 70px;
+  }
+
+  .main-nav {
+    position: fixed;
+    top: 76px;
+    right: .75rem;
+    left: .75rem;
+    max-height: calc(100vh - 92px);
+    padding: .95rem 1.1rem;
+    overflow: auto;
+    background: rgba(255, 255, 255, .98);
+    border: 1px solid rgba(7, 59, 76, .1);
+    border-radius: 24px;
+    box-shadow: 0 24px 80px rgba(7, 59, 76, .18);
+    backdrop-filter: blur(18px);
+  }
+
+  .main-nav a {
+    border-bottom-color: rgba(7, 59, 76, .08);
+  }
+
+  .hero-grid {
+    gap: 2rem;
+  }
+
+  .hero-visual > img {
+    height: min(560px, 72vw);
+  }
+}
+
+@media (max-width: 650px) {
+  .container {
+    width: min(calc(100% - 1.5rem), var(--container));
+  }
+
+  .brand img {
+    width: 146px;
+  }
+
+  h1 {
+    font-size: clamp(2.35rem, 12vw, 3.65rem);
+    letter-spacing: -.06em;
+  }
+
+  h2 {
+    font-size: clamp(1.8rem, 9vw, 2.55rem);
+  }
+
+  .hero {
+    padding-block: 2.65rem 3.1rem;
+  }
+
+  .hero-content {
+    display: grid;
+  }
+
+  .hero .eyebrow {
+    max-width: 250px;
+    margin-bottom: .85rem;
+    line-height: 1.35;
+  }
+
+  .hero h1 {
+    margin-bottom: 1.05rem;
+    font-size: clamp(2.45rem, 12vw, 3.35rem);
+    line-height: 1.02;
+  }
+
+  .hero-lead {
+    margin-bottom: 1.35rem;
+    font-size: 1rem;
+    line-height: 1.58;
+  }
+
+  .hero-actions {
+    gap: .7rem;
+  }
+
+  .hero-actions .button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .hero-topics {
+    margin-top: 1.25rem;
+    gap: .4rem .75rem;
+    font-size: .8rem;
+  }
+
+  .hero-visual > img {
+    height: 330px;
+    border-radius: 20px;
+  }
+
+  .hero-visual figcaption {
+    right: .75rem;
+    bottom: .75rem;
+    left: .75rem;
+    max-width: none;
+  }
+
+  .feature-card,
+  .card-guia,
+  .news-item,
+  .event-card,
+  .tourism-card,
+  .community-box,
+  .news-detail-container,
+  .legal-card {
+    border-radius: 22px;
+  }
+
+  .feature-card {
+    min-height: 230px;
+  }
+
+  .page-hero {
+    padding-block: 2.5rem;
+  }
+
+  .footer-grid nav {
+    gap: .75rem;
+  }
+
+  .whatsapp-float {
+    width: 52px;
+    height: 52px;
+  }
+
+  .featured-news-grid {
+    margin-inline: 0 !important;
+    padding-inline: 0 !important;
+  }
+
+  .featured-news-card {
+    flex-basis: min(100%, 340px) !important;
+  }
+}
