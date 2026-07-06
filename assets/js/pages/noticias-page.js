@@ -21,9 +21,61 @@ const newsUrl=slug=>`/noticias/${encodeURIComponent(slug)}`;
 const summary=item=>(item.resumo||textoPuro(item.conteudo_html||"")).trim();
 const normalize=value=>String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 
-function renderFeatured(item){
+function secondaryCard(item){
+ const url=newsUrl(item.slug);
+ return `<article class="news-secondary"><a class="news-secondary-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="eager" decoding="async"></a><div class="news-secondary-content"><p class="news-secondary-meta"><span>${esc(item.categoria_nome||"Urânia")}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p><h3><a href="${url}">${esc(item.titulo)}</a></h3><a class="news-secondary-action" href="${url}">Ler notícia <span aria-hidden="true">→</span></a></div></article>`;
+}
+
+function renderFeatured(item,secondary=[]){
  const text=summary(item),url=newsUrl(item.slug);
- featured.innerHTML=`<article class="news-lead"><a class="news-lead-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" fetchpriority="high" decoding="async"></a><div class="news-lead-content"><span class="news-lead-label">Notícia em destaque</span><p class="eyebrow">${esc(item.categoria_nome||"Urânia")}</p><h2><a href="${url}">${esc(item.titulo)}</a></h2><p class="news-lead-date">${esc(formatarData(item.publicado_em))}</p>${text?`<p class="news-lead-summary">${esc(text.slice(0,220))}${text.length>220?"…":""}</p>`:""}<a class="news-lead-action" href="${url}"><span>Ler notícia completa</span><span aria-hidden="true">→</span></a></div></article>`;
+ featured.innerHTML=`<section class="news-top-stories" aria-labelledby="top-stories-title"><div class="news-top-heading"><p class="eyebrow">Em destaque</p><h2 id="top-stories-title">O que movimenta Urânia</h2></div><div class="news-portal-grid"><article class="news-lead"><a class="news-lead-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" fetchpriority="high" decoding="async"></a><div class="news-lead-content"><span class="news-lead-label">Manchete principal</span><p class="eyebrow">${esc(item.categoria_nome||"Urânia")}</p><h2><a href="${url}">${esc(item.titulo)}</a></h2><p class="news-lead-date">${esc(formatarData(item.publicado_em))}</p>${text?`<p class="news-lead-summary">${esc(text.slice(0,220))}${text.length>220?"…":""}</p>`:""}<a class="news-lead-action" href="${url}"><span>Ler notícia completa</span><span aria-hidden="true">→</span></a></div></article>${secondary.length?`<div class="news-secondary-stack">${secondary.map(secondaryCard).join("")}</div>`:""}</div></section>`;
+}
+
+function weatherDescription(code){
+ if(code===0)return["Céu limpo","☀️"];
+ if([1,2].includes(code))return["Parcialmente nublado","🌤️"];
+ if(code===3)return["Nublado","☁️"];
+ if([45,48].includes(code))return["Neblina","🌫️"];
+ if([51,53,55,56,57].includes(code))return["Garoa","🌦️"];
+ if([61,63,65,66,67,80,81,82].includes(code))return["Chuva","🌧️"];
+ if([71,73,75,77,85,86].includes(code))return["Precipitação gelada","🌨️"];
+ if([95,96,99].includes(code))return["Trovoadas","⛈️"];
+ return["Condição variável","🌤️"];
+}
+
+function buildLocalServiceBar(){
+ const masthead=document.querySelector(".news-masthead");
+ if(!masthead||document.querySelector(".news-service-bar"))return null;
+ masthead.insertAdjacentHTML("afterend",`<section class="news-service-bar" aria-label="Informações locais"><div class="container news-service-layout"><div class="news-today"><span>Agora em Urânia</span><time id="news-current-date"></time></div><div id="news-weather" class="news-weather" role="status" aria-live="polite"><span class="weather-icon" aria-hidden="true">☀️</span><span class="weather-copy"><strong>Previsão local</strong><small>Carregando clima…</small></span></div></div></section>`);
+ const date=document.getElementById("news-current-date");
+ date.textContent=new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"2-digit",month:"long"}).format(new Date());
+ return document.getElementById("news-weather");
+}
+
+async function loadWeather(){
+ const widget=buildLocalServiceBar();
+ if(!widget)return;
+ const cacheKey="euamourania-weather-v1";
+ try{
+  const cached=JSON.parse(sessionStorage.getItem(cacheKey)||"null");
+  let data=cached?.expires>Date.now()?cached.data:null;
+  if(!data){
+   const controller=new AbortController();
+   const timeout=setTimeout(()=>controller.abort(),5000);
+   const response=await fetch("https://api.open-meteo.com/v1/forecast?latitude=-20.24611&longitude=-50.64306&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FSao_Paulo&forecast_days=1",{signal:controller.signal});
+   clearTimeout(timeout);
+   if(!response.ok)throw new Error("weather-unavailable");
+   data=await response.json();
+   sessionStorage.setItem(cacheKey,JSON.stringify({expires:Date.now()+15*60*1000,data}));
+  }
+  const [description,icon]=weatherDescription(data.current?.weather_code);
+  const current=Math.round(data.current?.temperature_2m);
+  const minimum=Math.round(data.daily?.temperature_2m_min?.[0]);
+  const maximum=Math.round(data.daily?.temperature_2m_max?.[0]);
+  widget.innerHTML=`<span class="weather-icon" aria-hidden="true">${icon}</span><span class="weather-copy"><strong>${Number.isFinite(current)?`${current}° em Urânia`:"Clima em Urânia"}</strong><small>${description}${Number.isFinite(minimum)&&Number.isFinite(maximum)?` · mín. ${minimum}° / máx. ${maximum}°`:""}</small></span>`;
+ }catch{
+  widget.innerHTML='<span class="weather-icon" aria-hidden="true">🌤️</span><span class="weather-copy"><strong>Clima em Urânia</strong><small>Previsão indisponível agora</small></span>';
+ }
 }
 
 function renderFilters(items){
@@ -83,8 +135,10 @@ async function carregarNoticias(){
   });
   if(!news.length){status.textContent="Nenhuma notícia publicada.";return}
   const lead=news.find(item=>item.destaque)||news[0];
-  feed=news.filter(item=>item.id!==lead.id);
-  renderFeatured(lead);
+  const secondary=news.filter(item=>item.id!==lead.id).slice(0,2);
+  const highlightedIds=new Set([lead,...secondary].map(item=>item.id));
+  feed=news.filter(item=>!highlightedIds.has(item.id));
+  renderFeatured(lead,secondary);
   renderFilters(feed);
   renderFeed();
   status.hidden=true;
@@ -94,4 +148,5 @@ async function carregarNoticias(){
  }
 }
 
+loadWeather();
 carregarNoticias();
