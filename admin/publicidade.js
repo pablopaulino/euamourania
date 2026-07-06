@@ -7,10 +7,19 @@ const formats = {
   automatico: ["Automático responsivo", "Adapta-se à posição escolhida"],
   super_banner: ["Super banner", "970 × 250 px · destaques e topo"],
   horizontal: ["Horizontal compacto", "728 × 90 px · topo e rodapé"],
-  retangulo: ["Retângulo", "336 × 280 px · entre cartões"],
+  retangulo: ["Retângulo", "800 × 400 ou 728 × 300 px · entre conteúdos"],
   quadrado: ["Quadrado", "600 × 600 px · redes e mobile"],
   vertical: ["Vertical", "300 × 600 px · campanhas especiais"],
   nativo: ["Anúncio nativo", "Imagem, título, texto e botão"]
+};
+const mobileRecommendations = {
+  automatico: "Mobile recomendado: 640 × 300 px. O sistema adapta conforme a posição.",
+  super_banner: "Mobile recomendado: 640 × 300 px.",
+  horizontal: "Mobile recomendado: 640 × 300 px para manter boa leitura.",
+  retangulo: "Mobile recomendado: 720 × 400 px.",
+  quadrado: "Mobile recomendado: 1080 × 1080 px.",
+  vertical: "Mobile recomendado: 600 × 900 px.",
+  nativo: "Mobile recomendado: 720 × 480 px; título e texto permanecem separados."
 };
 const positionRecommendations = {
   todas_paginas: "Automático ou horizontal",
@@ -32,6 +41,26 @@ const positionRecommendations = {
   eventos_entre_eventos: "Nativo ou retângulo",
   eventos_rodape: "Horizontal 728 × 90"
 };
+const positionDescriptions = {
+  todas_paginas: "Faixa global exibida uma vez nas páginas públicas.",
+  home_topo: "Antes do destaque principal da página inicial.",
+  home_hero_conteudo: "Logo depois da apresentação da cidade.",
+  home_entre_secoes: "Integra a campanha ao fluxo de conteúdo da home.",
+  home_rodape: "Última oportunidade antes do rodapé.",
+  noticias_topo: "Antes da notícia principal e dos filtros.",
+  noticias_entre_listagem: "Entre os cards do feed de notícias.",
+  noticia_meio: "Dentro do texto, próximo ao centro da matéria.",
+  noticia_final: "Depois da matéria e antes das recomendações.",
+  guia_topo: "Antes da listagem do guia da cidade.",
+  guia_entre_estabelecimentos: "Entre os estabelecimentos cadastrados.",
+  guia_rodape: "Depois do guia, antes do rodapé.",
+  turismo_topo: "Antes dos atrativos turísticos.",
+  turismo_entre_cartoes: "Entre os cartões de turismo.",
+  turismo_rodape: "Depois dos atrativos, antes do rodapé.",
+  eventos_topo: "Antes da agenda de eventos.",
+  eventos_entre_eventos: "Entre os eventos da agenda.",
+  eventos_rodape: "Depois da agenda, antes do rodapé."
+};
 const positions = {
   "Todas as páginas": [["todas_paginas","Exibir em todo o site"]],
   "Home": [["home_topo","Topo"],["home_hero_conteudo","Entre Hero e conteúdo"],["home_entre_secoes","Entre seções"],["home_rodape","Rodapé"]],
@@ -49,14 +78,22 @@ function toast(message, type="success") { const el=document.createElement("div")
 function errorMessage(error) { return error?.message?.includes("campanhas_publicitarias") ? "A estrutura de Publicidade ainda não foi instalada no Supabase." : (error?.message || "Não foi possível concluir a operação."); }
 
 function renderPositions() {
-  $("#positions").innerHTML=Object.entries(positions).map(([group,items])=>`<div class="position-group"><strong>${group}</strong>${items.map(([value,label])=>`<label><input type="checkbox" name="posicoes" value="${value}"><span>${label}<small>${positionRecommendations[value]||"Automático responsivo"}</small></span></label>`).join("")}</div>`).join("");
+  $("#positions").innerHTML=`<div class="position-selection-head"><span id="position-selection-summary">Nenhuma posição selecionada</span><small>Você pode escolher vários locais.</small></div>${Object.entries(positions).map(([group,items])=>`<section class="position-group"><div class="position-group-title"><strong>${group}</strong><span>${items.length} ${items.length===1?"posição":"posições"}</span></div><div class="position-options">${items.map(([value,label])=>`<label class="position-option"><input type="checkbox" name="posicoes" value="${value}"><span class="position-check" aria-hidden="true">✓</span><span class="position-option-copy"><strong>${label}</strong><small>${positionDescriptions[value]||"Posição responsiva no portal."}</small><em>${positionRecommendations[value]||"Automático responsivo"}</em></span></label>`).join("")}</div></section>`).join("")}`;
+  syncPositionCards();
+}
+
+function syncPositionCards() {
+  const selected=[...document.querySelectorAll('[name="posicoes"]:checked')];
+  document.querySelectorAll(".position-option").forEach(card=>card.classList.toggle("selected",card.querySelector("input")?.checked));
+  const summary=$("#position-selection-summary");
+  if(summary)summary.textContent=selected.length?`${selected.length} ${selected.length===1?"posição selecionada":"posições selecionadas"}`:"Nenhuma posição selecionada";
 }
 
 function enhanceCreativeForm() {
   if(!document.querySelector('link[href*="publicidade-v2.css"]')){const link=document.createElement("link");link.rel="stylesheet";link.href="publicidade-v2.css";document.head.appendChild(link)}
   const imageField=$("#imagem_url")?.closest(".ads-field");
   if(!imageField||$("#formato"))return;
-  imageField.insertAdjacentHTML("afterend",`<div class="ads-field"><label for="formato">Formato do banner</label><select id="formato" name="formato">${Object.entries(formats).map(([value,[label]])=>`<option value="${value}">${label}</option>`).join("")}</select><small id="format-help">Adapta-se à posição escolhida.</small></div><div class="ads-field"><label for="imagem_mobile_url">Imagem para celular</label><div class="upload-row"><input id="imagem_mobile_url" name="imagem_mobile_url" type="url" placeholder="Opcional · URL da versão mobile"><input id="mobile-image-upload" type="file" accept="image/*" title="Enviar imagem mobile"></div><small class="upload-state" id="mobile-image-state">Recomendado: 640 × 200 px para banners horizontais.</small></div><div class="ads-field"><label for="titulo_publico">Título público</label><input id="titulo_publico" name="titulo_publico" maxlength="100" placeholder="Usado no formato nativo"></div><div class="ads-field"><label for="texto_publico">Texto público</label><textarea id="texto_publico" name="texto_publico" rows="3" maxlength="240" placeholder="Descrição curta do anúncio"></textarea></div><div class="ads-field"><label for="rotacao_segundos">Rotação entre campanhas</label><input id="rotacao_segundos" name="rotacao_segundos" type="number" min="5" max="30" value="8"><small>Tempo de exibição quando houver mais de uma campanha na mesma posição.</small></div><div class="ads-field full creative-preview-field"><div class="creative-preview-head"><div><label>Prévia do anúncio</label><small>Confira o encaixe antes de publicar.</small></div><div class="preview-device-switch"><button type="button" class="active" data-preview-device="desktop">Desktop</button><button type="button" data-preview-device="mobile">Celular</button></div></div><div id="campaign-preview" class="campaign-preview" data-device="desktop"></div></div>`);
+  imageField.insertAdjacentHTML("afterend",`<div class="ads-field"><label for="formato">Formato do anúncio</label><select id="formato" name="formato">${Object.entries(formats).map(([value,[label]])=>`<option value="${value}">${label}</option>`).join("")}</select><small id="format-help">Adapta-se à posição escolhida.</small></div><div class="ads-field"><label for="imagem_mobile_url">Imagem para celular</label><div class="upload-row"><input id="imagem_mobile_url" name="imagem_mobile_url" type="url" placeholder="Opcional · URL da versão mobile"><input id="mobile-image-upload" type="file" accept="image/*" title="Enviar imagem mobile"></div><small class="upload-state" id="mobile-image-state">Se não houver versão mobile, a imagem principal será adaptada.</small></div><div class="ads-field"><label for="titulo_publico">Título público</label><input id="titulo_publico" name="titulo_publico" maxlength="100" placeholder="Usado principalmente no formato nativo"></div><div class="ads-field"><label for="texto_publico">Texto público</label><textarea id="texto_publico" name="texto_publico" rows="3" maxlength="240" placeholder="Descrição curta e objetiva do anúncio"></textarea></div><div class="ads-field"><label for="rotacao_segundos">Tempo de exibição</label><input id="rotacao_segundos" name="rotacao_segundos" type="number" min="5" max="30" value="8"><small>Segundos desta campanha antes da próxima. Padrão: 8 segundos.</small></div><div class="ads-field full creative-preview-field"><div class="creative-preview-head"><div><label>Prévia real do anúncio</label><small>Confira formato, imagem, logo, texto e botão antes de publicar.</small></div><div class="preview-device-switch" role="group" aria-label="Dispositivo da prévia"><button type="button" class="active" data-preview-device="desktop" aria-pressed="true">Desktop</button><button type="button" data-preview-device="mobile" aria-pressed="false">Celular</button></div></div><div id="campaign-preview" class="campaign-preview" data-device="desktop"></div></div>`);
   const dashboard=$("#dashboard-view");
   if(dashboard&&!$("#placement-inventory"))dashboard.insertAdjacentHTML("beforeend",'<article class="ads-card placement-card"><div class="inventory-heading"><div><h3>Inventário de posições</h3><p>Veja onde existem campanhas configuradas no portal.</p></div><span>Formatos responsivos</span></div><div id="placement-inventory" class="placement-inventory"><div class="skeleton"></div></div></article>');
 }
@@ -69,17 +106,36 @@ function updateCreativePreview() {
   const desktop=safePreviewUrl(form.elements.imagem_url?.value);
   const mobile=safePreviewUrl(form.elements.imagem_mobile_url?.value);
   const source=device==="mobile"&&mobile?mobile:desktop;
+  const logo=safePreviewUrl(form.elements.logo_empresa_url?.value);
+  const video=safePreviewUrl(form.elements.video_url?.value);
+  const type=form.elements.tipo?.value||"banner";
   const title=form.elements.titulo_publico?.value||form.elements.empresa_anunciante?.value||"Título do anúncio";
   const text=form.elements.texto_publico?.value||"A descrição opcional aparece nos anúncios nativos.";
   const button=form.elements.texto_botao?.value||"Saiba mais";
   preview.className=`campaign-preview preview-${selected}`;
-  preview.innerHTML=source?`<div class="preview-creative"><span>Publicidade</span><img src="${escapeHtml(source)}" alt=""><div class="preview-copy"><strong>${escapeHtml(title)}</strong>${selected==="nativo"?`<p>${escapeHtml(text)}</p>`:""}<b>${escapeHtml(button)}</b></div></div>`:'<div class="preview-empty">Adicione uma imagem para visualizar o anúncio.</div>';
+  const youtubeUrl=youtubePreview(video);
+  const media=type==="video"&&youtubeUrl
+    ? `<iframe src="${escapeHtml(youtubeUrl)}" title="Prévia do vídeo"></iframe>`
+    : type==="video"&&video
+      ? `<video src="${escapeHtml(video)}" controls muted playsinline></video>`
+      : source
+        ? `<img src="${escapeHtml(source)}" alt="">`
+        : selected==="nativo"
+          ? `<div class="preview-native-placeholder">${logo?`<img src="${escapeHtml(logo)}" alt="">`:`<strong>${escapeHtml(form.elements.empresa_anunciante?.value||"Sua empresa")}</strong>`}</div>`
+          : "";
+  preview.innerHTML=media?`<div class="preview-creative"><span>Publicidade</span>${media}${logo&&source?`<img class="preview-logo" src="${escapeHtml(logo)}" alt="">`:""}<div class="preview-copy"><strong>${escapeHtml(title)}</strong>${selected==="nativo"?`<p>${escapeHtml(text)}</p>`:""}<b>${escapeHtml(button)}</b></div></div>`:'<div class="preview-empty"><strong>O anúncio ainda não possui mídia.</strong><span>Adicione uma imagem, vídeo ou escolha o formato nativo com conteúdo.</span></div>';
   const help=formats[selected]?.[1]||formats.automatico[1];
   $("#format-help").textContent=help;
+  $("#mobile-image-state").textContent=mobileRecommendations[selected]||mobileRecommendations.automatico;
 }
 
 function safePreviewUrl(value) {
   return /^https?:\/\//i.test(value||"")||/^\/?assets\//.test(value||"")?value:"";
+}
+
+function youtubePreview(value) {
+  const match=String(value||"").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/);
+  return match?`https://www.youtube-nocookie.com/embed/${match[1]}`:"";
 }
 
 function formatName(campaign) {
@@ -152,7 +208,7 @@ function openForm(campaign=null) {
     state.currentConfig={...(campaign.configuracao_futura||{})};["formato","imagem_mobile_url","titulo_publico","texto_publico","rotacao_segundos"].forEach(key=>{if(form.elements[key])form.elements[key].value=state.currentConfig[key]??(key==="formato"?"automatico":key==="rotacao_segundos"?8:"")});
     (campaign.campanha_posicoes||[]).forEach(x=>{const field=form.querySelector(`[name="posicoes"][value="${x.posicao}"]`);if(field)field.checked=true;});
   }
-  togglePopup();updateCreativePreview(); switchView("form"); window.scrollTo({top:0,behavior:"smooth"});
+  syncPositionCards();togglePopup();updateCreativePreview(); switchView("form"); window.scrollTo({top:0,behavior:"smooth"});
 }
 
 function togglePopup() { $("#popup-options").classList.toggle("visible",$("#tipo").value==="popup"); }
@@ -164,7 +220,8 @@ async function handleSave(event) {
     if(!campaign.id) delete campaign.id;
     campaign.abrir_nova_aba=fd.has("abrir_nova_aba"); campaign.prioridade=Number(fd.get("prioridade")||0); campaign.data_inicio=fd.get("data_inicio")?new Date(fd.get("data_inicio")).toISOString():null; campaign.data_fim=fd.get("data_fim")?new Date(fd.get("data_fim")).toISOString():null; campaign.popup_uma_vez=fd.has("popup_uma_vez"); campaign.popup_botao_fechar=fd.has("popup_botao_fechar"); campaign.popup_reexibir=fd.get("popup_reexibir")||"24h"; campaign.popup_atraso_seg=Number(fd.get("popup_atraso_seg")||3);
     campaign.configuracao_futura={...state.currentConfig,formato:fd.get("formato")||"automatico",imagem_mobile_url:fd.get("imagem_mobile_url")||null,titulo_publico:fd.get("titulo_publico")||null,texto_publico:fd.get("texto_publico")||null,rotacao_segundos:Math.max(5,Math.min(30,Number(fd.get("rotacao_segundos"))||8))};
-    if(campaign.status!=="rascunho"&&!campaign.imagem_url&&!campaign.video_url) throw new Error("Adicione uma imagem ou vídeo antes de ativar a campanha.");
+    const nativeContent=campaign.configuracao_futura.formato==="nativo"&&(campaign.configuracao_futura.titulo_publico||campaign.configuracao_futura.texto_publico);
+    if(campaign.status!=="rascunho"&&!campaign.imagem_url&&!campaign.video_url&&!nativeContent) throw new Error("Adicione uma imagem, vídeo ou conteúdo nativo antes de ativar a campanha.");
     if(campaign.data_inicio&&campaign.data_fim&&campaign.data_fim<campaign.data_inicio) throw new Error("A data final deve ser posterior à data inicial.");
     const selected=[...form.querySelectorAll('[name="posicoes"]:checked')].map(x=>x.value); if(!selected.length&&campaign.tipo!=="popup") throw new Error("Escolha ao menos um local de exibição.");
     await salvarCampanha(campaign,selected); state.summaries.clear(); toast("Campanha salva com sucesso."); switchView("campaigns");
@@ -182,10 +239,11 @@ async function upload(input,target,stateEl) {
 function bindEvents() {
   $("#logout").addEventListener("click",sair); $("#mobile-menu").addEventListener("click",()=>$("#sidebar").classList.toggle("open"));
   document.querySelectorAll(".ads-tab").forEach(t=>t.addEventListener("click",()=>switchView(t.dataset.tab)));
-  $("#new-campaign").addEventListener("click",()=>openForm()); $("#cancel-form").addEventListener("click",()=>switchView("campaigns")); $("#tipo").addEventListener("change",togglePopup); $("#campaign-form").addEventListener("submit",handleSave);
+  $("#new-campaign").addEventListener("click",()=>openForm()); $("#cancel-form").addEventListener("click",()=>switchView("campaigns")); $("#tipo").addEventListener("change",()=>{togglePopup();updateCreativePreview()}); $("#campaign-form").addEventListener("submit",handleSave);
   [["logo-upload","logo_empresa_url","logo-state"],["image-upload","imagem_url","image-state"],["mobile-image-upload","imagem_mobile_url","mobile-image-state"],["video-upload","video_url","video-state"]].forEach(([a,b,c])=>$("#"+a).addEventListener("change",e=>upload(e.target,$("#"+b),$("#"+c))));
-  $("#campaign-form").addEventListener("input",event=>{if(["formato","imagem_url","imagem_mobile_url","titulo_publico","texto_publico","texto_botao","empresa_anunciante"].includes(event.target.name))updateCreativePreview()});
-  document.querySelectorAll("[data-preview-device]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-preview-device]").forEach(item=>item.classList.toggle("active",item===button));$("#campaign-preview").dataset.device=button.dataset.previewDevice;updateCreativePreview()}));
+  $("#campaign-form").addEventListener("input",event=>{if(["formato","tipo","imagem_url","imagem_mobile_url","video_url","logo_empresa_url","titulo_publico","texto_publico","texto_botao","empresa_anunciante"].includes(event.target.name))updateCreativePreview()});
+  $("#positions").addEventListener("change",event=>{if(event.target.matches('[name="posicoes"]'))syncPositionCards()});
+  document.querySelectorAll("[data-preview-device]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-preview-device]").forEach(item=>{const active=item===button;item.classList.toggle("active",active);item.setAttribute("aria-pressed",String(active))});$("#campaign-preview").dataset.device=button.dataset.previewDevice;updateCreativePreview()}));
   $("#campaign-search").addEventListener("input",()=>{clearTimeout(state.timer);state.timer=setTimeout(()=>{state.page=1;loadCampaigns()},350)}); ["status-filter","type-filter"].forEach(id=>$("#"+id).addEventListener("change",()=>{state.page=1;loadCampaigns()}));
   $("#clear-filters").addEventListener("click",()=>{$("#campaign-search").value="";$("#status-filter").value="";$("#type-filter").value="";state.page=1;loadCampaigns()});
   $("#prev-page").addEventListener("click",()=>{if(state.page>1){state.page--;loadCampaigns()}}); $("#next-page").addEventListener("click",()=>{if(state.page*state.perPage<state.total){state.page++;loadCampaigns()}});
