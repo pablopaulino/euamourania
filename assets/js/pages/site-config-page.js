@@ -12,7 +12,7 @@ function applyGlobal(c){
  document.querySelectorAll(".brand img").forEach(img=>{if(logo)img.src=logo;img.alt=name});document.querySelectorAll(".footer-logo").forEach(img=>{if(footerLogo)img.src=footerLogo;img.alt=name});
  if(favicon)document.querySelectorAll('link[rel="icon"]').forEach(node=>node.href=favicon);
  document.querySelectorAll(".site-footer .footer-grid>div>p").forEach(el=>{if(c.texto_rodape||c.slogan)el.textContent=c.texto_rodape||c.slogan});
- const bottom=document.querySelector(".footer-bottom p");if(bottom&&c.copyright)bottom.innerHTML=`&copy; <span id="year">${new Date().getFullYear()}</span> ${esc(c.copyright)}`;
+ window.updateFooterYear?.();
  const email=c.email_contato;if(email)document.querySelectorAll('a[href^="mailto:"]').forEach(a=>{a.href=`mailto:${email}`;if(a.textContent.includes("@"))a.textContent=email});
  if(c.whatsapp){const digits=c.whatsapp.replace(/\D/g,"");document.querySelectorAll(".whatsapp-float").forEach(a=>a.href=`https://wa.me/${digits}`)}
  const footerLinks=json(c.rodape_links).filter(i=>i.ativo!==false&&i.titulo&&i.url),footerNav=document.querySelector(".site-footer nav");if(footerNav&&footerLinks.length)footerNav.innerHTML=footerLinks.map(i=>`<a href="${esc(absolute(i.url))}">${esc(i.titulo)}</a>`).join("");
