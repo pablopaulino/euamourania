@@ -32,6 +32,8 @@
 .news-page .news-search-form button{min-height:44px;padding:.55rem 1rem;border-radius:11px}
 .news-page .news-category-filters{margin:.55rem 0 0;padding:.65rem 0 0;border-top:1px solid var(--line)}
 .news-page .news-filter{min-height:36px;padding:.44rem .8rem;background:#f3f7f7;border-color:transparent}
+.news-page .news-filter:hover,.news-page .news-filter.active,.news-page .news-filter[aria-pressed="true"]{color:#fff;background:var(--blue);border-color:var(--blue)}
+.news-page .news-filter:focus-visible{outline:3px solid rgba(247,201,72,.65);outline-offset:2px}
 .news-results-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}
 .news-page .news-results-count{margin:0}
 .news-clear-filters{padding:.3rem 0;color:var(--blue);background:transparent;border:0;font:inherit;font-size:.78rem;font-weight:750;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
