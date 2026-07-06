@@ -8,7 +8,8 @@ O novo módulo substitui a gestão simples de banners por campanhas completas. N
 2. Entre em **SQL Editor** e crie uma consulta nova.
 3. Copie integralmente o conteúdo de `supabase/migrations/20260628_publicidade_cms.sql`.
 4. Execute e confirme que aparece **Success. No rows returned**.
-5. Recarregue `/admin/publicidade.html`.
+5. Execute também `supabase/migrations/20260706_publicidade_nativo_sem_imagem.sql`.
+6. Recarregue `/admin/publicidade.html`.
 
 A migração pode ser executada novamente. Banners antigos com imagem são importados sem duplicação.
 
@@ -31,14 +32,14 @@ Cada campanha pode usar um dos formatos:
 - **Automático**: adapta o criativo ao espaço disponível.
 - **Super banner (970 × 250)**: indicado para topo e rodapé.
 - **Horizontal (728 × 90)**: indicado entre listagens e seções.
-- **Retângulo (336 × 280)**: indicado no meio de conteúdos.
+- **Retângulo (800 × 400 ou 728 × 300)**: indicado no meio de conteúdos.
 - **Quadrado (1:1)**: indicado entre cartões.
 - **Vertical (300 × 600)**: preparado para espaços laterais.
-- **Nativo**: combina imagem, título, texto e botão com uma apresentação editorial identificada como publicidade.
+- **Nativo**: combina imagem, título, texto, logo e botão com uma apresentação editorial identificada como publicidade. Também pode ser ativado sem imagem quando possui título ou texto público suficiente.
 
 O criativo principal continua sendo usado no desktop. O campo **Imagem para celular** é opcional e permite uma arte mais legível em telas pequenas; na ausência dela, o site adapta a imagem principal. Título público e texto público são opcionais e aparecem principalmente no formato nativo.
 
-As escolhas são armazenadas em `configuracao_futura`, portanto esta melhoria não exige uma nova migração SQL e continua compatível com campanhas antigas.
+As escolhas continuam armazenadas em `configuracao_futura` e permanecem compatíveis com campanhas antigas. A migração complementar apenas permite ativar um anúncio nativo que possua conteúdo, mas não imagem.
 
 ## Posições públicas
 
@@ -50,9 +51,9 @@ O painel informa o formato recomendado ao lado de cada posição. As posições 
 - eventos: após o terceiro evento;
 - notícia individual: aproximadamente no meio do texto.
 
-Topo, final e rodapé continuam disponíveis em cada área. Uma campanha marcada para **Todas as páginas** aparece uma única vez por página, e a mesma campanha não é repetida em vários espaços da mesma visita.
+Topo, final e rodapé continuam disponíveis em cada área. Uma campanha marcada para **Todas as páginas** aparece na faixa global. Se uma campanha tiver várias posições selecionadas, ela poderá ocupar cada uma delas, com uma impressão limitada por campanha, posição e carregamento.
 
-Quando houver mais de uma campanha elegível no mesmo espaço, o site cria uma rotação discreta, com navegação manual e intervalo configurável entre 5 e 30 segundos. A rotação pausa durante interação e respeita a preferência de movimento reduzido do visitante.
+Quando houver mais de uma campanha elegível no mesmo espaço, o site cria uma rotação discreta, com navegação manual e tempo individual entre 5 e 30 segundos. A ordem inicial varia, a prioridade aumenta a chance de exibição e cada troca passa a respeitar o tempo configurado na campanha exibida. A rotação pausa durante interação e respeita a preferência de movimento reduzido do visitante.
 
 ## Métricas
 

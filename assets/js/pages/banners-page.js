@@ -5,8 +5,7 @@ const esc = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
 }[char]));
 const safe = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
 const topPositions = new Set(["todas_paginas", "home_topo", "noticias_topo", "guia_topo", "turismo_topo", "eventos_topo"]);
-const placedCampaigns = new Set();
-const tracked = new Set();
+const trackedImpressions = new Set();
 const adsenseAttempted = new Set();
 const adsense = {
   client: "ca-pub-6427480219886739",
@@ -30,17 +29,50 @@ const format = campaign => ["automatico", "super_banner", "horizontal", "retangu
   ? config(campaign).formato
   : "automatico";
 const positions = campaign => (campaign.campanha_posicoes || []).map(item => item.posicao);
+const rotationSeconds = campaign => Math.max(5, Math.min(30, Number(config(campaign).rotacao_segundos) || 8));
+const priorityWeight = campaign => 1 + Math.log2(1 + Math.max(0, Number(campaign.prioridade) || 0));
+
+function isCampaignActive(campaign, requirePosition = true) {
+  const now = Date.now();
+  const starts = campaign.data_inicio ? new Date(campaign.data_inicio).getTime() : null;
+  const ends = campaign.data_fim ? new Date(campaign.data_fim).getTime() : null;
+  return campaign.status === "ativo"
+    && (!starts || starts <= now)
+    && (!ends || ends >= now)
+    && (!requirePosition || positions(campaign).length > 0);
+}
+
+function automaticLayout(position, campaign) {
+  if (["noticias_entre_listagem", "noticia_meio", "guia_entre_estabelecimentos", "turismo_entre_cartoes", "eventos_entre_eventos"].includes(position)) {
+    return config(campaign).titulo_publico || config(campaign).texto_publico ? "nativo" : "retangulo";
+  }
+  if (position.endsWith("_rodape") || position === "todas_paginas") return "horizontal";
+  return "super_banner";
+}
+
+function weightedIndex(items, excluded = -1) {
+  const available = items.map((campaign, index) => ({ index, weight: priorityWeight(campaign) }))
+    .filter(item => item.index !== excluded);
+  if (!available.length) return excluded >= 0 ? excluded : 0;
+  const total = available.reduce((sum, item) => sum + item.weight, 0);
+  let cursor = Math.random() * total;
+  for (const item of available) {
+    cursor -= item.weight;
+    if (cursor <= 0) return item.index;
+  }
+  return available[available.length - 1].index;
+}
 
 function youtube(url) {
   const match = String(url || "").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/);
   return match ? `https://www.youtube-nocookie.com/embed/${match[1]}` : "";
 }
 
-function track(id, type) {
+function track(id, type, position = "geral") {
   if (!id || legacy) return;
-  const key = `${type}:${id}:${location.pathname}`;
-  if (type === "impressao" && tracked.has(key)) return;
-  tracked.add(key);
+  const key = `${id}:${position}:${location.pathname}`;
+  if (type === "impressao" && trackedImpressions.has(key)) return;
+  if (type === "impressao") trackedImpressions.add(key);
   callPublicRpc("registrar_evento_publicidade", {
     p_campanha: id,
     p_tipo: type
@@ -64,41 +96,49 @@ function media(campaign, position = "", popup = false) {
 }
 
 function creative(campaign, position) {
-  const content = media(campaign, position);
-  if (!content) return "";
   const settings = config(campaign);
   const selectedFormat = format(campaign);
-  const title = settings.titulo_publico || (selectedFormat === "nativo" ? campaign.empresa_anunciante : "");
+  const layout = selectedFormat === "automatico" ? automaticLayout(position, campaign) : selectedFormat;
+  const content = media(campaign, position);
+  if (!content && layout !== "nativo") return "";
+  const title = settings.titulo_publico || (layout === "nativo" ? campaign.empresa_anunciante : "");
   const description = settings.texto_publico || "";
   const logo = safe(campaign.logo_empresa_url)
     ? `<img class="ad-campaign-logo" src="${safe(campaign.logo_empresa_url)}" alt="${esc(campaign.empresa_anunciante)}" loading="lazy" decoding="async">`
     : "";
-  const callToAction = campaign.texto_botao
-    ? `<span class="ad-campaign-button">${esc(campaign.texto_botao)}</span>`
+  const buttonText = campaign.texto_botao || (layout === "nativo" && campaign.link_destino ? "Saiba mais" : "");
+  const callToAction = buttonText
+    ? `<span class="ad-campaign-button">${esc(buttonText)}</span>`
     : "";
   const copy = title || description
     ? `<span class="ad-campaign-copy">${title ? `<strong>${esc(title)}</strong>` : ""}${description ? `<span>${esc(description)}</span>` : ""}${callToAction}</span>`
     : callToAction;
-  const body = `<span class="ad-sponsored">Publicidade</span>${content}${logo}${copy}`;
-  const classes = `banner-item ad-campaign ad-format-${selectedFormat}${settings.imagem_mobile_url ? " has-mobile" : ""}`;
+  const nativePlaceholder = !content && layout === "nativo"
+    ? `<span class="ad-native-placeholder">${safe(campaign.logo_empresa_url) ? `<img class="ad-native-logo" src="${safe(campaign.logo_empresa_url)}" alt="${esc(campaign.empresa_anunciante)}" loading="lazy" decoding="async">` : `<strong>${esc(campaign.empresa_anunciante || "Publicidade")}</strong>`}</span>`
+    : "";
+  const body = `<span class="ad-sponsored">Publicidade</span>${content || nativePlaceholder}${content ? logo : ""}${copy}`;
+  const classes = `banner-item ad-campaign ad-format-${selectedFormat} ad-layout-${layout}${content ? "" : " no-media"}${settings.imagem_mobile_url ? " has-mobile" : ""}`;
   return safe(campaign.link_destino)
     ? `<a class="${classes}" data-campaign-id="${campaign.id}" href="${safe(campaign.link_destino)}" ${campaign.abrir_nova_aba ? 'target="_blank" rel="noopener sponsored"' : 'rel="sponsored"'}>${body}</a>`
     : `<div class="${classes}" data-campaign-id="${campaign.id}">${body}</div>`;
 }
 
-function hasRenderableMedia(campaign) {
+function hasRenderableMedia(campaign, position = "") {
+  const selectedFormat = format(campaign);
+  const layout = selectedFormat === "automatico" && position ? automaticLayout(position, campaign) : selectedFormat;
+  const hasNativeCopy = Boolean(config(campaign).titulo_publico || config(campaign).texto_publico);
   if (campaign.tipo === "video") {
     return Boolean(youtube(campaign.video_url) || safe(campaign.video_url) || safe(campaign.imagem_url));
   }
-  return Boolean(safe(campaign.imagem_url));
+  return Boolean(safe(campaign.imagem_url) || (layout === "nativo" && hasNativeCopy));
 }
 
 function candidates(position) {
   return campaigns
     .filter(campaign => campaign.tipo !== "popup"
       && positions(campaign).includes(position)
-      && !placedCampaigns.has(campaign.id)
-      && hasRenderableMedia(campaign))
+      && isCampaignActive(campaign)
+      && hasRenderableMedia(campaign, position))
     .sort((a, b) => Number(b.prioridade || 0) - Number(a.prioridade || 0));
 }
 
@@ -194,16 +234,16 @@ function zoneMarkup(position, items, inline = false) {
   return `<aside class="banner-zone ad-zone ${inline ? "ad-zone-inline" : ""}" data-banner="${position}" aria-label="Publicidade">${inline ? rotator : `<div class="container banner-list">${rotator}</div>`}</aside>`;
 }
 
-function observeImpression(node) {
+function observeImpression(node, position) {
   const id = node?.dataset.campaignId;
   if (!id) return;
   if (!("IntersectionObserver" in window)) {
-    track(id, "impressao");
+    track(id, "impressao", position);
     return;
   }
   const observer = new IntersectionObserver(entries => {
     if (entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= .45)) {
-      track(id, "impressao");
+      track(id, "impressao", position);
       observer.disconnect();
     }
   }, { threshold: [.45] });
@@ -215,7 +255,7 @@ function setupRotator(zone, items) {
   const slides = [...zone.querySelectorAll(".ad-slide")];
   const dots = [...zone.querySelectorAll("[data-ad-index]")];
   if (!rotator || !slides.length) return;
-  let current = 0;
+  let current = weightedIndex(items);
   const activate = index => {
     current = (index + slides.length) % slides.length;
     rotator.dataset.adCurrent = String(current);
@@ -226,17 +266,20 @@ function setupRotator(zone, items) {
       slide.setAttribute("aria-hidden", String(!active));
     });
     dots.forEach((dot, dotIndex) => dot.classList.toggle("active", dotIndex === current));
-    observeImpression(slides[current].querySelector("[data-campaign-id]"));
+    observeImpression(slides[current].querySelector("[data-campaign-id]"), zone.dataset.banner);
   };
   const stop = () => {
-    if (rotator._adTimer) clearInterval(rotator._adTimer);
+    if (rotator._adTimer) clearTimeout(rotator._adTimer);
     rotator._adTimer = null;
   };
   const start = () => {
     stop();
     if (slides.length < 2 || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const seconds = Math.max(5, Math.min(30, Number(config(items[current]).rotacao_segundos) || 8));
-    rotator._adTimer = setInterval(() => activate(current + 1), seconds * 1000);
+    const seconds = rotationSeconds(items[current]);
+    rotator._adTimer = setTimeout(() => {
+      activate(weightedIndex(items, current));
+      start();
+    }, seconds * 1000);
   };
   zone.addEventListener("click", event => {
     const step = event.target.closest("[data-ad-step]");
@@ -249,7 +292,7 @@ function setupRotator(zone, items) {
   zone.addEventListener("mouseleave", start);
   zone.addEventListener("focusin", stop);
   zone.addEventListener("focusout", start);
-  activate(0);
+  activate(current);
   start();
 }
 
@@ -261,7 +304,6 @@ function insertZone(position, target, where = "beforebegin", inline = false) {
   const html = zoneMarkup(position, items, inline);
   if (!html) return false;
   element.insertAdjacentHTML(where, html);
-  items.forEach(campaign => placedCampaigns.add(campaign.id));
   const zone = document.querySelector(`[data-banner="${position}"]`);
   setupRotator(zone, items);
   return true;
@@ -383,7 +425,7 @@ function showPopup(campaign) {
       : content;
     document.body.insertAdjacentHTML("beforeend", `<div class="ad-popup" role="dialog" aria-modal="true" aria-label="Publicidade"><div class="ad-popup-backdrop"></div><div class="ad-popup-card">${close}${linked}</div></div>`);
     localStorage.setItem(`euamourania:ad:${campaign.id}`, String(Date.now()));
-    track(campaign.id, "impressao");
+    track(campaign.id, "impressao", "popup");
     const dismiss = () => document.querySelector(".ad-popup")?.remove();
     document.querySelector(".ad-popup-close")?.addEventListener("click", dismiss);
     document.querySelector(".ad-popup-backdrop")?.addEventListener("click", () => {
@@ -438,16 +480,26 @@ async function init() {
   }
   renderAllAdvertising();
   campaigns
-    .filter(campaign => campaign.tipo === "popup")
+    .filter(campaign => campaign.tipo === "popup" && isCampaignActive(campaign, false) && hasRenderableMedia(campaign, "popup"))
     .sort((a, b) => Number(b.prioridade || 0) - Number(a.prioridade || 0))
     .slice(0, 1)
     .forEach(showPopup);
   document.addEventListener("click", event => {
     const node = event.target.closest("[data-campaign-id]");
-    if (node && !event.target.closest("[data-ad-step],[data-ad-index]")) track(node.dataset.campaignId, "clique");
+    if (node && !event.target.closest("[data-ad-step],[data-ad-index]")) {
+      track(node.dataset.campaignId, "clique", node.closest("[data-banner]")?.dataset.banner || "popup");
+    }
   });
   window.addEventListener("cookie-consent:accepted", renderAllAdvertising);
-  const observer = new MutationObserver(renderAllAdvertising);
+  let renderQueued = false;
+  const observer = new MutationObserver(() => {
+    if (renderQueued) return;
+    renderQueued = true;
+    requestAnimationFrame(() => {
+      renderQueued = false;
+      renderAllAdvertising();
+    });
+  });
   observer.observe(document.body, { childList: true, subtree: true });
   setTimeout(() => observer.disconnect(), 15000);
 }
