@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "test": "node scripts/validate-project.mjs && node scripts/test-rbac.mjs && node scripts/test-site-config.mjs && node scripts/test-editorial-audience.mjs && node scripts/test-google-integrations.mjs && node scripts/test-media-upload.mjs && node scripts/test-guide-json-import.mjs && node scripts/test-guide-public-listing.mjs && node scripts/test-news-detail.mjs && node scripts/test-news-listing.mjs && node scripts/test-tourism-page.mjs && node scripts/test-public-performance.mjs && node scripts/test-global-search.mjs && node scripts/test-advertising-formats.mjs && node scripts/test-adsense-hybrid.mjs && node scripts/test-official-whatsapp.mjs && node scripts/test-seo-indexing.mjs",
+    "test": "node scripts/validate-project.mjs && node scripts/test-rbac.mjs && node scripts/test-site-config.mjs && node scripts/test-editorial-audience.mjs && node scripts/test-google-integrations.mjs && node scripts/test-media-upload.mjs && node scripts/test-guide-json-import.mjs && node scripts/test-guide-public-listing.mjs && node scripts/test-news-detail.mjs && node scripts/test-news-listing.mjs && node scripts/test-tourism-page.mjs && node scripts/test-public-performance.mjs && node scripts/test-global-search.mjs && node scripts/test-advertising-formats.mjs && node scripts/test-adsense-hybrid.mjs && node scripts/test-official-whatsapp.mjs && node scripts/test-seo-indexing.mjs && node scripts/test-footer-copyright.mjs",
     "validate": "node scripts/validate-project.mjs",
     "test:rbac": "node scripts/test-rbac.mjs",
     "test:config": "node scripts/test-site-config.mjs",
@@ -21,6 +21,7 @@
     "test:adsense": "node scripts/test-adsense-hybrid.mjs",
     "test:whatsapp": "node scripts/test-official-whatsapp.mjs",
     "test:seo-indexing": "node scripts/test-seo-indexing.mjs",
+    "test:footer": "node scripts/test-footer-copyright.mjs",
     "serve": "node scripts/serve-static.mjs",
     "smoke": "node scripts/smoke-test.mjs"
   },
