@@ -25,6 +25,7 @@ must(featured.includes("if(!home)return")&&!featured.includes("const news="),"Co
 for(const feature of[".news-masthead", ".news-lead", ".news-search-form", ".news-category-filters", ".news-load-more"])must(css.includes(feature),`Estilo profissional ausente: ${feature}`);
 must(css.includes("@media (max-width: 650px)")&&css.includes(".news-lead-media img { height: 235px; }"),"Página de notícias não está adaptada ao celular");
 for(const feature of[".news-controls",".news-lead-label",".news-item-action","@media(max-width:650px)","prefers-reduced-motion"])must(dedicatedCss.includes(feature),`Estilo minimalista ausente: ${feature}`);
+must(dedicatedCss.includes('.news-filter[aria-pressed="true"]')&&dedicatedCss.includes(".news-filter:focus-visible"),"Categoria selecionada não possui contraste e foco visível");
 must(page.includes('class="news-item"')&&banners.includes('"#news-container", ".news-item"'),"Publicidade entre notícias foi quebrada");
 
 console.log("Página de notícias validada: visual minimalista, destaque editorial, busca, categorias, feed e responsividade.");
