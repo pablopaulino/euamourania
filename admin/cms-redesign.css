@@ -29,12 +29,34 @@ body:not(.login-page) {
 .admin-sidebar {
   margin: .85rem 0 .85rem .85rem;
   height: calc(100vh - 1.7rem);
-  border: 1px solid rgba(255, 255, 255, .13);
+  border: 1px solid rgba(220, 231, 234, .9);
   border-radius: 28px;
   background:
-    radial-gradient(circle at 20% 4%, rgba(247, 201, 72, .24), transparent 12rem),
-    linear-gradient(180deg, #073b4c 0%, #052d3c 100%);
-  box-shadow: 0 22px 60px rgba(7, 59, 76, .22);
+    radial-gradient(circle at 16% 4%, rgba(247, 201, 72, .22), transparent 11rem),
+    linear-gradient(180deg, rgba(255, 255, 255, .98) 0%, #f4fafb 100%);
+  box-shadow: 0 18px 45px rgba(7, 59, 76, .1);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(11, 79, 108, .22) transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  width: 7px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(11, 79, 108, .22);
+  background-clip: padding-box;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(11, 79, 108, .34);
+  background-clip: padding-box;
 }
 
 .admin-logo {
@@ -43,9 +65,9 @@ body:not(.login-page) {
   margin: 0 auto 1.4rem;
   padding: .85rem 1rem;
   border-radius: 18px;
-  background: rgba(255, 255, 255, .96);
+  background: rgba(255, 255, 255, .9);
   filter: none;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, .12);
+  box-shadow: 0 10px 26px rgba(7, 59, 76, .08);
 }
 
 .admin-nav { gap: .45rem; }
@@ -55,27 +77,27 @@ body:not(.login-page) {
   min-height: 42px;
   padding: .78rem .92rem;
   border-radius: 14px;
-  color: rgba(255, 255, 255, .84);
+  color: #355866;
   font-weight: 750;
   letter-spacing: -.01em;
   transition: transform .16s ease, background .16s ease, color .16s ease;
 }
 
 .admin-nav button:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, .11);
+  color: var(--cms-navy);
+  background: rgba(11, 79, 108, .07);
   transform: translateX(2px);
 }
 
 .admin-nav button.active {
   color: var(--cms-navy);
   background: linear-gradient(135deg, var(--cms-yellow), #ffe58a);
-  box-shadow: 0 12px 24px rgba(247, 201, 72, .2);
+  box-shadow: 0 10px 22px rgba(247, 201, 72, .2);
 }
 
 .admin-sidebar-footer {
-  border-top-color: rgba(255, 255, 255, .13);
-  color: rgba(255, 255, 255, .78);
+  border-top-color: rgba(7, 59, 76, .09);
+  color: var(--cms-muted);
 }
 
 .admin-main { padding: clamp(1rem, 3vw, 2.4rem); }
