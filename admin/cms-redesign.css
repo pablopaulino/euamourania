@@ -254,6 +254,11 @@ input:focus, textarea:focus, select:focus {
   margin-bottom: 1.45rem !important;
 }
 
+.resource-toolbar {
+  margin-top: 34px !important;
+  margin-bottom: 22px !important;
+}
+
 .panel-header h2 {
   line-height: 1.05;
 }
