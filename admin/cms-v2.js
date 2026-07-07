@@ -3,14 +3,15 @@ import { gerarSlug } from "../assets/js/utils.js";
 import { obterInsights, obterMaisAcessados } from "../assets/js/services/analyticsService.js";
 import { obterAcessoAtual } from "./auth.js";
 
-const app=document.getElementById("app-content"),title=document.getElementById("page-title"),db=getSupabase();
+const app=document.getElementById("app-content"),title=document.getElementById("page-title"),hint=document.getElementById("page-hint"),db=getSupabase();
+const viewHints={dashboard:"Acompanhe indicadores, alertas e atividades recentes antes de editar o portal.",noticias:"Crie, revise, destaque e publique notícias com segurança editorial.",categorias:"Organize categorias por tipo e mantenha a navegação do portal consistente.",configuracoes_site:"Atualize identidade, contatos, SEO e informações globais exibidas no site.",insights:"Acompanhe audiência, cliques e conteúdos com melhor desempenho."};
 const esc=(v="")=>String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
 const date=v=>v?new Date(v).toLocaleDateString("pt-BR"):"—";
 let dirty=false,editor=null;
 function toast(message,type="success"){const stack=document.getElementById("toasts"),el=document.createElement("div");el.className=`toast ${type}`;el.textContent=message;stack.append(el);setTimeout(()=>el.remove(),3600)}
 function loading(){app.innerHTML='<div class="ads-card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>'}
 function fail(error){app.innerHTML=`<div class="ads-card empty-state"><strong>Não foi possível carregar</strong>${esc(error.message)}</div>`;toast(error.message,"error")}
-function setView(name,label){title.textContent=label;location.hash=name;document.querySelectorAll(".admin-nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===name));document.getElementById("sidebar").classList.remove("open")}
+function setView(name,label){title.textContent=label;if(hint)hint.textContent=viewHints[name]||"Gerencie este módulo com filtros, confirmações e mensagens de retorno do CMS.";location.hash=name;document.querySelectorAll(".admin-nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===name));document.getElementById("sidebar").classList.remove("open")}
 function guard(){if(!dirty||confirm("Existem alterações não salvas. Deseja sair mesmo assim?")){dirty=false;return true}return false}
 window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue=""}});
 document.addEventListener("input",e=>{if(e.target.closest(".cms-form"))dirty=true});
