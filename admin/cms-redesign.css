@@ -103,8 +103,8 @@ body:not(.login-page) {
 .admin-main { padding: clamp(1rem, 3vw, 2.4rem); }
 
 .admin-topbar {
-  position: sticky;
-  top: .75rem;
+  position: relative;
+  top: auto;
   z-index: 20;
   align-items: flex-start;
   margin-bottom: 1.15rem;
@@ -465,7 +465,7 @@ tbody tr:hover { background: #fbfdfd; }
 
 @media (max-width: 760px) {
   .admin-main { padding: .85rem; }
-  .admin-topbar { top: .5rem; flex-direction: column; border-radius: 0; }
+  .admin-topbar { top: auto; flex-direction: column; border-radius: 0; }
   .admin-page-hint { font-size: .88rem; }
   .ads-content, .panel, .ads-card { border-radius: 18px; }
   .cms-toolbar-v2,
