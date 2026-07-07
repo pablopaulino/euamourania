@@ -233,20 +233,20 @@ input:focus, textarea:focus, select:focus {
 
 .cms-toolbar-v2,
 .ads-toolbar {
-  padding: .85rem;
-  border: 1px solid var(--cms-line);
-  border-radius: 20px;
-  background: linear-gradient(180deg, #fbfefe 0%, #f6fafb 100%);
+  padding: .55rem;
+  border: 1px solid rgba(220, 231, 234, .82);
+  border-radius: 18px;
+  background: rgba(248, 252, 252, .72);
 }
 
 .panel .cms-toolbar,
 .ads-toolbar.cms-toolbar {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) 190px 170px;
+  grid-template-columns: minmax(280px, 1fr) minmax(150px, 180px) minmax(145px, 170px);
   align-items: center;
-  gap: .8rem;
+  gap: .55rem;
   width: 100%;
-  margin: 0 0 1.35rem;
+  margin: 0 0 1.25rem;
 }
 
 .panel-header + .cms-toolbar {
@@ -272,8 +272,24 @@ input:focus, textarea:focus, select:focus {
 .cms-toolbar-v2 select,
 .ads-toolbar input,
 .ads-toolbar select {
-  height: 46px;
+  height: 42px;
   margin: 0;
+  border-color: rgba(205, 219, 224, .9);
+  border-radius: 14px;
+  box-shadow: 0 1px 0 rgba(7, 59, 76, .03);
+}
+
+.cms-toolbar input,
+.cms-toolbar-v2 input,
+.ads-toolbar input {
+  padding-left: .95rem;
+}
+
+.cms-toolbar select,
+.cms-toolbar-v2 select,
+.ads-toolbar select {
+  padding-inline: .9rem 2rem;
+  background-color: #fff;
 }
 
 .table-wrap,
