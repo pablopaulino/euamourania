@@ -168,6 +168,10 @@ body:not(.login-page) {
   box-shadow: var(--cms-shadow);
 }
 
+.panel {
+  padding: clamp(1.35rem, 2.6vw, 2rem);
+}
+
 .ads-content { padding: clamp(1rem, 2vw, 1.45rem); }
 .dashboard-grid, .insight-grid, .ads-grid { gap: 1rem; }
 
@@ -196,6 +200,20 @@ body:not(.login-page) {
   letter-spacing: -.035em;
 }
 
+.panel-header {
+  margin-bottom: 1.25rem;
+  padding-bottom: .25rem;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+}
+
+.panel-header .admin-button {
+  min-width: 142px;
+}
+
 .cms-section-head p,
 .ads-heading p,
 .empty-state,
@@ -215,10 +233,10 @@ input:focus, textarea:focus, select:focus {
 
 .cms-toolbar-v2,
 .ads-toolbar {
-  padding: .75rem;
+  padding: .85rem;
   border: 1px solid var(--cms-line);
-  border-radius: 18px;
-  background: #f8fbfb;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fbfefe 0%, #f6fafb 100%);
 }
 
 .panel .cms-toolbar,
@@ -226,17 +244,13 @@ input:focus, textarea:focus, select:focus {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) 190px 170px;
   align-items: center;
-  gap: .75rem;
+  gap: .8rem;
   width: 100%;
-  margin: 0 0 1rem;
+  margin: 0 0 1.35rem;
 }
 
 .panel-header + .cms-toolbar {
   margin-top: -.2rem;
-}
-
-.panel-header {
-  align-items: center;
 }
 
 .panel-header h2 {
@@ -248,7 +262,8 @@ input:focus, textarea:focus, select:focus {
 }
 
 .panel .ads-pagination {
-  padding: 1rem 0 0;
+  align-items: center;
+  padding: 1.35rem 0 0;
 }
 
 .cms-toolbar input,
@@ -264,12 +279,94 @@ input:focus, textarea:focus, select:focus {
 .table-wrap,
 .ads-table-wrap {
   border: 1px solid var(--cms-line);
-  border-radius: 18px;
+  border-radius: 20px;
   background: #fff;
+  overflow: hidden;
 }
 
 th { background: #f7fafb; }
-td, th { border-bottom-color: #e7eef1; }
+td, th {
+  border-bottom-color: #e7eef1;
+  text-align: left;
+}
+
+th {
+  padding-block: .9rem;
+  color: #607681;
+}
+
+td {
+  padding-block: 1rem;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+td[colspan] {
+  padding: 2rem 1rem;
+  color: var(--cms-muted);
+  text-align: center;
+}
+
+td strong {
+  color: var(--cms-ink);
+}
+
+.panel table:not(.cms-table) th:first-child,
+.panel table:not(.cms-table) td:first-child {
+  padding-left: clamp(1rem, 2vw, 1.55rem);
+}
+
+.panel table:not(.cms-table) th:last-child,
+.panel table:not(.cms-table) td:last-child {
+  padding-right: clamp(1rem, 2vw, 1.55rem);
+}
+
+.panel table:not(.cms-table) th:nth-child(1),
+.panel table:not(.cms-table) td:nth-child(1) {
+  width: 46%;
+}
+
+.panel table:not(.cms-table) th:nth-child(2),
+.panel table:not(.cms-table) td:nth-child(2) {
+  width: 18%;
+}
+
+.panel table:not(.cms-table) th:nth-child(3),
+.panel table:not(.cms-table) td:nth-child(3) {
+  width: 18%;
+}
+
+.panel table:not(.cms-table) th:nth-child(4),
+.panel table:not(.cms-table) td:nth-child(4) {
+  width: 18%;
+}
+
+.row-actions {
+  justify-content: flex-start;
+}
+
+.row-actions button,
+.cms-actions button {
+  min-height: 34px;
+  padding: .42rem .72rem;
+  border: 0;
+  background: #f3f7f8;
+  color: var(--cms-navy);
+}
+
+.row-actions button:hover,
+.cms-actions button:hover {
+  background: var(--cms-blue-soft);
+}
+
+.row-actions button[data-delete],
+.cms-actions .danger {
+  color: var(--cms-danger);
+  background: #fff2f0;
+}
+
 tbody tr { transition: background .14s ease; }
 tbody tr:hover { background: #fbfdfd; }
 
