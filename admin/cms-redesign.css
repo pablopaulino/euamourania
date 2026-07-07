@@ -249,8 +249,9 @@ input:focus, textarea:focus, select:focus {
   margin: .8rem 0 1.35rem;
 }
 
-.panel-header + .cms-toolbar {
-  margin-top: .65rem;
+.panel > .panel-header + .ads-toolbar.cms-toolbar {
+  margin-top: 2.2rem !important;
+  margin-bottom: 1.45rem !important;
 }
 
 .panel-header h2 {
