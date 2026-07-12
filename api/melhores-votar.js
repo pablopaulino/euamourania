@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://omhcpbphvtihqwdkbsbf.supabase.co";
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 const HASH_SECRET = process.env.MELHORES_VOTO_SECRET || SERVICE_KEY || "eu-amourania-melhores";
+const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET_KEY || process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || "";
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const json = (res, status, body, headers = {}) => {
@@ -45,6 +46,39 @@ async function rest(path, { method = "GET", body } = {}) {
   return data;
 }
 
+async function verifyTurnstile(token, ip) {
+  if (!TURNSTILE_SECRET) return { ok: true, skipped: true };
+  if (!token) return { ok: false, reason: "missing-token" };
+  const body = new URLSearchParams();
+  body.set("secret", TURNSTILE_SECRET);
+  body.set("response", String(token));
+  body.set("remoteip", ip || "");
+  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body
+  });
+  const data = await response.json().catch(() => ({}));
+  return { ok: data.success === true, reason: data["error-codes"]?.join(",") || "invalid-token" };
+}
+
+async function handleCleanup(req, res) {
+  const url = new URL(req.url || "/", `https://${req.headers.host || "localhost"}`);
+  const fromVercelCron = getHeader(req, "x-vercel-cron") === "1";
+  const secret = process.env.MELHORES_CRON_SECRET || process.env.CRON_SECRET || "";
+  const provided = url.searchParams.get("secret") || "";
+  if (!fromVercelCron && (!secret || provided !== secret)) {
+    return json(res, 404, { ok: false, message: "Rotina não encontrada." });
+  }
+  const total = await rest("rpc/melhores_limpar_votos_expirados", { method: "POST", body: {} });
+  return json(res, 200, {
+    ok: true,
+    rotina: "melhores_limpar_votos_expirados",
+    edicoes_limpas: Number(total || 0),
+    executado_em: new Date().toISOString()
+  });
+}
+
 function votingOpen(edition) {
   const now = Date.now();
   const start = edition.votacao_inicio ? new Date(edition.votacao_inicio).getTime() : 0;
@@ -53,6 +87,17 @@ function votingOpen(edition) {
 }
 
 module.exports = async (req, res) => {
+  if (req.method === "GET") {
+    const url = new URL(req.url || "/", `https://${req.headers.host || "localhost"}`);
+    if (url.searchParams.get("cron") === "limpeza") {
+      try {
+        return await handleCleanup(req, res);
+      } catch (error) {
+        console.error("melhores-limpeza:", error);
+        return json(res, 500, { ok: false, message: "Não foi possível executar a limpeza automática." });
+      }
+    }
+  }
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return json(res, 405, { ok: false, message: "Método não permitido." });
@@ -72,6 +117,10 @@ module.exports = async (req, res) => {
 
     const ua = getHeader(req, "user-agent").slice(0, 260);
     const ip = firstIp(req);
+    const turnstile = await verifyTurnstile(payload.turnstile_token || payload.cf_turnstile_response, ip);
+    if (!turnstile.ok) {
+      return json(res, 403, { ok: false, message: "Confirmação de segurança inválida. Atualize a página e tente novamente." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
+    }
     const identifier = hash([edicaoId, categoriaId, visitor, ip, ua].join("|"));
     const uaHash = hash(ua || "sem-user-agent");
 
@@ -131,7 +180,10 @@ module.exports = async (req, res) => {
         status,
         metadados: {
           pagina: payload.pagina || null,
-          ip_hash: hash(ip || "sem-ip")
+          ip_hash: hash(ip || "sem-ip"),
+          accept_language_hash: hash(getHeader(req, "accept-language") || "sem-idioma"),
+          vercel_country: getHeader(req, "x-vercel-ip-country") || null,
+          turnstile: turnstile.skipped ? "nao_configurado" : "validado"
         }
       }]
     });

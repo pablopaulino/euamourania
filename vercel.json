@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/melhores-votar?cron=limpeza",
+      "schedule": "17 6 * * *"
+    }
+  ],
   "redirects": [
     {
       "source": "/news-detalhes.html",

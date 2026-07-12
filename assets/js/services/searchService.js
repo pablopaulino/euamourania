@@ -29,7 +29,7 @@ function makeItem(type, row) {
       action: "Ler notícia"
     },
     guia: {
-      label: "Guia da cidade",
+      label: "Guia",
       title: row.nome,
       description: row.descricao,
       url: `/guia.html?busca=${encodeURIComponent(row.nome)}#guia-${encodeURIComponent(row.id)}`,

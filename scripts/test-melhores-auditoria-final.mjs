@@ -17,8 +17,10 @@ const publicService = read("assets/js/services/melhoresPublicService.js");
 const adminHtml = read("admin/melhores.html");
 const adminJs = read("admin/melhores.js");
 const voteApi = read("api/melhores-votar.js");
+const indicationApi = read("api/melhores-indicar.js");
 const sitemap = read("api/sitemaps.js");
 const editionJs = read("assets/js/pages/melhores-edicao-page.js");
+const analyticsJs = read("assets/js/services/melhoresAnalyticsService.js");
 const pkg = JSON.parse(read("package.json"));
 
 must(migration.includes("melhores_validar_limite_finalistas"), "Migração deve validar limite de finalistas no banco");

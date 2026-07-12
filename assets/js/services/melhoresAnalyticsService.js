@@ -7,10 +7,14 @@ const EVENT_TYPES = new Set([
   "melhores_results_view",
   "melhores_vote_start",
   "melhores_vote_complete",
+  "melhores_vote_abandon",
   "melhores_vote_error",
+  "melhores_category_view",
+  "melhores_nominee_impression",
   "melhores_indication_start",
   "melhores_indication_complete",
   "melhores_indication_error",
+  "melhores_share_click",
   "melhores_cta_click"
 ]);
 

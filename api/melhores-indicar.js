@@ -2,6 +2,7 @@ const crypto = require("crypto");
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://omhcpbphvtihqwdkbsbf.supabase.co";
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET_KEY || process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || "";
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const json = (res, status, body) => {
@@ -39,6 +40,22 @@ async function rest(path, { method = "GET", body } = {}) {
   return data;
 }
 
+async function verifyTurnstile(token, ip) {
+  if (!TURNSTILE_SECRET) return { ok: true, skipped: true };
+  if (!token) return { ok: false, reason: "missing-token" };
+  const body = new URLSearchParams();
+  body.set("secret", TURNSTILE_SECRET);
+  body.set("response", String(token));
+  body.set("remoteip", ip || "");
+  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body
+  });
+  const data = await response.json().catch(() => ({}));
+  return { ok: data.success === true, reason: data["error-codes"]?.join(",") || "invalid-token" };
+}
+
 function indicationsOpen(edition) {
   const now = Date.now();
   const start = edition.indicacoes_inicio ? new Date(edition.indicacoes_inicio).getTime() : 0;
@@ -61,12 +78,18 @@ module.exports = async (req, res) => {
     const nomeResponsavel = clean(payload.nome_responsavel, 160);
     const contatoResponsavel = emailOrPhone(payload.contato_responsavel);
     const aceite = payload.aceite_regulamento === true || payload.aceite_regulamento === "true";
+    const honeypot = clean(payload.website || payload.site || payload.url, 200);
+    if (honeypot) return json(res, 200, { ok: true, message: "Indicação recebida para análise." });
 
     if (![edicaoId, categoriaId].every(v => uuidRe.test(v))) return json(res, 400, { ok: false, message: "Edição ou categoria inválida." });
     if (nomeIndicado.length < 3) return json(res, 400, { ok: false, message: "Informe o nome indicado." });
     if (justificativa.length < 12) return json(res, 400, { ok: false, message: "Conte rapidamente por que essa indicação merece participar." });
     if (nomeResponsavel.length < 2 || contatoResponsavel.length < 5) return json(res, 400, { ok: false, message: "Informe seu nome e contato para auditoria da indicação." });
     if (!aceite) return json(res, 400, { ok: false, message: "É preciso aceitar o regulamento para enviar a indicação." });
+
+    const ip = firstIp(req);
+    const turnstile = await verifyTurnstile(payload.turnstile_token || payload.cf_turnstile_response, ip);
+    if (!turnstile.ok) return json(res, 403, { ok: false, message: "Confirmação de segurança inválida. Atualize a página e tente novamente." });
 
     const [edition] = await rest(`melhores_edicoes?select=id,status,indicacoes_inicio,indicacoes_fim&limit=1&id=eq.${edicaoId}`);
     if (!edition || !indicationsOpen(edition)) return json(res, 403, { ok: false, message: "As indicações não estão abertas neste momento." });
@@ -77,7 +100,7 @@ module.exports = async (req, res) => {
     }
 
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-    const contactHash = hash(`${edicaoId}|${categoriaId}|${contatoResponsavel.toLowerCase()}|${firstIp(req)}`);
+    const contactHash = hash(`${edicaoId}|${categoriaId}|${contatoResponsavel.toLowerCase()}|${ip}`);
     const recent = await rest(`melhores_indicacoes?select=id&edicao_id=eq.${edicaoId}&contato_responsavel=eq.${encodeURIComponent(contatoResponsavel)}&criado_em=gte.${encodeURIComponent(fifteenMinutesAgo)}&limit=10`);
     if (recent.length >= 5) return json(res, 429, { ok: false, message: "Muitas indicações em sequência. Tente novamente mais tarde." });
 

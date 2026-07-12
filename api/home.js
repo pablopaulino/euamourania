@@ -68,7 +68,7 @@ module.exports = async (req, res) => {
       ? config.dominio_principal.replace(/\/$/, "")
       : "https://euamourania.com.br";
     const title = config.seo_titulo_padrao || "Eu Amo Urânia | Guia, notícias e turismo";
-    const description = config.seo_descricao_padrao || "Informação local, turismo, guia da cidade, eventos e histórias de Urânia.";
+    const description = config.seo_descricao_padrao || "Informação local, turismo, Guia, eventos e histórias de Urânia.";
     const image = absolute(config.imagem_compartilhamento || "/assets/AD3A1763-min (1).jpg", domain);
 
     let output = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);

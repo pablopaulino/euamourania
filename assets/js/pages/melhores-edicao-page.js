@@ -54,6 +54,83 @@ function toast(message) {
   setTimeout(() => el.remove(), 4200);
 }
 
+const turnstileSiteKey = () => window.EUAM_TURNSTILE_SITE_KEY
+  || document.querySelector('meta[name="turnstile-site-key"]')?.getAttribute("content")
+  || "";
+let turnstileLoadPromise;
+let turnstileWidgetId = null;
+
+function loadTurnstile() {
+  if (!turnstileSiteKey()) return Promise.resolve(false);
+  if (window.turnstile) return Promise.resolve(true);
+  if (turnstileLoadPromise) return turnstileLoadPromise;
+  turnstileLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => reject(new Error("Não foi possível carregar a verificação de segurança."));
+    document.head.append(script);
+  });
+  return turnstileLoadPromise;
+}
+
+async function getTurnstileToken(action = "vote") {
+  const sitekey = turnstileSiteKey();
+  if (!sitekey) return "";
+  await loadTurnstile();
+  return new Promise((resolve, reject) => {
+    let container = document.getElementById("awards-turnstile");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "awards-turnstile";
+      container.style.position = "fixed";
+      container.style.left = "-9999px";
+      container.style.bottom = "0";
+      document.body.append(container);
+    }
+    if (turnstileWidgetId !== null) {
+      try { window.turnstile.remove(turnstileWidgetId); } catch {}
+    }
+    const timeout = setTimeout(() => reject(new Error("A verificação de segurança demorou demais. Tente novamente.")), 12000);
+    turnstileWidgetId = window.turnstile.render(container, {
+      sitekey,
+      size: "invisible",
+      action,
+      callback: token => {
+        clearTimeout(timeout);
+        resolve(token);
+      },
+      "error-callback": () => {
+        clearTimeout(timeout);
+        reject(new Error("Não foi possível validar a segurança. Tente novamente."));
+      }
+    });
+    window.turnstile.execute(turnstileWidgetId);
+  });
+}
+
+function showPostVotePanel(editionId) {
+  const existing = document.querySelector(".awards-post-vote");
+  existing?.remove();
+  const url = location.href.split("#")[0];
+  const panel = document.createElement("div");
+  panel.className = "awards-post-vote";
+  panel.innerHTML = `
+    <button type="button" class="awards-post-close" aria-label="Fechar">×</button>
+    <strong>Voto registrado!</strong>
+    <p>Ajude mais pessoas de Urânia a participar da votação.</p>
+    <div>
+      <button type="button" class="button button-primary" data-awards-share="native">Compartilhar</button>
+      <a class="button button-secondary" href="https://api.whatsapp.com/send?text=${encodeURIComponent(`Vote também no Melhores de Urânia: ${url}`)}" target="_blank" rel="noopener" data-awards-share="whatsapp">WhatsApp</a>
+      <a class="button button-secondary" href="/news/">Ver notícias</a>
+    </div>
+  `;
+  panel.dataset.editionId = editionId || "";
+  document.body.append(panel);
+}
+
 function setMeta(edition) {
   const title = `${edition.nome} | Melhores de Urânia`;
   const description = (edition.descricao || "Participe da votação popular do Eu Amo Urânia.").slice(0, 155);
@@ -107,7 +184,7 @@ function nomineeCard(edition, category, nominee, open, votedId) {
   const maxChoices = category.permite_multiplos_votos ? Math.max(1, Number(category.max_escolhas || 1)) : 1;
   const reachedLimit = votedList.length >= maxChoices;
   const img = image(nominee.imagem_url);
-  return `<article class="awards-nominee-card ${voted ? "awards-voted" : ""}">
+  return `<article class="awards-nominee-card ${voted ? "awards-voted" : ""}" data-awards-nominee-card data-edition-id="${edition.id}" data-category-id="${category.id}" data-nominee-id="${nominee.id}">
     ${img ? `<img src="${img}" alt="${esc(nominee.nome)}" loading="lazy">` : ""}
     <div class="awards-card-body">
       <h3>${esc(nominee.nome)}</h3>
@@ -145,6 +222,30 @@ function renderVoting(edition, categories, nominees) {
     </div>`;
 }
 
+function observeNomineeImpressions() {
+  const cards = [...document.querySelectorAll("[data-awards-nominee-card]")];
+  if (!cards.length || !("IntersectionObserver" in window)) return;
+  const seen = new Set();
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const card = entry.target;
+      const key = `${card.dataset.categoryId}:${card.dataset.nomineeId}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      registrarEventoMelhores("melhores_nominee_impression", {
+        edicaoId: card.dataset.editionId,
+        metadados: {
+          categoria_id: card.dataset.categoryId,
+          indicado_id: card.dataset.nomineeId
+        }
+      });
+      observer.unobserve(card);
+    });
+  }, { threshold: 0.55 });
+  cards.forEach(card => observer.observe(card));
+}
+
 function renderIndications(edition, categories) {
   const area = document.getElementById("indication-area");
   const copy = document.getElementById("indication-status-copy");
@@ -165,6 +266,7 @@ function renderIndications(edition, categories) {
     return;
   }
   area.innerHTML = `<form class="awards-indication-form" id="awards-indication-form" data-edition-id="${edition.id}">
+    <input type="text" name="website" tabindex="-1" autocomplete="off" class="awards-honeypot" aria-hidden="true">
     <div>
       <label for="indication-category">Categoria *</label>
       <select id="indication-category" name="categoria_id" required>
@@ -217,6 +319,7 @@ async function init() {
     ]);
     enrichHeroStats(edition, categories, nominees);
     renderVoting(edition, categories, nominees);
+    observeNomineeImpressions();
     renderIndications(edition, categories);
   } catch (error) {
     console.error("Melhores de Urânia:", error);
@@ -229,6 +332,9 @@ document.addEventListener("click", async event => {
   if (scroll) {
     document.querySelectorAll("[data-scroll-category]").forEach(button => button.classList.toggle("active", button === scroll));
     document.getElementById(`categoria-${scroll.dataset.scrollCategory}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    registrarEventoMelhores("melhores_category_view", {
+      metadados: { categoria_id: scroll.dataset.scrollCategory }
+    });
   }
   const vote = event.target.closest("[data-vote]");
   if (!vote || vote.disabled) return;
@@ -238,14 +344,21 @@ document.addEventListener("click", async event => {
     edicaoId: vote.dataset.edition,
     metadados: { categoria_id: vote.dataset.category, indicado_id: vote.dataset.nominee }
   });
+  activeVoteAttempt = {
+    edicaoId: vote.dataset.edition,
+    metadados: { categoria_id: vote.dataset.category, indicado_id: vote.dataset.nominee }
+  };
   try {
+    const turnstileToken = await getTurnstileToken("vote");
     await enviarVotoMelhores({
       edicao_id: vote.dataset.edition,
       categoria_id: vote.dataset.category,
       indicado_id: vote.dataset.nominee,
       origem: "site",
-      pagina: location.pathname
+      pagina: location.pathname,
+      turnstile_token: turnstileToken
     });
+    activeVoteAttempt = null;
     saveVote(vote.dataset.edition, vote.dataset.category, vote.dataset.nominee);
     const storedVotes = votesFor(readVotes(vote.dataset.edition), vote.dataset.category);
     const reachedLimit = storedVotes.length >= Number(vote.dataset.maxChoices || 1);
@@ -266,7 +379,9 @@ document.addEventListener("click", async event => {
       metadados: { categoria_id: vote.dataset.category, indicado_id: vote.dataset.nominee }
     });
     toast("Voto registrado com sucesso. Obrigado por participar!");
+    showPostVotePanel(vote.dataset.edition);
   } catch (error) {
+    activeVoteAttempt = null;
     vote.disabled = false;
     vote.textContent = "Votar";
     registrarEventoMelhores("melhores_vote_error", {
@@ -290,6 +405,7 @@ document.addEventListener("submit", async event => {
     metadados: { categoria_id: form.elements.categoria_id.value }
   });
   try {
+    const turnstileToken = await getTurnstileToken("indication");
     const data = await enviarIndicacaoMelhores({
       edicao_id: edicaoId,
       categoria_id: form.elements.categoria_id.value,
@@ -299,6 +415,8 @@ document.addEventListener("submit", async event => {
       nome_responsavel: form.elements.nome_responsavel.value,
       contato_responsavel: form.elements.contato_responsavel.value,
       aceite_regulamento: form.elements.aceite_regulamento.checked,
+      website: form.elements.website.value,
+      turnstile_token: turnstileToken,
       pagina: location.pathname
     });
     registrarEventoMelhores("melhores_indication_complete", {
@@ -327,6 +445,40 @@ document.addEventListener("click", event => {
     destino: cta.href,
     metadados: { origem_cta: "hero_edicao" }
   });
+});
+
+let activeVoteAttempt = null;
+
+window.addEventListener("pagehide", () => {
+  if (!activeVoteAttempt) return;
+  registrarEventoMelhores("melhores_vote_abandon", {
+    edicaoId: activeVoteAttempt.edicaoId,
+    metadados: activeVoteAttempt.metadados
+  });
+});
+
+document.addEventListener("click", async event => {
+  const close = event.target.closest(".awards-post-close");
+  if (close) {
+    close.closest(".awards-post-vote")?.remove();
+    return;
+  }
+  const share = event.target.closest("[data-awards-share]");
+  if (!share) return;
+  const panel = share.closest(".awards-post-vote");
+  registrarEventoMelhores("melhores_share_click", {
+    edicaoId: panel?.dataset.editionId || null,
+    destino: share.href || location.href,
+    metadados: { canal: share.dataset.awardsShare || "native" }
+  });
+  if (share.dataset.awardsShare === "native" && navigator.share) {
+    event.preventDefault();
+    await navigator.share({
+      title: document.title,
+      text: "Participe do Melhores de Urânia.",
+      url: location.href.split("#")[0]
+    }).catch(() => null);
+  }
 });
 
 init();
