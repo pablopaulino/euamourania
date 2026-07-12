@@ -1,3 +1,0 @@
-const URL="https://omhcpbphvtihqwdkbsbf.supabase.co",KEY="sb_publishable_m02B2sC8Ddh4fCtnvsGePg_TqwUanoM";
-const PIXEL=Buffer.from("R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=","base64");
-module.exports=async(req,res)=>{const c=String(req.query.c||""),t=String(req.query.t||"");if(/^[0-9a-f-]{36}$/i.test(c)&&/^[0-9a-f-]{36}$/i.test(t))await fetch(`${URL}/rest/v1/rpc/registrar_evento_newsletter`,{method:"POST",headers:{apikey:KEY,Authorization:`Bearer ${KEY}`,"Content-Type":"application/json"},body:JSON.stringify({p_newsletter:c,p_token:t,p_tipo:"abertura"})}).catch(()=>{});res.setHeader("Content-Type","image/gif");res.setHeader("Cache-Control","no-store, max-age=0");res.status(200).send(PIXEL)};

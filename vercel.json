@@ -31,6 +31,8 @@
     { "source": "/melhores-de-urania/:ano/resultados/", "destination": "/melhores-de-urania/resultados.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano", "destination": "/melhores-de-urania/edicao.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano/", "destination": "/melhores-de-urania/edicao.html?ano=:ano" },
+    { "source": "/api/newsletter-open", "destination": "/api/newsletter-track?event=open" },
+    { "source": "/api/newsletter-click", "destination": "/api/newsletter-track?event=click" },
     { "source": "/noticias/feed.xml", "destination": "/api/rss" },
     { "source": "/noticias/:slug", "destination": "/api/noticia?slug=:slug" },
     { "source": "/sitemap.xml", "destination": "/api/sitemaps?type=standard" },
