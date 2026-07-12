@@ -46,6 +46,29 @@ export async function listarIndicadosPublicos(edicaoId) {
   }, { ttl: 60000 });
 }
 
+export async function obterCategoriaPublica(edicaoId, slug) {
+  const rows = await fetchPublicRows("melhores_categorias", {
+    select: "id,edicao_id,nome,slug,descricao,imagem_url,icone,ordem,status,permite_multiplos_votos,max_escolhas,permite_indicacao_publica,visibilidade_publica",
+    edicao_id: `eq.${edicaoId}`,
+    slug: `eq.${slug}`,
+    status: "eq.ativo",
+    visibilidade_publica: "eq.true",
+    limit: "1"
+  }, { ttl: 60000 });
+  return rows?.[0] || null;
+}
+
+export async function listarIndicadosPorCategoria(edicaoId, categoriaId) {
+  return fetchPublicRows("melhores_indicados", {
+    select: "id,edicao_id,categoria_id,nome,slug,imagem_url,descricao_curta,instagram,whatsapp,site,endereco,status,ordem,aprovado",
+    edicao_id: `eq.${edicaoId}`,
+    categoria_id: `eq.${categoriaId}`,
+    status: "eq.ativo",
+    aprovado: "eq.true",
+    order: "ordem.asc,nome.asc"
+  }, { ttl: 60000 });
+}
+
 export async function listarResultadosPublicos(edicaoId) {
   return fetchPublicRows("melhores_resultados", {
     select: "id,edicao_id,categoria_id,indicado_id,votos_site,percentual_site,votos_instagram,percentual_instagram,pontuacao_final,colocacao,vencedor,selo,empate,criterio_aplicado,metodologia_resumida,publicado_em,melhores_categorias(nome),melhores_indicados(nome,imagem_url,descricao_curta)",

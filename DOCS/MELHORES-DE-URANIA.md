@@ -455,3 +455,74 @@ O navegador não grava diretamente em `melhores_indicacoes`.
 A API usa `SUPABASE_SERVICE_ROLE_KEY` apenas no backend da Vercel e nunca expõe a chave ao visitante.
 
 As indicações entram como `pendente` e precisam de revisão humana antes de virar indicado oficial.
+
+## Auditoria final — integridade, painel e páginas públicas
+
+A auditoria final fecha lacunas que estavam funcionais parcialmente ou apenas preparadas.
+
+### Migração
+
+Arquivo:
+
+`supabase/migrations/20260712_melhores_urania_auditoria_final.sql`
+
+Rollback manual:
+
+`supabase/rollbacks/20260712_melhores_urania_auditoria_final_rollback.sql`
+
+Impacto esperado:
+
+- não remove dados;
+- define `limite_indicados` padrão como 4;
+- impede mais finalistas ativos/aprovados do que o limite da categoria;
+- troca a retenção para priorizar 7 dias após `resultado_publicado_em`;
+- adiciona limpeza manual exclusiva para Super Admin;
+- permite voto múltiplo quando a categoria estiver configurada para isso;
+- impede voto duplicado no mesmo indicado.
+
+### Painel
+
+Foram completadas as áreas:
+
+- Votação;
+- Auditoria;
+- Configurações/operação.
+
+Essas telas carregam dados reais do Supabase, exibem estados vazios e usam RLS/RPC já protegidos.
+
+### Soft delete
+
+No painel/serviço, exclusões de:
+
+- edições;
+- categorias;
+- indicados;
+
+passam a arquivar registros, preservando histórico, votos e resultados.
+
+### Páginas públicas adicionais
+
+URLs:
+
+- `/melhores-de-urania/ANO/categorias/SLUG/`;
+- `/melhores-de-urania/ANO/regulamento/`;
+- `/melhores-de-urania/ANO/metodologia/`.
+
+Essas páginas foram incluídas nos rewrites da Vercel e no sitemap.
+
+### Cron
+
+Se `pg_cron` estiver ativo, a rotina de limpeza já pode chamar:
+
+`select public.melhores_limpar_votos_expirados();`
+
+Alternativa pela Vercel: criar uma chamada agendada protegida para executar a mesma RPC com Service Role no backend. Não é necessário para abrir a edição inaugural, mas é recomendado antes de encerrar a primeira votação real.
+
+### Subdomínio
+
+Para usar `melhores.euamourania.com.br`:
+
+1. No Vercel, adicione o domínio ao mesmo projeto do portal.
+2. No DNS do domínio, crie o registro solicitado pela Vercel, normalmente `CNAME melhores cname.vercel-dns.com`.
+3. Aguarde a validação SSL.
+4. O subdomínio pode apontar para o mesmo projeto; as rotas `/melhores-de-urania/...` continuarão funcionando.

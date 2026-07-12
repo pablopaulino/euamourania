@@ -14,9 +14,13 @@ O módulo possui:
 - Edições;
 - Categorias;
 - Indicados;
+- Indicações;
+- Votação;
 - Instagram;
 - Apuração;
 - Resultados.
+- Auditoria;
+- Configurações.
 
 ## 2. Criar uma edição
 
@@ -136,7 +140,7 @@ Página pública:
 
 ## 9. Retenção dos votos individuais
 
-Os votos individuais ficam disponíveis durante a votação e por 7 dias após o encerramento.
+Os votos individuais ficam disponíveis durante a votação e por 7 dias após a **publicação oficial do resultado**.
 
 Depois desse prazo:
 
@@ -144,6 +148,8 @@ Depois desse prazo:
 - remove os votos individuais;
 - preserva estatísticas e resultados oficiais;
 - registra auditoria.
+
+Super Admin pode executar limpeza manual na aba **Votação**, mas apenas depois de publicar resultado e concluir auditoria.
 
 ## 10. Audiência
 
@@ -172,3 +178,13 @@ Antes de divulgar:
 - bloco da home aparecendo quando houver edição pública;
 - eventos de audiência liberados pela migração da Fase 4;
 - sitemap e URLs amigáveis mantidos.
+
+## 12. Páginas públicas de apoio
+
+Além da página da edição e resultados, existem:
+
+- `/melhores-de-urania/ANO/regulamento/`;
+- `/melhores-de-urania/ANO/metodologia/`;
+- `/melhores-de-urania/ANO/categorias/SLUG/`.
+
+Use essas páginas para divulgar regras, fórmula de apuração e finalistas por categoria.
