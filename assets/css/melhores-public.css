@@ -67,8 +67,8 @@
 .awards-nominee-group>header h3{margin:0}
 .awards-link{color:inherit;text-decoration:none}
 .awards-link:hover{color:#0b4f6c}
-.awards-nominee-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-.awards-nominee-card{min-height:100%}
+.awards-nominee-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),280px));justify-content:start}
+.awards-nominee-card{min-height:100%;min-width:0}
 .awards-nominee-card img{height:220px}
 .awards-voted{position:relative;border-color:rgba(15,138,85,.26);background:linear-gradient(180deg,#fff,#f5fff8)}
 .awards-voted::after{content:"✓";position:absolute;top:.9rem;right:.9rem;display:grid;place-items:center;width:2rem;height:2rem;border-radius:999px;color:#fff;background:var(--awards-green);font-weight:900;box-shadow:0 10px 22px rgba(15,138,85,.24)}
@@ -81,7 +81,7 @@
 .awards-document li{min-height:100%;background:#f9fcfd}
 .awards-indication-form{border-radius:30px;box-shadow:var(--awards-shadow-soft)}
 .awards-toast{border:1px solid rgba(220,232,236,.9);box-shadow:0 24px 60px rgba(7,59,76,.2)}
-@media(max-width:1100px){.awards-nominee-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1100px){.awards-nominee-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))}}
 @media(max-width:980px){.awards-public-grid{grid-template-columns:1fr}.awards-public-panel{max-width:680px}.awards-category-nav{top:auto}.awards-category-nav button:hover{transform:none}}
 @media(max-width:620px){
   .awards-public-hero{padding:2.4rem 0 2.6rem}
@@ -108,7 +108,7 @@
 .awards-mini-stats span{display:grid;gap:.15rem;padding:.75rem;border:1px solid rgba(220,232,236,.9);border-radius:18px;background:#f8fbfc;text-align:center}
 .awards-mini-stats strong{color:#073b4c;font-size:1.35rem;line-height:1}
 .awards-mini-stats small{color:#607782;font-weight:800;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}
-.awards-social-link{display:inline-flex;align-items:center;width:max-content;max-width:100%;padding:.38rem .58rem;border-radius:999px;background:#f4f8f9;color:#0b4f6c;font-size:.82rem;font-weight:850;text-decoration:none}
+.awards-social-link{display:inline-flex;align-items:center;width:max-content;max-width:100%;padding:.38rem .58rem;border-radius:999px;background:#f4f8f9;color:#0b4f6c;font-size:.82rem;font-weight:850;text-decoration:none;white-space:normal;overflow-wrap:anywhere;line-height:1.25}
 .awards-social-link:hover{background:#e7f2f5;color:#073b4c}
 .awards-category-nav button{display:grid;gap:.16rem}
 .awards-category-nav button small{color:rgba(7,59,76,.62);font-size:.72rem;font-weight:800}
