@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
     const publicationFilters = [["publicado_em", `lte.${now.toISOString()}`]];
     const noticias = await rows(
       "noticias",
-      "slug,titulo,publicado_em",
+      "slug,titulo,publicado_em,imagem_url,seo_imagem",
       "publicado_em.desc",
       type === "news"
         ? [...publicationFilters, ["publicado_em", `gte.${new Date(now.getTime() - TWO_DAYS_MS).toISOString()}`]]
@@ -54,11 +54,16 @@ module.exports = async (req, res) => {
       rows("eventos", "slug,atualizado_em", "atualizado_em.desc")
     ]);
     const statics = ["/", "/news/", "/guia.html", "/turismo.html", "/eventos/", "/links/", "/quem-somos.html"];
+    const imageTag = item => {
+      const image = item.seo_imagem || item.imagem_url;
+      return image ? `<image:image><image:loc>${xml(new URL(image, `${DOMAIN}/`).href)}</image:loc></image:image>` : "";
+    };
     const all = [
       ...statics.map(path => ({ loc: DOMAIN + path })),
       ...noticias.map(noticia => ({
         loc: `${DOMAIN}/noticias/${noticia.slug}`,
-        lastmod: noticia.publicado_em
+        lastmod: noticia.publicado_em,
+        image: imageTag(noticia)
       })),
       ...turismo.map(item => ({
         loc: `${DOMAIN}/turismo-details.html?slug=${item.slug}`,
@@ -70,10 +75,10 @@ module.exports = async (req, res) => {
       }))
     ];
     const urls = all.map(item =>
-      `<url><loc>${xml(item.loc)}</loc>${item.lastmod ? `<lastmod>${xml(String(item.lastmod).slice(0, 10))}</lastmod>` : ""}</url>`
+      `<url><loc>${xml(item.loc)}</loc>${item.lastmod ? `<lastmod>${xml(String(item.lastmod).slice(0, 10))}</lastmod>` : ""}${item.image || ""}</url>`
     ).join("");
     return res.status(200).send(
-      `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`
+      `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">${urls}</urlset>`
     );
   } catch (error) {
     console.error("sitemaps:", error);
