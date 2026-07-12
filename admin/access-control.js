@@ -5,6 +5,7 @@ function navModule(button){
   const target=button.getAttribute("onclick")||"";
   if(target.includes("publicidade.html"))return"publicidade";
   if(target.includes("comunicacao.html"))return"comunicacao";
+  if(target.includes("melhores.html"))return"melhores";
   if(target.includes("usuarios.html"))return"usuarios";
   if(target.includes("migrar.html"))return"importacao";
   const hash=target.match(/#([a-z_]+)/)?.[1];return hash?viewModules[hash]:target.includes("index.html")?"dashboard":null;
