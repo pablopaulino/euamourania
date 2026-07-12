@@ -469,8 +469,8 @@
     display:flex!important;
     flex-wrap:nowrap!important;
     gap:.45rem!important;
-    margin:.15rem -1rem .9rem!important;
-    padding:.35rem 1rem .55rem!important;
+    margin:.35rem 0 1rem!important;
+    padding:.35rem .35rem .55rem!important;
     overflow-x:auto!important;
     scrollbar-width:none;
   }
