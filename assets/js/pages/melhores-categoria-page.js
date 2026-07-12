@@ -16,6 +16,7 @@ function card(item) {
     <div class="awards-card-body">
       <h3>${esc(item.nome)}</h3>
       <p>${esc(item.descricao_curta || "Finalista do Melhores de Urânia.")}</p>
+      ${item.instagram ? `<p><a class="awards-social-link" href="https://instagram.com/${esc(String(item.instagram).replace(/^@/, ""))}" target="_blank" rel="noopener">Instagram ${esc(item.instagram)}</a></p>` : ""}
     </div>
   </article>`;
 }
@@ -40,8 +41,8 @@ async function init() {
   document.querySelector('meta[property="og:description"]')?.setAttribute("content", (category.descricao || "Conheça os finalistas desta categoria.").slice(0, 155));
   if (category.imagem_url) document.querySelector('meta[property="og:image"]')?.setAttribute("content", new URL(category.imagem_url, location.origin).href);
   document.getElementById("category-copy").innerHTML = `<span class="awards-public-badge">Categoria ${esc(edition.ano)}</span><h1>${esc(category.nome)}</h1><p>${esc(category.descricao || "Conheça os finalistas desta categoria.")}</p>`;
-  document.getElementById("category-panel").innerHTML = `<h2>Regras</h2><p>Finalistas: até ${Number(category.limite_indicados || 4)}.</p><p>Escolhas por voto: ${Number(category.max_escolhas || 1)}.</p><p>${category.permite_indicacao_publica ? "Recebe indicações públicas." : "Indicações públicas fechadas nesta categoria."}</p>`;
   const nominees = await listarIndicadosPorCategoria(edition.id, category.id);
+  document.getElementById("category-panel").innerHTML = `<h2>Categoria ${esc(edition.ano)}</h2><div class="awards-status-line"><span class="awards-chip">${nominees.length} finalista${nominees.length === 1 ? "" : "s"}</span><span class="awards-chip">${Number(category.max_escolhas || 1)} escolha${Number(category.max_escolhas || 1) === 1 ? "" : "s"} por voto</span></div><p>${category.permite_indicacao_publica ? "Recebe indicações públicas." : "Indicações públicas fechadas nesta categoria."}</p><p><a class="button button-primary" href="/melhores-de-urania/${edition.ano}/#categoria-${category.id}">Ir para votação</a></p>`;
   document.getElementById("category-nominees").innerHTML = nominees.length
     ? `<div class="awards-nominee-grid">${nominees.map(card).join("")}</div>`
     : '<div class="awards-empty">Nenhum finalista publicado nesta categoria.</div>';

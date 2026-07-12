@@ -89,6 +89,19 @@ function renderHero(edition, open) {
   }
 }
 
+function enrichHeroStats(edition, categories, nominees) {
+  const panel = document.getElementById("edition-panel");
+  if (!panel) return;
+  const stats = document.createElement("div");
+  stats.className = "awards-mini-stats";
+  stats.innerHTML = `
+    <span><strong>${esc(edition.ano)}</strong><small>Edição</small></span>
+    <span><strong>${categories.length}</strong><small>Categorias</small></span>
+    <span><strong>${nominees.length}</strong><small>Finalistas</small></span>
+  `;
+  panel.append(stats);
+}
+
 function nomineeCard(edition, category, nominee, open, votedId) {
   const votedList = Array.isArray(votedId) ? votedId : (votedId ? [votedId] : []);
   const voted = votedList.includes(nominee.id);
@@ -100,7 +113,7 @@ function nomineeCard(edition, category, nominee, open, votedId) {
     <div class="awards-card-body">
       <h3>${esc(nominee.nome)}</h3>
       <p>${esc(nominee.descricao_curta || "Indicado ao Melhores de Urânia.")}</p>
-      ${nominee.instagram ? `<p><small>Instagram: ${esc(nominee.instagram)}</small></p>` : ""}
+      ${nominee.instagram ? `<p><a class="awards-social-link" href="https://instagram.com/${esc(String(nominee.instagram).replace(/^@/, ""))}" target="_blank" rel="noopener">Instagram ${esc(nominee.instagram)}</a></p>` : ""}
       <button class="button button-primary awards-vote-button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" data-multiple="${category.permite_multiplos_votos ? "true" : "false"}" ${open && !voted && !reachedLimit ? "" : "disabled"}>
         ${voted ? "Voto registrado" : open ? "Votar" : "Votação fechada"}
       </button>
@@ -120,7 +133,10 @@ function renderVoting(edition, categories, nominees) {
     return;
   }
   const grouped = new Map(categories.map(category => [category.id, nominees.filter(n => n.categoria_id === category.id)]));
-  area.innerHTML = `<aside class="awards-category-nav" aria-label="Categorias">${categories.map((category, index) => `<button type="button" data-scroll-category="${category.id}" class="${index === 0 ? "active" : ""}">${esc(category.nome)}</button>`).join("")}</aside>
+  area.innerHTML = `<aside class="awards-category-nav" aria-label="Categorias">${categories.map((category, index) => {
+    const total = grouped.get(category.id)?.length || 0;
+    return `<button type="button" data-scroll-category="${category.id}" class="${index === 0 ? "active" : ""}"><span>${esc(category.nome)}</span><small>${total} finalista${total === 1 ? "" : "s"}</small></button>`;
+  }).join("")}</aside>
     <div class="awards-nominees">
       ${categories.map(category => {
         const items = grouped.get(category.id) || [];
@@ -202,6 +218,7 @@ async function init() {
       listarCategoriasPublicas(edition.id),
       listarIndicadosPublicos(edition.id)
     ]);
+    enrichHeroStats(edition, categories, nominees);
     renderVoting(edition, categories, nominees);
     renderIndications(edition, categories);
   } catch (error) {
