@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Melhores de Urânia | Eu Amo Urânia CMS</title>
+    <link rel="stylesheet" href="admin.css" />
+    <link rel="stylesheet" href="cms-redesign.css" />
+    <link rel="stylesheet" href="melhores.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="admin-shell">
+      <aside class="admin-sidebar" id="sidebar">
+        <img
+          src="../assets/1505 - Urania - Logo Horizontal - 1.png"
+          alt="Eu Amo Urânia"
+          class="admin-logo"
+        />
+        <nav class="admin-nav" aria-label="Seções do painel">
+          <button type="button" onclick="location.href='index.html'">Visão geral</button>
+          <button type="button" onclick="location.href='index.html#noticias'">Notícias</button>
+          <button type="button" onclick="location.href='index.html#guia_comercial'">Guia comercial</button>
+          <button type="button" onclick="location.href='index.html#turismo'">Turismo</button>
+          <button type="button" onclick="location.href='index.html#links'">Links</button>
+          <button type="button" onclick="location.href='index.html#eventos'">Eventos</button>
+          <button type="button" onclick="location.href='publicidade.html'">Publicidade</button>
+          <button type="button" onclick="location.href='comunicacao.html'">Comunicação</button>
+          <button type="button" onclick="location.href='notificacoes-app.html'">Notificações do app</button>
+          <button class="active" type="button">Melhores de Urânia</button>
+          <button type="button" onclick="location.href='index.html#categorias'">Categorias</button>
+          <button type="button" onclick="location.href='index.html#insights'">Estatísticas</button>
+          <button type="button" onclick="location.href='index.html#configuracoes_site'">Configurações</button>
+          <button type="button" onclick="location.href='usuarios.html'">Usuários</button>
+          <button type="button" onclick="location.href='migrar.html'">Importar JSON</button>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <p id="admin-user"></p>
+          <button id="logout" class="admin-button secondary">Sair</button>
+        </div>
+      </aside>
+      <main class="admin-main">
+        <header class="admin-topbar">
+          <div>
+            <button id="mobile-menu" class="admin-button secondary mobile-menu">Menu</button>
+            <h1>Melhores de Urânia</h1>
+            <p class="admin-page-hint">
+              Gerencie edições anuais, categorias e indicados da premiação oficial do portal.
+            </p>
+          </div>
+          <a class="admin-button secondary" href="../index.html" target="_blank" rel="noopener">Ver site ↗</a>
+        </header>
+        <div class="awards-content">
+          <section class="awards-hero">
+            <div>
+              <span class="awards-signature">Uma realização Eu Amo Urânia</span>
+              <h2>Base administrativa da premiação</h2>
+              <p>
+                Nesta Fase 1 você prepara a edição, organiza categorias e cadastra indicados.
+                Votação pública, Instagram, apuração e resultados entram nas próximas fases.
+              </p>
+            </div>
+            <button class="admin-button" id="new-edition">Nova edição</button>
+          </section>
+
+          <div class="awards-tabs" role="tablist">
+            <button class="awards-tab active" data-tab="dashboard" type="button">Visão geral</button>
+            <button class="awards-tab" data-tab="editions" type="button">Edições</button>
+            <button class="awards-tab" data-tab="categories" type="button">Categorias</button>
+            <button class="awards-tab" data-tab="nominees" type="button">Indicados</button>
+          </div>
+
+          <section id="dashboard-view" class="awards-view active"></section>
+          <section id="editions-view" class="awards-view"></section>
+          <section id="categories-view" class="awards-view"></section>
+          <section id="nominees-view" class="awards-view"></section>
+          <section id="form-view" class="awards-view"></section>
+        </div>
+      </main>
+    </div>
+    <div class="toast-stack" id="toasts" aria-live="polite"></div>
+    <script type="module" src="melhores.js"></script>
+  </body>
+</html>
