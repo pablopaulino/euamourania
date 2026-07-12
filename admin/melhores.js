@@ -160,6 +160,18 @@ async function loadDashboard() {
             votação, Instagram, apuração e resultados oficiais.
           </p>
         </article>
+        <article class="awards-card">
+          <h3>Estatísticas do Melhores</h3>
+          <p class="awards-note">
+            Os votos e auditoria ficam nas abas <strong>Votação</strong>, <strong>Apuração</strong> e <strong>Resultados</strong>.
+            A audiência pública, como visualizações, cliques, compartilhamentos e abandono de voto, fica em
+            <strong>Painel principal &gt; Audiência</strong>.
+          </p>
+          <div class="awards-actions" style="margin-top:1rem">
+            <button type="button" onclick="location.href='index.html#audiencia'">Abrir audiência</button>
+            <button type="button" onclick="location.href='melhores.html#votes'">Ver votos</button>
+          </div>
+        </article>
       </div>`;
   } catch (error) {
     showError(error);

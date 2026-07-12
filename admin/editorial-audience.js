@@ -23,14 +23,10 @@ function ensureNavigation(){
  if(!document.querySelector('link[href="editorial-audience.css"]')){
   const link=document.createElement("link");link.rel="stylesheet";link.href="editorial-audience.css";document.head.append(link);
  }
- const nav=document.querySelector(".admin-nav"),news=document.querySelector('[data-view="noticias"]'),settings=document.querySelector('[data-view="configuracoes_site"]');
- if(nav&&news&&!document.getElementById("editorial-approvals-nav")){
-  const button=document.createElement("button");button.id="editorial-approvals-nav";button.dataset.module="noticias";button.textContent="Aprovações";news.after(button);
- }
- if(nav&&settings&&!document.getElementById("audience-nav")){
-  const button=document.createElement("button");button.id="audience-nav";button.dataset.module="insights";button.textContent="Audiência";settings.before(button);
-  const legacy=document.querySelector('[data-view="insights"]');if(legacy)legacy.remove();
- }
+ const approvals=document.getElementById("editorial-approvals-nav");
+ if(approvals){approvals.dataset.module="noticias";approvals.type="button";approvals.textContent="Aprovações";}
+ const audience=document.getElementById("audience-nav");
+ if(audience){audience.dataset.module="insights";audience.type="button";audience.textContent="Audiência";}
 }
 ensureNavigation();
 
@@ -389,7 +385,7 @@ document.addEventListener("click",event=>{
  if(button.dataset.newsEdit)currentNewsId=button.dataset.newsEdit;
  if(button.hasAttribute("data-news-new"))currentNewsId=null;
  if(button.id==="editorial-approvals-nav"||button.id==="dashboard-approvals"){event.preventDefault();event.stopImmediatePropagation();renderApprovals();return}
- if(button.id==="audience-nav"){event.preventDefault();event.stopImmediatePropagation();renderAudience();return}
+ if(button.id==="audience-nav"||button.id==="dashboard-audience"){event.preventDefault();event.stopImmediatePropagation();renderAudience();return}
  if(button.dataset.approvalPreview){openPreview(button.dataset.approvalPreview);return}
  if(button.dataset.approvalReview){openReview(button.dataset.approvalReview);return}
  if(button.dataset.approvalComment){

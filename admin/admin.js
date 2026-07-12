@@ -31,10 +31,64 @@ async function dashboard() {
   app.innerHTML = '<div class="loading">Carregando indicadores…</div>';
   const supabase = getSupabase();
   const count = async (table, filters={}) => { let q=supabase.from(table).select("*",{count:"exact",head:true}); Object.entries(filters).forEach(([k,v])=>q=q.eq(k,v)); const {count,error}=await q; if(error) throw error; return count||0; };
+  const safeCount = async (table, filters={}) => { try { return await count(table, filters); } catch { return 0; } };
   try {
-    const [noticias,publicadas,rascunhos,empresas,pontos,eventos,links] = await Promise.all([count("noticias"),count("noticias",{status:"publicado"}),count("noticias",{status:"rascunho"}),count("guia_comercial"),count("turismo"),count("eventos"),count("links",{status:"ativo"})]);
-    const metrics=[["Total de notícias",noticias],["Notícias publicadas",publicadas],["Rascunhos",rascunhos],["Empresas cadastradas",empresas],["Pontos turísticos",pontos],["Eventos",eventos],["Links ativos",links]];
-    app.innerHTML=`<div class="dashboard-grid">${metrics.map(([label,value])=>`<article class="metric-card"><span>${label}</span><strong>${value}</strong></article>`).join("")}</div>`;
+    const [
+      noticias,publicadas,rascunhos,empresas,empresasAtivas,pontos,eventos,eventosAtivos,links,
+      campanhas,campanhasAtivas,newsletters,assinantes,melhoresEdicoes,melhoresIndicados,aprovacoes
+    ] = await Promise.all([
+      safeCount("noticias"),
+      safeCount("noticias",{status:"publicado"}),
+      safeCount("noticias",{status:"rascunho"}),
+      safeCount("guia_comercial"),
+      safeCount("guia_comercial",{status:"publicado"}),
+      safeCount("turismo"),
+      safeCount("eventos"),
+      safeCount("eventos",{status:"publicado"}),
+      safeCount("links",{status:"ativo"}),
+      safeCount("campanhas_publicitarias"),
+      safeCount("campanhas_publicitarias",{status:"ativo"}),
+      safeCount("newsletters"),
+      safeCount("newsletter_assinantes",{status:"ativo"}),
+      safeCount("melhores_edicoes"),
+      safeCount("melhores_indicados",{status:"ativo"}),
+      safeCount("solicitacoes_aprovacao",{status:"pendente"})
+    ]);
+    const { data: recentNews = [] } = await supabase
+      .from("noticias")
+      .select("titulo,status,atualizado_em")
+      .order("atualizado_em",{ascending:false})
+      .limit(5);
+    const metrics=[
+      ["Notícias",noticias,`${publicadas} publicadas · ${rascunhos} rascunhos`],
+      ["Empresas",empresas,`${empresasAtivas} publicadas no guia`],
+      ["Turismo",pontos,"pontos turísticos cadastrados"],
+      ["Eventos",eventos,`${eventosAtivos} publicados`],
+      ["Publicidade",campanhas,`${campanhasAtivas} campanhas ativas`],
+      ["Comunicação",newsletters,`${assinantes} assinantes ativos`],
+      ["Melhores de Urânia",melhoresEdicoes,`${melhoresIndicados} indicados ativos`],
+      ["Links ativos",links,"canais e links publicados"]
+    ];
+    app.innerHTML=`
+      <section class="dashboard-welcome panel">
+        <div>
+          <p class="eyebrow">Painel Eu Amo Urânia</p>
+          <h2>Visão geral do portal</h2>
+          <p>Acompanhe conteúdo, audiência, campanhas, comunicação e a operação do Melhores de Urânia em um só lugar.</p>
+        </div>
+        ${aprovacoes?`<button class="admin-button" id="dashboard-approvals">${aprovacoes} aprovação(ões) pendente(s)</button>`:""}
+      </section>
+      <div class="dashboard-grid">${metrics.map(([label,value,detail])=>`<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${detail}</small></article>`).join("")}</div>
+      <div class="dashboard-grid dashboard-actions">
+        <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>Notícias</strong><small>Criar, revisar e publicar</small></button>
+        <button class="metric-card" onclick="location.href='melhores.html'"><span>Prêmio</span><strong>Melhores de Urânia</strong><small>Votação, apuração e resultados</small></button>
+        <button class="metric-card" id="dashboard-audience"><span>Dados</span><strong>Audiência</strong><small>Visualizações, cliques e buscas</small></button>
+        <button class="metric-card" onclick="location.href='publicidade.html'"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
+      </div>
+      <section class="panel">
+        <header class="panel-header"><h2>Notícias recentes</h2></header>
+        ${recentNews.length?recentNews.map(item=>`<div class="rank-item"><strong>${escapeHtml(item.titulo)}</strong><small>${escapeHtml(item.status||"")} · ${item.atualizado_em?new Date(item.atualizado_em).toLocaleDateString("pt-BR"):"sem data"}</small></div>`).join(""):'<div class="empty-state">Nenhuma notícia recente.</div>'}
+      </section>`;
   } catch(error) { app.innerHTML=`<p class="form-message">${escapeHtml(error.message)}</p>`; }
 }
 
