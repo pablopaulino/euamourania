@@ -21,6 +21,8 @@
   ],
   "rewrites": [
     { "source": "/", "destination": "/api/home" },
+    { "source": "/melhores-de-urania/:ano", "destination": "/melhores-de-urania/edicao.html?ano=:ano" },
+    { "source": "/melhores-de-urania/:ano/", "destination": "/melhores-de-urania/edicao.html?ano=:ano" },
     { "source": "/noticias/feed.xml", "destination": "/api/rss" },
     { "source": "/noticias/:slug", "destination": "/api/noticia?slug=:slug" },
     { "source": "/sitemap.xml", "destination": "/api/sitemaps?type=standard" },

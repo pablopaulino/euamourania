@@ -23,6 +23,19 @@ async function rows(table, select, order, filters = []) {
   return response.json();
 }
 
+async function melhoresRows() {
+  const query = new URLSearchParams({
+    select: "ano,atualizado_em,imagem_capa_url",
+    status: "in.(indicacoes_abertas,votacao_aberta,votacao_encerrada,resultado_publicado,arquivada)",
+    order: "ano.desc"
+  });
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/melhores_edicoes?${query}`, {
+    headers: { apikey: SUPABASE_KEY }
+  });
+  if (!response.ok) return [];
+  return response.json();
+}
+
 module.exports = async (req, res) => {
   try {
     const type = req.query.type === "news" ? "news" : "standard";
@@ -49,11 +62,12 @@ module.exports = async (req, res) => {
       );
     }
 
-    const [turismo, eventos] = await Promise.all([
+    const [turismo, eventos, melhores] = await Promise.all([
       rows("turismo", "slug,atualizado_em", "atualizado_em.desc"),
-      rows("eventos", "slug,atualizado_em", "atualizado_em.desc")
+      rows("eventos", "slug,atualizado_em", "atualizado_em.desc"),
+      melhoresRows()
     ]);
-    const statics = ["/", "/news/", "/guia.html", "/turismo.html", "/eventos/", "/links/", "/quem-somos.html"];
+    const statics = ["/", "/news/", "/guia.html", "/turismo.html", "/eventos/", "/melhores-de-urania/", "/links/", "/quem-somos.html"];
     const imageTag = item => {
       const image = item.seo_imagem || item.imagem_url;
       return image ? `<image:image><image:loc>${xml(new URL(image, `${DOMAIN}/`).href)}</image:loc></image:image>` : "";
@@ -72,6 +86,11 @@ module.exports = async (req, res) => {
       ...eventos.map(item => ({
         loc: `${DOMAIN}/eventos/detalhes.html?slug=${item.slug}`,
         lastmod: item.atualizado_em
+      })),
+      ...melhores.map(item => ({
+        loc: `${DOMAIN}/melhores-de-urania/${item.ano}/`,
+        lastmod: item.atualizado_em,
+        image: item.imagem_capa_url ? `<image:image><image:loc>${xml(new URL(item.imagem_capa_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
       }))
     ];
     const urls = all.map(item =>
