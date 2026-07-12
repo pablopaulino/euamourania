@@ -4,7 +4,8 @@ const esc = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
 }[char]));
 const safe = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
-const topPositions = new Set(["todas_paginas", "home_topo", "noticias_topo", "guia_topo", "turismo_topo", "eventos_topo"]);
+const topPositions = new Set(["todas_paginas"]);
+const disabledTopPositions = new Set(["home_topo", "noticias_topo", "guia_topo", "turismo_topo", "eventos_topo"]);
 const trackedImpressions = new Set();
 const adsenseAttempted = new Set();
 const adsense = {
@@ -134,6 +135,7 @@ function hasRenderableMedia(campaign, position = "") {
 }
 
 function candidates(position) {
+  if (disabledTopPositions.has(position)) return [];
   return campaigns
     .filter(campaign => campaign.tipo !== "popup"
       && positions(campaign).includes(position)
@@ -186,6 +188,7 @@ function activateAdSense(zone) {
 }
 
 function insertAdSenseZone(position, slot, target, where = "beforebegin", inline = false) {
+  if (disabledTopPositions.has(position)) return false;
   if (!hasAdConsent() || !slot || adsenseCount >= adsense.maxPerPage) return false;
   if (adsenseAttempted.has(position)) return false;
   if (document.querySelector(`[data-banner="${position}"]`) || candidates(position).length) return false;
@@ -332,13 +335,11 @@ function render() {
   const path = location.pathname;
   insertZone("todas_paginas", "main");
   if (path === "/" || path === "/index.html") {
-    insertZone("home_topo", ".hero");
     insertZone("home_hero_conteudo", ".hero", "afterend");
     insertZone("home_entre_secoes", ".destination");
     insertZone("home_rodape", ".site-footer");
   }
   if (/\/news\/?(?:index\.html)?$/.test(path) || path.endsWith("news.html")) {
-    insertZone("noticias_topo", ".page-hero");
     insertBetweenCards("noticias_entre_listagem", "#news-container", ".news-item", 3);
   }
   if (path.includes("news-details") || path.includes("news-detalhes") || path.startsWith("/noticias/")) {
@@ -346,17 +347,14 @@ function render() {
     insertZone("noticia_final", ".related-news");
   }
   if (path.endsWith("guia.html")) {
-    insertZone("guia_topo", ".page-hero");
     insertBetweenCards("guia_entre_estabelecimentos", "#guia-container", ".card-guia", 5);
     insertZone("guia_rodape", ".site-footer");
   }
   if (path.endsWith("turismo.html")) {
-    insertZone("turismo_topo", ".page-hero");
     insertBetweenCards("turismo_entre_cartoes", "#turismo-container", ".card-guia", 2);
     insertZone("turismo_rodape", ".site-footer");
   }
   if (path.includes("/eventos")) {
-    insertZone("eventos_topo", ".page-hero");
     insertBetweenCards("eventos_entre_eventos", "#eventos-list", ".event-card", 2);
     insertZone("eventos_rodape", ".site-footer");
   }
@@ -366,13 +364,11 @@ function renderAdSense() {
   if (!hasAdConsent()) return;
   const path = location.pathname;
   if (path === "/" || path === "/index.html") {
-    insertAdSenseZone("home_topo", adsense.slots.topo, ".hero");
     insertAdSenseZone("home_hero_conteudo", adsense.slots.listagens, ".hero", "afterend");
     insertAdSenseZone("home_entre_secoes", adsense.slots.listagens, ".destination");
     insertAdSenseZone("home_rodape", adsense.slots.finalRodape, ".site-footer");
   }
   if (/\/news\/?(?:index\.html)?$/.test(path) || path.endsWith("news.html")) {
-    insertAdSenseZone("noticias_topo", adsense.slots.noticias, ".page-hero");
     insertAdSenseBetweenCards("noticias_entre_listagem", adsense.slots.listagens, "#news-container", ".news-item", 3);
   }
   if (path.includes("news-details") || path.includes("news-detalhes") || path.startsWith("/noticias/")) {
@@ -380,17 +376,14 @@ function renderAdSense() {
     insertAdSenseZone("noticia_final", adsense.slots.finalRodape, ".related-news");
   }
   if (path.endsWith("guia.html")) {
-    insertAdSenseZone("guia_topo", adsense.slots.topo, ".page-hero");
     insertAdSenseBetweenCards("guia_entre_estabelecimentos", adsense.slots.listagens, "#guia-container", ".card-guia", 5);
     insertAdSenseZone("guia_rodape", adsense.slots.finalRodape, ".site-footer");
   }
   if (path.endsWith("turismo.html")) {
-    insertAdSenseZone("turismo_topo", adsense.slots.topo, ".page-hero");
     insertAdSenseBetweenCards("turismo_entre_cartoes", adsense.slots.listagens, "#turismo-container", ".card-guia", 2);
     insertAdSenseZone("turismo_rodape", adsense.slots.finalRodape, ".site-footer");
   }
   if (path.includes("/eventos")) {
-    insertAdSenseZone("eventos_topo", adsense.slots.topo, ".page-hero");
     insertAdSenseBetweenCards("eventos_entre_eventos", adsense.slots.listagens, "#eventos-list", ".event-card", 2);
     insertAdSenseZone("eventos_rodape", adsense.slots.finalRodape, ".site-footer");
   }
