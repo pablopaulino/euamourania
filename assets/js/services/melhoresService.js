@@ -13,6 +13,14 @@ export async function obterResumoMelhores() {
     if (error) throw error;
     return total || 0;
   };
+  const countVisibleEditions = async () => {
+    const { count: total, error } = await supabase
+      .from("melhores_edicoes")
+      .select("*", { count: "exact", head: true })
+      .neq("status", "arquivada");
+    if (error) throw error;
+    return total || 0;
+  };
 
   const { data: edicaoAtiva, error: activeError } = await supabase
     .from("melhores_edicoes")
@@ -24,7 +32,7 @@ export async function obterResumoMelhores() {
   if (activeError) throw activeError;
 
   const [edicoes, categorias, indicados, ativos, indicacoesPendentes] = await Promise.all([
-    count("melhores_edicoes"),
+    countVisibleEditions(),
     count("melhores_categorias", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id } : {}),
     count("melhores_indicados", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id } : {}),
     count("melhores_indicados", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id, status: "ativo" } : { status: "ativo" }),
@@ -38,6 +46,7 @@ export async function listarEdicoes() {
   const { data, error } = await db()
     .from("melhores_edicoes")
     .select("*")
+    .neq("status", "arquivada")
     .order("ano", { ascending: false });
   if (error) throw error;
   return data || [];
@@ -54,7 +63,22 @@ export async function salvarEdicao(payload) {
 }
 
 export async function excluirEdicao(id) {
-  const { error } = await db().from("melhores_edicoes").update({ status: "arquivada" }).eq("id", id);
+  const supabase = db();
+  const protectedTables = ["melhores_votos", "melhores_resultados", "melhores_consolidados", "melhores_instagram_votos"];
+  const counts = await Promise.all(protectedTables.map(async table => {
+    const { count, error } = await supabase.from(table).select("*", { count: "exact", head: true }).eq("edicao_id", id);
+    if (error && error.code !== "42P01") throw error;
+    return count || 0;
+  }));
+  const hasOfficialData = counts.some(total => total > 0);
+
+  if (!hasOfficialData) {
+    const { error } = await supabase.from("melhores_edicoes").delete().eq("id", id);
+    if (!error) return;
+    if (error.code !== "42501") throw error;
+  }
+
+  const { error } = await supabase.from("melhores_edicoes").update({ status: "arquivada" }).eq("id", id);
   if (error) throw error;
 }
 
