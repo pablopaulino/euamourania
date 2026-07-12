@@ -25,7 +25,7 @@ for(const feature of["Ajustar enquadramento","data-crop-zoom","data-rotate","can
 must(ui.includes("Biblioteca de mídia")&&ui.includes("data-media-clean"),"Limpeza segura não aparece no painel");
 for(const feature of["Escolher da biblioteca","Criar outro formato","Editar / outro formato","openLibraryPicker"])must(ui.includes(feature),`Reaproveitamento de mídia incompleto: ${feature}`);
 for(const feature of['document.body.style.overflow="hidden"','event.key==="Escape"','event.target===modal','await onSelect(item.url)','data-library-count'])must(ui.includes(feature),`Seletor de mídia sem comportamento esperado: ${feature}`);
-for(const feature of["grid-template-rows:auto auto minmax(0,1fr) auto","overflow-y:auto","repeat(auto-fill,minmax(240px,1fr))",".cms-media-button{display:inline-flex;flex:1 1 0"])must(styles.includes(feature),`Layout da biblioteca incompleto: ${feature}`);
+for(const feature of["grid-template-rows:auto auto minmax(0,1fr) auto","overflow-y:auto","display:flex!important","flex-wrap:wrap!important","flex:0 1 calc(25% - .75rem)!important",".cms-library-picker-card>img","height:150px!important",".cms-media-button{display:inline-flex;flex:1 1 0"])must(styles.includes(feature),`Layout da biblioteca incompleto: ${feature}`);
 must(libraryMigration.includes("midia_cms_em_uso")&&libraryMigration.includes("elegivel_limpeza")&&libraryMigration.includes("interval '7 days'"),"Banco não protege mídias usadas ou originais recentes");
 must(pickerMigration.includes('using(public.is_admin())'),"Biblioteca compartilhada não respeita autenticação administrativa");
 must(admin.includes('import("./media-upload.js")')&&communication.includes('import "./media-upload.js"'),"Módulo de upload não carregado no CMS");
