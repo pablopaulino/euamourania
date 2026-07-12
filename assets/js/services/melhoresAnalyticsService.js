@@ -8,6 +8,9 @@ const EVENT_TYPES = new Set([
   "melhores_vote_start",
   "melhores_vote_complete",
   "melhores_vote_error",
+  "melhores_indication_start",
+  "melhores_indication_complete",
+  "melhores_indication_error",
   "melhores_cta_click"
 ]);
 

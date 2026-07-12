@@ -23,14 +23,15 @@ export async function obterResumoMelhores() {
     .maybeSingle();
   if (activeError) throw activeError;
 
-  const [edicoes, categorias, indicados, ativos] = await Promise.all([
+  const [edicoes, categorias, indicados, ativos, indicacoesPendentes] = await Promise.all([
     count("melhores_edicoes"),
     count("melhores_categorias", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id } : {}),
     count("melhores_indicados", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id } : {}),
-    count("melhores_indicados", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id, status: "ativo" } : { status: "ativo" })
+    count("melhores_indicados", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id, status: "ativo" } : { status: "ativo" }),
+    count("melhores_indicacoes", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id, status: "pendente" } : { status: "pendente" })
   ]);
 
-  return { edicaoAtiva, edicoes, categorias, indicados, indicadosAtivos: ativos };
+  return { edicaoAtiva, edicoes, categorias, indicados, indicadosAtivos: ativos, indicacoesPendentes };
 }
 
 export async function listarEdicoes() {
@@ -109,6 +110,39 @@ export async function salvarIndicado(payload) {
 
 export async function excluirIndicado(id) {
   const { error } = await db().from("melhores_indicados").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function listarIndicacoes({ edicaoId, status } = {}) {
+  let query = db()
+    .from("melhores_indicacoes")
+    .select("*, melhores_edicoes(ano,nome), melhores_categorias(nome), melhores_indicados(nome)")
+    .order("criado_em", { ascending: false });
+  if (edicaoId) query = query.eq("edicao_id", edicaoId);
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+export async function moderarIndicacao(id, payload) {
+  const { data: auth } = await db().auth.getUser();
+  const { data, error } = await db()
+    .from("melhores_indicacoes")
+    .update({
+      ...payload,
+      moderado_por: auth?.user?.id || null,
+      moderado_em: new Date().toISOString()
+    })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function excluirIndicacao(id) {
+  const { error } = await db().from("melhores_indicacoes").delete().eq("id", id);
   if (error) throw error;
 }
 

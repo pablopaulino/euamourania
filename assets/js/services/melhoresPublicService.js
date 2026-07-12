@@ -28,7 +28,7 @@ export async function obterEdicaoPorAno(ano) {
 
 export async function listarCategoriasPublicas(edicaoId) {
   return fetchPublicRows("melhores_categorias", {
-    select: "id,edicao_id,nome,slug,descricao,imagem_url,icone,ordem,status,permite_multiplos_votos,max_escolhas,visibilidade_publica",
+    select: "id,edicao_id,nome,slug,descricao,imagem_url,icone,ordem,status,permite_multiplos_votos,max_escolhas,permite_indicacao_publica,visibilidade_publica",
     edicao_id: `eq.${edicaoId}`,
     status: "eq.ativo",
     visibilidade_publica: "eq.true",
@@ -65,6 +65,20 @@ export async function enviarVotoMelhores(payload) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data?.ok === false) {
     throw new Error(data?.message || "Não foi possível registrar seu voto agora.");
+  }
+  return data;
+}
+
+export async function enviarIndicacaoMelhores(payload) {
+  const response = await fetch("/api/melhores-indicar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    credentials: "omit",
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data?.ok === false) {
+    throw new Error(data?.message || "Não foi possível enviar sua indicação agora.");
   }
   return data;
 }

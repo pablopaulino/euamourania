@@ -1,0 +1,17 @@
+.awards-status.pendente {
+  color: #805400;
+  background: #fff4c7;
+}
+
+.awards-status.aprovada,
+.awards-status.convertida {
+  color: #087443;
+  background: #dff7e9;
+}
+
+.awards-status.rejeitada,
+.awards-status.duplicada,
+.awards-status.spam {
+  color: #8a2d21;
+  background: #fff0ed;
+}

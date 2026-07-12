@@ -409,3 +409,49 @@ Baixo impacto:
 - a home só exibe o bloco se houver edição pública;
 - se o Supabase estiver indisponível, o bloco da home simplesmente não aparece;
 - os eventos de audiência não bloqueiam navegação nem voto.
+
+## Fase 5 — indicações públicas e moderação
+
+A Fase 5 ativa a etapa de indicações públicas antes da votação.
+
+Entregas:
+
+- formulário público na página da edição;
+- API segura `/api/melhores-indicar`;
+- gravação em `melhores_indicacoes` com status `pendente`;
+- validação de edição, período e categoria;
+- aceite obrigatório do regulamento;
+- proteção simples contra muitas indicações em sequência;
+- aba **Indicações** no painel administrativo;
+- ações de moderação:
+  - aprovar;
+  - rejeitar;
+  - marcar como duplicada;
+  - marcar como spam;
+  - excluir;
+  - converter em indicado rascunho.
+
+### Fluxo
+
+```text
+visitante → formulário público → /api/melhores-indicar → melhores_indicacoes
+admin → painel → moderação → indicado oficial em rascunho
+```
+
+### Regras públicas
+
+O formulário só aparece como ativo quando:
+
+- a edição está com status `indicacoes_abertas`;
+- a data atual está entre `indicacoes_inicio` e `indicacoes_fim`;
+- a categoria está ativa;
+- a categoria está visível publicamente;
+- a categoria permite indicação pública.
+
+### Segurança
+
+O navegador não grava diretamente em `melhores_indicacoes`.
+
+A API usa `SUPABASE_SERVICE_ROLE_KEY` apenas no backend da Vercel e nunca expõe a chave ao visitante.
+
+As indicações entram como `pendente` e precisam de revisão humana antes de virar indicado oficial.
