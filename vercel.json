@@ -1,6 +1,14 @@
 {
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        { "type": "host", "value": "melhores.euamourania.com.br" }
+      ],
+      "destination": "https://euamourania.com.br/melhores-de-urania/",
+      "permanent": true
+    },
+    {
       "source": "/news-detalhes.html",
       "has": [
         { "type": "query", "key": "slug", "value": "(?<slug>[a-z0-9-]+)" }
