@@ -56,7 +56,7 @@ async function getConfig() {
 module.exports = async (req, res) => {
   const slug = String(req.query.slug || "").trim();
   if (!/^[a-z0-9-]+$/.test(slug)) {
-    return res.status(404).send("NotÃ­cia nÃ£o encontrada");
+    return res.status(404).send("Notícia não encontrada");
   }
 
   try {
@@ -71,11 +71,11 @@ module.exports = async (req, res) => {
     const rows = await response.json();
     const noticia = rows?.[0];
     if (!response.ok || !noticia) {
-      return res.status(404).send("NotÃ­cia nÃ£o encontrada");
+      return res.status(404).send("Notícia não encontrada");
     }
 
     const domain = validDomain(config.dominio_principal || DEFAULT_DOMAIN);
-    const siteName = config.nome_site || "Eu Amo UrÃ¢nia";
+    const siteName = config.nome_site || "Eu Amo Urânia";
     const publisher = config.seo_publicador || siteName;
     const logo = absolute(config.seo_logo || config.logo_principal, domain);
     const favicon = absolute(config.favicon, domain);
@@ -87,7 +87,7 @@ module.exports = async (req, res) => {
       domain
     );
     const title = `${noticia.seo_titulo || noticia.titulo} | ${siteName}`;
-    const authorName = noticia.autor || "RedaÃ§Ã£o Eu Amo UrÃ¢nia";
+    const authorName = noticia.autor || "Redação Eu Amo Urânia";
     const structured = JSON.stringify({
       "@context": "https://schema.org",
       "@graph": [
@@ -112,7 +112,7 @@ module.exports = async (req, res) => {
           },
           mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
           url: canonical,
-          articleSection: noticia.categoria_nome || "NotÃ­cias",
+          articleSection: noticia.categoria_nome || "Notícias",
           articleBody: articleText || undefined,
           isAccessibleForFree: true,
           inLanguage: "pt-BR"
@@ -121,8 +121,8 @@ module.exports = async (req, res) => {
           "@type": "BreadcrumbList",
           "@id": `${canonical}#breadcrumb`,
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: "InÃ­cio", item: `${domain}/` },
-            { "@type": "ListItem", position: 2, name: "NotÃ­cias", item: `${domain}/news/` },
+            { "@type": "ListItem", position: 1, name: "Início", item: `${domain}/` },
+            { "@type": "ListItem", position: 2, name: "Notícias", item: `${domain}/news/` },
             { "@type": "ListItem", position: 3, name: noticia.titulo, item: canonical }
           ]
         }
@@ -136,6 +136,6 @@ module.exports = async (req, res) => {
     return res.status(200).send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${esc(canonical)}"><meta property="og:type" content="article"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:title" content="${esc(noticia.titulo)}"><meta property="og:description" content="${esc(description)}"><meta property="og:image" content="${esc(image)}"><meta property="og:url" content="${esc(canonical)}"><meta property="article:published_time" content="${esc(noticia.publicado_em)}"><meta property="article:modified_time" content="${esc(noticia.atualizado_em || noticia.publicado_em)}"><meta property="article:section" content="${esc(noticia.categoria_nome || "Notícias")}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(noticia.titulo)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(image)}"><meta name="theme-color" content="#0b4f6c"><script id="news-structured-data" type="application/ld+json">${structured}</script><script id="initial-news-data" type="application/json">${initialNews}</script><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/inner-pages.css"><link rel="stylesheet" href="/assets/css/public-polish.css"><link rel="icon" href="${esc(favicon)}"><link rel="alternate" type="application/rss+xml" title="Notícias do Eu Amo Urânia" href="${domain}/rss.xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></head><body class="inner-page"><a class="skip-link" href="#newsDetails">Pular para a notÃ­cia</a><header class="site-header"><div class="container header-content"><a class="brand" href="/index.html"><img src="${esc(logo)}" alt="${esc(siteName)}" width="190" height="56"></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal"><span class="menu-icon" aria-hidden="true"></span><span>Menu</span></button><nav class="main-nav" id="menu-principal"><ul><li><a href="/index.html">InÃ­cio</a></li><li><a href="/guia.html">Guia da cidade</a></li><li><a href="/turismo.html">Turismo</a></li><li><a href="/news/" aria-current="page">NotÃ­cias</a></li><li><a href="/quem-somos.html">Quem somos</a></li></ul></nav></div></header><main id="newsDetails" class="article-main" aria-live="polite">${serverArticle}</main><footer class="site-footer"><div class="container footer-grid"><div><img src="${esc(logo)}" alt="${esc(siteName)}" class="footer-logo" width="170" height="50"><p>InformaÃ§Ã£o, turismo e comunidade.</p></div><nav><a href="mailto:euamourania@gmail.com">Contato</a><a href="/termos-de-servico.html">Termos</a><a href="/politica-de-privacidade.html">Privacidade</a></nav></div><div class="container footer-bottom"><p>&copy; <span id="year"></span> ${esc(siteName)}.</p></div></footer><script src="/script.js"></script><script type="module" src="/assets/js/pages/noticia-page.js"></script></body></html>`);
   } catch (error) {
     console.error("noticia:", error);
-    return res.status(500).send("NÃ£o foi possÃ­vel carregar a notÃ­cia");
+    return res.status(500).send("Não foi possível carregar a notícia");
   }
 };

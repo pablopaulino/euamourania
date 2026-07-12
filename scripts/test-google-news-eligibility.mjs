@@ -20,6 +20,11 @@ const vercel = JSON.parse(vercelSource);
 must(vercel.rewrites.some(route => route.source === "/news-sitemap.xml" && route.destination.includes("type=news")), "News Sitemap não está roteado.");
 must(vercel.rewrites.some(route => route.source === "/rss.xml" && route.destination === "/api/rss"), "RSS principal não está roteado.");
 must(vercel.rewrites.some(route => route.source === "/noticias/feed.xml" && route.destination === "/api/rss"), "RSS alternativo não está roteado.");
+must(
+  vercel.rewrites.findIndex(route => route.source === "/noticias/feed.xml") <
+    vercel.rewrites.findIndex(route => route.source === "/noticias/:slug"),
+  "RSS alternativo precisa vir antes da rota dinâmica de notícias."
+);
 must(sitemapApi.includes("TWO_DAYS_MS"), "News Sitemap não limita notícias aos últimos dois dias.");
 must(sitemapApi.includes("<news:publication_date>") && sitemapApi.includes("<news:title>"), "News Sitemap não possui tags obrigatórias.");
 must(sitemapApi.includes('status: "eq.publicado"') && sitemapApi.includes("publicado_em"), "News Sitemap pode expor rascunhos, agendadas ou usar data errada.");
