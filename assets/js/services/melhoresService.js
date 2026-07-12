@@ -54,7 +54,7 @@ export async function salvarEdicao(payload) {
 }
 
 export async function excluirEdicao(id) {
-  const { error } = await db().from("melhores_edicoes").delete().eq("id", id);
+  const { error } = await db().from("melhores_edicoes").update({ status: "arquivada" }).eq("id", id);
   if (error) throw error;
 }
 
@@ -81,7 +81,7 @@ export async function salvarCategoria(payload) {
 }
 
 export async function excluirCategoria(id) {
-  const { error } = await db().from("melhores_categorias").delete().eq("id", id);
+  const { error } = await db().from("melhores_categorias").update({ status: "arquivado", visibilidade_publica: false }).eq("id", id);
   if (error) throw error;
 }
 
@@ -109,7 +109,7 @@ export async function salvarIndicado(payload) {
 }
 
 export async function excluirIndicado(id) {
-  const { error } = await db().from("melhores_indicados").delete().eq("id", id);
+  const { error } = await db().from("melhores_indicados").update({ status: "arquivado", aprovado: false }).eq("id", id);
   if (error) throw error;
 }
 
@@ -205,4 +205,35 @@ export async function listarResultados(edicaoId) {
   const { data, error } = await query;
   if (error) throw error;
   return data || [];
+}
+
+export async function listarVotos({ edicaoId, status } = {}) {
+  let query = db()
+    .from("melhores_votos")
+    .select("id,edicao_id,categoria_id,indicado_id,origem,status,motivo_bloqueio,criado_em,melhores_categorias(nome),melhores_indicados(nome)")
+    .order("criado_em", { ascending: false })
+    .limit(300);
+  if (edicaoId) query = query.eq("edicao_id", edicaoId);
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+export async function listarAuditoria(edicaoId) {
+  let query = db()
+    .from("melhores_auditoria")
+    .select("*")
+    .order("criado_em", { ascending: false })
+    .limit(300);
+  if (edicaoId) query = query.eq("edicao_id", edicaoId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+export async function limparVotosManual(edicaoId) {
+  const { data, error } = await db().rpc("melhores_limpar_votos_edicao_manual", { p_edicao: edicaoId });
+  if (error) throw error;
+  return data;
 }

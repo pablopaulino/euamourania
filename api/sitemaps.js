@@ -36,6 +36,21 @@ async function melhoresRows() {
   return response.json();
 }
 
+async function melhoresCategoriasRows() {
+  const query = new URLSearchParams({
+    select: "slug,atualizado_em,edicao_id,melhores_edicoes!inner(id,ano,status)",
+    status: "eq.ativo",
+    visibilidade_publica: "eq.true",
+    order: "ordem.asc"
+  });
+  query.append("melhores_edicoes.status", "in.(indicacoes_abertas,votacao_aberta,votacao_encerrada,resultado_publicado,arquivada)");
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/melhores_categorias?${query}`, {
+    headers: { apikey: SUPABASE_KEY }
+  });
+  if (!response.ok) return [];
+  return response.json();
+}
+
 module.exports = async (req, res) => {
   try {
     const type = req.query.type === "news" ? "news" : "standard";
@@ -62,10 +77,11 @@ module.exports = async (req, res) => {
       );
     }
 
-    const [turismo, eventos, melhores] = await Promise.all([
+    const [turismo, eventos, melhores, melhoresCategorias] = await Promise.all([
       rows("turismo", "slug,atualizado_em", "atualizado_em.desc"),
       rows("eventos", "slug,atualizado_em", "atualizado_em.desc"),
-      melhoresRows()
+      melhoresRows(),
+      melhoresCategoriasRows()
     ]);
     const statics = ["/", "/news/", "/guia.html", "/turismo.html", "/eventos/", "/melhores-de-urania/", "/links/", "/quem-somos.html"];
     const imageTag = item => {
@@ -77,6 +93,12 @@ module.exports = async (req, res) => {
         loc: `${DOMAIN}/melhores-de-urania/${item.ano}/`,
         lastmod: item.atualizado_em,
         image: item.imagem_capa_url ? `<image:image><image:loc>${xml(new URL(item.imagem_capa_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
+      }, {
+        loc: `${DOMAIN}/melhores-de-urania/${item.ano}/regulamento/`,
+        lastmod: item.atualizado_em
+      }, {
+        loc: `${DOMAIN}/melhores-de-urania/${item.ano}/metodologia/`,
+        lastmod: item.atualizado_em
       }];
       if (item.status === "resultado_publicado") {
         base.push({
@@ -100,6 +122,10 @@ module.exports = async (req, res) => {
       })),
       ...eventos.map(item => ({
         loc: `${DOMAIN}/eventos/detalhes.html?slug=${item.slug}`,
+        lastmod: item.atualizado_em
+      })),
+      ...melhoresCategorias.map(item => ({
+        loc: `${DOMAIN}/melhores-de-urania/${item.melhores_edicoes?.ano}/categorias/${item.slug}/`,
         lastmod: item.atualizado_em
       })),
       ...melhoresUrls

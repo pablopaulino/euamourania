@@ -21,6 +21,12 @@
   ],
   "rewrites": [
     { "source": "/", "destination": "/api/home" },
+    { "source": "/melhores-de-urania/:ano/regulamento", "destination": "/melhores-de-urania/regulamento.html?ano=:ano" },
+    { "source": "/melhores-de-urania/:ano/regulamento/", "destination": "/melhores-de-urania/regulamento.html?ano=:ano" },
+    { "source": "/melhores-de-urania/:ano/metodologia", "destination": "/melhores-de-urania/metodologia.html?ano=:ano" },
+    { "source": "/melhores-de-urania/:ano/metodologia/", "destination": "/melhores-de-urania/metodologia.html?ano=:ano" },
+    { "source": "/melhores-de-urania/:ano/categorias/:categoria", "destination": "/melhores-de-urania/categoria.html?ano=:ano&categoria=:categoria" },
+    { "source": "/melhores-de-urania/:ano/categorias/:categoria/", "destination": "/melhores-de-urania/categoria.html?ano=:ano&categoria=:categoria" },
     { "source": "/melhores-de-urania/:ano/resultados", "destination": "/melhores-de-urania/resultados.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano/resultados/", "destination": "/melhores-de-urania/resultados.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano", "destination": "/melhores-de-urania/edicao.html?ano=:ano" },

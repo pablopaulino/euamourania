@@ -20,11 +20,14 @@ import {
   excluirInstagramVoto,
   obterApuracao,
   publicarResultado,
-  listarResultados
+  listarResultados,
+  listarVotos,
+  listarAuditoria,
+  limparVotosManual
 } from "../assets/js/services/melhoresService.js";
 
 const $ = selector => document.querySelector(selector);
-const state = { tab: "dashboard", edicoes: [], categorias: [], indicacoes: [], indicados: [], guia: [], instagram: [], apuracao: [], resultados: [] };
+const state = { tab: "dashboard", edicoes: [], categorias: [], indicacoes: [], indicados: [], guia: [], votos: [], instagram: [], apuracao: [], resultados: [], auditoria: [] };
 const editionStatuses = [
   "planejamento",
   "indicacoes_abertas",
@@ -38,6 +41,7 @@ const editionStatuses = [
 const categoryStatuses = ["ativo", "inativo", "arquivado"];
 const nomineeStatuses = ["rascunho", "ativo", "inativo", "reprovado", "arquivado"];
 const indicationStatuses = ["pendente", "aprovada", "rejeitada", "convertida", "duplicada", "spam"];
+const voteStatuses = ["valido", "suspeito", "bloqueado", "anulado"];
 
 function escapeHtml(value = "") {
   const el = document.createElement("div");
@@ -344,6 +348,51 @@ function nomineeRow(item) {
   </tr>`;
 }
 
+async function loadVotes() {
+  setActiveTab("votes");
+  $("#votes-view").innerHTML = '<div class="loading">Carregando votos…</div>';
+  try {
+    if (!state.edicoes.length) state.edicoes = await listarEdicoes();
+    const edicaoId = $("#votes-edition-filter")?.value || state.edicoes[0]?.id || "";
+    const status = $("#votes-status-filter")?.value || "";
+    state.votos = await listarVotos({ edicaoId, status });
+    const totals = voteStatuses.map(s => [s, state.votos.filter(v => v.status === s).length]);
+    $("#votes-view").innerHTML = `
+      <article class="awards-card">
+        <div class="awards-panel-head">
+          <div><h3>Votação</h3><p>Acompanhe votos individuais enquanto estiverem dentro do período de auditoria. Dados pessoais não são exibidos.</p></div>
+          <button class="admin-button secondary" data-manual-cleanup-votes>Limpeza manual Super Admin</button>
+        </div>
+        <div class="awards-grid">${totals.map(([label, value]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong></article>`).join("")}</div>
+        <div class="awards-toolbar" style="margin-top:1rem">
+          <input id="votes-search" type="search" placeholder="Pesquisar voto…">
+          <select id="votes-edition-filter">${state.edicoes.map(e => `<option value="${e.id}" ${e.id === edicaoId ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join("")}</select>
+          <select id="votes-status-filter"><option value="">Todos os status</option>${optionList(voteStatuses, status)}</select>
+          <button class="admin-button secondary" data-refresh-votes>Atualizar</button>
+        </div>
+        <div class="awards-table-wrap">
+          <table class="awards-table">
+            <thead><tr><th>Voto</th><th>Categoria</th><th>Indicado</th><th>Status</th><th>Data</th></tr></thead>
+            <tbody id="votes-rows">${state.votos.length ? state.votos.map(voteRow).join("") : '<tr><td colspan="5"><div class="awards-empty">Nenhum voto encontrado.</div></td></tr>'}</tbody>
+          </table>
+        </div>
+      </article>`;
+    bindSimpleSearch("votes", "votes-rows");
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function voteRow(item) {
+  return `<tr data-search="${escapeHtml(`${item.id} ${item.melhores_categorias?.nome || ""} ${item.melhores_indicados?.nome || ""} ${item.status}`.toLowerCase())}">
+    <td><strong>${escapeHtml(item.id.slice(0, 8))}</strong><br><small>${escapeHtml(item.origem || "site")}</small></td>
+    <td>${escapeHtml(item.melhores_categorias?.nome || "Categoria")}</td>
+    <td>${escapeHtml(item.melhores_indicados?.nome || "Indicado")}</td>
+    <td><span class="awards-status ${escapeHtml(item.status)}">${escapeHtml(item.status)}</span>${item.motivo_bloqueio ? `<br><small>${escapeHtml(item.motivo_bloqueio)}</small>` : ""}</td>
+    <td>${fmtDate(item.criado_em)}</td>
+  </tr>`;
+}
+
 async function loadInstagram() {
   setActiveTab("instagram");
   $("#instagram-view").innerHTML = '<div class="loading">Carregando votos do Instagram…</div>';
@@ -459,6 +508,81 @@ async function loadResults() {
   } catch (error) {
     showError(error);
   }
+}
+
+async function loadAudit() {
+  setActiveTab("audit");
+  $("#audit-view").innerHTML = '<div class="loading">Carregando auditoria…</div>';
+  try {
+    if (!state.edicoes.length) state.edicoes = await listarEdicoes();
+    const edicaoId = $("#audit-edition-filter")?.value || state.edicoes[0]?.id || "";
+    state.auditoria = await listarAuditoria(edicaoId);
+    $("#audit-view").innerHTML = `
+      <article class="awards-card">
+        <div class="awards-panel-head">
+          <div><h3>Auditoria</h3><p>Histórico interno de mudanças, moderação, apuração, publicação e limpeza de votos.</p></div>
+        </div>
+        <div class="awards-toolbar">
+          <input id="audit-search" type="search" placeholder="Pesquisar auditoria…">
+          <select id="audit-edition-filter">${state.edicoes.map(e => `<option value="${e.id}" ${e.id === edicaoId ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join("")}</select>
+          <button class="admin-button secondary" data-refresh-audit>Atualizar</button>
+        </div>
+        <div class="awards-table-wrap">
+          <table class="awards-table">
+            <thead><tr><th>Ação</th><th>Entidade</th><th>Usuário</th><th>Data</th><th>Resumo</th></tr></thead>
+            <tbody id="audit-rows">${state.auditoria.length ? state.auditoria.map(auditRow).join("") : '<tr><td colspan="5"><div class="awards-empty">Nenhum registro de auditoria.</div></td></tr>'}</tbody>
+          </table>
+        </div>
+      </article>`;
+    bindSimpleSearch("audit", "audit-rows");
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function auditRow(item) {
+  const resumo = JSON.stringify(item.valores_posteriores || item.valores_anteriores || {}).slice(0, 180);
+  return `<tr data-search="${escapeHtml(`${item.acao} ${item.entidade} ${resumo}`.toLowerCase())}">
+    <td><strong>${escapeHtml(item.acao)}</strong></td>
+    <td>${escapeHtml(item.entidade)}<br><small>${escapeHtml(item.entidade_id || "")}</small></td>
+    <td>${escapeHtml(item.usuario_id || "sistema")}</td>
+    <td>${fmtDate(item.criado_em)}</td>
+    <td><small>${escapeHtml(resumo || "Sem detalhes")}</small></td>
+  </tr>`;
+}
+
+async function loadSettings() {
+  setActiveTab("settings");
+  $("#settings-view").innerHTML = '<div class="loading">Carregando configurações…</div>';
+  try {
+    if (!state.edicoes.length) state.edicoes = await listarEdicoes();
+    const rows = state.edicoes;
+    $("#settings-view").innerHTML = `
+      <article class="awards-card">
+        <div class="awards-panel-head">
+          <div><h3>Configurações e operação</h3><p>Checklist operacional por edição. Ajustes finos continuam na aba Edições.</p></div>
+        </div>
+        <div class="awards-table-wrap">
+          <table class="awards-table">
+            <thead><tr><th>Edição</th><th>Pesos</th><th>Indicações</th><th>Votação</th><th>Retenção</th></tr></thead>
+            <tbody>${rows.length ? rows.map(settingsRow).join("") : '<tr><td colspan="5"><div class="awards-empty">Nenhuma edição cadastrada.</div></td></tr>'}</tbody>
+          </table>
+        </div>
+        <p class="awards-note" style="margin-top:1rem">Subdomínio: crie um domínio em Vercel para <strong>melhores.euamourania.com.br</strong> apontando para este mesmo projeto e adicione CNAME no DNS conforme instrução da Vercel.</p>
+      </article>`;
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function settingsRow(item) {
+  return `<tr>
+    <td><strong>${escapeHtml(item.nome)}</strong><br><small>${item.ano} · ${escapeHtml(item.status)}</small></td>
+    <td>Site ${Number(item.peso_site || 0)}%<br><small>Instagram ${Number(item.peso_instagram || 0)}%</small></td>
+    <td>${fmtDate(item.indicacoes_inicio)}<br><small>${fmtDate(item.indicacoes_fim)}</small></td>
+    <td>${fmtDate(item.votacao_inicio)}<br><small>${fmtDate(item.votacao_fim)}</small></td>
+    <td>${item.votos_individuais_limpos_em ? `Limpos em ${fmtDate(item.votos_individuais_limpos_em)}` : "7 dias após publicação oficial"}</td>
+  </tr>`;
 }
 
 function resultGroup(rows) {
@@ -793,9 +917,12 @@ async function init() {
       if (button.dataset.tab === "categories") return loadCategories();
       if (button.dataset.tab === "indications") return loadIndications();
       if (button.dataset.tab === "nominees") return loadNominees();
+      if (button.dataset.tab === "votes") return loadVotes();
       if (button.dataset.tab === "instagram") return loadInstagram();
       if (button.dataset.tab === "apuration") return loadApuration();
       if (button.dataset.tab === "results") return loadResults();
+      if (button.dataset.tab === "audit") return loadAudit();
+      if (button.dataset.tab === "settings") return loadSettings();
     }
     if (button.id === "new-edition" || button.hasAttribute("data-new-edition")) return editionForm();
     if (button.dataset.editEdition) return editionForm(button.dataset.editEdition);
@@ -835,6 +962,15 @@ async function init() {
       return loadIndications();
     }
     if (button.hasAttribute("data-refresh-nominees")) return loadNominees();
+    if (button.hasAttribute("data-refresh-votes")) return loadVotes();
+    if (button.hasAttribute("data-manual-cleanup-votes")) {
+      const edicaoId = $("#votes-edition-filter")?.value || state.edicoes[0]?.id;
+      if (!edicaoId) return toast("Selecione uma edição.", "error");
+      if (!confirm("Executar limpeza manual dos votos individuais desta edição? Use somente após auditoria e publicação oficial.")) return;
+      const total = await limparVotosManual(edicaoId);
+      toast(`${total || 0} voto(s) individual(is) removido(s) após consolidação.`);
+      return loadVotes();
+    }
     if (button.hasAttribute("data-new-instagram")) return instagramForm();
     if (button.dataset.editInstagram) return instagramForm(button.dataset.editInstagram);
     if (button.dataset.deleteInstagram && confirm("Excluir este lançamento do Instagram?")) {
@@ -846,6 +982,7 @@ async function init() {
     if (button.hasAttribute("data-refresh-instagram")) return loadInstagram();
     if (button.hasAttribute("data-refresh-apuration")) return loadApuration();
     if (button.hasAttribute("data-refresh-results")) return loadResults();
+    if (button.hasAttribute("data-refresh-audit")) return loadAudit();
     if (button.hasAttribute("data-publish-results")) {
       const edicaoId = $("#apuration-edition-filter")?.value || state.edicoes[0]?.id;
       if (!edicaoId) return toast("Selecione uma edição.", "error");
@@ -869,12 +1006,14 @@ async function init() {
       if (event.target.id === "nominee-edition-filter") state.categorias = [];
       loadNominees();
     }
+    if (event.target.id === "votes-edition-filter" || event.target.id === "votes-status-filter") loadVotes();
     if (event.target.id === "instagram-edition-filter" || event.target.id === "instagram-category-filter") {
       if (event.target.id === "instagram-edition-filter") state.categorias = [];
       loadInstagram();
     }
     if (event.target.id === "apuration-edition-filter") loadApuration();
     if (event.target.id === "results-edition-filter") loadResults();
+    if (event.target.id === "audit-edition-filter") loadAudit();
   });
 
   await loadDashboard();

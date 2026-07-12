@@ -80,7 +80,7 @@ module.exports = async (req, res) => {
       return json(res, 403, { ok: false, message: "A votação não está aberta neste momento." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
     }
 
-    const [category] = await rest(`melhores_categorias?select=id,edicao_id,status,visibilidade_publica&limit=1&id=eq.${categoriaId}&edicao_id=eq.${edicaoId}`);
+    const [category] = await rest(`melhores_categorias?select=id,edicao_id,status,visibilidade_publica,permite_multiplos_votos,max_escolhas&limit=1&id=eq.${categoriaId}&edicao_id=eq.${edicaoId}`);
     if (!category || category.status !== "ativo" || category.visibilidade_publica !== true) {
       return json(res, 400, { ok: false, message: "Categoria indisponível para votação." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
     }
@@ -93,6 +93,14 @@ module.exports = async (req, res) => {
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     const recent = await rest(`melhores_votos?select=id,status&edicao_id=eq.${edicaoId}&identificador_hash=eq.${identifier}&criado_em=gte.${encodeURIComponent(tenMinutesAgo)}&limit=40`);
     const status = recent.length > 30 ? "bloqueado" : recent.length > 20 ? "suspeito" : "valido";
+    const previousVotes = await rest(`melhores_votos?select=id,indicado_id,status&edicao_id=eq.${edicaoId}&categoria_id=eq.${categoriaId}&identificador_hash=eq.${identifier}&status=in.(valido,suspeito)&limit=20`);
+    if (previousVotes.some(v => v.indicado_id === indicadoId)) {
+      return json(res, 409, { ok: false, message: "Você já votou neste indicado." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
+    }
+    const maxChoices = category.permite_multiplos_votos ? Math.max(1, Number(category.max_escolhas || 1)) : 1;
+    if (previousVotes.length >= maxChoices) {
+      return json(res, 409, { ok: false, message: category.permite_multiplos_votos ? `Você já atingiu o limite de ${maxChoices} escolha(s) nesta categoria.` : "Você já votou nesta categoria." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
+    }
     if (status === "bloqueado") {
       await rest("melhores_votos", {
         method: "POST",

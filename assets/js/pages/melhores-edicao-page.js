@@ -15,9 +15,17 @@ function readVotes(editionId) {
   try { return JSON.parse(localStorage.getItem(key(editionId)) || "{}"); } catch { return {}; }
 }
 
+function votesFor(votes, categoryId) {
+  const value = votes[categoryId];
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
 function saveVote(editionId, categoryId, nomineeId) {
   const votes = readVotes(editionId);
-  votes[categoryId] = nomineeId;
+  const current = votesFor(votes, categoryId);
+  if (!current.includes(nomineeId)) current.push(nomineeId);
+  votes[categoryId] = current;
   localStorage.setItem(key(editionId), JSON.stringify(votes));
 }
 
@@ -66,7 +74,7 @@ function renderHero(edition, open) {
     copy.innerHTML = `<span class="awards-public-badge">Uma realização Eu Amo Urânia</span>
       <h1>${esc(edition.nome)}</h1>
       <p>${esc(edition.descricao || "Escolha seus favoritos nas categorias da premiação.")}</p>
-      <div class="hero-actions"><a class="button button-primary" href="#vote-area" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Votar agora" : "Ver indicados"}</a><a class="button button-secondary" href="/melhores-de-urania/" data-awards-edition-cta data-edition-id="${edition.id}">Todas as edições</a></div>`;
+      <div class="hero-actions"><a class="button button-primary" href="#vote-area" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Votar agora" : "Ver indicados"}</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/regulamento/" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/metodologia/" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a></div>`;
   }
   if (panel) {
     const cover = image(edition.imagem_capa_url);
@@ -82,7 +90,10 @@ function renderHero(edition, open) {
 }
 
 function nomineeCard(edition, category, nominee, open, votedId) {
-  const voted = votedId === nominee.id;
+  const votedList = Array.isArray(votedId) ? votedId : (votedId ? [votedId] : []);
+  const voted = votedList.includes(nominee.id);
+  const maxChoices = category.permite_multiplos_votos ? Math.max(1, Number(category.max_escolhas || 1)) : 1;
+  const reachedLimit = votedList.length >= maxChoices;
   const img = image(nominee.imagem_url);
   return `<article class="awards-nominee-card ${voted ? "awards-voted" : ""}">
     ${img ? `<img src="${img}" alt="${esc(nominee.nome)}" loading="lazy">` : ""}
@@ -90,7 +101,7 @@ function nomineeCard(edition, category, nominee, open, votedId) {
       <h3>${esc(nominee.nome)}</h3>
       <p>${esc(nominee.descricao_curta || "Indicado ao Melhores de Urânia.")}</p>
       ${nominee.instagram ? `<p><small>Instagram: ${esc(nominee.instagram)}</small></p>` : ""}
-      <button class="button button-primary awards-vote-button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" ${open && !voted ? "" : "disabled"}>
+      <button class="button button-primary awards-vote-button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" data-multiple="${category.permite_multiplos_votos ? "true" : "false"}" ${open && !voted && !reachedLimit ? "" : "disabled"}>
         ${voted ? "Voto registrado" : open ? "Votar" : "Votação fechada"}
       </button>
     </div>
@@ -114,8 +125,8 @@ function renderVoting(edition, categories, nominees) {
       ${categories.map(category => {
         const items = grouped.get(category.id) || [];
         return `<section class="awards-nominee-group" id="categoria-${category.id}">
-          <header><h3>${esc(category.nome)}</h3><p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p></header>
-          ${items.length ? `<div class="awards-nominee-grid">${items.map(nominee => nomineeCard(edition, category, nominee, open, votes[category.id])).join("")}</div>` : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>'}
+          <header><h3><a class="awards-link" href="/melhores-de-urania/${edition.ano}/categorias/${encodeURIComponent(category.slug)}/">${esc(category.nome)}</a></h3><p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p></header>
+          ${items.length ? `<div class="awards-nominee-grid">${items.map(nominee => nomineeCard(edition, category, nominee, open, votesFor(votes, category.id))).join("")}</div>` : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>'}
         </section>`;
       }).join("")}
     </div>`;
@@ -222,10 +233,19 @@ document.addEventListener("click", async event => {
       pagina: location.pathname
     });
     saveVote(vote.dataset.edition, vote.dataset.category, vote.dataset.nominee);
+    const storedVotes = votesFor(readVotes(vote.dataset.edition), vote.dataset.category);
+    const reachedLimit = storedVotes.length >= Number(vote.dataset.maxChoices || 1);
     document.querySelectorAll(`[data-category="${vote.dataset.category}"]`).forEach(button => {
-      button.disabled = true;
+      const isAlreadyVoted = storedVotes.includes(button.dataset.nominee);
+      button.disabled = isAlreadyVoted || reachedLimit;
       button.textContent = button === vote ? "Voto registrado" : "Voto já registrado";
       button.closest(".awards-nominee-card")?.classList.toggle("awards-voted", button === vote);
+    });
+    document.querySelectorAll(`[data-category="${vote.dataset.category}"]`).forEach(button => {
+      const isAlreadyVoted = storedVotes.includes(button.dataset.nominee);
+      button.disabled = isAlreadyVoted || reachedLimit;
+      button.textContent = isAlreadyVoted ? "Voto registrado" : reachedLimit ? "Limite atingido" : "Votar";
+      button.closest(".awards-nominee-card")?.classList.toggle("awards-voted", isAlreadyVoted);
     });
     registrarEventoMelhores("melhores_vote_complete", {
       edicaoId: vote.dataset.edition,
