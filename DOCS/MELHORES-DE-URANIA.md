@@ -357,3 +357,55 @@ Fase 4:
 - sitemap;
 - documentação final;
 - polimento.
+
+## Fase 4 — audiência, SEO e integração pública
+
+A Fase 4 adiciona polimento e integração do módulo com o restante do portal:
+
+- bloco discreto na home quando existir edição pública ativa ou resultado publicado;
+- eventos de audiência específicos do Melhores de Urânia;
+- breadcrumbs em dados estruturados nas páginas públicas;
+- teste automatizado de integração;
+- documentação operacional atualizada.
+
+### Migração da Fase 4
+
+Execute no Supabase:
+
+`supabase/migrations/20260712_melhores_urania_fase4_audiencia.sql`
+
+Ela libera novos tipos de evento em `analytics_eventos` e na RPC pública `registrar_evento_site`.
+
+Para não quebrar eventos históricos já gravados, a constraint passa a aceitar tipos técnicos seguros no formato:
+
+`letras_numeros_underline`
+
+Tipos adicionados:
+
+- `melhores_index_view`;
+- `melhores_edition_view`;
+- `melhores_results_view`;
+- `melhores_vote_start`;
+- `melhores_vote_complete`;
+- `melhores_vote_error`;
+- `melhores_cta_click`.
+
+Esses eventos não armazenam IP, e-mail ou telefone. Eles servem para acompanhar abertura das páginas, cliques em chamadas, início de voto, voto concluído, erro de voto e visualização de resultados.
+
+### SEO
+
+As páginas públicas do Melhores de Urânia passam a declarar breadcrumbs em JSON-LD. As URLs amigáveis continuam:
+
+- `/melhores-de-urania/`;
+- `/melhores-de-urania/ANO/`;
+- `/melhores-de-urania/ANO/resultados/`.
+
+### Impacto
+
+Baixo impacto:
+
+- nenhuma tabela pública existente é alterada;
+- nenhuma funcionalidade existente é removida;
+- a home só exibe o bloco se houver edição pública;
+- se o Supabase estiver indisponível, o bloco da home simplesmente não aparece;
+- os eventos de audiência não bloqueiam navegação nem voto.
