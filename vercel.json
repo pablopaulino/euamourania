@@ -20,13 +20,6 @@
     { "source": "/news-details.html", "destination": "/news/", "permanent": true }
   ],
   "rewrites": [
-    {
-      "source": "/",
-      "has": [
-        { "type": "host", "value": "melhores.euamourania.com.br" }
-      ],
-      "destination": "/melhores-de-urania/index.html"
-    },
     { "source": "/", "destination": "/api/home" },
     { "source": "/melhores-de-urania/:ano/regulamento", "destination": "/melhores-de-urania/regulamento.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano/regulamento/", "destination": "/melhores-de-urania/regulamento.html?ano=:ano" },
