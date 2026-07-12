@@ -57,6 +57,8 @@ must(analytics.includes("sessionStorage") && !analytics.includes("ip:"), "Rastre
 must(analytics.includes("noticiaView();") && analytics.includes('window.addEventListener("noticia:renderizada",noticiaView'), "Visualizacao de noticia depende apenas do evento tardio");
 must(analytics.includes("observePublicCards") && analytics.includes('observeCards("[data-guide-id]"') && analytics.includes('observeCards("[data-tourism-id]"'), "Cards publicos nao sao observados quando a audiencia carrega depois");
 must(!cms.includes("obterMaisAcessados") && cms.includes("rankingPorEventos") && cms.includes('tipo==="page_view"'), "Estatisticas antigas ainda misturam contador acumulado com eventos por periodo");
+must(cms.includes("acessosNoticiasPorSlug") && cms.includes("Acessos 30d"), "Lista de noticias nao usa acessos recentes por URL");
+must(admin.includes("mergeNewsPageViews") && admin.includes('match(/^\\/noticias\\/'), "Conteudos mais acessados nao conciliam page_view de noticias por URL");
 
 for (const event of ["guia_click", "turismo_click", "link_click"]) {
   must(auditMigration.includes(`'${event}'`) && analytics.includes(`"${event}"`), `Metrica ausente: ${event}`);

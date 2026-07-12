@@ -236,6 +236,23 @@ function variation(current,previous){
 function rankList(rows,label,value="total"){
  return(rows||[]).map((row,index)=>`<div class="rank-item"><span>${index+1}</span><strong>${esc(row[label]||"Não identificado")}</strong><small>${Number(row[value]||0).toLocaleString("pt-BR")}</small></div>`).join("")||'<div class="empty-state">Sem dados no período.</div>';
 }
+function slugNoticiaPagina(pagina=""){const match=String(pagina||"").match(/^\/noticias\/([^/?#]+)/);return match?decodeURIComponent(match[1]):null}
+async function mergeNewsPageViews(resources=[],pages=[]){
+ const grouped=new Map((resources||[]).map(item=>[`${item.tipo}:${item.id}`,{...item,total:Number(item.total||0)}]));
+ const counts=new Map();
+ (pages||[]).forEach(page=>{const slug=slugNoticiaPagina(page.pagina);if(slug)counts.set(slug,(counts.get(slug)||0)+Number(page.total||0))});
+ const slugs=[...counts.keys()];
+ if(!slugs.length)return[...grouped.values()].sort((a,b)=>b.total-a.total);
+ const {data,error}=await db.from("noticias").select("id,slug").in("slug",slugs);
+ if(error)throw error;
+ (data||[]).forEach(news=>{
+  const key=`noticia:${news.id}`,current=grouped.get(key)||{tipo:"noticia",id:news.id,evento:"page_view",total:0};
+  current.total=Math.max(Number(current.total||0),counts.get(news.slug)||0);
+  current.evento="page_view";
+  grouped.set(key,current);
+ });
+ return[...grouped.values()].sort((a,b)=>b.total-a.total);
+}
 async function resourceNames(resources=[]){
  const config={noticia:["noticias","titulo"],guia:["guia_comercial","nome"],evento:["eventos","titulo"],turismo:["turismo","nome"],link:["links","titulo"]};
  const map=new Map();
@@ -306,7 +323,7 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
    db.from("publicidade_resumo").select("nome,impressoes,cliques,ctr").order("impressoes",{ascending:false}).limit(8),
    googleAudience(startString,endString)
   ]);
-  data.recursos=await resourceNames(data.recursos||[]);
+  data.recursos=await resourceNames(await mergeNewsPageViews(data.recursos||[],data.paginas||[]));
   audienceData=data;
   const summary=data.resumo||{},previous=data.anterior||{};
   const metrics=[

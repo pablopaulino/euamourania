@@ -4,7 +4,7 @@
 
 - **Cards de conteúdo do dashboard:** tabelas principais do Supabase (`noticias`, `guia_comercial`, `eventos`, `categorias`, `turismo`, `links` e `campanhas_publicitarias`).
 - **Páginas mais acessadas:** eventos próprios em `analytics_eventos`, tipo `page_view`.
-- **Notícias lidas / notícias mais acessadas:** eventos próprios em `analytics_eventos`, tipo `noticia_view`.
+- **Notícias lidas / notícias mais acessadas:** eventos próprios em `analytics_eventos`. Para ranking e listagem administrativa, a fonte principal é o `page_view` da URL `/noticias/slug`, conciliado com o conteúdo da notícia. O `noticia_view` continua sendo registrado para análises específicas, mas o `page_view` é mais completo para histórico e evita conflito com acessos antigos.
 - **Empresas mais acessadas:** eventos próprios em `analytics_eventos`, tipo `guia_view`, complementados por cliques quando usados na Central de Audiência.
 - **Turismo e eventos mais acessados:** eventos próprios em `analytics_eventos`, tipos `turismo_view` e `evento_view`.
 - **Cliques em WhatsApp, Instagram, links externos e buscas:** eventos próprios em `analytics_eventos`.
@@ -26,6 +26,7 @@ Também havia uma condição de corrida no site público: o módulo de audiênci
 ## Correções aplicadas
 
 - A notícia individual agora registra `noticia_view` mesmo quando o módulo de audiência entra depois da renderização.
+- Rankings administrativos de notícia agora conciliam acessos por URL `/noticias/slug`, evitando divergência quando uma visita antiga registrou `page_view`, mas não registrou `noticia_view`.
 - Cards públicos de guia, turismo e eventos passam a ser observados também quando o módulo de audiência já encontra os cards na página.
 - A tela antiga de **Estatísticas** passou a usar eventos do mesmo período para rankings de notícias e empresas, em vez do contador acumulado.
 - A Central de Audiência soma visualizações e cliques por conteúdo sem duplicar o mesmo item no ranking.
