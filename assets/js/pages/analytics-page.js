@@ -68,7 +68,15 @@ function observeCards(selector,tipo,datasetKey,recursoTipo){
  }),{threshold:.5});
  document.querySelectorAll(selector).forEach(card=>observer.observe(card));
 }
-document.addEventListener("guia:renderizado",()=>observeCards("[data-guide-id]","guia_view","guideId","guia"));
+function observePublicCards(){
+ observeCards("[data-guide-id]","guia_view","guideId","guia");
+ observeCards("[data-tourism-id]","turismo_view","tourismId","turismo");
+ observeCards("[data-event-id]","evento_view","eventId","evento");
+}
+document.addEventListener("guia:renderizado",observePublicCards);
+document.addEventListener("turismo:renderizado",observePublicCards);
+document.addEventListener("eventos:renderizado",observePublicCards);
+observePublicCards();
 
 document.addEventListener("submit",event=>{
  const search=event.target.querySelector('input[type="search"],input[name="q"],input[name="busca"]');
@@ -82,6 +90,7 @@ async function noticiaView(){
  if(data?.id)record("noticia_view",{recursoTipo:"noticia",recursoId:data.id});
 }
 window.addEventListener("noticia:renderizada",noticiaView,{once:true});
+noticiaView();
 async function detailView(){
  const params=new URLSearchParams(location.search),slug=params.get("slug");
  if(!slug)return;

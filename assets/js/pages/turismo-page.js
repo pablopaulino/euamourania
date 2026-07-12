@@ -47,6 +47,7 @@ function renderTourism() {
   container.innerHTML = visible.map(tourismCard).join("");
   empty.hidden = Boolean(visible.length);
   results.textContent = `${visible.length} ${visible.length === 1 ? "lugar encontrado" : "lugares encontrados"}`;
+  document.dispatchEvent(new CustomEvent("turismo:renderizado"));
 }
 
 search?.addEventListener("input",renderTourism);
