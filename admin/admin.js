@@ -26,7 +26,7 @@ const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&
 const inputValue = (value, type) => type === "datetime-local" && value ? new Date(value).toISOString().slice(0,16) : value ?? "";
 const validSiteReference = value => !value || /^(?:https?:\/\/|mailto:|tel:|\/(?!\/)|\.{1,2}\/|#)/i.test(value) || (/^[\w.-]+(?:\/[\w\-./%~:+?#[\]@!$&'()*+,;=]*)?$/u.test(value) && !/^javascript:/i.test(value));
 
-async function dashboard() {
+async function legacyDashboard() {
   title.textContent = "Visão geral";
   app.innerHTML = '<div class="loading">Carregando indicadores…</div>';
   const supabase = getSupabase();
@@ -90,6 +90,143 @@ async function dashboard() {
         ${recentNews.length?recentNews.map(item=>`<div class="rank-item"><strong>${escapeHtml(item.titulo)}</strong><small>${escapeHtml(item.status||"")} · ${item.atualizado_em?new Date(item.atualizado_em).toLocaleDateString("pt-BR"):"sem data"}</small></div>`).join(""):'<div class="empty-state">Nenhuma notícia recente.</div>'}
       </section>`;
   } catch(error) { app.innerHTML=`<p class="form-message">${escapeHtml(error.message)}</p>`; }
+}
+
+async function dashboard() {
+  title.textContent = "Visão geral";
+  app.innerHTML = '<div class="loading">Carregando indicadores…</div>';
+  const supabase = getSupabase();
+  const count = async (table, filters = {}) => {
+    let query = supabase.from(table).select("*", { count: "exact", head: true });
+    Object.entries(filters).forEach(([field, value]) => {
+      if (value && typeof value === "object" && "op" in value) query = query[value.op](field, value.value);
+      else query = query.eq(field, value);
+    });
+    const { count: total, error } = await query;
+    if (error) throw error;
+    return total || 0;
+  };
+  const safeCount = async (table, filters = {}) => {
+    try { return await count(table, filters); } catch { return 0; }
+  };
+  const safeList = async builder => {
+    try {
+      const { data, error } = await builder();
+      if (error) throw error;
+      return data || [];
+    } catch {
+      return [];
+    }
+  };
+  const fmtDate = value => value ? new Date(value).toLocaleDateString("pt-BR") : "sem data";
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  try {
+    const [
+      noticias, publicadas, rascunhos, empresas, empresasAtivas, pontos, pontosAtivos,
+      eventos, eventosAtivos, links, campanhas, campanhasAtivas, assinantes,
+      melhoresEdicoes, melhoresIndicados, aprovacoes, views7d, whatsapp7d
+    ] = await Promise.all([
+      safeCount("noticias"),
+      safeCount("noticias", { status: "publicado" }),
+      safeCount("noticias", { status: "rascunho" }),
+      safeCount("guia_comercial"),
+      safeCount("guia_comercial", { status: "publicado" }),
+      safeCount("turismo"),
+      safeCount("turismo", { status: "publicado" }),
+      safeCount("eventos"),
+      safeCount("eventos", { status: "publicado" }),
+      safeCount("links", { status: "ativo" }),
+      safeCount("campanhas_publicitarias"),
+      safeCount("campanhas_publicitarias", { status: "ativo" }),
+      safeCount("newsletter_assinantes", { status: "ativo" }),
+      safeCount("melhores_edicoes", { status: { op: "neq", value: "arquivada" } }),
+      safeCount("melhores_indicados", { status: "ativo" }),
+      safeCount("solicitacoes_aprovacao", { status: "pendente" }),
+      safeCount("analytics_eventos", { criado_em: { op: "gte", value: sevenDaysAgo } }),
+      safeCount("analytics_eventos", { tipo: "whatsapp_click", criado_em: { op: "gte", value: sevenDaysAgo } })
+    ]);
+
+    const [recentNews, pendingApprovals, recentEditions] = await Promise.all([
+      safeList(() => supabase.from("noticias").select("titulo,status,status_editorial,publicado_em,atualizado_em").order("atualizado_em", { ascending: false }).limit(5)),
+      safeList(() => supabase.from("solicitacoes_aprovacao").select("id,status,enviado_em,noticias(titulo,status,status_editorial)").eq("status", "pendente").order("enviado_em", { ascending: false }).limit(5)),
+      safeList(() => supabase.from("melhores_edicoes").select("nome,ano,status,atualizado_em").neq("status", "arquivada").order("ano", { ascending: false }).limit(4))
+    ]);
+
+    const primaryMetrics = [
+      ["Editorial", publicadas, "Notícias publicadas", `${rascunhos} rascunho(s) · ${noticias} no total`],
+      ["Fluxo", aprovacoes, "Aprovações pendentes", aprovacoes ? "Precisa de revisão editorial" : "Fila editorial em dia"],
+      ["Dados reais", views7d, "Audiência 7 dias", `${whatsapp7d} clique(s) no WhatsApp`],
+      ["Publicidade", campanhasAtivas, "Campanhas ativas", `${campanhas} campanha(s) cadastrada(s)`]
+    ];
+    const secondaryMetrics = [
+      ["Guia", empresas, `${empresasAtivas} empresas publicadas`],
+      ["Turismo", pontos, `${pontosAtivos} pontos publicados`],
+      ["Eventos", eventos, `${eventosAtivos} publicados`],
+      ["Comunicação", assinantes, "assinantes ativos"],
+      ["Melhores de Urânia", melhoresEdicoes, `${melhoresIndicados} indicados ativos`],
+      ["Links", links, "links ativos"]
+    ];
+    const pendingTasks = [
+      aprovacoes ? [`${aprovacoes} matéria(s) aguardando aprovação`, "Abrir fila", "aprovacoes"] : null,
+      rascunhos ? [`${rascunhos} notícia(s) em rascunho`, "Ver notícias", "noticias"] : null,
+      campanhasAtivas ? null : ["Nenhuma campanha publicitária ativa", "Criar campanha", "publicidade"],
+      melhoresEdicoes ? null : ["Nenhuma edição ativa do Melhores cadastrada", "Abrir Melhores", "melhores"]
+    ].filter(Boolean);
+
+    app.innerHTML = `
+      <section class="dashboard-hero panel">
+        <div>
+          <p class="eyebrow">Painel Eu Amo Urânia</p>
+          <h2>Central de controle do portal</h2>
+          <p>Resumo operacional com conteúdo, aprovações, audiência, publicidade e Melhores de Urânia em um só lugar.</p>
+        </div>
+        <div class="dashboard-hero-actions">
+          <button class="admin-button" data-new="noticias">Nova notícia</button>
+          <button class="admin-button secondary" id="dashboard-audience">Ver audiência</button>
+        </div>
+      </section>
+      <div class="dashboard-primary-grid">
+        ${primaryMetrics.map(([kicker, value, label, detail]) => `<article class="dashboard-kpi"><span>${kicker}</span><strong>${value}</strong><h3>${label}</h3><p>${detail}</p></article>`).join("")}
+      </div>
+      <div class="dashboard-layout">
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>O que precisa de atenção</h2><p>Atalhos para as próximas ações do painel.</p></div></header>
+          <div class="dashboard-task-list">
+            ${pendingTasks.length ? pendingTasks.map(([text, action, target]) => `<button class="dashboard-task" ${target === "publicidade" ? "onclick=\"location.href='publicidade.html'\"" : target === "melhores" ? "onclick=\"location.href='melhores.html'\"" : target === "aprovacoes" ? "id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} →</strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
+          </div>
+        </section>
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>Estrutura do portal</h2><p>Dados gerais de conteúdo publicado e módulos ativos.</p></div></header>
+          <div class="dashboard-mini-grid">
+            ${secondaryMetrics.map(([label, value, detail]) => `<article class="dashboard-mini-card"><strong>${value}</strong><span>${label}</span><small>${detail}</small></article>`).join("")}
+          </div>
+        </section>
+      </div>
+      <div class="dashboard-layout dashboard-bottom">
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>Últimas notícias</h2><p>Conteúdos editados recentemente.</p></div><button class="admin-button secondary" data-view="noticias">Ver todas</button></header>
+          <div class="dashboard-list">
+            ${recentNews.length ? recentNews.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.titulo)}</strong><small>${escapeHtml(item.status_editorial || item.status || "")} · ${fmtDate(item.publicado_em || item.atualizado_em)}</small></div><span class="status-pill ${escapeHtml(item.status || "")}">${escapeHtml(item.status || "—")}</span></article>`).join("") : '<div class="empty-state">Nenhuma notícia recente.</div>'}
+          </div>
+        </section>
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>Aprovações e edições</h2><p>Fila editorial e últimas edições do prêmio.</p></div></header>
+          <div class="dashboard-list">
+            ${pendingApprovals.length ? pendingApprovals.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.noticias?.titulo || "Notícia em revisão")}</strong><small>Enviada em ${fmtDate(item.enviado_em)}</small></div><span class="status-pill">${escapeHtml(item.status)}</span></article>`).join("") : '<div class="dashboard-empty-good compact">Sem aprovações pendentes.</div>'}
+            ${recentEditions.length ? recentEditions.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.nome || `Melhores ${item.ano}`)}</strong><small>${item.ano} · ${fmtDate(item.atualizado_em)}</small></div><span class="status-pill">${escapeHtml(item.status || "—")}</span></article>`).join("") : '<div class="empty-state">Nenhuma edição do Melhores cadastrada.</div>'}
+          </div>
+        </section>
+      </div>
+      <div class="dashboard-quick-actions">
+        <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>Notícias</strong><small>Criar, revisar e publicar</small></button>
+        <button class="metric-card" onclick="location.href='melhores.html'"><span>Prêmio</span><strong>Melhores de Urânia</strong><small>Votação, apuração e resultados</small></button>
+        <button class="metric-card" onclick="location.href='publicidade.html'"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
+        <button class="metric-card" onclick="location.href='comunicacao.html'"><span>Relacionamento</span><strong>Comunicação</strong><small>Newsletter e assinantes</small></button>
+      </div>`;
+  } catch(error) {
+    app.innerHTML = `<p class="form-message">${escapeHtml(error.message)}</p>`;
+  }
 }
 
 async function resourceList(table) {
