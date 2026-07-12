@@ -123,12 +123,35 @@ function renderNews(news) {
     document.head.appendChild(structured);
   }
   structured.textContent = JSON.stringify({
-    "@context": "https://schema.org", "@type": "NewsArticle", headline: news.titulo,
-    description, image: metaImage ? [metaImage] : undefined, datePublished: news.publicado_em,
-    dateModified: news.atualizado_em || news.publicado_em,
-    author: { "@type": "Organization", name: news.autor || "Eu Amo Urânia" },
-    publisher: { "@type": "Organization", name: "Eu Amo Urânia", logo: { "@type": "ImageObject", url: "https://euamourania.com.br/assets/Design%20sem%20nome%20(9).png" } },
-    mainEntityOfPage: canonical
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "NewsArticle",
+        "@id": `${canonical}#newsarticle`,
+        headline: news.titulo,
+        description,
+        image: metaImage ? [metaImage] : undefined,
+        datePublished: news.publicado_em,
+        dateModified: news.atualizado_em || news.publicado_em,
+        author: { "@type": "Organization", name: news.autor || "Redação Eu Amo Urânia", url: "https://euamourania.com.br/quem-somos.html" },
+        publisher: { "@type": "Organization", name: "Eu Amo Urânia", url: "https://euamourania.com.br", logo: { "@type": "ImageObject", url: "https://euamourania.com.br/assets/Design%20sem%20nome%20(9).png" } },
+        mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+        url: canonical,
+        articleSection: news.categoria_nome || "Notícias",
+        articleBody: textoPuro(news.conteudo_html || news.resumo || "") || undefined,
+        isAccessibleForFree: true,
+        inLanguage: "pt-BR"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${canonical}#breadcrumb`,
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Início", item: "https://euamourania.com.br/" },
+          { "@type": "ListItem", position: 2, name: "Notícias", item: "https://euamourania.com.br/news/" },
+          { "@type": "ListItem", position: 3, name: news.titulo, item: canonical }
+        ]
+      }
+    ]
   });
   const content = sanitizeArticle(news.conteudo_html) || `<p>${esc(resumo(news))}</p>`;
   const wordCount=textoPuro(content).split(/\s+/).filter(Boolean).length;

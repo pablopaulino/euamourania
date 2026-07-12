@@ -23,7 +23,9 @@
     { "source": "/", "destination": "/api/home" },
     { "source": "/noticias/:slug", "destination": "/api/noticia?slug=:slug" },
     { "source": "/sitemap.xml", "destination": "/api/sitemaps?type=standard" },
-    { "source": "/news-sitemap.xml", "destination": "/api/sitemaps?type=news" }
+    { "source": "/news-sitemap.xml", "destination": "/api/sitemaps?type=news" },
+    { "source": "/rss.xml", "destination": "/api/rss" },
+    { "source": "/noticias/feed.xml", "destination": "/api/rss" }
   ],
   "headers": [
     {
