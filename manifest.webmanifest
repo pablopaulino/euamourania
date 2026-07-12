@@ -1,0 +1,25 @@
+{
+  "name": "Eu Amo Urânia",
+  "short_name": "Eu Amo Urânia",
+  "description": "Notícias, turismo, comércio, eventos e informações úteis de Urânia.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fff7ed",
+  "theme_color": "#0b4f6c",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

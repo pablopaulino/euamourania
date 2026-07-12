@@ -49,6 +49,12 @@
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
+    },
+    {
+      "source": "/(favicon.ico|favicon.svg|favicon.png|apple-touch-icon.png|manifest.webmanifest)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+      ]
     }
   ]
 }
