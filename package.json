@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "test": "node scripts/validate-project.mjs && node scripts/test-rbac.mjs && node scripts/test-site-config.mjs && node scripts/test-editorial-audience.mjs && node scripts/test-google-integrations.mjs && node scripts/test-media-upload.mjs && node scripts/test-admin-media-library-layout.mjs && node scripts/test-melhores-urania.mjs && node scripts/test-melhores-public-voting.mjs && node scripts/test-melhores-apuracao.mjs && node scripts/test-melhores-polimento.mjs && node scripts/test-guide-json-import.mjs && node scripts/test-guide-public-listing.mjs && node scripts/test-news-detail.mjs && node scripts/test-news-listing.mjs && node scripts/test-tourism-page.mjs && node scripts/test-public-navigation.mjs && node scripts/test-public-performance.mjs && node scripts/test-global-search.mjs && node scripts/test-advertising-formats.mjs && node scripts/test-adsense-hybrid.mjs && node scripts/test-no-top-advertising.mjs && node scripts/test-official-whatsapp.mjs && node scripts/test-seo-indexing.mjs && node scripts/test-google-news-eligibility.mjs && node scripts/test-google-search-visual.mjs && node scripts/test-footer-copyright.mjs",
+    "test": "node scripts/validate-project.mjs && node scripts/test-rbac.mjs && node scripts/test-site-config.mjs && node scripts/test-editorial-audience.mjs && node scripts/test-google-integrations.mjs && node scripts/test-media-upload.mjs && node scripts/test-admin-media-library-layout.mjs && node scripts/test-melhores-urania.mjs && node scripts/test-melhores-public-voting.mjs && node scripts/test-melhores-apuracao.mjs && node scripts/test-melhores-polimento.mjs && node scripts/test-melhores-indicacoes.mjs && node scripts/test-guide-json-import.mjs && node scripts/test-guide-public-listing.mjs && node scripts/test-news-detail.mjs && node scripts/test-news-listing.mjs && node scripts/test-tourism-page.mjs && node scripts/test-public-navigation.mjs && node scripts/test-public-performance.mjs && node scripts/test-global-search.mjs && node scripts/test-advertising-formats.mjs && node scripts/test-adsense-hybrid.mjs && node scripts/test-no-top-advertising.mjs && node scripts/test-official-whatsapp.mjs && node scripts/test-seo-indexing.mjs && node scripts/test-google-news-eligibility.mjs && node scripts/test-google-search-visual.mjs && node scripts/test-footer-copyright.mjs",
     "validate": "node scripts/validate-project.mjs",
     "test:rbac": "node scripts/test-rbac.mjs",
     "test:config": "node scripts/test-site-config.mjs",
@@ -15,6 +15,7 @@
     "test:melhores-public": "node scripts/test-melhores-public-voting.mjs",
     "test:melhores-apuracao": "node scripts/test-melhores-apuracao.mjs",
     "test:melhores-polimento": "node scripts/test-melhores-polimento.mjs",
+    "test:melhores-indicacoes": "node scripts/test-melhores-indicacoes.mjs",
     "test:guide-import": "node scripts/test-guide-json-import.mjs",
     "test:guide-public": "node scripts/test-guide-public-listing.mjs",
     "test:news-detail": "node scripts/test-news-detail.mjs",

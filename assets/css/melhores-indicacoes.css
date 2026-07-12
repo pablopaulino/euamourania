@@ -1,0 +1,64 @@
+.awards-indication-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #dce7ea;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 14px 35px rgba(7, 59, 76, .07);
+}
+
+.awards-indication-form > div {
+  display: grid;
+  gap: .38rem;
+}
+
+.awards-indication-form label {
+  margin: 0;
+  color: #073b4c;
+  font-size: .82rem;
+  font-weight: 850;
+}
+
+.awards-indication-form input,
+.awards-indication-form select,
+.awards-indication-form textarea {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #d5e4e8;
+  border-radius: 16px;
+  background: #f8fbfc;
+  color: #073b4c;
+  font: inherit;
+}
+
+.awards-indication-form textarea {
+  padding: .8rem;
+  resize: vertical;
+}
+
+.awards-indication-form .full {
+  grid-column: 1 / -1;
+}
+
+.awards-consent {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .85rem;
+  border: 1px solid #dce7ea;
+  border-radius: 16px;
+  background: #f8fbfc;
+}
+
+.awards-consent input {
+  width: auto;
+  min-height: auto;
+}
+
+@media (max-width: 620px) {
+  .awards-indication-form {
+    grid-template-columns: 1fr;
+  }
+}

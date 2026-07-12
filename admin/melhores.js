@@ -8,6 +8,9 @@ import {
   listarCategorias,
   salvarCategoria,
   excluirCategoria,
+  listarIndicacoes,
+  moderarIndicacao,
+  excluirIndicacao,
   listarIndicados,
   salvarIndicado,
   excluirIndicado,
@@ -21,7 +24,7 @@ import {
 } from "../assets/js/services/melhoresService.js";
 
 const $ = selector => document.querySelector(selector);
-const state = { tab: "dashboard", edicoes: [], categorias: [], indicados: [], guia: [], instagram: [], apuracao: [], resultados: [] };
+const state = { tab: "dashboard", edicoes: [], categorias: [], indicacoes: [], indicados: [], guia: [], instagram: [], apuracao: [], resultados: [] };
 const editionStatuses = [
   "planejamento",
   "indicacoes_abertas",
@@ -34,6 +37,7 @@ const editionStatuses = [
 ];
 const categoryStatuses = ["ativo", "inativo", "arquivado"];
 const nomineeStatuses = ["rascunho", "ativo", "inativo", "reprovado", "arquivado"];
+const indicationStatuses = ["pendente", "aprovada", "rejeitada", "convertida", "duplicada", "spam"];
 
 function escapeHtml(value = "") {
   const el = document.createElement("div");
@@ -98,7 +102,8 @@ async function loadDashboard() {
           ["Edições", resumo.edicoes],
           ["Categorias", resumo.categorias],
           ["Indicados", resumo.indicados],
-          ["Indicados ativos", resumo.indicadosAtivos]
+          ["Indicados ativos", resumo.indicadosAtivos],
+          ["Indicações pendentes", resumo.indicacoesPendentes]
         ].map(([label, value]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong></article>`).join("")}
       </div>
       <div class="awards-layout">
@@ -122,8 +127,8 @@ async function loadDashboard() {
         <article class="awards-card">
           <h3>Fase atual</h3>
           <p class="awards-note">
-            Fase 1 ativa: cadastro de edições, categorias e indicados. A votação pública,
-            apuração, Instagram e resultados públicos serão adicionados nas próximas fases.
+            Fluxo completo ativo: edições, categorias, indicações públicas, indicados,
+            votação, Instagram, apuração e resultados oficiais.
           </p>
         </article>
       </div>`;
@@ -205,6 +210,94 @@ function categoryRow(item) {
     <td><small>${item.permite_multiplos_votos ? `${item.max_escolhas} escolhas` : "1 voto"} · ${item.permite_indicacao_publica ? "indicação pública" : "sem indicação pública"}</small></td>
     <td><div class="awards-actions"><button data-edit-category="${item.id}">Editar</button><button class="danger" data-delete-category="${item.id}">Excluir</button></div></td>
   </tr>`;
+}
+
+async function loadIndications() {
+  setActiveTab("indications");
+  $("#indications-view").innerHTML = '<div class="loading">Carregando indicações…</div>';
+  try {
+    if (!state.edicoes.length) state.edicoes = await listarEdicoes();
+    const edicaoId = $("#indication-edition-filter")?.value || state.edicoes[0]?.id || "";
+    const status = $("#indication-status-filter")?.value || "";
+    state.indicacoes = await listarIndicacoes({ edicaoId, status });
+    $("#indications-view").innerHTML = `
+      <article class="awards-card">
+        <div class="awards-panel-head">
+          <div><h3>Indicações públicas</h3><p>Analise sugestões enviadas pela comunidade antes de transformar em indicado oficial.</p></div>
+        </div>
+        <div class="awards-toolbar">
+          <input id="indication-search" type="search" placeholder="Pesquisar indicação…">
+          <select id="indication-edition-filter">${state.edicoes.map(e => `<option value="${e.id}" ${e.id === edicaoId ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join("")}</select>
+          <select id="indication-status-filter"><option value="">Todos os status</option>${optionList(indicationStatuses, status)}</select>
+          <button class="admin-button secondary" data-refresh-indications>Atualizar</button>
+        </div>
+        <div class="awards-table-wrap">
+          <table class="awards-table">
+            <thead><tr><th>Indicação</th><th>Categoria</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="indication-rows">${state.indicacoes.length ? state.indicacoes.map(indicationRow).join("") : '<tr><td colspan="5"><div class="awards-empty">Nenhuma indicação encontrada.</div></td></tr>'}</tbody>
+          </table>
+        </div>
+      </article>`;
+    bindSimpleSearch("indication", "indication-rows");
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function indicationRow(item) {
+  return `<tr data-search="${escapeHtml(`${item.nome_indicado} ${item.justificativa || ""} ${item.nome_responsavel || ""} ${item.melhores_categorias?.nome || ""}`.toLowerCase())}" data-status="${escapeHtml(item.status)}">
+    <td><strong>${escapeHtml(item.nome_indicado)}</strong><br><small>${escapeHtml((item.justificativa || "Sem justificativa").slice(0, 180))}</small>${item.contato_indicado ? `<br><small>Contato indicado: ${escapeHtml(item.contato_indicado)}</small>` : ""}</td>
+    <td>${escapeHtml(item.melhores_categorias?.nome || "Categoria")}</td>
+    <td>${escapeHtml(item.nome_responsavel || "Não informado")}<br><small>${escapeHtml(item.contato_responsavel || "Sem contato")} · ${fmtDate(item.criado_em)}</small></td>
+    <td><span class="awards-status ${escapeHtml(item.status)}">${escapeHtml(item.status)}</span>${item.melhores_indicados?.nome ? `<br><small>Gerou: ${escapeHtml(item.melhores_indicados.nome)}</small>` : ""}</td>
+    <td><div class="awards-actions">
+      <button data-convert-indication="${item.id}">Converter</button>
+      <button data-approve-indication="${item.id}">Aprovar</button>
+      <button data-reject-indication="${item.id}">Rejeitar</button>
+      <button data-duplicate-indication="${item.id}">Duplicada</button>
+      <button class="danger" data-spam-indication="${item.id}">Spam</button>
+      <button class="danger" data-delete-indication="${item.id}">Excluir</button>
+    </div></td>
+  </tr>`;
+}
+
+async function updateIndicationStatus(id, status) {
+  const note = ["rejeitada", "duplicada", "spam"].includes(status)
+    ? prompt("Observação interna da moderação:", status === "rejeitada" ? "Não atende aos critérios da edição." : "")
+    : "";
+  if (note === null) return;
+  await moderarIndicacao(id, { status, observacao_interna: note || null });
+  toast("Indicação atualizada.");
+  state.indicacoes = [];
+  await loadIndications();
+}
+
+async function convertIndication(id) {
+  const item = state.indicacoes.find(indicacao => indicacao.id === id);
+  if (!item) return toast("Indicação não encontrada.", "error");
+  if (!confirm(`Converter "${item.nome_indicado}" em indicado oficial?`)) return;
+  const slugBase = gerarSlug(item.nome_indicado || "indicado");
+  const nominee = await salvarIndicado({
+    edicao_id: item.edicao_id,
+    categoria_id: item.categoria_id,
+    nome: item.nome_indicado,
+    slug: `${slugBase}-${String(Date.now()).slice(-5)}`,
+    status: "rascunho",
+    ordem: 0,
+    descricao_curta: item.justificativa || null,
+    observacao_interna: `Criado a partir da indicação pública ${item.id}. Responsável: ${item.nome_responsavel || "não informado"} (${item.contato_responsavel || "sem contato"}).`,
+    aprovado: false,
+    consentimento: false
+  });
+  await moderarIndicacao(item.id, {
+    status: "convertida",
+    indicado_gerado_id: nominee.id,
+    observacao_interna: "Convertida em indicado oficial em rascunho. Revise consentimento, imagem e dados antes de publicar."
+  });
+  toast("Indicação convertida em indicado rascunho.");
+  state.indicacoes = [];
+  state.indicados = [];
+  await loadIndications();
 }
 
 async function loadNominees() {
@@ -698,6 +791,7 @@ async function init() {
       if (button.dataset.tab === "dashboard") return loadDashboard();
       if (button.dataset.tab === "editions") return loadEditions();
       if (button.dataset.tab === "categories") return loadCategories();
+      if (button.dataset.tab === "indications") return loadIndications();
       if (button.dataset.tab === "nominees") return loadNominees();
       if (button.dataset.tab === "instagram") return loadInstagram();
       if (button.dataset.tab === "apuration") return loadApuration();
@@ -728,6 +822,18 @@ async function init() {
       return loadNominees();
     }
     if (button.hasAttribute("data-refresh-categories")) return loadCategories();
+    if (button.hasAttribute("data-refresh-indications")) return loadIndications();
+    if (button.dataset.convertIndication) return convertIndication(button.dataset.convertIndication);
+    if (button.dataset.approveIndication) return updateIndicationStatus(button.dataset.approveIndication, "aprovada");
+    if (button.dataset.rejectIndication) return updateIndicationStatus(button.dataset.rejectIndication, "rejeitada");
+    if (button.dataset.duplicateIndication) return updateIndicationStatus(button.dataset.duplicateIndication, "duplicada");
+    if (button.dataset.spamIndication) return updateIndicationStatus(button.dataset.spamIndication, "spam");
+    if (button.dataset.deleteIndication && confirm("Excluir esta indicação?")) {
+      await excluirIndicacao(button.dataset.deleteIndication);
+      toast("Indicação excluída.");
+      state.indicacoes = [];
+      return loadIndications();
+    }
     if (button.hasAttribute("data-refresh-nominees")) return loadNominees();
     if (button.hasAttribute("data-new-instagram")) return instagramForm();
     if (button.dataset.editInstagram) return instagramForm(button.dataset.editInstagram);
@@ -758,6 +864,7 @@ async function init() {
 
   document.addEventListener("change", event => {
     if (event.target.id === "category-edition-filter") loadCategories();
+    if (event.target.id === "indication-edition-filter" || event.target.id === "indication-status-filter") loadIndications();
     if (event.target.id === "nominee-edition-filter" || event.target.id === "nominee-category-filter") {
       if (event.target.id === "nominee-edition-filter") state.categorias = [];
       loadNominees();

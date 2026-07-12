@@ -83,7 +83,38 @@ Para abrir:
 
 O voto é enviado por API segura da Vercel. O navegador não grava diretamente em `melhores_votos`.
 
-## 6. Encerrar e apurar
+## 6. Receber e moderar indicações públicas
+
+Para abrir indicações:
+
+1. Configure `indicacoes_inicio` e `indicacoes_fim`.
+2. Altere a edição para `indicacoes_abertas`.
+3. Confira se as categorias desejadas permitem indicação pública.
+4. Divulgue a página:
+
+`/melhores-de-urania/ANO/`
+
+As indicações chegam na aba **Indicações** do painel.
+
+Ações disponíveis:
+
+- **Aprovar**: marca a indicação como válida, mas ainda não cria indicado;
+- **Converter**: cria um indicado em rascunho para revisão;
+- **Rejeitar**: recusa com observação interna;
+- **Duplicada**: marca sugestões repetidas;
+- **Spam**: separa envios abusivos;
+- **Excluir**: remove o registro quando necessário.
+
+Ao converter, revise o indicado antes de publicar:
+
+- imagem;
+- descrição;
+- consentimento;
+- contato;
+- status;
+- aprovação.
+
+## 7. Encerrar e apurar
 
 Depois do fim da votação:
 
@@ -93,7 +124,7 @@ Depois do fim da votação:
 4. Revise pesos, empates e metodologia.
 5. Publique o resultado oficial.
 
-## 7. Resultado oficial
+## 8. Resultado oficial
 
 Ao publicar o resultado, o sistema grava um snapshot histórico em `melhores_resultados`.
 
@@ -103,7 +134,7 @@ Página pública:
 
 `/melhores-de-urania/ANO/resultados/`
 
-## 8. Retenção dos votos individuais
+## 9. Retenção dos votos individuais
 
 Os votos individuais ficam disponíveis durante a votação e por 7 dias após o encerramento.
 
@@ -114,7 +145,7 @@ Depois desse prazo:
 - preserva estatísticas e resultados oficiais;
 - registra auditoria.
 
-## 9. Audiência
+## 10. Audiência
 
 A Fase 4 registra eventos básicos do Melhores de Urânia:
 
@@ -128,12 +159,14 @@ A Fase 4 registra eventos básicos do Melhores de Urânia:
 
 Esses dados ajudam a entender adesão da votação e interesse por edição.
 
-## 10. Checklist final
+## 11. Checklist final
 
 Antes de divulgar:
 
 - página principal `/melhores-de-urania/` abrindo;
 - página da edição abrindo;
+- formulário de indicação testado, se a edição estiver em indicações;
+- aba Indicações do painel revisada;
 - votação testada;
 - resultado testado, se já publicado;
 - bloco da home aparecendo quando houver edição pública;

@@ -1,4 +1,4 @@
-import { obterEdicaoPorAno, listarCategoriasPublicas, listarIndicadosPublicos, enviarVotoMelhores } from "../services/melhoresPublicService.js";
+import { obterEdicaoPorAno, listarCategoriasPublicas, listarIndicadosPublicos, enviarVotoMelhores, enviarIndicacaoMelhores } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
@@ -30,6 +30,13 @@ function isVotingOpen(edition) {
   return edition?.status === "votacao_aberta"
     && (!edition.votacao_inicio || new Date(edition.votacao_inicio).getTime() <= now)
     && (!edition.votacao_fim || new Date(edition.votacao_fim).getTime() >= now);
+}
+
+function isIndicationOpen(edition) {
+  const now = Date.now();
+  return edition?.status === "indicacoes_abertas"
+    && (!edition.indicacoes_inicio || new Date(edition.indicacoes_inicio).getTime() <= now)
+    && (!edition.indicacoes_fim || new Date(edition.indicacoes_fim).getTime() >= now);
 }
 
 function toast(message) {
@@ -114,6 +121,57 @@ function renderVoting(edition, categories, nominees) {
     </div>`;
 }
 
+function renderIndications(edition, categories) {
+  const area = document.getElementById("indication-area");
+  const copy = document.getElementById("indication-status-copy");
+  if (!area) return;
+  const open = isIndicationOpen(edition);
+  const allowed = categories.filter(category => category.permite_indicacao_publica !== false);
+  if (copy) {
+    copy.textContent = open
+      ? "Envie uma indicação com nome, categoria e justificativa. A equipe analisa antes de virar indicado oficial."
+      : "As indicações públicas não estão abertas agora. Acompanhe as datas da edição.";
+  }
+  if (!open) {
+    area.innerHTML = `<div class="awards-alert"><strong>Indicações fechadas.</strong><br>Período: ${esc(formatDate(edition.indicacoes_inicio))} até ${esc(formatDate(edition.indicacoes_fim))}.</div>`;
+    return;
+  }
+  if (!allowed.length) {
+    area.innerHTML = '<div class="awards-empty">Nenhuma categoria está recebendo indicações públicas nesta edição.</div>';
+    return;
+  }
+  area.innerHTML = `<form class="awards-indication-form" id="awards-indication-form" data-edition-id="${edition.id}">
+    <div>
+      <label for="indication-category">Categoria *</label>
+      <select id="indication-category" name="categoria_id" required>
+        ${allowed.map(category => `<option value="${category.id}">${esc(category.nome)}</option>`).join("")}
+      </select>
+    </div>
+    <div>
+      <label for="indication-name">Nome indicado *</label>
+      <input id="indication-name" name="nome_indicado" type="text" maxlength="160" placeholder="Nome da empresa, pessoa ou projeto" required>
+    </div>
+    <div>
+      <label for="indication-contact">Contato do indicado</label>
+      <input id="indication-contact" name="contato_indicado" type="text" maxlength="160" placeholder="WhatsApp, Instagram ou e-mail">
+    </div>
+    <div>
+      <label for="responsible-name">Seu nome *</label>
+      <input id="responsible-name" name="nome_responsavel" type="text" maxlength="160" required>
+    </div>
+    <div>
+      <label for="responsible-contact">Seu contato *</label>
+      <input id="responsible-contact" name="contato_responsavel" type="text" maxlength="160" placeholder="WhatsApp ou e-mail" required>
+    </div>
+    <div class="full">
+      <label for="indication-reason">Por que merece participar? *</label>
+      <textarea id="indication-reason" name="justificativa" rows="4" maxlength="1200" required></textarea>
+    </div>
+    <label class="full awards-consent"><input name="aceite_regulamento" type="checkbox" required> Confirmo que li o regulamento da edição e autorizo a análise desta indicação.</label>
+    <div class="full awards-form-actions"><button class="button button-primary" type="submit">Enviar indicação</button></div>
+  </form>`;
+}
+
 async function init() {
   try {
     const year = getYear();
@@ -134,6 +192,7 @@ async function init() {
       listarIndicadosPublicos(edition.id)
     ]);
     renderVoting(edition, categories, nominees);
+    renderIndications(edition, categories);
   } catch (error) {
     console.error("Melhores de Urânia:", error);
     document.getElementById("vote-area").innerHTML = '<div class="awards-empty">Não foi possível carregar esta edição agora.</div>';
@@ -181,6 +240,48 @@ document.addEventListener("click", async event => {
       metadados: { categoria_id: vote.dataset.category, indicado_id: vote.dataset.nominee, erro: error.message }
     });
     toast(error.message);
+  }
+});
+
+document.addEventListener("submit", async event => {
+  const form = event.target.closest("#awards-indication-form");
+  if (!form) return;
+  event.preventDefault();
+  const button = form.querySelector("button[type='submit']");
+  button.disabled = true;
+  button.textContent = "Enviando…";
+  const edicaoId = form.dataset.editionId;
+  registrarEventoMelhores("melhores_indication_start", {
+    edicaoId,
+    metadados: { categoria_id: form.elements.categoria_id.value }
+  });
+  try {
+    const data = await enviarIndicacaoMelhores({
+      edicao_id: edicaoId,
+      categoria_id: form.elements.categoria_id.value,
+      nome_indicado: form.elements.nome_indicado.value,
+      justificativa: form.elements.justificativa.value,
+      contato_indicado: form.elements.contato_indicado.value,
+      nome_responsavel: form.elements.nome_responsavel.value,
+      contato_responsavel: form.elements.contato_responsavel.value,
+      aceite_regulamento: form.elements.aceite_regulamento.checked,
+      pagina: location.pathname
+    });
+    registrarEventoMelhores("melhores_indication_complete", {
+      edicaoId,
+      metadados: { categoria_id: form.elements.categoria_id.value, indicacao_id: data.indicacao_id }
+    });
+    form.reset();
+    toast(data.message || "Indicação enviada com sucesso.");
+  } catch (error) {
+    registrarEventoMelhores("melhores_indication_error", {
+      edicaoId,
+      metadados: { categoria_id: form.elements.categoria_id.value, erro: error.message }
+    });
+    toast(error.message);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Enviar indicação";
   }
 });
 
