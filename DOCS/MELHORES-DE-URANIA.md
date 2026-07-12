@@ -282,6 +282,74 @@ Fase 3:
 - cálculo ponderado;
 - publicação de resultado.
 
+## Fase 3 — Instagram, apuração e resultado oficial
+
+A Fase 3 adiciona a parte administrativa de apuração:
+
+- tabela `melhores_instagram_votos`;
+- lançamento manual de votos do Instagram por indicado;
+- comprovante/print opcional;
+- data de coleta;
+- observação interna;
+- prévia de apuração ponderada;
+- publicação do resultado oficial;
+- página pública `/melhores-de-urania/ANO/resultados/`.
+
+### Instagram manual
+
+O sistema não depende da API do Instagram.
+
+O administrador lança manualmente, por categoria e indicado:
+
+- votos coletados;
+- comprovante;
+- observação;
+- data da coleta.
+
+O lançamento é único por:
+
+`edição + categoria + indicado`
+
+Se o mesmo indicado for lançado novamente, o registro é atualizado.
+
+### Apuração
+
+A apuração usa a view `melhores_apuracao_previa`.
+
+O cálculo não soma votos brutos de bases diferentes.
+
+Primeiro normaliza cada canal:
+
+```text
+percentual_site = votos_site_do_indicado / total_site_da_categoria
+percentual_instagram = votos_instagram_do_indicado / total_instagram_da_categoria
+```
+
+Depois aplica os pesos da edição:
+
+```text
+pontuação_final =
+  percentual_site × peso_site +
+  percentual_instagram × peso_instagram
+```
+
+### Publicação do resultado
+
+A função `melhores_publicar_resultado`:
+
+- exige permissão administrativa;
+- exige edição encerrada, em apuração ou já publicada;
+- apaga snapshot anterior da edição;
+- grava novo snapshot em `melhores_resultados`;
+- marca vencedores e finalistas;
+- registra auditoria;
+- atualiza a edição como `resultado_publicado`;
+- consolida os votos individuais.
+
+Depois de publicado, `melhores_resultados` é o resultado oficial histórico.
+
+Ele não é recalculado automaticamente.
+
 Fase 4:
 
 - SEO;

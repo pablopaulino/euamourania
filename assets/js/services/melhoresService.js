@@ -120,3 +120,55 @@ export async function listarGuiaComercial() {
   if (error) throw error;
   return data || [];
 }
+
+export async function listarInstagramVotos(edicaoId) {
+  let query = db()
+    .from("melhores_instagram_votos")
+    .select("*, melhores_categorias(nome), melhores_indicados(nome)")
+    .order("criado_em", { ascending: false });
+  if (edicaoId) query = query.eq("edicao_id", edicaoId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+export async function salvarInstagramVoto(payload) {
+  const { data, error } = await db()
+    .from("melhores_instagram_votos")
+    .upsert(payload, { onConflict: "edicao_id,categoria_id,indicado_id" })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function excluirInstagramVoto(id) {
+  const { error } = await db().from("melhores_instagram_votos").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function obterApuracao(edicaoId) {
+  const { data, error } = await db().rpc("melhores_obter_apuracao", { p_edicao: edicaoId });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function publicarResultado(edicaoId, metodologia) {
+  const { data, error } = await db().rpc("melhores_publicar_resultado", {
+    p_edicao: edicaoId,
+    p_metodologia: metodologia || null
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function listarResultados(edicaoId) {
+  let query = db()
+    .from("melhores_resultados")
+    .select("*, melhores_categorias(nome), melhores_indicados(nome,imagem_url)")
+    .order("colocacao", { ascending: true });
+  if (edicaoId) query = query.eq("edicao_id", edicaoId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}

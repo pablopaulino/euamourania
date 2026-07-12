@@ -46,6 +46,15 @@ export async function listarIndicadosPublicos(edicaoId) {
   }, { ttl: 60000 });
 }
 
+export async function listarResultadosPublicos(edicaoId) {
+  return fetchPublicRows("melhores_resultados", {
+    select: "id,edicao_id,categoria_id,indicado_id,votos_site,percentual_site,votos_instagram,percentual_instagram,pontuacao_final,colocacao,vencedor,selo,empate,criterio_aplicado,metodologia_resumida,publicado_em,melhores_categorias(nome),melhores_indicados(nome,imagem_url,descricao_curta)",
+    edicao_id: `eq.${edicaoId}`,
+    publicado: "eq.true",
+    order: "categoria_id.asc,colocacao.asc"
+  }, { ttl: 120000 });
+}
+
 export async function enviarVotoMelhores(payload) {
   const response = await fetch("/api/melhores-votar", {
     method: "POST",

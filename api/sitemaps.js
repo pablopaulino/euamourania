@@ -72,6 +72,21 @@ module.exports = async (req, res) => {
       const image = item.seo_imagem || item.imagem_url;
       return image ? `<image:image><image:loc>${xml(new URL(image, `${DOMAIN}/`).href)}</image:loc></image:image>` : "";
     };
+    const melhoresUrls = melhores.flatMap(item => {
+      const base = [{
+        loc: `${DOMAIN}/melhores-de-urania/${item.ano}/`,
+        lastmod: item.atualizado_em,
+        image: item.imagem_capa_url ? `<image:image><image:loc>${xml(new URL(item.imagem_capa_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
+      }];
+      if (item.status === "resultado_publicado") {
+        base.push({
+          loc: `${DOMAIN}/melhores-de-urania/${item.ano}/resultados/`,
+          lastmod: item.atualizado_em,
+          image: item.imagem_capa_url ? `<image:image><image:loc>${xml(new URL(item.imagem_capa_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
+        });
+      }
+      return base;
+    });
     const all = [
       ...statics.map(path => ({ loc: DOMAIN + path })),
       ...noticias.map(noticia => ({
@@ -87,11 +102,7 @@ module.exports = async (req, res) => {
         loc: `${DOMAIN}/eventos/detalhes.html?slug=${item.slug}`,
         lastmod: item.atualizado_em
       })),
-      ...melhores.map(item => ({
-        loc: `${DOMAIN}/melhores-de-urania/${item.ano}/`,
-        lastmod: item.atualizado_em,
-        image: item.imagem_capa_url ? `<image:image><image:loc>${xml(new URL(item.imagem_capa_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
-      }))
+      ...melhoresUrls
     ];
     const urls = all.map(item =>
       `<url><loc>${xml(item.loc)}</loc>${item.lastmod ? `<lastmod>${xml(String(item.lastmod).slice(0, 10))}</lastmod>` : ""}${item.image || ""}</url>`
