@@ -28,7 +28,7 @@ ok(admin.includes('inputmode="url" data-type="url"'),"Campos de URL perderam sua
 ok(admin.includes("validSiteReference(value)"),"Links e caminhos internos não possuem validação própria");
 ok(admin.includes("/assets/imagem.jpg"),"O painel não orienta sobre caminhos internos de imagens");
 
-const rootRewrite=vercel.rewrites?.find(item=>item.source==="/");
+const rootRewrite=vercel.rewrites?.find(item=>item.source==="/"&&!item.has);
 ok(rootRewrite?.destination==="/api/home","A home não usa o SEO dinâmico da Vercel");
 ok(articleApi.includes("dominio_principal")&&articleApi.includes("seo_publicador")&&articleApi.includes("seo_logo"),"SEO das notícias não usa a identidade global");
 ok(newsletterApi.includes("logo_principal")&&newsletterApi.includes("texto_rodape"),"Newsletter não usa a identidade global");
