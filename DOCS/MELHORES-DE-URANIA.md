@@ -204,12 +204,76 @@ Impacto baixo na Fase 1:
 
 ## Próximas fases
 
-Fase 2:
+## Fase 2 — página pública e votação segura
 
-- página pública;
-- votação;
-- API segura;
-- antifraude.
+A Fase 2 adiciona:
+
+- página principal pública em `/melhores-de-urania/`;
+- página por edição em `/melhores-de-urania/ANO/`;
+- listagem pública de categorias;
+- listagem pública de indicados aprovados;
+- botão de voto;
+- API segura `/api/melhores-votar`;
+- proteção inicial contra duplicidade e abuso;
+- inclusão das edições públicas no sitemap.
+
+### Segurança da votação
+
+O navegador não grava votos diretamente no Supabase.
+
+O voto passa por:
+
+`site público → /api/melhores-votar → Supabase com Service Role no backend`
+
+A API valida:
+
+- edição existe;
+- status da edição é `votacao_aberta`;
+- data/hora atual está dentro do período de votação;
+- categoria pertence à edição;
+- categoria está ativa e visível;
+- indicado pertence à mesma edição e categoria;
+- indicado está ativo e aprovado;
+- visitante ainda não votou naquela categoria.
+
+### Variáveis de ambiente
+
+Obrigatórias no Vercel:
+
+- `SUPABASE_URL`;
+- `SUPABASE_SERVICE_ROLE_KEY`.
+
+Recomendada:
+
+- `MELHORES_VOTO_SECRET`.
+
+`MELHORES_VOTO_SECRET` é usada para gerar hashes técnicos dos votos. Ela não deve ficar no frontend.
+
+Se ela não existir, a API usa a Service Role como fallback de segredo, mas o ideal é criar uma variável própria.
+
+### Privacidade
+
+A API não armazena IP bruto.
+
+Ela usa:
+
+- cookie técnico HttpOnly;
+- hash de IP;
+- hash de user agent;
+- identificador técnico por edição/categoria.
+
+Esses dados servem para auditoria e prevenção de fraude.
+
+### Retenção
+
+Os votos individuais seguem a regra da Fase 1:
+
+- ficam disponíveis durante a votação;
+- permanecem por 7 dias após o encerramento;
+- depois são consolidados;
+- os registros individuais são removidos.
+
+## Próximas fases planejadas
 
 Fase 3:
 

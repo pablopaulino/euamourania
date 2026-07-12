@@ -12,6 +12,11 @@ const ALLOWED_TABLES = new Set([
   "eventos",
   "guia_comercial",
   "links",
+  "melhores_categorias",
+  "melhores_consolidados",
+  "melhores_edicoes",
+  "melhores_indicados",
+  "melhores_resultados",
   "noticias",
   "turismo"
 ]);
