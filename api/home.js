@@ -28,7 +28,7 @@ function readStaticHtml(file) {
 
 function servePrizeHome(req, res) {
   let output = readStaticHtml("melhores-de-urania/index.html");
-  const origin = `https://${req.headers.host}`;
+  const origin = `https://${PRIZE_HOST}`;
   output = output.replace(/https:\/\/euamourania\.com\.br\/melhores-de-urania\//g, `${origin}/`);
   output = output.replace(/<link[^>]+rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${origin}/">`);
   output = meta(output, "og:url", `${origin}/`, true);
@@ -37,10 +37,22 @@ function servePrizeHome(req, res) {
   return res.status(200).send(output);
 }
 
+function requestHosts(req) {
+  return [
+    req.headers.host,
+    req.headers["x-forwarded-host"],
+    req.headers["x-vercel-forwarded-host"],
+    req.headers["x-real-host"]
+  ]
+    .flatMap(value => String(value || "").split(","))
+    .map(value => value.trim().split(":")[0].toLowerCase())
+    .filter(Boolean);
+}
+
 module.exports = async (req, res) => {
   try {
-    const host = String(req.headers.host || "").split(":")[0].toLowerCase();
-    if (host === PRIZE_HOST) return servePrizeHome(req, res);
+    const hosts = requestHosts(req);
+    if (hosts.includes(PRIZE_HOST)) return servePrizeHome(req, res);
 
     const origin = `https://${req.headers.host}`;
     const page = await fetch(`${origin}/index.html`, { headers: { "x-site-meta": "1" } });
