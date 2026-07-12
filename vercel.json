@@ -23,7 +23,7 @@
     {
       "source": "/",
       "has": [
-        { "type": "host", "value": "melhores.euamourania.com.br" }
+        { "type": "header", "key": "host", "value": "melhores.euamourania.com.br" }
       ],
       "destination": "/melhores-de-urania/index.html"
     },
