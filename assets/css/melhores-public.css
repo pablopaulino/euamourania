@@ -462,3 +462,114 @@
     flex-basis:100%!important;
   }
 }
+
+/* Mobile compacto estilo lista de votação */
+@media(max-width:720px){
+  .awards-category-nav{
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    gap:.45rem!important;
+    margin:.15rem -1rem .9rem!important;
+    padding:.35rem 1rem .55rem!important;
+    overflow-x:auto!important;
+    scrollbar-width:none;
+  }
+  .awards-category-nav::-webkit-scrollbar{
+    display:none;
+  }
+  .awards-category-nav button{
+    flex:0 0 auto!important;
+    min-width:auto!important;
+    max-width:none!important;
+    width:auto!important;
+    padding:.5rem .72rem!important;
+    border-radius:999px!important;
+    box-shadow:none!important;
+  }
+  .awards-category-nav button span{
+    font-size:.78rem;
+    max-width:9rem;
+  }
+  .awards-category-nav button small{
+    display:none;
+  }
+  .awards-nominee-group{
+    padding:.85rem;
+    border-radius:24px;
+  }
+  .awards-nominee-group>header{
+    padding:0 0 .55rem;
+  }
+  .awards-nominee-group>header h3{
+    display:flex;
+    align-items:center;
+    gap:.45rem;
+    font-size:1.34rem;
+  }
+  .awards-nominee-group>header h3::before{
+    content:"🏆";
+    font-size:1.05rem;
+  }
+  .awards-nominee-group>header p{
+    font-size:.92rem;
+  }
+  .awards-nominee-grid{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:.65rem!important;
+  }
+  .awards-nominee-card{
+    display:grid!important;
+    grid-template-columns:52px minmax(0,1fr) auto;
+    align-items:center;
+    gap:.72rem;
+    padding:.58rem;
+    border-radius:18px!important;
+    background:#fff;
+  }
+  .awards-nominee-card img{
+    width:52px!important;
+    height:52px!important;
+    aspect-ratio:1/1!important;
+    border-radius:13px;
+    object-fit:cover;
+  }
+  .awards-nominee-card .awards-card-body{
+    display:contents!important;
+    padding:0!important;
+  }
+  .awards-nominee-card .awards-card-body h3{
+    display:block!important;
+    min-height:0!important;
+    width:auto!important;
+    padding:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    overflow:hidden;
+    color:#073b4c;
+    font-size:.98rem!important;
+    line-height:1.15!important;
+    text-align:left;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .awards-vote-button{
+    width:2.45rem!important;
+    min-width:2.45rem;
+    min-height:2.45rem!important;
+    padding:0!important;
+    border-radius:999px!important;
+    overflow:hidden;
+    color:transparent!important;
+    font-size:0!important;
+  }
+  .awards-vote-button::after{
+    content:"✓";
+    color:#fff;
+    font-size:1rem;
+    font-weight:900;
+  }
+  .awards-vote-button[disabled]::after{
+    color:#0b4f6c;
+  }
+}
