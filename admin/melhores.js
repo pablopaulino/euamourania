@@ -1,5 +1,6 @@
 import { exigirPermissao, sair } from "./auth.js";
 import { gerarSlug } from "../assets/js/utils.js";
+import { getDefaultMetodologia, getDefaultRegulamento } from "../assets/js/melhoresOfficialTexts.js";
 import {
   obterResumoMelhores,
   listarEdicoes,
@@ -27,7 +28,7 @@ import {
 } from "../assets/js/services/melhoresService.js";
 
 const $ = selector => document.querySelector(selector);
-const state = { tab: "dashboard", edicoes: [], categorias: [], indicacoes: [], indicados: [], guia: [], votos: [], instagram: [], apuracao: [], resultados: [], auditoria: [] };
+const state = { tab: "dashboard", returnTab: "dashboard", edicoes: [], categorias: [], indicacoes: [], indicados: [], guia: [], votos: [], instagram: [], apuracao: [], resultados: [], auditoria: [] };
 const editionStatuses = [
   "planejamento",
   "indicacoes_abertas",
@@ -80,16 +81,40 @@ function optionList(values, selected) {
   return values.map(value => `<option value="${value}" ${value === selected ? "selected" : ""}>${escapeHtml(value.replaceAll("_", " "))}</option>`).join("");
 }
 
-function setActiveTab(tab) {
+const tabLoaders = {
+  dashboard: loadDashboard,
+  editions: loadEditions,
+  categories: loadCategories,
+  indications: loadIndications,
+  nominees: loadNominees,
+  votes: loadVotes,
+  instagram: loadInstagram,
+  apuration: loadApuration,
+  results: loadResults,
+  audit: loadAudit,
+  settings: loadSettings
+};
+
+function currentHashTab() {
+  const tab = decodeURIComponent(location.hash.replace(/^#/, ""));
+  return tabLoaders[tab] ? tab : "dashboard";
+}
+
+function setActiveTab(tab, { persist = true } = {}) {
   state.tab = tab;
   document.querySelectorAll(".awards-tab").forEach(button => button.classList.toggle("active", button.dataset.tab === tab));
   document.querySelectorAll(".awards-view").forEach(view => view.classList.toggle("active", view.id === `${tab}-view`));
+  if (persist && tabLoaders[tab]) history.replaceState(null, "", `#${tab}`);
+}
+
+function loadTab(tab) {
+  return (tabLoaders[tab] || loadDashboard)();
 }
 
 function showError(error) {
   const message = String(error?.message || error || "Erro inesperado.");
   const hint = message.includes("melhores_")
-    ? "A migração da Fase 1 ainda precisa ser executada no Supabase antes de usar este módulo."
+    ? "A migração inicial do módulo Melhores de Urânia precisa estar executada no Supabase antes de usar este módulo."
     : message;
   $(".awards-view.active").innerHTML = `<div class="awards-error"><strong>Não foi possível carregar o módulo.</strong><p>${escapeHtml(hint)}</p></div>`;
 }
@@ -656,8 +681,9 @@ function selectField(name, label, html, className = "") {
 }
 
 function showForm(title, html, onSubmit) {
-  setActiveTab("form");
-  $("#form-view").innerHTML = `<article class="awards-card"><div class="awards-panel-head"><div><h3>${escapeHtml(title)}</h3><p>Preencha com atenção. Slugs e pesos têm validação no banco.</p></div></div><form class="awards-form" id="awards-form">${html}<div class="awards-form-actions"><button type="button" class="admin-button secondary" data-cancel-form>Cancelar</button><button class="admin-button" type="submit">Salvar</button></div></form></article>`;
+  if (state.tab !== "form") state.returnTab = state.tab || "dashboard";
+  setActiveTab("form", { persist: false });
+  $("#form-view").innerHTML = `<article class="awards-card awards-form-card"><div class="awards-panel-head"><div><h3>${escapeHtml(title)}</h3><p>Preencha com atenção. Slugs, pesos e períodos têm validação no banco.</p></div></div><form class="awards-form" id="awards-form">${html}<div class="awards-form-actions"><button type="button" class="admin-button secondary" data-cancel-form>Cancelar</button><button class="admin-button" type="submit">Salvar</button></div></form></article>`;
   $("#awards-form").addEventListener("submit", onSubmit);
 }
 
@@ -671,7 +697,21 @@ function wireSlug(form, sourceName = "nome") {
 }
 
 async function editionForm(id) {
-  const item = id ? state.edicoes.find(x => x.id === id) || (await listarEdicoes()).find(x => x.id === id) : { ano: new Date().getFullYear(), peso_site: 50, peso_instagram: 50, status: "planejamento" };
+  const currentYear = new Date().getFullYear();
+  const item = id
+    ? state.edicoes.find(x => x.id === id) || (await listarEdicoes()).find(x => x.id === id)
+    : {
+      ano: currentYear,
+      nome: `Melhores de Urânia ${currentYear}`,
+      slug: `melhores-de-urania-${currentYear}`,
+      peso_site: currentYear === 2026 ? 60 : 50,
+      peso_instagram: currentYear === 2026 ? 40 : 50,
+      status: "planejamento",
+      regulamento: getDefaultRegulamento(currentYear),
+      metodologia: getDefaultMetodologia(currentYear)
+    };
+  const regulamento = item.regulamento || getDefaultRegulamento(item.ano);
+  const metodologia = item.metodologia || getDefaultMetodologia(item.ano);
   showForm(id ? "Editar edição" : "Nova edição", `
     <input type="hidden" name="id" value="${escapeHtml(id || "")}">
     ${field("nome", "Nome *", item.nome || "", "required maxlength='140'")}
@@ -688,8 +728,15 @@ async function editionForm(id) {
     ${field("peso_site", "Peso do site (%)", item.peso_site ?? 50, "type='number' min='0' max='100' step='0.01' required")}
     ${field("peso_instagram", "Peso do Instagram (%)", item.peso_instagram ?? 50, "type='number' min='0' max='100' step='0.01' required")}
     ${textarea("descricao", "Descrição", item.descricao || "")}
-    ${textarea("regulamento", "Regulamento", item.regulamento || "")}
-    ${textarea("metodologia", "Metodologia resumida", item.metodologia || "")}
+    <div class="awards-official-texts">
+      <div>
+        <strong>Textos oficiais da edição</strong>
+        <span>O regulamento e a metodologia abaixo aparecem no site e continuam editáveis pelo painel.</span>
+      </div>
+      <button class="admin-button secondary" type="button" data-fill-official-texts>Preencher modelo oficial 2026</button>
+    </div>
+    ${textarea("regulamento", "Regulamento", regulamento, "rows='18'")}
+    ${textarea("metodologia", "Metodologia de apuração", metodologia, "rows='16'")}
     <div class="awards-checks"><label><input name="mostrar_votos_publicamente" type="checkbox" ${item.mostrar_votos_publicamente ? "checked" : ""}> Mostrar votos publicamente após publicação</label></div>
   `, async event => {
     event.preventDefault();
@@ -911,18 +958,21 @@ async function init() {
   document.addEventListener("click", async event => {
     const button = event.target.closest("button");
     if (!button) return;
+    if (button.hasAttribute("data-fill-official-texts")) {
+      const form = $("#awards-form");
+      const ano = Number(form?.elements?.ano?.value || 2026);
+      const regulamento = getDefaultRegulamento(ano) || getDefaultRegulamento(2026);
+      const metodologia = getDefaultMetodologia(ano) || getDefaultMetodologia(2026);
+      const shouldReplace = !form.elements.regulamento.value.trim()
+        || confirm("Substituir o regulamento e a metodologia atuais pelo modelo oficial?");
+      if (!shouldReplace) return;
+      form.elements.regulamento.value = regulamento;
+      form.elements.metodologia.value = metodologia;
+      toast("Modelo oficial aplicado. Revise e salve a edição.");
+      return;
+    }
     if (button.dataset.tab) {
-      if (button.dataset.tab === "dashboard") return loadDashboard();
-      if (button.dataset.tab === "editions") return loadEditions();
-      if (button.dataset.tab === "categories") return loadCategories();
-      if (button.dataset.tab === "indications") return loadIndications();
-      if (button.dataset.tab === "nominees") return loadNominees();
-      if (button.dataset.tab === "votes") return loadVotes();
-      if (button.dataset.tab === "instagram") return loadInstagram();
-      if (button.dataset.tab === "apuration") return loadApuration();
-      if (button.dataset.tab === "results") return loadResults();
-      if (button.dataset.tab === "audit") return loadAudit();
-      if (button.dataset.tab === "settings") return loadSettings();
+      return loadTab(button.dataset.tab);
     }
     if (button.id === "new-edition" || button.hasAttribute("data-new-edition")) return editionForm();
     if (button.dataset.editEdition) return editionForm(button.dataset.editEdition);
@@ -995,7 +1045,7 @@ async function init() {
       return loadResults();
     }
     if (button.hasAttribute("data-cancel-form")) {
-      if (state.tab === "form") return loadDashboard();
+      if (state.tab === "form") return loadTab(state.returnTab || "dashboard");
     }
   });
 
@@ -1016,7 +1066,12 @@ async function init() {
     if (event.target.id === "audit-edition-filter") loadAudit();
   });
 
-  await loadDashboard();
+  window.addEventListener("hashchange", () => {
+    const tab = currentHashTab();
+    if (tab !== state.tab) loadTab(tab);
+  });
+
+  await loadTab(currentHashTab());
 }
 
 init();
