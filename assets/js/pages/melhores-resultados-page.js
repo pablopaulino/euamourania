@@ -1,4 +1,5 @@
 import { obterEdicaoPorAno, listarResultadosPublicos } from "../services/melhoresPublicService.js";
+import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
@@ -56,6 +57,10 @@ async function init() {
       document.getElementById("results-list").innerHTML = '<div class="awards-empty">Edição não encontrada ou ainda não publicada.</div>';
       return;
     }
+    registrarEventoMelhores("melhores_results_view", {
+      edicaoId: edition.id,
+      metadados: { ano: edition.ano, status: edition.status }
+    });
     setMeta(edition);
     document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">Resultado oficial</span><h1>${esc(edition.nome)}</h1><p>${esc(edition.metodologia || edition.descricao || "Confira os vencedores e finalistas oficiais.")}</p>`;
     document.getElementById("results-panel").innerHTML = `<h2>Metodologia</h2><p>${esc(edition.metodologia || "Resultado calculado conforme regulamento e pesos da edição.")}</p><div class="awards-status-line"><span class="awards-chip open">${esc(edition.status.replaceAll("_", " "))}</span><span class="awards-chip">Publicado em ${esc(formatDate(edition.resultado_publicado_em || edition.divulgacao_em))}</span></div>`;

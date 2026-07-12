@@ -1,4 +1,5 @@
 import { listarEdicoesPublicas } from "../services/melhoresPublicService.js";
+import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const img = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
@@ -24,13 +25,14 @@ function editionCard(edition) {
       <h3>${esc(edition.nome)}</h3>
       <p>${esc(edition.descricao || "Edição oficial da premiação Melhores de Urânia.")}</p>
       <p><small>Votação: ${esc(period(edition.votacao_inicio, edition.votacao_fim))}</small></p>
-      <a class="button button-primary" href="${editionUrl(edition)}">Abrir edição</a>
+      <a class="button button-primary" href="${editionUrl(edition)}" data-awards-cta data-edition-id="${edition.id}">Abrir edição</a>
     </div>
   </article>`;
 }
 
 async function init() {
   try {
+    registrarEventoMelhores("melhores_index_view");
     const editions = await listarEdicoesPublicas();
     const list = document.getElementById("awards-editions");
     const hero = document.getElementById("active-edition-card");
@@ -49,9 +51,16 @@ async function init() {
           <span class="awards-chip ${active.status === "votacao_aberta" ? "open" : ""}">${esc(statusLabel(active.status))}</span>
           <span class="awards-chip">Site ${Number(active.peso_site || 0)}% · Instagram ${Number(active.peso_instagram || 0)}%</span>
         </div>
-        <p style="margin-top:1rem"><a class="button button-primary" href="${editionUrl(active)}">Ver edição ${esc(active.ano)}</a></p>`;
+        <p style="margin-top:1rem"><a class="button button-primary" href="${editionUrl(active)}" data-awards-cta data-edition-id="${active.id}">Ver edição ${esc(active.ano)}</a></p>`;
     }
     if (list) list.innerHTML = editions.map(editionCard).join("");
+    document.querySelectorAll("[data-awards-cta]").forEach(link => {
+      link.addEventListener("click", () => registrarEventoMelhores("melhores_cta_click", {
+        edicaoId: link.dataset.editionId || null,
+        destino: link.href,
+        metadados: { origem_cta: "lista_edicoes" }
+      }));
+    });
   } catch (error) {
     console.error("Melhores de Urânia:", error);
     document.getElementById("awards-editions").innerHTML = '<div class="awards-empty">Não foi possível carregar as edições agora.</div>';

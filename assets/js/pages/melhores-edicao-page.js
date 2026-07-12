@@ -1,4 +1,5 @@
 import { obterEdicaoPorAno, listarCategoriasPublicas, listarIndicadosPublicos, enviarVotoMelhores } from "../services/melhoresPublicService.js";
+import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
@@ -58,7 +59,7 @@ function renderHero(edition, open) {
     copy.innerHTML = `<span class="awards-public-badge">Uma realização Eu Amo Urânia</span>
       <h1>${esc(edition.nome)}</h1>
       <p>${esc(edition.descricao || "Escolha seus favoritos nas categorias da premiação.")}</p>
-      <div class="hero-actions"><a class="button button-primary" href="#vote-area">${open ? "Votar agora" : "Ver indicados"}</a><a class="button button-secondary" href="/melhores-de-urania/">Todas as edições</a></div>`;
+      <div class="hero-actions"><a class="button button-primary" href="#vote-area" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Votar agora" : "Ver indicados"}</a><a class="button button-secondary" href="/melhores-de-urania/" data-awards-edition-cta data-edition-id="${edition.id}">Todas as edições</a></div>`;
   }
   if (panel) {
     const cover = image(edition.imagem_capa_url);
@@ -122,6 +123,10 @@ async function init() {
       return;
     }
     const open = isVotingOpen(edition);
+    registrarEventoMelhores("melhores_edition_view", {
+      edicaoId: edition.id,
+      metadados: { ano: edition.ano, status: edition.status, votacao_aberta: open }
+    });
     setMeta(edition);
     renderHero(edition, open);
     const [categories, nominees] = await Promise.all([
@@ -145,6 +150,10 @@ document.addEventListener("click", async event => {
   if (!vote || vote.disabled) return;
   vote.disabled = true;
   vote.textContent = "Registrando…";
+  registrarEventoMelhores("melhores_vote_start", {
+    edicaoId: vote.dataset.edition,
+    metadados: { categoria_id: vote.dataset.category, indicado_id: vote.dataset.nominee }
+  });
   try {
     await enviarVotoMelhores({
       edicao_id: vote.dataset.edition,
@@ -159,12 +168,30 @@ document.addEventListener("click", async event => {
       button.textContent = button === vote ? "Voto registrado" : "Voto já registrado";
       button.closest(".awards-nominee-card")?.classList.toggle("awards-voted", button === vote);
     });
+    registrarEventoMelhores("melhores_vote_complete", {
+      edicaoId: vote.dataset.edition,
+      metadados: { categoria_id: vote.dataset.category, indicado_id: vote.dataset.nominee }
+    });
     toast("Voto registrado com sucesso. Obrigado por participar!");
   } catch (error) {
     vote.disabled = false;
     vote.textContent = "Votar";
+    registrarEventoMelhores("melhores_vote_error", {
+      edicaoId: vote.dataset.edition,
+      metadados: { categoria_id: vote.dataset.category, indicado_id: vote.dataset.nominee, erro: error.message }
+    });
     toast(error.message);
   }
+});
+
+document.addEventListener("click", event => {
+  const cta = event.target.closest("[data-awards-edition-cta]");
+  if (!cta) return;
+  registrarEventoMelhores("melhores_cta_click", {
+    edicaoId: cta.dataset.editionId || null,
+    destino: cta.href,
+    metadados: { origem_cta: "hero_edicao" }
+  });
 });
 
 init();
