@@ -4,7 +4,6 @@ import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
 const key = editionId => `euamourania:melhores:votos:${editionId}`;
-
 function getYear() {
   const match = location.pathname.match(/melhores-de-urania\/(\d{4})/);
   const query = new URLSearchParams(location.search).get("ano");
@@ -97,7 +96,7 @@ function enrichHeroStats(edition, categories, nominees) {
   stats.innerHTML = `
     <span><strong>${esc(edition.ano)}</strong><small>Edição</small></span>
     <span><strong>${categories.length}</strong><small>Categorias</small></span>
-    <span><strong>${nominees.length}</strong><small>Finalistas</small></span>
+    <span><strong>${nominees.length}</strong><small>Indicados</small></span>
   `;
   panel.append(stats);
 }
@@ -112,8 +111,6 @@ function nomineeCard(edition, category, nominee, open, votedId) {
     ${img ? `<img src="${img}" alt="${esc(nominee.nome)}" loading="lazy">` : ""}
     <div class="awards-card-body">
       <h3>${esc(nominee.nome)}</h3>
-      <p>${esc(nominee.descricao_curta || "Indicado ao Melhores de Urânia.")}</p>
-      ${nominee.instagram ? `<p><a class="awards-social-link" href="https://instagram.com/${esc(String(nominee.instagram).replace(/^@/, ""))}" target="_blank" rel="noopener">Instagram ${esc(nominee.instagram)}</a></p>` : ""}
       <button class="button button-primary awards-vote-button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" data-multiple="${category.permite_multiplos_votos ? "true" : "false"}" ${open && !voted && !reachedLimit ? "" : "disabled"}>
         ${voted ? "Voto registrado" : open ? "Votar" : "Votação fechada"}
       </button>
@@ -135,7 +132,7 @@ function renderVoting(edition, categories, nominees) {
   const grouped = new Map(categories.map(category => [category.id, nominees.filter(n => n.categoria_id === category.id)]));
   area.innerHTML = `<aside class="awards-category-nav" aria-label="Categorias">${categories.map((category, index) => {
     const total = grouped.get(category.id)?.length || 0;
-    return `<button type="button" data-scroll-category="${category.id}" class="${index === 0 ? "active" : ""}"><span>${esc(category.nome)}</span><small>${total} finalista${total === 1 ? "" : "s"}</small></button>`;
+    return `<button type="button" data-scroll-category="${category.id}" class="${index === 0 ? "active" : ""}"><span>${esc(category.nome)}</span><small>${total} indicado${total === 1 ? "" : "s"}</small></button>`;
   }).join("")}</aside>
     <div class="awards-nominees">
       ${categories.map(category => {

@@ -240,3 +240,58 @@
     padding:.82rem;
   }
 }
+
+/* Cards de votação simplificados: foto, nome e ação */
+.awards-nominee-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));
+  align-items:stretch;
+}
+.awards-nominee-card{
+  display:flex;
+  flex-direction:column;
+  max-width:100%;
+}
+.awards-nominee-card img{
+  width:100%;
+  height:auto;
+  aspect-ratio:16/10;
+  object-fit:cover;
+}
+.awards-nominee-card .awards-card-body{
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  gap:.85rem;
+}
+.awards-nominee-card .awards-card-body h3{
+  font-size:clamp(1.15rem,2vw,1.45rem);
+}
+.awards-vote-button{
+  margin-top:auto;
+}
+@media(max-width:720px){
+  .awards-nominee-grid{
+    grid-template-columns:1fr;
+  }
+  .awards-nominee-card{
+    display:flex;
+    flex-direction:column;
+    border-radius:24px;
+  }
+  .awards-nominee-card img{
+    width:100%;
+    height:auto;
+    min-height:0;
+    aspect-ratio:16/9;
+  }
+  .awards-nominee-card .awards-card-body{
+    padding:1rem;
+  }
+  .awards-nominee-card .awards-card-body h3{
+    font-size:1.25rem;
+  }
+  .awards-vote-button{
+    min-height:3rem;
+    font-size:1rem;
+  }
+}

@@ -40,7 +40,7 @@ function resultCard(row) {
   return `<article class="awards-nominee-card ${row.vencedor ? "awards-voted" : ""}">
     ${img ? `<img src="${img}" alt="${esc(nominee.nome)}" loading="lazy">` : ""}
     <div class="awards-card-body">
-      <span class="awards-chip ${row.vencedor ? "open" : ""}">${row.vencedor ? "Vencedor" : "Finalista"} · ${Number(row.colocacao)}º</span>
+      <span class="awards-chip ${row.vencedor ? "open" : ""}">${row.vencedor ? "Vencedor" : "Indicado"} · ${Number(row.colocacao)}º</span>
       <h3>${esc(nominee.nome || "Indicado")}</h3>
       <p>${esc(nominee.descricao_curta || row.criterio_aplicado || "Resultado oficial da categoria.")}</p>
       <p><small>Site: ${Number(row.percentual_site || 0).toFixed(2)}% · Instagram: ${Number(row.percentual_instagram || 0).toFixed(2)}%</small></p>
@@ -62,7 +62,7 @@ async function init() {
       metadados: { ano: edition.ano, status: edition.status }
     });
     setMeta(edition);
-    document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">Resultado oficial</span><h1>${esc(edition.nome)}</h1><p>${esc(edition.metodologia || edition.descricao || "Confira os vencedores e finalistas oficiais.")}</p>`;
+    document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">Resultado oficial</span><h1>${esc(edition.nome)}</h1><p>${esc(edition.metodologia || edition.descricao || "Confira os vencedores e indicados oficiais.")}</p>`;
     document.getElementById("results-panel").innerHTML = `<h2>Metodologia</h2><p>${esc(edition.metodologia || "Resultado calculado conforme regulamento e pesos da edição.")}</p><div class="awards-status-line"><span class="awards-chip open">${esc(edition.status.replaceAll("_", " "))}</span><span class="awards-chip">Publicado em ${esc(formatDate(edition.resultado_publicado_em || edition.divulgacao_em))}</span></div>`;
     const results = await listarResultadosPublicos(edition.id);
     if (!results.length) {
