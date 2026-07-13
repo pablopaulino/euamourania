@@ -2,6 +2,12 @@ import { getSupabase } from "./supabaseClient.js";
 
 const db = () => getSupabase();
 
+async function countRelated(supabase, table, field, id) {
+  const { count, error } = await supabase.from(table).select("*", { count: "exact", head: true }).eq(field, id);
+  if (error && error.code !== "42P01") throw error;
+  return count || 0;
+}
+
 export async function obterResumoMelhores() {
   const supabase = db();
   const count = async (table, filters = {}) => {
@@ -133,21 +139,8 @@ export async function salvarEdicao(payload) {
 
 export async function excluirEdicao(id) {
   const supabase = db();
-  const protectedTables = ["melhores_votos", "melhores_resultados", "melhores_consolidados", "melhores_instagram_votos"];
-  const counts = await Promise.all(protectedTables.map(async table => {
-    const { count, error } = await supabase.from(table).select("*", { count: "exact", head: true }).eq("edicao_id", id);
-    if (error && error.code !== "42P01") throw error;
-    return count || 0;
-  }));
-  const hasOfficialData = counts.some(total => total > 0);
-
-  if (!hasOfficialData) {
-    const { error } = await supabase.from("melhores_edicoes").delete().eq("id", id);
-    if (!error) return;
-    if (error.code !== "42501") throw error;
-  }
-
-  const { error } = await supabase.from("melhores_edicoes").update({ status: "arquivada" }).eq("id", id);
+  await supabase.from("melhores_indicacoes").update({ indicado_gerado_id: null }).eq("edicao_id", id);
+  const { error } = await supabase.from("melhores_edicoes").delete().eq("id", id);
   if (error) throw error;
 }
 
@@ -155,6 +148,7 @@ export async function listarCategorias(edicaoId) {
   let query = db()
     .from("melhores_categorias")
     .select("*, melhores_edicoes(ano,nome)")
+    .neq("status", "arquivado")
     .order("ordem", { ascending: true })
     .order("nome", { ascending: true });
   if (edicaoId) query = query.eq("edicao_id", edicaoId);
@@ -174,7 +168,9 @@ export async function salvarCategoria(payload) {
 }
 
 export async function excluirCategoria(id) {
-  const { error } = await db().from("melhores_categorias").update({ status: "arquivado", visibilidade_publica: false }).eq("id", id);
+  const supabase = db();
+  await supabase.from("melhores_indicacoes").update({ indicado_gerado_id: null }).eq("categoria_id", id);
+  const { error } = await supabase.from("melhores_categorias").delete().eq("id", id);
   if (error) throw error;
 }
 
@@ -182,6 +178,7 @@ export async function listarIndicados({ edicaoId, categoriaId } = {}) {
   let query = db()
     .from("melhores_indicados")
     .select("*, melhores_edicoes(ano,nome), melhores_categorias(nome), guia_comercial(nome,imagem_url,whatsapp,instagram,endereco)")
+    .neq("status", "arquivado")
     .order("ordem", { ascending: true })
     .order("nome", { ascending: true });
   if (edicaoId) query = query.eq("edicao_id", edicaoId);
@@ -202,7 +199,9 @@ export async function salvarIndicado(payload) {
 }
 
 export async function excluirIndicado(id) {
-  const { error } = await db().from("melhores_indicados").update({ status: "arquivado", aprovado: false }).eq("id", id);
+  const supabase = db();
+  await supabase.from("melhores_indicacoes").update({ indicado_gerado_id: null }).eq("indicado_gerado_id", id);
+  const { error } = await supabase.from("melhores_indicados").delete().eq("id", id);
   if (error) throw error;
 }
 
