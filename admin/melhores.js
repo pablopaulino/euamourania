@@ -25,11 +25,19 @@ import {
   listarResultados,
   listarVotos,
   listarAuditoria,
-  limparVotosManual
+  limparVotosManual,
+  listarCampanhasApp,
+  obterCampanhaApp,
+  salvarCampanhaApp,
+  listarVencedoresApp,
+  salvarVencedorApp,
+  arquivarVencedorApp,
+  listarResultadosPublicadosEdicao,
+  importarVencedoresApp
 } from "../assets/js/services/melhoresService.js";
 
 const $ = selector => document.querySelector(selector);
-const state = { tab: "dashboard", returnTab: "dashboard", edicoes: [], categorias: [], indicacoes: [], indicados: [], guia: [], votos: [], instagram: [], apuracao: [], resultados: [], auditoria: [] };
+const state = { tab: "dashboard", returnTab: "dashboard", edicoes: [], categorias: [], indicacoes: [], indicados: [], guia: [], votos: [], instagram: [], apuracao: [], resultados: [], auditoria: [], appCampanhas: [], appVencedores: [], appPreviewResultados: [] };
 const editionStatuses = [
   "planejamento",
   "indicacoes_abertas",
@@ -44,6 +52,8 @@ const categoryStatuses = ["ativo", "inativo", "arquivado"];
 const nomineeStatuses = ["rascunho", "ativo", "inativo", "reprovado", "arquivado"];
 const indicationStatuses = ["pendente", "aprovada", "rejeitada", "convertida", "duplicada", "spam"];
 const voteStatuses = ["valido", "suspeito", "bloqueado", "anulado"];
+const appCampaignStatuses = ["rascunho", "agendada", "ativa", "inativa", "encerrada", "arquivada"];
+const appWinnerStatuses = ["ativo", "oculto", "arquivado"];
 
 function escapeHtml(value = "") {
   const el = document.createElement("div");
@@ -92,6 +102,7 @@ const tabLoaders = {
   instagram: loadInstagram,
   apuration: loadApuration,
   results: loadResults,
+  app: loadAppDisplay,
   audience: loadAudience,
   audit: loadAudit,
   settings: loadSettings
@@ -696,6 +707,153 @@ function resultGroup(rows) {
   </section>`;
 }
 
+function appStatus(campaign) {
+  if (!campaign) return "rascunho";
+  if (campaign.status === "arquivada") return "arquivada";
+  const now = Date.now();
+  const start = campaign.exibir_inicio ? new Date(campaign.exibir_inicio).getTime() : null;
+  const end = campaign.exibir_fim ? new Date(campaign.exibir_fim).getTime() : null;
+  if (!campaign.ativo) return campaign.status || "inativa";
+  if (start && start > now) return "agendada";
+  if (end && end < now) return "encerrada";
+  return "ativa";
+}
+
+function appInconsistencias(campaign, winners, categories = []) {
+  const alerts = [];
+  if (!campaign?.edicao_id) alerts.push("Edição não vinculada.");
+  if (!campaign?.exibir_inicio || !campaign?.exibir_fim) alerts.push("Período de exibição incompleto.");
+  if (campaign?.exibir_inicio && campaign?.exibir_fim && new Date(campaign.exibir_inicio) >= new Date(campaign.exibir_fim)) alerts.push("Data final precisa ser posterior ao início.");
+  if (campaign?.melhores_edicoes?.status !== "resultado_publicado") alerts.push("Edição ainda não está com resultado oficialmente publicado.");
+  if (!winners.length) alerts.push("Nenhum vencedor cadastrado/importado.");
+  const activeWinners = winners.filter(winner => winner.status === "ativo");
+  const byCategory = activeWinners.reduce((acc, winner) => {
+    acc[winner.categoria_id] = (acc[winner.categoria_id] || 0) + 1;
+    return acc;
+  }, {});
+  if (activeWinners.some(winner => !winner.categoria_id)) alerts.push("Há vencedor ativo sem categoria.");
+  if (Object.values(byCategory).some(total => total > 1)) alerts.push("Há duplicidade de vencedor na mesma categoria.");
+  const winnerCategories = new Set(activeWinners.map(winner => winner.categoria_id).filter(Boolean));
+  const missingCategories = categories.filter(category => category.status === "ativo" && !winnerCategories.has(category.id));
+  return { alerts, missingCategories };
+}
+
+async function loadAppDisplay() {
+  setActiveTab("app");
+  $("#app-view").innerHTML = '<div class="loading">Carregando exibição no aplicativo…</div>';
+  try {
+    if (!state.edicoes.length) state.edicoes = await listarEdicoes();
+    state.appCampanhas = await listarCampanhasApp();
+    const selectedId = $("#app-campaign-filter")?.value || state.appCampanhas[0]?.id || "";
+    const selected = selectedId ? state.appCampanhas.find(item => item.id === selectedId) || await obterCampanhaApp(selectedId) : null;
+    state.appVencedores = selected?.id ? await listarVencedoresApp(selected.id) : [];
+    const categories = selected?.edicao_id ? await listarCategorias(selected.edicao_id) : [];
+    const officialPreview = selected?.edicao_id ? await listarResultadosPublicadosEdicao(selected.edicao_id) : [];
+    const inconsistencias = appInconsistencias(selected, state.appVencedores, categories);
+    const activeStatus = appStatus(selected);
+
+    $("#app-view").innerHTML = `
+      <article class="awards-card">
+        <div class="awards-panel-head">
+          <div><h3>Exibição no aplicativo</h3><p>Controle a campanha temporária do Viva Urânia sem publicar uma nova versão do app.</p></div>
+          <div class="awards-actions">
+            <button class="admin-button" data-new-app-campaign>Nova campanha do app</button>
+            ${selected ? `<button class="admin-button secondary" data-edit-app-campaign="${selected.id}">Editar campanha</button>` : ""}
+          </div>
+        </div>
+        <div class="awards-toolbar">
+          <input id="app-search" type="search" placeholder="Pesquisar vencedor…">
+          <select id="app-campaign-filter"><option value="">Selecione uma campanha</option>${state.appCampanhas.map(campaign => `<option value="${campaign.id}" ${campaign.id === selectedId ? "selected" : ""}>${escapeHtml(campaign.titulo)} · ${escapeHtml(campaign.melhores_edicoes?.ano || "")}</option>`).join("")}</select>
+          <button class="admin-button secondary" data-refresh-app-display>Atualizar</button>
+        </div>
+        ${state.appCampanhas.length ? "" : '<div class="awards-note">A migração ainda não foi aplicada ou não existe campanha do app. O aplicativo continuará funcionando e ocultará essa área até a ativação.</div>'}
+        ${selected ? `
+          <div class="awards-grid app-metrics">
+            <article class="metric-card"><span>Status atual</span><strong>${escapeHtml(activeStatus)}</strong></article>
+            <article class="metric-card"><span>Vencedores</span><strong>${state.appVencedores.filter(w => w.status === "ativo").length}</strong></article>
+            <article class="metric-card"><span>Categorias sem vencedor</span><strong>${inconsistencias.missingCategories.length}</strong></article>
+            <article class="metric-card"><span>Inconsistências</span><strong>${inconsistencias.alerts.length}</strong></article>
+          </div>
+          <div class="app-layout">
+            <section class="awards-card app-review-card">
+              <h3>Revisão antes da publicação</h3>
+              ${inconsistencias.alerts.length ? `<div class="awards-error"><strong>Corrija antes de ativar:</strong><ul>${inconsistencias.alerts.map(alert => `<li>${escapeHtml(alert)}</li>`).join("")}</ul></div>` : '<div class="awards-note">Tudo certo para publicação. A visibilidade final também é protegida por RLS e datas no banco.</div>'}
+              ${inconsistencias.missingCategories.length ? `<p class="awards-note"><strong>Categorias sem vencedor:</strong> ${escapeHtml(inconsistencias.missingCategories.map(c => c.nome).join(", "))}</p>` : ""}
+              <div class="awards-actions" style="margin-top:1rem">
+                <button class="admin-button" data-import-app-winners="${selected.id}">Importar vencedores da edição</button>
+                <button class="admin-button secondary" data-new-app-winner="${selected.id}">Adicionar vencedor avulso</button>
+                <button class="admin-button secondary" data-app-action="schedule" data-id="${selected.id}">Agendar</button>
+                <button class="admin-button" data-app-action="activate" data-id="${selected.id}" ${inconsistencias.alerts.length ? "disabled" : ""}>Ativar agora</button>
+                <button class="admin-button secondary" data-app-action="deactivate" data-id="${selected.id}">Desativar</button>
+                <button class="admin-button secondary" data-app-action="close" data-id="${selected.id}">Encerrar</button>
+                <button class="admin-button secondary danger" data-app-action="archive" data-id="${selected.id}">Arquivar</button>
+              </div>
+            </section>
+            <section class="awards-card app-preview-card"><h3>Preview no app</h3>${appPreview(selected, state.appVencedores)}</section>
+          </div>
+          <article class="awards-card">
+            <div class="awards-panel-head"><div><h3>Vencedores exibidos</h3><p>Vincule ao Guia quando existir. Vencedores sem Guia aparecem apenas na página do prêmio.</p></div></div>
+            <div class="awards-table-wrap">
+              <table class="awards-table">
+                <thead><tr><th>Categoria</th><th>Vencedor</th><th>Guia</th><th>Status</th><th>Alertas</th><th>Ações</th></tr></thead>
+                <tbody id="app-winner-rows">${state.appVencedores.length ? state.appVencedores.map(appWinnerRow).join("") : '<tr><td colspan="6"><div class="awards-empty">Nenhum vencedor importado ainda.</div></td></tr>'}</tbody>
+              </table>
+            </div>
+          </article>
+          <article class="awards-card">
+            <h3>Prévia da importação oficial</h3>
+            <p class="awards-note">Somente resultados publicados, vencedores e colocação 1 são considerados.</p>
+            <div class="awards-table-wrap">
+              <table class="awards-table">
+                <thead><tr><th>Categoria</th><th>Vencedor oficial</th><th>Guia detectado</th><th>Imagem</th></tr></thead>
+                <tbody>${officialPreview.length ? officialPreview.map(appImportPreviewRow).join("") : '<tr><td colspan="4"><div class="awards-empty">Nenhum resultado oficial publicado para importar.</div></td></tr>'}</tbody>
+              </table>
+            </div>
+          </article>
+          <article class="awards-card">
+            <h3>Analytics do app</h3>
+            <p class="awards-note">O app ainda não envia todos os eventos específicos desta campanha. Futuramente adicionar: app_bestof_banner_view, app_bestof_banner_click, app_bestof_campaign_view, app_bestof_winner_click, app_bestof_whatsapp_click, app_bestof_instagram_click e app_bestof_official_result_click.</p>
+          </article>
+        ` : '<div class="awards-empty">Crie ou selecione uma campanha para configurar a exibição no aplicativo.</div>'}
+      </article>`;
+    bindSimpleSearch("app", "app-winner-rows");
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function appWinnerRow(item) {
+  const alerts = Array.isArray(item.alertas) ? item.alertas : [];
+  return `<tr data-search="${escapeHtml(`${item.categoria_nome} ${item.nome_exibido} ${item.guia_comercial?.nome || ""}`.toLowerCase())}">
+    <td><strong>${escapeHtml(item.categoria_nome)}</strong><br><small>${escapeHtml(item.selo || "Vencedor")}</small></td>
+    <td><div class="awards-name">${item.imagem_url ? `<img class="awards-thumb" src="${escapeHtml(item.imagem_url)}" alt="">` : '<span class="awards-thumb"></span>'}<div><strong>${escapeHtml(item.nome_exibido)}</strong><small>${escapeHtml(item.descricao_curta || "Sem descrição curta")}</small></div></div></td>
+    <td>${item.guia_comercial_id ? `<span class="awards-status ativo">vinculado</span><br><small>${escapeHtml(item.guia_comercial?.nome || item.guia_comercial_id)}</small>` : '<span class="awards-status planejamento">avulso</span>'}</td>
+    <td><span class="awards-status ${escapeHtml(item.status)}">${escapeHtml(item.status)}</span></td>
+    <td>${alerts.length ? alerts.map(alert => `<span class="awards-status planejamento">${escapeHtml(alert)}</span>`).join(" ") : '<small>Sem alertas</small>'}</td>
+    <td><div class="awards-actions"><button data-edit-app-winner="${item.id}">Editar</button><button class="danger" data-archive-app-winner="${item.id}">Arquivar</button></div></td>
+  </tr>`;
+}
+
+function appImportPreviewRow(item) {
+  const nominee = item.melhores_indicados || {};
+  const guide = nominee.guia_comercial;
+  return `<tr>
+    <td>${escapeHtml(item.melhores_categorias?.nome || "Categoria")}</td>
+    <td><strong>${escapeHtml(nominee.nome || "Vencedor")}</strong><br><small>${escapeHtml(nominee.descricao_curta || "")}</small></td>
+    <td>${guide?.id ? `<span class="awards-status ativo">detectado</span><br><small>${escapeHtml(guide.nome || "")}</small>` : '<span class="awards-status planejamento">sem correspondência</span>'}</td>
+    <td>${nominee.imagem_url || guide?.imagem_url ? "com imagem" : "sem imagem"}</td>
+  </tr>`;
+}
+
+function appPreview(campaign, winners) {
+  const first = winners.find(winner => winner.status === "ativo");
+  return `<div class="app-phone-preview">
+    <div class="app-home-banner"><span>Melhores do Ano</span><strong>${escapeHtml(campaign.titulo || "Melhores de Urânia 2026")}</strong><p>${escapeHtml(campaign.subtitulo || "Conheça os vencedores da primeira edição.")}</p><button>${escapeHtml(campaign.texto_botao || "Ver vencedores")}</button></div>
+    <div class="app-winner-preview"><small>${escapeHtml(first?.categoria_nome || "Categoria")}</small><strong>${escapeHtml(first?.nome_exibido || "Nome do vencedor")}</strong><span>${escapeHtml(first?.selo || "Vencedor 2026")}</span></div>
+    <p class="awards-note">Preview textual aproximado para iPhone e Android usando os dados reais. O visual final é renderizado pelo app.</p>
+  </div>`;
+}
+
 function groupBy(rows, field) {
   const map = new Map();
   rows.forEach(row => {
@@ -1015,6 +1173,127 @@ async function instagramForm(id) {
   });
 }
 
+async function appCampaignForm(id) {
+  if (!state.edicoes.length) state.edicoes = await listarEdicoes();
+  const item = id ? await obterCampanhaApp(id) : {
+    titulo: "Melhores de Urânia 2026",
+    subtitulo: "Conheça os vencedores da primeira edição.",
+    texto_botao: "Ver vencedores",
+    status: "rascunho",
+    ativo: false,
+    ordem_home: 0,
+    exibir_selo_cards: true,
+    exibir_bloco_empresa: true,
+    exibir_avulsos: true
+  };
+  showForm(id ? "Editar exibição no aplicativo" : "Nova exibição no aplicativo", `
+    <input type="hidden" name="id" value="${escapeHtml(id || "")}">
+    ${selectField("edicao_id", "Edição vinculada *", `<option value="">Selecione</option>${state.edicoes.map(e => `<option value="${e.id}" ${e.id === item?.edicao_id ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)} · ${escapeHtml(e.status)}</option>`).join("")}`)}
+    ${field("titulo", "Título *", item?.titulo || "", "required maxlength='120'")}
+    ${field("subtitulo", "Subtítulo", item?.subtitulo || "", "maxlength='180'")}
+    ${field("texto_botao", "Texto do botão", item?.texto_botao || "Ver vencedores", "maxlength='40'")}
+    ${field("link_oficial", "Link oficial", item?.link_oficial || "", "placeholder='https://... ou /melhores-de-urania/resultados.html'")}
+    ${selectField("status", "Status", optionList(appCampaignStatuses, item?.status || "rascunho"))}
+    ${field("exibir_inicio", "Início da exibição", fmtDateInput(item?.exibir_inicio), "type='datetime-local'")}
+    ${field("exibir_fim", "Fim da exibição", fmtDateInput(item?.exibir_fim), "type='datetime-local'")}
+    ${field("ordem_home", "Ordem na Home", item?.ordem_home || 0, "type='number' min='0'")}
+    ${textarea("observacao_interna", "Observação interna", item?.observacao_interna || "")}
+    <div class="awards-checks">
+      <label><input name="ativo" type="checkbox" ${item?.ativo ? "checked" : ""}> Disponível para o aplicativo quando estiver no período</label>
+      <label><input name="exibir_selo_cards" type="checkbox" ${item?.exibir_selo_cards !== false ? "checked" : ""}> Exibir selo nos cards</label>
+      <label><input name="exibir_bloco_empresa" type="checkbox" ${item?.exibir_bloco_empresa !== false ? "checked" : ""}> Exibir bloco na página da empresa</label>
+      <label><input name="exibir_avulsos" type="checkbox" ${item?.exibir_avulsos !== false ? "checked" : ""}> Exibir vencedores sem Guia</label>
+    </div>
+  `, async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!validReference(form.elements.link_oficial.value)) return toast("Use URL válida ou caminho interno em link oficial.", "error");
+    await salvarCampanhaApp({
+      id: form.elements.id.value || undefined,
+      edicao_id: form.elements.edicao_id.value || null,
+      titulo: form.elements.titulo.value.trim(),
+      subtitulo: form.elements.subtitulo.value.trim() || null,
+      texto_botao: form.elements.texto_botao.value.trim() || "Ver vencedores",
+      link_oficial: form.elements.link_oficial.value.trim() || null,
+      status: form.elements.status.value,
+      ativo: form.elements.ativo.checked,
+      exibir_inicio: toIso(form.elements.exibir_inicio.value),
+      exibir_fim: toIso(form.elements.exibir_fim.value),
+      ordem_home: Number(form.elements.ordem_home.value || 0),
+      exibir_selo_cards: form.elements.exibir_selo_cards.checked,
+      exibir_bloco_empresa: form.elements.exibir_bloco_empresa.checked,
+      exibir_avulsos: form.elements.exibir_avulsos.checked,
+      observacao_interna: form.elements.observacao_interna.value.trim() || null
+    });
+    toast("Exibição no aplicativo salva.");
+    state.appCampanhas = [];
+    await loadAppDisplay();
+  });
+}
+
+async function appWinnerForm(id, campanhaId) {
+  const campaign = state.appCampanhas.find(item => item.id === campanhaId) || state.appCampanhas[0] || await obterCampanhaApp(campanhaId);
+  if (!campaign) return toast("Selecione uma campanha.", "error");
+  const winners = state.appVencedores.length ? state.appVencedores : await listarVencedoresApp(campaign.id);
+  const item = id ? winners.find(winner => winner.id === id) || {} : { campanha_id: campaign.id, status: "ativo", selo: `Vencedor ${campaign.melhores_edicoes?.ano || new Date().getFullYear()}`, ordem: 0 };
+  const categories = await listarCategorias(campaign.edicao_id);
+  if (!state.guia.length) state.guia = await listarGuiaComercial();
+  showForm(id ? "Editar vencedor no app" : "Adicionar vencedor avulso", `
+    <input type="hidden" name="id" value="${escapeHtml(id || "")}">
+    <input type="hidden" name="campanha_id" value="${escapeHtml(campaign.id)}">
+    ${selectField("categoria_id", "Categoria *", categories.map(c => `<option value="${c.id}" ${c.id === item.categoria_id ? "selected" : ""}>${escapeHtml(c.nome)}</option>`).join(""))}
+    ${selectField("guia_comercial_id", "Vincular ao Guia Comercial", `<option value="">Sem vínculo</option>${state.guia.map(g => `<option value="${g.id}" ${g.id === item.guia_comercial_id ? "selected" : ""}>${escapeHtml(g.nome)} · ${escapeHtml(g.status || "")}</option>`).join("")}`)}
+    ${field("nome_exibido", "Nome exibido *", item.nome_exibido || "", "required maxlength='160'")}
+    ${field("imagem_url", "Imagem", item.imagem_url || "", "placeholder='https://... ou /assets/...'")}
+    ${field("selo", "Selo", item.selo || "Vencedor 2026", "maxlength='60'")}
+    ${field("ordem", "Ordem", item.ordem || 0, "type='number' min='0'")}
+    ${selectField("status", "Status", optionList(appWinnerStatuses, item.status || "ativo"))}
+    ${field("instagram", "Instagram", item.instagram || "")}
+    ${field("whatsapp", "WhatsApp", item.whatsapp || "")}
+    ${field("site", "Site", item.site || "")}
+    ${field("endereco", "Endereço", item.endereco || "")}
+    ${textarea("descricao_curta", "Descrição curta", item.descricao_curta || "", "maxlength='260'")}
+  `, async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const category = categories.find(c => c.id === form.elements.categoria_id.value);
+    if (!validReference(form.elements.imagem_url.value) || !validReference(form.elements.site.value)) return toast("Use URL válida ou caminho interno nos campos de link/imagem.", "error");
+    await salvarVencedorApp({
+      id: form.elements.id.value || undefined,
+      campanha_id: form.elements.campanha_id.value,
+      categoria_id: form.elements.categoria_id.value,
+      guia_comercial_id: form.elements.guia_comercial_id.value || null,
+      categoria_nome: category?.nome || "Categoria",
+      nome_exibido: form.elements.nome_exibido.value.trim(),
+      imagem_url: form.elements.imagem_url.value.trim() || null,
+      descricao_curta: form.elements.descricao_curta.value.trim() || null,
+      selo: form.elements.selo.value.trim() || "Vencedor",
+      ordem: Number(form.elements.ordem.value || 0),
+      instagram: form.elements.instagram.value.trim() || null,
+      whatsapp: form.elements.whatsapp.value.trim() || null,
+      site: form.elements.site.value.trim() || null,
+      endereco: form.elements.endereco.value.trim() || null,
+      status: form.elements.status.value,
+      origem: form.elements.guia_comercial_id.value ? "ajuste_admin" : "manual"
+    });
+    toast("Vencedor do app salvo.");
+    state.appVencedores = [];
+    await loadAppDisplay();
+  });
+  const form = $("#awards-form");
+  form.elements.guia_comercial_id.addEventListener("change", () => {
+    const guide = state.guia.find(g => g.id === form.elements.guia_comercial_id.value);
+    if (!guide) return;
+    if (!form.elements.nome_exibido.value) form.elements.nome_exibido.value = guide.nome || "";
+    if (!form.elements.imagem_url.value) form.elements.imagem_url.value = guide.imagem_url || "";
+    if (!form.elements.whatsapp.value) form.elements.whatsapp.value = guide.whatsapp || "";
+    if (!form.elements.instagram.value) form.elements.instagram.value = guide.instagram || "";
+    if (!form.elements.site.value) form.elements.site.value = guide.site || "";
+    if (!form.elements.endereco.value) form.elements.endereco.value = guide.endereco || "";
+    if (!form.elements.descricao_curta.value) form.elements.descricao_curta.value = guide.descricao || "";
+  });
+}
+
 async function init() {
   const access = await exigirPermissao("melhores", "acessar");
   if (!access) return;
@@ -1099,6 +1378,41 @@ async function init() {
     if (button.hasAttribute("data-refresh-instagram")) return loadInstagram();
     if (button.hasAttribute("data-refresh-apuration")) return loadApuration();
     if (button.hasAttribute("data-refresh-results")) return loadResults();
+    if (button.hasAttribute("data-refresh-app-display")) return loadAppDisplay();
+    if (button.hasAttribute("data-new-app-campaign")) return appCampaignForm();
+    if (button.dataset.editAppCampaign) return appCampaignForm(button.dataset.editAppCampaign);
+    if (button.dataset.newAppWinner) return appWinnerForm(null, button.dataset.newAppWinner);
+    if (button.dataset.editAppWinner) return appWinnerForm(button.dataset.editAppWinner, $("#app-campaign-filter")?.value);
+    if (button.dataset.archiveAppWinner && confirm("Arquivar este vencedor apenas na exibição do aplicativo?")) {
+      await arquivarVencedorApp(button.dataset.archiveAppWinner);
+      toast("Vencedor arquivado na exibição do app.");
+      state.appVencedores = [];
+      return loadAppDisplay();
+    }
+    if (button.dataset.importAppWinners) {
+      if (!confirm("Importar vencedores oficiais publicados desta edição para o aplicativo? Vencedores existentes da mesma categoria serão atualizados.")) return;
+      const total = await importarVencedoresApp(button.dataset.importAppWinners);
+      toast(`${total || 0} vencedor(es) importado(s) para o aplicativo.`);
+      state.appVencedores = [];
+      return loadAppDisplay();
+    }
+    if (button.dataset.appAction) {
+      const campaign = state.appCampanhas.find(item => item.id === button.dataset.id) || await obterCampanhaApp(button.dataset.id);
+      if (!campaign) return toast("Campanha não encontrada.", "error");
+      const now = new Date();
+      const payloadByAction = {
+        schedule: { status: "agendada", ativo: true },
+        activate: { status: "ativa", ativo: true, exibir_inicio: campaign.exibir_inicio || now.toISOString() },
+        deactivate: { status: "inativa", ativo: false },
+        close: { status: "encerrada", ativo: false, exibir_fim: now.toISOString() },
+        archive: { status: "arquivada", ativo: false, arquivado_em: now.toISOString() }
+      };
+      if (button.dataset.appAction === "archive" && !confirm("Arquivar esta campanha do aplicativo? O histórico será mantido no banco.")) return;
+      await salvarCampanhaApp({ id: campaign.id, ...payloadByAction[button.dataset.appAction] });
+      toast("Status da exibição no app atualizado.");
+      state.appCampanhas = [];
+      return loadAppDisplay();
+    }
     if (button.hasAttribute("data-refresh-audience")) return loadAudience();
     if (button.hasAttribute("data-open-audience")) return loadAudience();
     if (button.hasAttribute("data-refresh-audit")) return loadAudit();
@@ -1132,6 +1446,7 @@ async function init() {
     }
     if (event.target.id === "apuration-edition-filter") loadApuration();
     if (event.target.id === "results-edition-filter") loadResults();
+    if (event.target.id === "app-campaign-filter") loadAppDisplay();
     if (event.target.id === "audience-edition-filter" || event.target.id === "audience-period-filter") loadAudience();
     if (event.target.id === "audit-edition-filter") loadAudit();
   });
