@@ -3,6 +3,7 @@ import { gerarSlug } from "../assets/js/utils.js";
 import { getDefaultMetodologia, getDefaultRegulamento } from "../assets/js/melhoresOfficialTexts.js";
 import {
   obterResumoMelhores,
+  obterAudienciaMelhores,
   listarEdicoes,
   salvarEdicao,
   excluirEdicao,
@@ -91,6 +92,7 @@ const tabLoaders = {
   instagram: loadInstagram,
   apuration: loadApuration,
   results: loadResults,
+  audience: loadAudience,
   audit: loadAudit,
   settings: loadSettings
 };
@@ -542,6 +544,59 @@ async function loadResults() {
         ${state.resultados.length ? [...grouped.entries()].map(([, rows]) => resultGroup(rows)).join("") : '<div class="awards-empty">Nenhum resultado oficial publicado ainda.</div>'}
       </article>`;
     bindSimpleSearch("results", "results-view");
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function audienceRank(title, rows, labelKey = "label") {
+  return `<article class="awards-card"><h3>${escapeHtml(title)}</h3><div class="awards-kv">${
+    rows.length
+      ? rows.map(item => `<div><span>${escapeHtml(item[labelKey] || "Não informado")}</span><strong>${item.total}</strong></div>`).join("")
+      : '<div><span>Nenhum dado no período</span><strong>0</strong></div>'
+  }</div></article>`;
+}
+
+async function loadAudience() {
+  setActiveTab("audience");
+  $("#audience-view").innerHTML = '<div class="loading">Carregando audiência do Melhores…</div>';
+  try {
+    if (!state.edicoes.length) state.edicoes = await listarEdicoes();
+    const edicaoId = $("#audience-edition-filter")?.value || state.edicoes[0]?.id || "";
+    const dias = $("#audience-period-filter")?.value || "30";
+    const data = await obterAudienciaMelhores({ edicaoId, dias });
+    $("#audience-view").innerHTML = `
+      <article class="awards-card">
+        <div class="awards-panel-head">
+          <div><h3>Audiência do Melhores de Urânia</h3><p>Dados próprios do módulo: visualizações, intenção de voto, conclusão, origem, dispositivo e páginas mais acessadas.</p></div>
+        </div>
+        <div class="awards-toolbar">
+          <input type="search" value="" placeholder="Dados automáticos do prêmio" disabled>
+          <select id="audience-edition-filter">${state.edicoes.map(e => `<option value="${e.id}" ${e.id === edicaoId ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join("")}</select>
+          <select id="audience-period-filter"><option value="7" ${dias === "7" ? "selected" : ""}>Últimos 7 dias</option><option value="30" ${dias === "30" ? "selected" : ""}>Últimos 30 dias</option><option value="90" ${dias === "90" ? "selected" : ""}>Últimos 90 dias</option></select>
+          <button class="admin-button secondary" data-refresh-audience>Atualizar</button>
+        </div>
+        <div class="awards-grid">
+          ${[
+            ["Eventos registrados", data.total],
+            ["Visualizações", data.views],
+            ["Inícios de voto", data.voteStart],
+            ["Votos concluídos", data.voteComplete],
+            ["Taxa de conclusão", `${data.completionRate}%`],
+            ["Compartilhamentos", data.shares],
+            ["Cliques em CTAs", data.ctas],
+            ["Indicações enviadas", data.indications]
+          ].map(([label, value]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong></article>`).join("")}
+        </div>
+      </article>
+      <div class="awards-layout">
+        ${audienceRank("Acessos por dispositivo", data.byDevice)}
+        ${audienceRank("Origem dos acessos", data.byOrigin)}
+      </div>
+      <div class="awards-layout">
+        ${audienceRank("Páginas mais acessadas", data.pages, "pagina")}
+        ${audienceRank("Acessos por dia", data.daily, "dia")}
+      </div>`;
   } catch (error) {
     showError(error);
   }
@@ -1044,6 +1099,8 @@ async function init() {
     if (button.hasAttribute("data-refresh-instagram")) return loadInstagram();
     if (button.hasAttribute("data-refresh-apuration")) return loadApuration();
     if (button.hasAttribute("data-refresh-results")) return loadResults();
+    if (button.hasAttribute("data-refresh-audience")) return loadAudience();
+    if (button.hasAttribute("data-open-audience")) return loadAudience();
     if (button.hasAttribute("data-refresh-audit")) return loadAudit();
     if (button.hasAttribute("data-publish-results")) {
       const edicaoId = $("#apuration-edition-filter")?.value || state.edicoes[0]?.id;
@@ -1075,6 +1132,7 @@ async function init() {
     }
     if (event.target.id === "apuration-edition-filter") loadApuration();
     if (event.target.id === "results-edition-filter") loadResults();
+    if (event.target.id === "audience-edition-filter" || event.target.id === "audience-period-filter") loadAudience();
     if (event.target.id === "audit-edition-filter") loadAudit();
   });
 

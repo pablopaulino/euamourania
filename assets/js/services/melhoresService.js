@@ -42,6 +42,75 @@ export async function obterResumoMelhores() {
   return { edicaoAtiva, edicoes, categorias, indicados, indicadosAtivos: ativos, indicacoesPendentes };
 }
 
+export async function obterAudienciaMelhores({ edicaoId = "", dias = 30 } = {}) {
+  const supabase = db();
+  const since = new Date(Date.now() - Number(dias || 30) * 24 * 60 * 60 * 1000).toISOString();
+  const eventTypes = [
+    "melhores_index_view",
+    "melhores_edition_view",
+    "melhores_results_view",
+    "melhores_vote_start",
+    "melhores_vote_complete",
+    "melhores_vote_abandon",
+    "melhores_vote_error",
+    "melhores_category_view",
+    "melhores_nominee_impression",
+    "melhores_indication_start",
+    "melhores_indication_complete",
+    "melhores_indication_error",
+    "melhores_share_click",
+    "melhores_cta_click"
+  ];
+  let query = supabase
+    .from("analytics_eventos")
+    .select("tipo,pagina,destino,dispositivo,origem,criado_em,recurso_id,metadados")
+    .in("tipo", eventTypes)
+    .gte("criado_em", since)
+    .order("criado_em", { ascending: false })
+    .limit(2500);
+  if (edicaoId) query = query.eq("recurso_id", edicaoId);
+  const { data, error } = await query;
+  if (error) throw error;
+  const eventos = data || [];
+  const countType = tipo => eventos.filter(item => item.tipo === tipo).length;
+  const views = eventos.filter(item => item.tipo.endsWith("_view")).length;
+  const voteStart = countType("melhores_vote_start");
+  const voteComplete = countType("melhores_vote_complete");
+  const completionRate = voteStart ? Math.round((voteComplete / voteStart) * 1000) / 10 : 0;
+  const group = field => Object.entries(eventos.reduce((acc, item) => {
+    const key = item[field] || "Não informado";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {})).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([label, total]) => ({ label, total }));
+  const pages = Object.entries(eventos.reduce((acc, item) => {
+    const key = item.pagina || "/";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {})).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([pagina, total]) => ({ pagina, total }));
+  const daily = Object.entries(eventos.reduce((acc, item) => {
+    const key = new Date(item.criado_em).toLocaleDateString("pt-BR");
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {})).reverse().slice(-14).map(([dia, total]) => ({ dia, total }));
+  return {
+    periodoDias: Number(dias || 30),
+    total: eventos.length,
+    views,
+    voteStart,
+    voteComplete,
+    voteAbandon: countType("melhores_vote_abandon"),
+    voteError: countType("melhores_vote_error"),
+    indications: countType("melhores_indication_complete"),
+    shares: countType("melhores_share_click"),
+    ctas: countType("melhores_cta_click"),
+    completionRate,
+    byDevice: group("dispositivo"),
+    byOrigin: group("origem"),
+    pages,
+    daily
+  };
+}
+
 export async function listarEdicoes() {
   const { data, error } = await db()
     .from("melhores_edicoes")
