@@ -329,3 +329,97 @@ export async function limparVotosManual(edicaoId) {
   if (error) throw error;
   return data;
 }
+
+function appTablesMissing(error) {
+  return error?.code === "42P01" || error?.code === "PGRST106" || error?.code === "PGRST205" || /app_melhores_/i.test(error?.message || "");
+}
+
+export async function listarCampanhasApp() {
+  const { data, error } = await db()
+    .from("app_melhores_campanhas")
+    .select("*, melhores_edicoes(id,nome,ano,status,resultado_publicado_em,divulgacao_em)")
+    .neq("status", "arquivada")
+    .order("ordem_home", { ascending: true })
+    .order("criado_em", { ascending: false });
+  if (error) {
+    if (appTablesMissing(error)) return [];
+    throw error;
+  }
+  return data || [];
+}
+
+export async function obterCampanhaApp(id) {
+  const { data, error } = await db()
+    .from("app_melhores_campanhas")
+    .select("*, melhores_edicoes(id,nome,ano,status,resultado_publicado_em,divulgacao_em)")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) {
+    if (appTablesMissing(error)) return null;
+    throw error;
+  }
+  return data;
+}
+
+export async function salvarCampanhaApp(payload) {
+  const { id, ...dados } = payload;
+  const query = id
+    ? db().from("app_melhores_campanhas").update(dados).eq("id", id)
+    : db().from("app_melhores_campanhas").insert(dados);
+  const { data, error } = await query.select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function listarVencedoresApp(campanhaId) {
+  if (!campanhaId) return [];
+  const { data, error } = await db()
+    .from("app_melhores_vencedores")
+    .select("*, melhores_categorias(id,nome), melhores_indicados(id,nome), guia_comercial(id,nome,slug,imagem_url,categoria_nome,status)")
+    .eq("campanha_id", campanhaId)
+    .neq("status", "arquivado")
+    .order("ordem", { ascending: true })
+    .order("categoria_nome", { ascending: true });
+  if (error) {
+    if (appTablesMissing(error)) return [];
+    throw error;
+  }
+  return data || [];
+}
+
+export async function salvarVencedorApp(payload) {
+  const { id, ...dados } = payload;
+  const query = id
+    ? db().from("app_melhores_vencedores").update(dados).eq("id", id)
+    : db().from("app_melhores_vencedores").insert(dados);
+  const { data, error } = await query.select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function arquivarVencedorApp(id) {
+  const { error } = await db()
+    .from("app_melhores_vencedores")
+    .update({ status: "arquivado" })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function listarResultadosPublicadosEdicao(edicaoId) {
+  if (!edicaoId) return [];
+  const { data, error } = await db()
+    .from("melhores_resultados")
+    .select("*, melhores_categorias(id,nome), melhores_indicados(id,nome,imagem_url,descricao_curta,instagram,whatsapp,site,endereco,guia_comercial_id,guia_comercial(id,nome,imagem_url,status))")
+    .eq("edicao_id", edicaoId)
+    .eq("publicado", true)
+    .eq("vencedor", true)
+    .order("colocacao", { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function importarVencedoresApp(campanhaId) {
+  const { data, error } = await db().rpc("app_melhores_importar_vencedores", { p_campanha: campanhaId });
+  if (error) throw error;
+  return data || 0;
+}
