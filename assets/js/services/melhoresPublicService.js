@@ -4,8 +4,7 @@ const statusPublicos = [
   "indicacoes_abertas",
   "votacao_aberta",
   "votacao_encerrada",
-  "resultado_publicado",
-  "arquivada"
+  "resultado_publicado"
 ];
 
 export async function listarEdicoesPublicas() {
@@ -14,15 +13,17 @@ export async function listarEdicoesPublicas() {
     select: "id,nome,ano,slug,descricao,imagem_capa_url,status,indicacoes_inicio,indicacoes_fim,votacao_inicio,votacao_fim,divulgacao_em,peso_site,peso_instagram,mostrar_votos_publicamente",
     status: `in.(${status})`,
     order: "ano.desc"
-  }, { ttl: 120000 });
+  }, { ttl: 5000 });
 }
 
 export async function obterEdicaoPorAno(ano) {
+  const status = statusPublicos.join(",");
   const rows = await fetchPublicRows("melhores_edicoes", {
     select: "*",
     ano: `eq.${ano}`,
+    status: `in.(${status})`,
     limit: "1"
-  }, { ttl: 60000 });
+  }, { ttl: 5000 });
   return rows?.[0] || null;
 }
 

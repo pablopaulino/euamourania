@@ -26,7 +26,7 @@ async function rows(table, select, order, filters = []) {
 async function melhoresRows() {
   const query = new URLSearchParams({
     select: "ano,atualizado_em,imagem_capa_url",
-    status: "in.(indicacoes_abertas,votacao_aberta,votacao_encerrada,resultado_publicado,arquivada)",
+    status: "in.(indicacoes_abertas,votacao_aberta,votacao_encerrada,resultado_publicado)",
     order: "ano.desc"
   });
   const response = await fetch(`${SUPABASE_URL}/rest/v1/melhores_edicoes?${query}`, {
@@ -43,7 +43,7 @@ async function melhoresCategoriasRows() {
     visibilidade_publica: "eq.true",
     order: "ordem.asc"
   });
-  query.append("melhores_edicoes.status", "in.(indicacoes_abertas,votacao_aberta,votacao_encerrada,resultado_publicado,arquivada)");
+  query.append("melhores_edicoes.status", "in.(indicacoes_abertas,votacao_aberta,votacao_encerrada,resultado_publicado)");
   const response = await fetch(`${SUPABASE_URL}/rest/v1/melhores_categorias?${query}`, {
     headers: { apikey: SUPABASE_KEY }
   });
