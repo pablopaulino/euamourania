@@ -35,6 +35,7 @@ async function carregar() {
       ? window.DOMPurify.sanitize(item.conteudo_html || `<p>${escapeHtml(item.descricao)}</p>`, { ADD_TAGS: ["iframe"], ADD_ATTR: ["allow", "allowfullscreen", "frameborder"] })
       : `<p>${escapeHtml(textoPuro(item.conteudo_html || item.descricao))}</p>`;
     const mapUrl = safeUrl(item.mapa_url);
+    const mapQuery = [item.nome, item.endereco, "Urânia SP"].filter(Boolean).join(" ");
     container.innerHTML = `<article class="tourism-detail" data-tourism-id="${escapeHtml(item.id)}">
       <a class="tourism-detail-back" href="turismo.html"><span aria-hidden="true">←</span> Voltar aos lugares</a>
       <section class="tourism-detail-hero">
@@ -49,7 +50,7 @@ async function carregar() {
             ${item.horario ? `<div>${icons.clock}<p><small>Horário</small>${escapeHtml(item.horario)}</p></div>` : ""}
           </div>
           <div class="tourism-detail-actions">
-            ${mapUrl ? `<a class="tourism-action primary" target="_blank" rel="noopener" href="${mapUrl}">${icons.map}<span>Abrir no mapa</span></a>` : ""}
+            ${mapUrl ? `<a class="tourism-action primary" target="_blank" rel="noopener" href="${mapUrl}" data-map-query="${escapeHtml(mapQuery)}" data-map-fallback="${mapUrl}">${icons.map}<span>Abrir no mapa</span></a>` : ""}
             ${item.whatsapp ? `<a class="tourism-action whatsapp" target="_blank" rel="noopener" href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}">${icons.whatsapp}<span>Falar pelo WhatsApp</span></a>` : ""}
             <a class="tourism-action secondary" href="turismo.html"><span aria-hidden="true">←</span><span>Ver outros lugares</span></a>
           </div>

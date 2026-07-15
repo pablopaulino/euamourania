@@ -80,6 +80,7 @@ async function carregar() {
     const insta = instagramUrl(item.instagram);
     const whatsapp = item.whatsapp ? `https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}` : "";
     const mapa = mapsUrl(item);
+    const mapaQuery = [item.nome, item.endereco, "Urânia SP"].filter(Boolean).join(" ");
     container.innerHTML = `<article class="guide-business" data-guide-id="${escapeHtml(item.id)}">
       <a class="guide-business-back" href="/guia.html"><span aria-hidden="true">←</span> Voltar ao Guia</a>
       <section class="guide-business-hero">
@@ -103,7 +104,7 @@ async function carregar() {
         <div class="guide-business-main">
           ${item.recomendado ? `<article class="guide-highlight-card">${icons.star}<div><p class="eyebrow">Destaque no Guia</p><h2>Empresa recomendada</h2><p>Este estabelecimento aparece em destaque no Guia do Eu Amo Urânia, facilitando a descoberta por quem procura opções locais.</p></div></article>` : ""}
           <article class="guide-info-card"><p class="eyebrow">Sobre o estabelecimento</p><h2>O que você encontra aqui</h2><p>${escapeHtml(item.descricao || "Informações comerciais cadastradas para ajudar você a conhecer e entrar em contato com esta empresa.")}</p></article>
-          <article class="guide-info-card"><p class="eyebrow">Localização</p><h2>Como encontrar</h2>${item.endereco ? `<p>${escapeHtml(item.endereco)}</p>` : "<p>Endereço ainda não informado.</p>"}${mapa ? `<a class="guide-map-link" target="_blank" rel="noopener" href="${mapa}">${icons.map}<span>Abrir rota no Google Maps</span></a>` : ""}</article>
+          <article class="guide-info-card"><p class="eyebrow">Localização</p><h2>Como encontrar</h2>${item.endereco ? `<p>${escapeHtml(item.endereco)}</p>` : "<p>Endereço ainda não informado.</p>"}${mapa ? `<a class="guide-map-link" target="_blank" rel="noopener" href="${mapa}" data-map-query="${escapeHtml(mapaQuery)}" data-map-fallback="${mapa}">${icons.map}<span>Abrir rota no mapa</span></a>` : ""}</article>
         </div>
         <aside class="guide-contact-card" aria-labelledby="guide-contact-title">
           <p class="eyebrow">Contato rápido</p>
@@ -116,7 +117,7 @@ async function carregar() {
           <div class="guide-contact-actions">
             ${whatsapp ? `<a class="guide-business-action whatsapp" target="_blank" rel="noopener" href="${whatsapp}">${icons.whatsapp}<span>WhatsApp</span></a>` : ""}
             ${insta ? `<a class="guide-business-action instagram" target="_blank" rel="noopener" href="${insta}">${icons.instagram}<span>Instagram</span></a>` : ""}
-            ${mapa ? `<a class="guide-business-action secondary" target="_blank" rel="noopener" href="${mapa}">${icons.map}<span>Mapa</span></a>` : ""}
+            ${mapa ? `<a class="guide-business-action secondary" target="_blank" rel="noopener" href="${mapa}" data-map-query="${escapeHtml(mapaQuery)}" data-map-fallback="${mapa}">${icons.map}<span>Mapa</span></a>` : ""}
           </div>
         </aside>
       </section>
