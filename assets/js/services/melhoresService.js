@@ -127,6 +127,15 @@ export async function listarEdicoes() {
   return data || [];
 }
 
+export async function listarEdicoesParaCopiaCategorias() {
+  const { data, error } = await db()
+    .from("melhores_edicoes")
+    .select("id,ano,nome,status")
+    .order("ano", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
 export async function salvarEdicao(payload) {
   const { id, ...dados } = payload;
   const query = id
@@ -165,6 +174,60 @@ export async function salvarCategoria(payload) {
   const { data, error } = await query.select().single();
   if (error) throw error;
   return data;
+}
+
+export async function copiarCategoriasEntreEdicoes({ origemEdicaoId, destinoEdicaoId }) {
+  if (!origemEdicaoId || !destinoEdicaoId) throw new Error("Informe as edições de origem e destino.");
+  if (origemEdicaoId === destinoEdicaoId) throw new Error("Escolha edições diferentes para copiar as categorias.");
+
+  const supabase = db();
+  const campos = [
+    "nome",
+    "slug",
+    "descricao",
+    "imagem_url",
+    "icone",
+    "ordem",
+    "status",
+    "limite_indicados",
+    "permite_indicacao_publica",
+    "permite_multiplos_votos",
+    "max_escolhas",
+    "criterios_especificos",
+    "regra_desempate",
+    "visibilidade_publica"
+  ];
+  const [{ data: origem, error: origemError }, { data: destino, error: destinoError }] = await Promise.all([
+    supabase
+      .from("melhores_categorias")
+      .select(campos.join(","))
+      .eq("edicao_id", origemEdicaoId)
+      .neq("status", "arquivado")
+      .order("ordem", { ascending: true })
+      .order("nome", { ascending: true }),
+    supabase
+      .from("melhores_categorias")
+      .select("slug")
+      .eq("edicao_id", destinoEdicaoId)
+  ]);
+  if (origemError) throw origemError;
+  if (destinoError) throw destinoError;
+
+  const slugsExistentes = new Set((destino || []).map(item => item.slug));
+  const novasCategorias = (origem || [])
+    .filter(item => !slugsExistentes.has(item.slug))
+    .map(item => ({ ...item, edicao_id: destinoEdicaoId }));
+
+  if (novasCategorias.length) {
+    const { error } = await supabase.from("melhores_categorias").insert(novasCategorias);
+    if (error) throw error;
+  }
+
+  return {
+    copiadas: novasCategorias.length,
+    ignoradas: (origem || []).length - novasCategorias.length,
+    totalOrigem: (origem || []).length
+  };
 }
 
 export async function excluirCategoria(id) {

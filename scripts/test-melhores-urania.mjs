@@ -65,6 +65,11 @@ for (const action of ["salvarEdicao", "salvarCategoria", "salvarIndicado", "list
   must(service.includes(`export async function ${action}`), `Serviço sem função: ${action}`);
   must(adminJs.includes(action), `Admin JS não usa serviço: ${action}`);
 }
+must(service.includes("export async function copiarCategoriasEntreEdicoes"), "Serviço não permite copiar categorias entre edições");
+must(service.includes('item => ({ ...item, edicao_id: destinoEdicaoId })'), "Cópia de categorias não vincula os registros à edição de destino");
+must(service.includes('slugsExistentes.has(item.slug)'), "Cópia de categorias não protege categorias já existentes no destino");
+must(adminJs.includes('data-copy-categories') && adminJs.includes('submitLabel: "Copiar categorias"'), "Painel não oferece a ação de copiar categorias");
+must(adminJs.includes("Indicados, indicações e votos não serão copiados"), "Painel não explica o escopo seguro da cópia de categorias");
 for (const tab of ["dashboard", "editions", "categories", "nominees"]) {
   must(adminHtml.includes(`data-tab="${tab}"`) || adminHtml.includes(`${tab}-view`), `Aba ausente: ${tab}`);
 }

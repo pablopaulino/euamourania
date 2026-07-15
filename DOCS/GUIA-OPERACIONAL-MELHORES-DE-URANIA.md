@@ -49,6 +49,14 @@ Exemplos:
 
 A ordem define a posição em que a categoria aparece nas telas públicas e administrativas.
 
+Para reaproveitar as categorias de uma edição anterior:
+
+1. Escolha a nova edição no filtro da aba **Categorias**.
+2. Clique em **Copiar de outra edição**.
+3. Selecione a edição de origem e confirme.
+
+O painel copia as configurações das categorias, mas não copia indicados, indicações ou votos. Se uma categoria com o mesmo slug já existir na nova edição, ela será mantida sem alterações.
+
 ## 4. Criar indicados
 
 1. Abra a aba **Indicados**.

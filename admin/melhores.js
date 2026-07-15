@@ -9,6 +9,7 @@ import {
   excluirEdicao,
   listarCategorias,
   salvarCategoria,
+  copiarCategoriasEntreEdicoes,
   excluirCategoria,
   listarIndicacoes,
   moderarIndicacao,
@@ -235,7 +236,10 @@ async function loadCategories() {
       <article class="awards-card">
         <div class="awards-panel-head">
           <div><h3>Categorias</h3><p>As categorias não ficam fixas no código: tudo é administrável por edição.</p></div>
-          <button class="admin-button" data-new-category>Nova categoria</button>
+          <div class="awards-actions">
+            <button class="admin-button secondary" data-copy-categories="${escapeHtml(selected)}" ${state.edicoes.length < 2 ? "disabled" : ""}>Copiar de outra edição</button>
+            <button class="admin-button" data-new-category>Nova categoria</button>
+          </div>
         </div>
         <div class="awards-toolbar">
           <input id="category-search" type="search" placeholder="Pesquisar categoria…">
@@ -671,7 +675,7 @@ async function loadSettings() {
             <tbody>${rows.length ? rows.map(settingsRow).join("") : '<tr><td colspan="5"><div class="awards-empty">Nenhuma edição cadastrada.</div></td></tr>'}</tbody>
           </table>
         </div>
-        <p class="awards-note" style="margin-top:1rem">Subdomínio: crie um domínio em Vercel para <strong>melhores.euamourania.com.br</strong> apontando para este mesmo projeto e adicione CNAME no DNS conforme instrução da Vercel.</p>
+        <p class="awards-note" style="margin-top:1rem">Subdomínio <strong>melhores.euamourania.com.br</strong> redireciona (301) para <strong>euamourania.com.br/melhores-de-urania/</strong>. Mantenha o domínio na Vercel e o CNAME no DNS para as artes e links antigos continuarem funcionando.</p>
       </article>`;
   } catch (error) {
     showError(error);
@@ -905,10 +909,10 @@ function selectField(name, label, html, className = "") {
   return `<label class="awards-field ${className}"><span>${label}</span><select name="${name}">${html}</select></label>`;
 }
 
-function showForm(title, html, onSubmit) {
+function showForm(title, html, onSubmit, { submitLabel = "Salvar" } = {}) {
   if (state.tab !== "form") state.returnTab = state.tab || "dashboard";
   setActiveTab("form", { persist: false });
-  $("#form-view").innerHTML = `<article class="awards-card awards-form-card"><div class="awards-panel-head"><div><h3>${escapeHtml(title)}</h3><p>Preencha com atenção. Slugs, pesos e períodos têm validação no banco.</p></div></div><form class="awards-form" id="awards-form">${html}<div class="awards-form-actions"><button type="button" class="admin-button secondary" data-cancel-form>Cancelar</button><button class="admin-button" type="submit">Salvar</button></div></form></article>`;
+  $("#form-view").innerHTML = `<article class="awards-card awards-form-card"><div class="awards-panel-head"><div><h3>${escapeHtml(title)}</h3><p>Preencha com atenção. Slugs, pesos e períodos têm validação no banco.</p></div></div><form class="awards-form" id="awards-form">${html}<div class="awards-form-actions"><button type="button" class="admin-button secondary" data-cancel-form>Cancelar</button><button class="admin-button" type="submit">${escapeHtml(submitLabel)}</button></div></form></article>`;
   $("#awards-form").addEventListener("submit", onSubmit);
 }
 
@@ -1046,6 +1050,36 @@ async function categoryForm(id) {
     await loadCategories();
   });
   wireSlug($("#awards-form"));
+}
+
+async function copyCategoriesForm(destinoEdicaoId) {
+  if (!state.edicoes.length) state.edicoes = await listarEdicoes();
+  const destino = state.edicoes.find(item => item.id === destinoEdicaoId);
+  const origens = state.edicoes.filter(item => item.id !== destinoEdicaoId);
+  if (!destino || !origens.length) return toast("Cadastre outra edição antes de copiar categorias.", "error");
+
+  showForm("Copiar categorias", `
+    <input type="hidden" name="destino_edicao_id" value="${escapeHtml(destinoEdicaoId)}">
+    ${selectField("origem_edicao_id", "Copiar da edição *", origens.map(item => `<option value="${item.id}">${item.ano} · ${escapeHtml(item.nome)}</option>`).join(""))}
+    ${field("destino_edicao", "Para a edição", `${destino.ano} · ${destino.nome}`, "readonly")}
+    <div class="awards-note awards-field full">
+      Serão copiadas as configurações das categorias, incluindo ordem, regras, imagens e status.
+      Indicados, indicações e votos não serão copiados. Categorias já existentes com o mesmo slug serão mantidas sem alterações.
+    </div>
+  `, async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const origem = state.edicoes.find(item => item.id === form.elements.origem_edicao_id.value);
+    if (!confirm(`Copiar as categorias de ${origem?.nome || "outra edição"} para ${destino.nome}?`)) return;
+    const resultado = await copiarCategoriasEntreEdicoes({
+      origemEdicaoId: form.elements.origem_edicao_id.value,
+      destinoEdicaoId: form.elements.destino_edicao_id.value
+    });
+    const resumoIgnoradas = resultado.ignoradas ? ` ${resultado.ignoradas} já existente(s) foi/foram mantida(s).` : "";
+    toast(`${resultado.copiadas} categoria(s) copiada(s).${resumoIgnoradas}`);
+    state.categorias = [];
+    await loadCategories();
+  }, { submitLabel: "Copiar categorias" });
 }
 
 async function nomineeForm(id) {
@@ -1329,6 +1363,7 @@ async function init() {
       return loadEditions();
     }
     if (button.hasAttribute("data-new-category")) return categoryForm();
+    if (button.dataset.copyCategories) return copyCategoriesForm(button.dataset.copyCategories);
     if (button.dataset.editCategory) return categoryForm(button.dataset.editCategory);
     if (button.dataset.deleteCategory && confirm("Excluir esta categoria? Indicados vinculados também serão removidos.")) {
       await excluirCategoria(button.dataset.deleteCategory);
