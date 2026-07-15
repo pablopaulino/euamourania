@@ -7,12 +7,77 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({ 
 const safeUrl = value => /^https?:\/\//i.test(value || "") ? escapeHtml(value) : "";
 const safeImage = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? escapeHtml(value) : "";
 const fallbackImage = "assets/AD3A1763-min (1).jpg";
+const today = () => new Date().toISOString();
 const icons = {
   pin:'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
   clock:'<svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   map:'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg>',
   whatsapp:'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.4-4A8 8 0 1 1 20 11.5Z"/><path d="M9 8.5c.5 2.5 2 4 4.5 5"/></svg>'
 };
+
+const truncate = (value = "", size = 105) => {
+  const text = textoPuro(value || "");
+  return text.length > size ? `${text.slice(0, size).trim()}…` : text;
+};
+
+const dateLabel = value => {
+  try {
+    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", timeZone: "America/Sao_Paulo" }).format(new Date(value));
+  } catch {
+    return "";
+  }
+};
+
+function relationSection({ eyebrow, title, text, items, className = "" }) {
+  if (!items?.length) return "";
+  return `<section class="tourism-related-section ${className}" aria-label="${escapeHtml(title)}">
+    <div class="tourism-related-heading">
+      <p class="eyebrow">${escapeHtml(eyebrow)}</p>
+      <h2>${escapeHtml(title)}</h2>
+      ${text ? `<p>${escapeHtml(text)}</p>` : ""}
+    </div>
+    <div class="tourism-related-grid">${items.join("")}</div>
+  </section>`;
+}
+
+function companyCard(item) {
+  const image = safeImage(item.imagem_url);
+  return `<a class="tourism-related-card compact" href="/guia/${encodeURIComponent(item.slug || item.id)}">
+    ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Guia</div>`}
+    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco))}</p><span>Ver empresa →</span></div>
+  </a>`;
+}
+
+function tourismCard(item) {
+  const image = safeImage(item.imagem_url);
+  return `<a class="tourism-related-card compact" href="/turismo-details.html?slug=${encodeURIComponent(item.slug)}">
+    ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Turismo</div>`}
+    <div><small>Turismo local</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao))}</p><span>Conhecer lugar →</span></div>
+  </a>`;
+}
+
+function newsCard(item) {
+  const image = safeImage(item.imagem_url);
+  return `<a class="tourism-related-card" href="/noticias/${encodeURIComponent(item.slug)}">
+    ${image ? `<img src="${image}" alt="${escapeHtml(item.titulo)}" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Notícia</div>`}
+    <div><small>${escapeHtml(item.categoria_nome || "Notícias")}${item.publicado_em ? ` · ${escapeHtml(dateLabel(item.publicado_em))}` : ""}</small><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(truncate(item.resumo || item.conteudo_html))}</p><span>Ler notícia →</span></div>
+  </a>`;
+}
+
+async function relatedBlocks(item) {
+  const [food, stay, attractions, news] = await Promise.all([
+    fetchPublicRows("guia_comercial", { select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco", status: "eq.publicado", or: "(categoria_nome.ilike.*aliment*,categoria_nome.ilike.*restaurante*,categoria_nome.ilike.*pizz*,categoria_nome.ilike.*lanche*,categoria_nome.ilike.*bar*,nome.ilike.*restaurante*,nome.ilike.*pizz*)", order: "recomendado.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => []),
+    fetchPublicRows("guia_comercial", { select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco", status: "eq.publicado", or: "(categoria_nome.ilike.*hotel*,categoria_nome.ilike.*hosped*,categoria_nome.ilike.*pousada*,nome.ilike.*hotel*,nome.ilike.*pousada*)", order: "recomendado.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => []),
+    fetchPublicRows("turismo", { select: "id,nome,slug,descricao,imagem_url", status: "eq.publicado", id: `neq.${item.id}`, order: "destaque.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => []),
+    fetchPublicRows("noticias", { select: "id,titulo,slug,resumo,conteudo_html,imagem_url,categoria_nome,publicado_em", status: "eq.publicado", publicado_em: `lte.${today()}`, order: "publicado_em.desc", limit: "3" }, { ttl: 180000 }).catch(() => [])
+  ]);
+  return [
+    relationSection({ eyebrow: "Guia da cidade", title: "Onde comer por perto", text: "Empresas do guia para complementar o passeio.", items: food.map(companyCard) }),
+    relationSection({ eyebrow: "Planeje sua visita", title: "Onde se hospedar", text: "Opções cadastradas no Guia quando houver hospedagens disponíveis.", items: stay.map(companyCard) }),
+    relationSection({ eyebrow: "Continue explorando", title: "Outros atrativos", text: "Mais lugares para conhecer em Urânia.", items: attractions.map(tourismCard) }),
+    relationSection({ eyebrow: "Informação local", title: "Notícias relacionadas à cidade", text: "Acompanhe também as novidades de Urânia.", items: news.map(newsCard) })
+  ].join("");
+}
 
 async function carregar() {
   if (!publicSupabaseConfigured()) { container.innerHTML = '<p class="not-found-message">Configure o Supabase para carregar este ponto turístico.</p>'; return; }
@@ -36,6 +101,7 @@ async function carregar() {
       : `<p>${escapeHtml(textoPuro(item.conteudo_html || item.descricao))}</p>`;
     const mapUrl = safeUrl(item.mapa_url);
     const mapQuery = [item.nome, item.endereco, "Urânia SP"].filter(Boolean).join(" ");
+    const relacionamentos = await relatedBlocks(item);
     container.innerHTML = `<article class="tourism-detail" data-tourism-id="${escapeHtml(item.id)}">
       <a class="tourism-detail-back" href="turismo.html"><span aria-hidden="true">←</span> Voltar aos lugares</a>
       <section class="tourism-detail-hero">
@@ -56,6 +122,7 @@ async function carregar() {
           </div>
         </aside>
       </div>
+      ${relacionamentos ? `<section class="tourism-related-area">${relacionamentos}</section>` : ""}
     </article>`;
     window.dispatchEvent(new CustomEvent("turismo:renderizado",{detail:{id:item.id}}));
   } catch (error) {

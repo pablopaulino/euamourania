@@ -9,6 +9,7 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({ 
 const safeUrl = value => /^https?:\/\//i.test(value || "") ? escapeHtml(value) : "";
 const safeImage = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? escapeHtml(value) : "";
 const fallbackImage = "/assets/1505 - Urania - Logo Horizontal - 1.png";
+const today = () => new Date().toISOString();
 const icons = {
   pin:'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
   clock:'<svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
@@ -18,6 +19,80 @@ const icons = {
   map:'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg>',
   star:'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6-5.4-2.9-5.4 2.9 1-6-4.4-4.3 6.1-.9L12 3Z"/></svg>'
 };
+
+const truncate = (value = "", size = 105) => {
+  const text = textoPuro(value || "");
+  return text.length > size ? `${text.slice(0, size).trim()}…` : text;
+};
+
+const dateLabel = value => {
+  try {
+    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", timeZone: "America/Sao_Paulo" }).format(new Date(value));
+  } catch {
+    return "";
+  }
+};
+
+function relationSection({ eyebrow, title, text, items, className = "" }) {
+  if (!items?.length) return "";
+  return `<section class="guide-related-section ${className}" aria-label="${escapeHtml(title)}">
+    <div class="guide-related-heading">
+      <p class="eyebrow">${escapeHtml(eyebrow)}</p>
+      <h2>${escapeHtml(title)}</h2>
+      ${text ? `<p>${escapeHtml(text)}</p>` : ""}
+    </div>
+    <div class="guide-related-grid">${items.join("")}</div>
+  </section>`;
+}
+
+function newsCard(item) {
+  const image = safeImage(item.imagem_url);
+  return `<a class="guide-related-card" href="/noticias/${encodeURIComponent(item.slug)}">
+    ${image ? `<img src="${image}" alt="${escapeHtml(item.titulo)}" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Notícia</div>`}
+    <div><small>${escapeHtml(item.categoria_nome || "Notícias")}${item.publicado_em ? ` · ${escapeHtml(dateLabel(item.publicado_em))}` : ""}</small><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(truncate(item.resumo || item.conteudo_html))}</p><span>Ler notícia →</span></div>
+  </a>`;
+}
+
+function tourismCard(item) {
+  const image = safeImage(item.imagem_url);
+  return `<a class="guide-related-card compact" href="/turismo-details.html?slug=${encodeURIComponent(item.slug)}">
+    ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Turismo</div>`}
+    <div><small>Turismo em Urânia</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao))}</p><span>Conhecer lugar →</span></div>
+  </a>`;
+}
+
+function eventCard(item) {
+  const image = safeImage(item.imagem_url);
+  return `<a class="guide-related-card compact" href="/eventos/detalhes.html?slug=${encodeURIComponent(item.slug)}">
+    ${image ? `<img src="${image}" alt="${escapeHtml(item.titulo)}" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Evento</div>`}
+    <div><small>${item.data_inicio ? escapeHtml(dateLabel(item.data_inicio)) : "Evento"}</small><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(truncate(item.descricao || item.local))}</p><span>Ver evento →</span></div>
+  </a>`;
+}
+
+function companyCard(item) {
+  const image = safeImage(item.imagem_url);
+  return `<a class="guide-related-card compact" href="/guia/${encodeURIComponent(item.slug || item.id)}">
+    ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Guia</div>`}
+    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco))}</p><span>Ver empresa →</span></div>
+  </a>`;
+}
+
+async function relatedBlocks(item) {
+  const [news, tourism, eventsRaw, companies] = await Promise.all([
+    fetchPublicRows("noticias", { select: "id,titulo,slug,resumo,conteudo_html,imagem_url,categoria_nome,publicado_em", status: "eq.publicado", publicado_em: `lte.${today()}`, order: "publicado_em.desc", limit: "3" }, { ttl: 180000 }).catch(() => []),
+    fetchPublicRows("turismo", { select: "id,nome,slug,descricao,imagem_url", status: "eq.publicado", order: "destaque.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => []),
+    fetchPublicRows("eventos", { select: "id,titulo,slug,descricao,imagem_url,data_inicio,data_fim,local", status: "eq.publicado", order: "data_inicio.asc", limit: "5" }, { ttl: 180000 }).catch(() => []),
+    fetchPublicRows("guia_comercial", { select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco", status: "eq.publicado", id: `neq.${item.id}`, ...(item.categoria_nome ? { categoria_nome: `eq.${item.categoria_nome}` } : {}), order: "recomendado.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => [])
+  ]);
+  const now = Date.now();
+  const events = eventsRaw.filter(event => !event.data_fim || new Date(event.data_fim).getTime() >= now).slice(0, 3);
+  return [
+    relationSection({ eyebrow: "Saiba mais sobre Urânia", title: "Notícias da cidade", text: "Informação local para continuar acompanhando o que acontece por aqui.", items: news.map(newsCard) }),
+    relationSection({ eyebrow: "Passeios e experiências", title: "Mais lugares para visitar", text: "Pontos turísticos e experiências para conhecer em Urânia.", items: tourism.map(tourismCard) }),
+    relationSection({ eyebrow: "Agenda", title: "Eventos em Urânia", text: "Quando houver programação cadastrada, ela aparece aqui.", items: events.map(eventCard) }),
+    relationSection({ eyebrow: "Guia comercial", title: "Empresas da mesma categoria", text: "Outras opções que podem ajudar você na cidade.", items: companies.map(companyCard) })
+  ].join("");
+}
 
 function instagramUrl(value) {
   if (!value) return "";
@@ -81,6 +156,7 @@ async function carregar() {
     const whatsapp = item.whatsapp ? `https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}` : "";
     const mapa = mapsUrl(item);
     const mapaQuery = [item.nome, item.endereco, "Urânia SP"].filter(Boolean).join(" ");
+    const relacionamentos = await relatedBlocks(item);
     container.innerHTML = `<article class="guide-business" data-guide-id="${escapeHtml(item.id)}">
       <a class="guide-business-back" href="/guia.html"><span aria-hidden="true">←</span> Voltar ao Guia</a>
       <section class="guide-business-hero">
@@ -121,6 +197,7 @@ async function carregar() {
           </div>
         </aside>
       </section>
+      ${relacionamentos ? `<section class="guide-related-area">${relacionamentos}</section>` : ""}
     </article>`;
     document.getElementById("copy-guide-link")?.addEventListener("click", async event => {
       try {
