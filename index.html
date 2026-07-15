@@ -3,33 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style id="melhores-subdomain-guard">html.melhores-subdomain-loading body{visibility:hidden}</style>
-  <script>
-    (function () {
-      var prizeHost = "melhores.euamourania.com.br";
-      if (window.location.hostname !== prizeHost) return;
-      document.documentElement.classList.add("melhores-subdomain-loading");
-      fetch("/melhores-de-urania/index.html", { cache: "no-store" })
-        .then(function (response) {
-          if (!response.ok) throw new Error("Nao foi possivel carregar Melhores de Urania");
-          return response.text();
-        })
-        .then(function (html) {
-          var origin = "https://" + prizeHost;
-          html = html
-            .replace(/https:\/\/euamourania\.com\.br\/melhores-de-urania\//g, origin + "/")
-            .replace(/https:\/\/euamourania\.com\.br\/melhores-de-urania/g, origin)
-            .replace(/<link[^>]+rel=["']canonical["'][^>]*>/i, '<link rel="canonical" href="' + origin + '/">')
-            .replace(/<meta[^>]+property=["']og:url["'][^>]*>/i, '<meta property="og:url" content="' + origin + '/">');
-          document.open();
-          document.write(html);
-          document.close();
-        })
-        .catch(function () {
-          document.documentElement.classList.remove("melhores-subdomain-loading");
-        });
-    })();
-  </script>
   <meta name="description" content="Eu Amo Urânia: notícias, turismo, comércio e histórias que aproximam quem vive e ama Urânia.">
   <meta property="og:title" content="Eu Amo Urânia — A cidade mais perto de você">
   <meta property="og:description" content="Informação local, lugares para conhecer e tudo o que conecta a comunidade de Urânia.">

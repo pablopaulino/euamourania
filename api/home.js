@@ -1,9 +1,5 @@
-const fs = require("fs");
-const path = require("path");
-
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://omhcpbphvtihqwdkbsbf.supabase.co";
 const KEY = process.env.SUPABASE_PUBLISHABLE_KEY || "sb_publishable_m02B2sC8Ddh4fCtnvsGePg_TqwUanoM";
-const PRIZE_HOST = "melhores.euamourania.com.br";
 
 const esc = (v = "") => String(v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const absolute = (v, domain) => {
@@ -22,38 +18,8 @@ function meta(html, key, value, property = false) {
   return pattern.test(html) ? html.replace(pattern, tag) : html.replace("</head>", `${tag}</head>`);
 }
 
-function readStaticHtml(file) {
-  return fs.readFileSync(path.join(process.cwd(), file), "utf8");
-}
-
-function servePrizeHome(req, res) {
-  let output = readStaticHtml("melhores-de-urania/index.html");
-  const origin = `https://${PRIZE_HOST}`;
-  output = output.replace(/https:\/\/euamourania\.com\.br\/melhores-de-urania\//g, `${origin}/`);
-  output = output.replace(/<link[^>]+rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${origin}/">`);
-  output = meta(output, "og:url", `${origin}/`, true);
-  res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=3600");
-  return res.status(200).send(output);
-}
-
-function requestHosts(req) {
-  return [
-    req.headers.host,
-    req.headers["x-forwarded-host"],
-    req.headers["x-vercel-forwarded-host"],
-    req.headers["x-real-host"]
-  ]
-    .flatMap(value => String(value || "").split(","))
-    .map(value => value.trim().split(":")[0].toLowerCase())
-    .filter(Boolean);
-}
-
 module.exports = async (req, res) => {
   try {
-    const hosts = requestHosts(req);
-    if (hosts.includes(PRIZE_HOST)) return servePrizeHome(req, res);
-
     const origin = `https://${req.headers.host}`;
     const page = await fetch(`${origin}/index.html`, { headers: { "x-site-meta": "1" } });
     const html = await page.text();

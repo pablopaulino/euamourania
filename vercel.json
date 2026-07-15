@@ -7,6 +7,30 @@
   ],
   "redirects": [
     {
+      "source": "/melhores-de-urania/:path*",
+      "has": [
+        { "type": "host", "key": "host", "value": "melhores.euamourania.com.br" }
+      ],
+      "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "host", "key": "host", "value": "melhores.euamourania.com.br" }
+      ],
+      "destination": "https://euamourania.com.br/melhores-de-urania/",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "host", "key": "host", "value": "melhores.euamourania.com.br" }
+      ],
+      "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
+      "permanent": true
+    },
+    {
       "source": "/news-detalhes.html",
       "has": [
         { "type": "query", "key": "slug", "value": "(?<slug>[a-z0-9-]+)" }
@@ -26,13 +50,6 @@
     { "source": "/news-details.html", "destination": "/news/", "permanent": true }
   ],
   "rewrites": [
-    {
-      "source": "/",
-      "has": [
-        { "type": "header", "key": "host", "value": "melhores.euamourania.com.br" }
-      ],
-      "destination": "/melhores-de-urania/index.html"
-    },
     { "source": "/", "destination": "/api/home" },
     { "source": "/melhores-de-urania/:ano/regulamento", "destination": "/melhores-de-urania/regulamento.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano/regulamento/", "destination": "/melhores-de-urania/regulamento.html?ano=:ano" },
