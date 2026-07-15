@@ -1,0 +1,16 @@
+.guide-detail-page .site-header{background:rgba(255,255,255,.94)}
+.guide-detail-hero figure{display:grid;place-items:center;background:linear-gradient(135deg,#eef7f9,#fff8d8)}
+.guide-detail-hero figure img{object-fit:cover}
+.guide-detail-hero figure img[src*="Logo"]{width:min(72%,360px);height:auto;min-height:0;object-fit:contain;padding:2rem}
+.guide-detail .tourism-detail-label{background:rgba(247,201,72,.95)}
+.guide-detail .article-copy p{margin:0}
+.tourism-action.instagram{color:#8a2b6b;background:#fff0f8;border-color:#f2c8df}
+.tourism-action.instagram:hover{color:#fff;background:#bc2a8d;border-color:#bc2a8d}
+.guide-card-link{display:block;color:inherit;text-decoration:none}
+.card-title a{color:inherit;text-decoration:none}
+.card-title a:hover{color:var(--blue)}
+.guide-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:auto}
+.guide-card-actions .btn-whatsapp{margin-top:0}
+.btn-guide-details{display:flex;align-items:center;justify-content:center;min-height:44px;color:var(--blue);background:#eef7f9;border:1px solid #c7dce2;border-radius:999px;font-weight:800;text-decoration:none;transition:.18s ease}
+.btn-guide-details:hover{color:#fff;background:var(--blue);border-color:var(--blue);transform:translateY(-2px)}
+@media(max-width:650px){.guide-card-actions{grid-template-columns:1fr}.guide-detail-hero figure img[src*="Logo"]{width:min(76%,280px)}}

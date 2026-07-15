@@ -48,6 +48,7 @@
     { "source": "/api/newsletter-click", "destination": "/api/newsletter-track?event=click" },
     { "source": "/noticias/feed.xml", "destination": "/api/rss" },
     { "source": "/noticias/:slug", "destination": "/api/noticia?slug=:slug" },
+    { "source": "/guia/:slug", "destination": "/guia-details.html?slug=:slug" },
     { "source": "/sitemap.xml", "destination": "/api/sitemaps?type=standard" },
     { "source": "/news-sitemap.xml", "destination": "/api/sitemaps?type=news" },
     { "source": "/rss.xml", "destination": "/api/rss" }

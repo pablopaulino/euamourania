@@ -77,7 +77,8 @@ module.exports = async (req, res) => {
       );
     }
 
-    const [turismo, eventos, melhores, melhoresCategorias] = await Promise.all([
+    const [guia, turismo, eventos, melhores, melhoresCategorias] = await Promise.all([
+      rows("guia_comercial", "slug,atualizado_em,imagem_url", "atualizado_em.desc"),
       rows("turismo", "slug,atualizado_em", "atualizado_em.desc"),
       rows("eventos", "slug,atualizado_em", "atualizado_em.desc"),
       melhoresRows(),
@@ -115,6 +116,11 @@ module.exports = async (req, res) => {
         loc: `${DOMAIN}/noticias/${noticia.slug}`,
         lastmod: noticia.publicado_em,
         image: imageTag(noticia)
+      })),
+      ...guia.map(item => ({
+        loc: `${DOMAIN}/guia/${item.slug}`,
+        lastmod: item.atualizado_em,
+        image: imageTag(item)
       })),
       ...turismo.map(item => ({
         loc: `${DOMAIN}/turismo-details.html?slug=${item.slug}`,

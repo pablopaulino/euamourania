@@ -32,7 +32,7 @@ function makeItem(type, row) {
       label: "Guia",
       title: row.nome,
       description: row.descricao,
-      url: `/guia.html?busca=${encodeURIComponent(row.nome)}#guia-${encodeURIComponent(row.id)}`,
+      url: `/guia/${encodeURIComponent(row.slug)}`,
       category: row.categoria_nome,
       meta: row.endereco,
       action: "Ver estabelecimento"

@@ -92,13 +92,14 @@ async function noticiaView(){
 window.addEventListener("noticia:renderizada",noticiaView,{once:true});
 noticiaView();
 async function detailView(){
- const params=new URLSearchParams(location.search),slug=params.get("slug");
+ const params=new URLSearchParams(location.search),slug=params.get("slug")||location.pathname.match(/^\/guia\/([^/]+)/)?.[1];
  if(!slug)return;
  const isEvent=location.pathname.includes("/eventos/");
  const isTourism=location.pathname.endsWith("/turismo-details.html");
- if(!isEvent&&!isTourism)return;
- const table=isEvent?"eventos":"turismo",type=isEvent?"evento":"turismo";
- const [data]=await fetchPublicRows(table,{select:"id",slug:`eq.${slug}`,status:"eq.publicado",limit:"1"});
+ const isGuide=location.pathname.endsWith("/guia-details.html")||location.pathname.startsWith("/guia/");
+ if(!isEvent&&!isTourism&&!isGuide)return;
+ const table=isEvent?"eventos":isGuide?"guia_comercial":"turismo",type=isEvent?"evento":isGuide?"guia":"turismo";
+ const [data]=await fetchPublicRows(table,{select:"id",slug:`eq.${decodeURIComponent(slug)}`,status:"eq.publicado",limit:"1"});
  if(data?.id)record(`${type}_view`,{recursoTipo:type,recursoId:data.id});
 }
 detailView();
@@ -107,4 +108,7 @@ window.addEventListener("evento:renderizado",event=>{
 },{once:true});
 window.addEventListener("turismo:renderizado",event=>{
  const id=event.detail?.id;if(id)record("turismo_view",{recursoTipo:"turismo",recursoId:id});
+},{once:true});
+window.addEventListener("guia:renderizado",event=>{
+ const id=event.detail?.id;if(id)record("guia_view",{recursoTipo:"guia",recursoId:id});
 },{once:true});
