@@ -43,10 +43,10 @@
 .guide-contact-actions .guide-business-action{width:100%}
 .guide-related-area{display:grid;gap:1.25rem;margin-top:1.6rem}
 .guide-related-section{padding:clamp(1.15rem,3vw,1.65rem);background:#fff;border:1px solid rgba(7,59,76,.1);border-radius:24px;box-shadow:0 14px 38px rgba(7,59,76,.065)}
-.guide-related-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:1.25rem;margin-bottom:1rem}
+.guide-related-heading{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,440px);align-items:end;gap:.2rem 1.25rem;margin-bottom:1rem}
 .guide-related-heading .eyebrow{margin:0 0 .3rem;color:var(--blue)}
 .guide-related-heading h2{margin:0;color:var(--navy);font-size:clamp(1.35rem,2.5vw,2rem);line-height:1.1;letter-spacing:-.035em}
-.guide-related-heading p:not(.eyebrow){max-width:440px;margin:0;color:#637983;font-size:.92rem;line-height:1.55}
+.guide-related-heading p:not(.eyebrow){grid-column:2;grid-row:1/span 2;max-width:440px;margin:0;color:#637983;font-size:.92rem;line-height:1.55}
 .guide-related-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.95rem}
 .guide-related-card{display:flex;flex-direction:column;overflow:hidden;min-width:0;color:inherit;background:#f8fbfb;border:1px solid #e1ecef;border-radius:18px;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
 .guide-related-card:hover{transform:translateY(-3px);border-color:#c7dde4;box-shadow:0 16px 34px rgba(7,59,76,.1)}
@@ -58,6 +58,6 @@
 .guide-related-card p{margin:0 0 .8rem;color:#617780;font-size:.84rem;line-height:1.5}
 .guide-related-card span{margin-top:auto;color:var(--blue);font-size:.82rem;font-weight:900}
 .guide-detail-page .not-found-message{min-height:300px}
-@media(max-width:940px){.guide-business-hero,.guide-business-layout{grid-template-columns:1fr}.guide-business-media,.guide-business-media img{min-height:0;aspect-ratio:16/10}.guide-contact-card{position:static}.guide-business-actions{display:grid;grid-template-columns:1fr 1fr}.guide-business-actions .secondary{grid-column:1/-1}.guide-related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.guide-related-heading{align-items:flex-start;flex-direction:column;gap:.45rem}}
+@media(max-width:940px){.guide-business-hero,.guide-business-layout{grid-template-columns:1fr}.guide-business-media,.guide-business-media img{min-height:0;aspect-ratio:16/10}.guide-contact-card{position:static}.guide-business-actions{display:grid;grid-template-columns:1fr 1fr}.guide-business-actions .secondary{grid-column:1/-1}.guide-related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.guide-related-heading{display:flex;align-items:flex-start;flex-direction:column;gap:.45rem}.guide-related-heading p:not(.eyebrow){grid-column:auto;grid-row:auto}}
 @media(max-width:650px){.guide-business{width:min(calc(100% - 2rem),1180px)}.guide-business-hero{border-radius:22px}.guide-business-media,.guide-business-media img{aspect-ratio:4/3}.guide-business-media img[src*="Logo"]{width:min(76%,280px)}.guide-business-intro{padding:1.25rem}.guide-business-intro h1{font-size:clamp(2rem,10vw,2.85rem)}.guide-business-actions{grid-template-columns:1fr}.guide-business-layout{gap:1rem;margin-top:1rem}.guide-info-card,.guide-highlight-card,.guide-contact-card,.guide-related-section{border-radius:18px}.guide-highlight-card{grid-template-columns:1fr}.guide-highlight-card>svg{width:40px;height:40px}.guide-business-action{width:100%}.guide-related-area{gap:1rem;margin-top:1rem}.guide-related-grid{grid-template-columns:1fr}.guide-related-card{display:grid;grid-template-columns:108px minmax(0,1fr)}.guide-related-card img,.guide-related-placeholder{height:100%;min-height:132px}.guide-related-card>div:not(.guide-related-placeholder){padding:.85rem}.guide-related-card p{display:none}.guide-related-card h3{font-size:.96rem}}
 @media(prefers-reduced-motion:reduce){.guide-business-action,.guide-map-link{transition:none}}
