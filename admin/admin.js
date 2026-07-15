@@ -92,7 +92,7 @@ async function legacyDashboard() {
   } catch(error) { app.innerHTML=`<p class="form-message">${escapeHtml(error.message)}</p>`; }
 }
 
-async function dashboard() {
+async function dashboardBase() {
   title.textContent = "Visão geral";
   app.innerHTML = '<div class="loading">Carregando indicadores…</div>';
   const supabase = getSupabase();
@@ -225,6 +225,214 @@ async function dashboard() {
         <button class="metric-card" onclick="location.href='comunicacao.html'"><span>Relacionamento</span><strong>Comunicação</strong><small>Newsletter e assinantes</small></button>
       </div>`;
   } catch(error) {
+    app.innerHTML = `<p class="form-message">${escapeHtml(error.message)}</p>`;
+  }
+}
+
+async function dashboard() {
+  title.textContent = "Visão geral";
+  app.innerHTML = '<div class="loading">Carregando visão geral profissional…</div>';
+  const supabase = getSupabase();
+  const now = new Date();
+  const isoNow = now.toISOString();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const nextSevenDays = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const fmtDate = value => value ? new Date(value).toLocaleDateString("pt-BR") : "sem data";
+  const fmtNumber = value => Number(value || 0).toLocaleString("pt-BR");
+  const pct = (part, total) => total ? `${Math.round((Number(part || 0) / Number(total || 1)) * 100)}%` : "0%";
+  const applyFilter = (query, field, value) => {
+    if (value && typeof value === "object" && "op" in value) return query[value.op](field, value.value);
+    return query.eq(field, value);
+  };
+  const count = async (table, filters = {}) => {
+    let query = supabase.from(table).select("*", { count: "exact", head: true });
+    Object.entries(filters).forEach(([field, value]) => { query = applyFilter(query, field, value); });
+    const { count: total, error } = await query;
+    if (error) throw error;
+    return total || 0;
+  };
+  const safeCount = async (table, filters = {}) => {
+    try { return await count(table, filters); } catch { return 0; }
+  };
+  const safeList = async builder => {
+    try {
+      const { data, error } = await builder();
+      if (error) throw error;
+      return data || [];
+    } catch {
+      return [];
+    }
+  };
+  const rank = (rows, key, limit = 5) => Object.entries(rows.reduce((acc, item) => {
+    const label = item?.[key] || "Não informado";
+    acc[label] = (acc[label] || 0) + 1;
+    return acc;
+  }, {})).sort((a, b) => b[1] - a[1]).slice(0, limit).map(([label, total]) => ({ label, total }));
+  const listRows = rows => rows.length ? rows.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail || "")}</small></div>${item.badge ? `<span class="status-pill ${escapeHtml(item.badgeClass || "")}">${escapeHtml(item.badge)}</span>` : ""}</article>`).join("") : '<div class="empty-state">Nenhum registro no momento.</div>';
+
+  try {
+    const [
+      noticias, publicadas, rascunhos, agendadas, emRevisao,
+      empresas, empresasAtivas, pontos, pontosAtivos, eventos, eventosAtivos, eventosProximos,
+      links, campanhas, campanhasAtivas, campanhasVencendo, assinantes, melhoresEdicoes, melhoresIndicados,
+      aprovacoes, categorias, usuariosAtivos, views7d, views30d, whatsapp7d, external7d
+    ] = await Promise.all([
+      safeCount("noticias"),
+      safeCount("noticias", { status: "publicado" }),
+      safeCount("noticias", { status: "rascunho" }),
+      safeCount("noticias", { status: "publicado", publicado_em: { op: "gt", value: isoNow } }),
+      safeCount("noticias", { status_editorial: "em_revisao" }),
+      safeCount("guia_comercial"),
+      safeCount("guia_comercial", { status: "publicado" }),
+      safeCount("turismo"),
+      safeCount("turismo", { status: "publicado" }),
+      safeCount("eventos"),
+      safeCount("eventos", { status: "publicado" }),
+      safeCount("eventos", { status: "publicado", data_inicio: { op: "gte", value: isoNow } }),
+      safeCount("links", { status: "ativo" }),
+      safeCount("campanhas_publicitarias"),
+      safeCount("campanhas_publicitarias", { status: "ativo" }),
+      safeCount("campanhas_publicitarias", { status: "ativo", data_fim: { op: "lte", value: nextSevenDays } }),
+      safeCount("newsletter_assinantes", { status: "ativo" }),
+      safeCount("melhores_edicoes", { status: { op: "neq", value: "arquivada" } }),
+      safeCount("melhores_indicados", { status: "ativo" }),
+      safeCount("solicitacoes_aprovacao", { status: "pendente" }),
+      safeCount("categorias", { status: "ativo" }),
+      safeCount("usuarios_admin", { ativo: true }),
+      safeCount("analytics_eventos", { criado_em: { op: "gte", value: sevenDaysAgo } }),
+      safeCount("analytics_eventos", { criado_em: { op: "gte", value: thirtyDaysAgo } }),
+      safeCount("analytics_eventos", { tipo: "whatsapp_click", criado_em: { op: "gte", value: sevenDaysAgo } }),
+      safeCount("analytics_eventos", { tipo: "external_click", criado_em: { op: "gte", value: sevenDaysAgo } })
+    ]);
+
+    const [recentNews, pendingApprovals, recentEditions, recentActivities, analyticsEvents, upcomingEvents, endingCampaigns] = await Promise.all([
+      safeList(() => supabase.from("noticias").select("titulo,status,status_editorial,publicado_em,atualizado_em").order("atualizado_em", { ascending: false }).limit(6)),
+      safeList(() => supabase.from("solicitacoes_aprovacao").select("id,status,enviado_em,noticias(titulo,status,status_editorial)").eq("status", "pendente").order("enviado_em", { ascending: false }).limit(5)),
+      safeList(() => supabase.from("melhores_edicoes").select("nome,ano,status,atualizado_em").neq("status", "arquivada").order("ano", { ascending: false }).limit(4)),
+      safeList(() => supabase.from("cms_atividades").select("titulo,acao,tabela,criado_em").order("criado_em", { ascending: false }).limit(6)),
+      safeList(() => supabase.from("analytics_eventos").select("tipo,pagina,dispositivo,origem,sessao_hash,criado_em").gte("criado_em", sevenDaysAgo).order("criado_em", { ascending: false }).limit(900)),
+      safeList(() => supabase.from("eventos").select("titulo,status,data_inicio,local").eq("status", "publicado").gte("data_inicio", isoNow).order("data_inicio", { ascending: true }).limit(5)),
+      safeList(() => supabase.from("campanhas_publicitarias").select("nome,status,data_fim,empresa_anunciante").eq("status", "ativo").lte("data_fim", nextSevenDays).order("data_fim", { ascending: true }).limit(5))
+    ]);
+
+    const uniqueVisitors = new Set(analyticsEvents.map(item => item.sessao_hash).filter(Boolean)).size;
+    const topPages = rank(analyticsEvents, "pagina", 6);
+    const topDevices = rank(analyticsEvents, "dispositivo", 4);
+    const topOrigins = rank(analyticsEvents, "origem", 4);
+    const importantAlerts = [
+      aprovacoes ? [`${aprovacoes} notícia(s) aguardando aprovação`, "Abrir aprovações", "aprovacoes", "warning"] : null,
+      emRevisao ? [`${emRevisao} notícia(s) em revisão editorial`, "Ver notícias", "noticias", "info"] : null,
+      rascunhos ? [`${rascunhos} rascunho(s) parado(s) no editorial`, "Organizar pauta", "noticias", "warning"] : null,
+      agendadas ? [`${agendadas} notícia(s) agendada(s) para o futuro`, "Conferir agenda", "noticias", "info"] : null,
+      campanhasVencendo ? [`${campanhasVencendo} campanha(s) vencendo em até 7 dias`, "Abrir publicidade", "publicidade", "danger"] : null,
+      campanhasAtivas ? null : ["Nenhuma campanha publicitária ativa", "Criar campanha", "publicidade", "warning"],
+      eventosProximos ? [`${eventosProximos} evento(s) futuro(s) publicado(s)`, "Ver eventos", "eventos", "success"] : null,
+      melhoresEdicoes ? null : ["Nenhuma edição ativa do Melhores", "Abrir Melhores", "melhores", "warning"]
+    ].filter(Boolean);
+    const portalScore = Math.max(0, 100 - (aprovacoes * 8) - (rascunhos * 3) - (campanhasVencendo * 6) - (campanhasAtivas ? 0 : 10));
+    const primaryMetrics = [
+      ["Operação", portalScore, "Saúde do painel", portalScore >= 80 ? "Operação sem alerta crítico" : "Existem pontos pedindo atenção"],
+      ["Audiência", fmtNumber(views7d), "Eventos em 7 dias", `${fmtNumber(uniqueVisitors)} visitante(s) identificáveis`],
+      ["Editorial", fmtNumber(publicadas), "Notícias publicadas", `${rascunhos} rascunho(s) · ${agendadas} agendada(s)`],
+      ["Receita", fmtNumber(campanhasAtivas), "Campanhas ativas", `${campanhasVencendo} vencendo em 7 dias`]
+    ];
+    const secondaryMetrics = [
+      ["Guia", empresas, `${empresasAtivas} empresas publicadas`],
+      ["Turismo", pontos, `${pontosAtivos} pontos publicados`],
+      ["Eventos", eventos, `${eventosAtivos} publicados · ${eventosProximos} futuros`],
+      ["Comunicação", assinantes, "assinantes ativos"],
+      ["Melhores", melhoresEdicoes, `${melhoresIndicados} indicados ativos`],
+      ["Links", links, "links ativos"],
+      ["Categorias", categorias, "categorias ativas"],
+      ["Usuários", usuariosAtivos, "administradores ativos"]
+    ];
+    const newsRows = recentNews.map(item => ({ title: item.titulo || "Notícia sem título", detail: `${item.status_editorial || item.status || "sem status"} · ${fmtDate(item.publicado_em || item.atualizado_em)}`, badge: item.status || "—", badgeClass: item.status || "" }));
+    const approvalRows = pendingApprovals.map(item => ({ title: item.noticias?.titulo || "Notícia em revisão", detail: `Enviada em ${fmtDate(item.enviado_em)}`, badge: item.status || "pendente" }));
+    const editionRows = recentEditions.map(item => ({ title: item.nome || `Melhores ${item.ano}`, detail: `${item.ano} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.status || "—" }));
+    const activityRows = recentActivities.map(item => ({ title: item.titulo || item.tabela || "Atividade", detail: `${item.acao || "ação"} · ${fmtDate(item.criado_em)}`, badge: item.tabela || "" }));
+    const eventRows = upcomingEvents.map(item => ({ title: item.titulo || "Evento", detail: `${fmtDate(item.data_inicio)}${item.local ? ` · ${item.local}` : ""}`, badge: item.status || "" }));
+    const campaignRows = endingCampaigns.map(item => ({ title: item.nome || "Campanha", detail: `${item.empresa_anunciante || "Anunciante"} · vence em ${fmtDate(item.data_fim)}`, badge: item.status || "ativo", badgeClass: "ativo" }));
+
+    app.innerHTML = `
+      <section class="dashboard-hero panel dashboard-hero-pro">
+        <div>
+          <p class="eyebrow">Painel Eu Amo Urânia</p>
+          <h2>Central profissional de operação</h2>
+          <p>Visão geral com conteúdo, audiência, alertas, publicidade, eventos, comunicação e Melhores de Urânia em tempo real.</p>
+        </div>
+        <div class="dashboard-hero-status">
+          <span>Saúde operacional</span>
+          <strong>${portalScore}%</strong>
+          <small>${importantAlerts.length ? `${importantAlerts.length} ponto(s) pedindo atenção` : "Tudo em ordem"}</small>
+        </div>
+        <div class="dashboard-hero-actions">
+          <button class="admin-button" data-new="noticias">Nova notícia</button>
+          <button class="admin-button secondary" id="dashboard-audience">Ver audiência</button>
+        </div>
+      </section>
+      <div class="dashboard-primary-grid">
+        ${primaryMetrics.map(([kicker, value, label, detail]) => `<article class="dashboard-kpi"><span>${kicker}</span><strong>${value}</strong><h3>${label}</h3><p>${detail}</p></article>`).join("")}
+      </div>
+      <div class="dashboard-layout">
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>Alertas importantes</h2><p>O que merece atenção antes de seguir a rotina.</p></div></header>
+          <div class="dashboard-task-list">
+            ${importantAlerts.length ? importantAlerts.map(([text, action, target, tone]) => `<button class="dashboard-task ${tone || ""}" ${target === "publicidade" ? "onclick=\"location.href='publicidade.html'\"" : target === "melhores" ? "onclick=\"location.href='melhores.html'\"" : target === "aprovacoes" ? "id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} →</strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
+          </div>
+        </section>
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>Estrutura do portal</h2><p>Resumo dos módulos ativos no CMS.</p></div></header>
+          <div class="dashboard-mini-grid dashboard-mini-grid-wide">
+            ${secondaryMetrics.map(([label, value, detail]) => `<article class="dashboard-mini-card"><strong>${fmtNumber(value)}</strong><span>${label}</span><small>${detail}</small></article>`).join("")}
+          </div>
+        </section>
+      </div>
+      <div class="dashboard-layout dashboard-bottom">
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>Audiência rápida</h2><p>Últimos 7 dias: páginas, origem e dispositivos.</p></div><button class="admin-button secondary" id="dashboard-audience">Detalhes</button></header>
+          <div class="dashboard-audience-grid">
+            <article><strong>${fmtNumber(views30d)}</strong><span>eventos em 30 dias</span></article>
+            <article><strong>${fmtNumber(whatsapp7d)}</strong><span>cliques no WhatsApp</span></article>
+            <article><strong>${fmtNumber(external7d)}</strong><span>cliques externos</span></article>
+          </div>
+          <div class="dashboard-rank-columns">
+            <div><h3>Páginas mais acessadas</h3>${topPages.length ? topPages.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
+            <div><h3>Dispositivos</h3>${topDevices.length ? topDevices.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
+            <div><h3>Origem</h3>${topOrigins.length ? topOrigins.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
+          </div>
+        </section>
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>Publicidade e eventos</h2><p>Campanhas vencendo e próximos eventos publicados.</p></div></header>
+          <div class="dashboard-list">${listRows([...campaignRows, ...eventRows].slice(0, 8))}</div>
+        </section>
+      </div>
+      <div class="dashboard-layout dashboard-bottom">
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>Últimas notícias</h2><p>Conteúdos editados recentemente.</p></div><button class="admin-button secondary" data-view="noticias">Ver todas</button></header>
+          <div class="dashboard-list">${listRows(newsRows)}</div>
+        </section>
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>Aprovações e Melhores</h2><p>Fila editorial e últimas edições do prêmio.</p></div></header>
+          <div class="dashboard-list">${listRows([...approvalRows, ...editionRows].slice(0, 9))}</div>
+        </section>
+      </div>
+      <div class="dashboard-layout dashboard-bottom">
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>Últimas atividades</h2><p>Rastro recente das ações feitas no CMS.</p></div></header>
+          <div class="dashboard-list">${listRows(activityRows)}</div>
+        </section>
+        <section class="panel dashboard-section">
+          <header class="panel-header"><div><h2>Ações rápidas</h2><p>Caminhos mais usados na rotina do portal.</p></div></header>
+          <div class="dashboard-quick-actions compact">
+            <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>Notícias</strong><small>Criar, revisar e publicar</small></button>
+            <button class="metric-card" onclick="location.href='publicidade.html'"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
+            <button class="metric-card" onclick="location.href='melhores.html'"><span>Prêmio</span><strong>Melhores</strong><small>Votação e apuração</small></button>
+            <button class="metric-card" onclick="location.href='comunicacao.html'"><span>Comunicação</span><strong>Newsletter</strong><small>Assinantes e campanhas</small></button>
+          </div>
+        </section>
+      </div>`;
+  } catch (error) {
     app.innerHTML = `<p class="form-message">${escapeHtml(error.message)}</p>`;
   }
 }
