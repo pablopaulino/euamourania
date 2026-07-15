@@ -389,7 +389,7 @@ async function dashboard() {
         </section>
       </div>
       <div class="dashboard-layout dashboard-bottom">
-        <section class="panel dashboard-section">
+        <section class="panel dashboard-section dashboard-audience-section">
           <header class="panel-header"><div><h2>Audiência rápida</h2><p>Últimos 7 dias: páginas, origem e dispositivos.</p></div><button class="admin-button secondary" id="dashboard-audience">Detalhes</button></header>
           <div class="dashboard-audience-grid">
             <article><strong>${fmtNumber(views30d)}</strong><span>eventos em 30 dias</span></article>
