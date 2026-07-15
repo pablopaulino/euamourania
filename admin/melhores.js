@@ -5,6 +5,7 @@ import {
   obterResumoMelhores,
   obterAudienciaMelhores,
   listarEdicoes,
+  listarEdicoesParaCopiaCategorias,
   salvarEdicao,
   excluirEdicao,
   listarCategorias,
@@ -237,7 +238,7 @@ async function loadCategories() {
         <div class="awards-panel-head">
           <div><h3>Categorias</h3><p>As categorias não ficam fixas no código: tudo é administrável por edição.</p></div>
           <div class="awards-actions">
-            <button class="admin-button secondary" data-copy-categories="${escapeHtml(selected)}" ${state.edicoes.length < 2 ? "disabled" : ""}>Copiar de outra edição</button>
+            <button class="admin-button secondary" data-copy-categories="${escapeHtml(selected)}" ${selected ? "" : "disabled"}>Copiar de outra edição</button>
             <button class="admin-button" data-new-category>Nova categoria</button>
           </div>
         </div>
@@ -1053,14 +1054,14 @@ async function categoryForm(id) {
 }
 
 async function copyCategoriesForm(destinoEdicaoId) {
-  if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-  const destino = state.edicoes.find(item => item.id === destinoEdicaoId);
-  const origens = state.edicoes.filter(item => item.id !== destinoEdicaoId);
+  const edicoesParaCopia = await listarEdicoesParaCopiaCategorias();
+  const destino = edicoesParaCopia.find(item => item.id === destinoEdicaoId);
+  const origens = edicoesParaCopia.filter(item => item.id !== destinoEdicaoId);
   if (!destino || !origens.length) return toast("Cadastre outra edição antes de copiar categorias.", "error");
 
   showForm("Copiar categorias", `
     <input type="hidden" name="destino_edicao_id" value="${escapeHtml(destinoEdicaoId)}">
-    ${selectField("origem_edicao_id", "Copiar da edição *", origens.map(item => `<option value="${item.id}">${item.ano} · ${escapeHtml(item.nome)}</option>`).join(""))}
+    ${selectField("origem_edicao_id", "Copiar da edição *", origens.map(item => `<option value="${item.id}">${item.ano} · ${escapeHtml(item.nome)}${item.status === "arquivada" ? " · arquivada" : ""}</option>`).join(""))}
     ${field("destino_edicao", "Para a edição", `${destino.ano} · ${destino.nome}`, "readonly")}
     <div class="awards-note awards-field full">
       Serão copiadas as configurações das categorias, incluindo ordem, regras, imagens e status.
@@ -1069,7 +1070,7 @@ async function copyCategoriesForm(destinoEdicaoId) {
   `, async event => {
     event.preventDefault();
     const form = event.currentTarget;
-    const origem = state.edicoes.find(item => item.id === form.elements.origem_edicao_id.value);
+    const origem = edicoesParaCopia.find(item => item.id === form.elements.origem_edicao_id.value);
     if (!confirm(`Copiar as categorias de ${origem?.nome || "outra edição"} para ${destino.nome}?`)) return;
     const resultado = await copiarCategoriasEntreEdicoes({
       origemEdicaoId: form.elements.origem_edicao_id.value,

@@ -66,6 +66,7 @@ for (const action of ["salvarEdicao", "salvarCategoria", "salvarIndicado", "list
   must(adminJs.includes(action), `Admin JS não usa serviço: ${action}`);
 }
 must(service.includes("export async function copiarCategoriasEntreEdicoes"), "Serviço não permite copiar categorias entre edições");
+must(service.includes("export async function listarEdicoesParaCopiaCategorias") && adminJs.includes("listarEdicoesParaCopiaCategorias"), "Cópia não permite selecionar uma edição anterior arquivada");
 must(service.includes('item => ({ ...item, edicao_id: destinoEdicaoId })'), "Cópia de categorias não vincula os registros à edição de destino");
 must(service.includes('slugsExistentes.has(item.slug)'), "Cópia de categorias não protege categorias já existentes no destino");
 must(adminJs.includes('data-copy-categories') && adminJs.includes('submitLabel: "Copiar categorias"'), "Painel não oferece a ação de copiar categorias");
