@@ -124,6 +124,14 @@ async function carregar() {
     </article>`;
     document.getElementById("copy-guide-link")?.addEventListener("click", async event => {
       try {
+        if (navigator.share) {
+          await navigator.share({
+            title: `${item.nome} | Guia Eu Amo Urânia`,
+            text: item.descricao || `Veja ${item.nome} no Guia Eu Amo Urânia.`,
+            url: canonical
+          });
+          return;
+        }
         await navigator.clipboard.writeText(canonical);
         event.currentTarget.querySelector("span").textContent = "Link copiado";
       } catch {
