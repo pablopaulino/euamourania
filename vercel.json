@@ -9,7 +9,7 @@
     {
       "source": "/melhores-de-urania/:path*",
       "has": [
-        { "type": "host", "key": "host", "value": "melhores.euamourania.com.br" }
+        { "type": "host", "value": "melhores.euamourania.com.br" }
       ],
       "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
       "permanent": true
@@ -17,7 +17,7 @@
     {
       "source": "/",
       "has": [
-        { "type": "host", "key": "host", "value": "melhores.euamourania.com.br" }
+        { "type": "host", "value": "melhores.euamourania.com.br" }
       ],
       "destination": "https://euamourania.com.br/melhores-de-urania/",
       "permanent": true
@@ -25,7 +25,7 @@
     {
       "source": "/:path*",
       "has": [
-        { "type": "host", "key": "host", "value": "melhores.euamourania.com.br" }
+        { "type": "host", "value": "melhores.euamourania.com.br" }
       ],
       "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
       "permanent": true
