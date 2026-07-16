@@ -2,7 +2,7 @@ const crypto = require("crypto");
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://omhcpbphvtihqwdkbsbf.supabase.co";
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
-const HASH_SECRET = process.env.MELHORES_VOTO_SECRET || SERVICE_KEY || "eu-amourania-melhores";
+const HASH_SECRET = process.env.MELHORES_VOTO_SECRET || "";
 const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET_KEY || process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || "";
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -47,7 +47,7 @@ async function rest(path, { method = "GET", body } = {}) {
 }
 
 async function verifyTurnstile(token, ip) {
-  if (!TURNSTILE_SECRET) return { ok: true, skipped: true };
+  if (!TURNSTILE_SECRET) return { ok: false, reason: "missing-turnstile-secret" };
   if (!token) return { ok: false, reason: "missing-token" };
   const body = new URLSearchParams();
   body.set("secret", TURNSTILE_SECRET);
@@ -103,6 +103,14 @@ module.exports = async (req, res) => {
     return json(res, 405, { ok: false, message: "Método não permitido." });
   }
   try {
+    if (!HASH_SECRET) {
+      console.error("melhores-votar: MELHORES_VOTO_SECRET ausente.");
+      return json(res, 500, { ok: false, message: "Votação temporariamente indisponível. Configuração de segurança ausente." });
+    }
+    if (!TURNSTILE_SECRET) {
+      console.error("melhores-votar: TURNSTILE_SECRET_KEY ausente.");
+      return json(res, 500, { ok: false, message: "Votação temporariamente indisponível. Verificação de segurança ausente." });
+    }
     const payload = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
     const edicaoId = String(payload.edicao_id || "");
     const categoriaId = String(payload.categoria_id || "");
@@ -183,7 +191,7 @@ module.exports = async (req, res) => {
           ip_hash: hash(ip || "sem-ip"),
           accept_language_hash: hash(getHeader(req, "accept-language") || "sem-idioma"),
           vercel_country: getHeader(req, "x-vercel-ip-country") || null,
-          turnstile: turnstile.skipped ? "nao_configurado" : "validado"
+          turnstile: "validado"
         }
       }]
     });

@@ -47,7 +47,7 @@ As indicações poderão ser feitas pelos canais oficiais definidos pela organiz
 
 O envio de uma indicação não garante a participação no prêmio.
 
-6. Homologação dos finalistas
+6. Homologação dos indicados
 
 Após o encerramento das indicações, a organização realizará uma análise das sugestões recebidas.
 
@@ -58,9 +58,9 @@ enquadramento correto na categoria;
 relevância das indicações recebidas;
 cumprimento das regras deste regulamento.
 
-Ao final da análise serão definidos até quatro finalistas por categoria, que participarão da votação oficial.
+Ao final da análise serão definidos até quatro indicados por categoria, que participarão da votação oficial.
 
-A decisão da organização sobre a homologação dos finalistas é definitiva.
+A decisão da organização sobre a homologação dos indicados é definitiva.
 
 7. Votação
 
@@ -118,7 +118,7 @@ Certificado;
 Selo digital de vencedor;
 Divulgação especial nos canais do Eu Amo Urânia.
 
-Os finalistas também poderão receber selo digital de participação.
+Os indicados também poderão receber selo digital de participação.
 
 12. Uso dos selos
 

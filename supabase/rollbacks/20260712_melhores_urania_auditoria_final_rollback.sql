@@ -2,8 +2,8 @@
 -- Execute somente se precisar desfazer as regras novas desta fase.
 -- Não restaura votos já limpos manualmente; para isso use backups do Supabase.
 
-drop trigger if exists melhores_indicados_limite_finalistas on public.melhores_indicados;
-drop function if exists public.melhores_validar_limite_finalistas();
+drop trigger if exists melhores_indicados_limite_indicados on public.melhores_indicados;
+drop function if exists public.melhores_validar_limite_indicados();
 drop function if exists public.melhores_limpar_votos_edicao_manual(uuid);
 
 alter table public.melhores_categorias

@@ -74,7 +74,7 @@ Constraints importantes:
 
 ### `melhores_indicados`
 
-Indicados/finalistas de uma categoria.
+Indicados de uma categoria.
 
 Guarda:
 
@@ -243,13 +243,14 @@ Obrigatórias no Vercel:
 - `SUPABASE_URL`;
 - `SUPABASE_SERVICE_ROLE_KEY`.
 
-Recomendada:
+Obrigatória na Vercel:
 
 - `MELHORES_VOTO_SECRET`.
+- `TURNSTILE_SECRET_KEY`.
 
 `MELHORES_VOTO_SECRET` é usada para gerar hashes técnicos dos votos. Ela não deve ficar no frontend.
 
-Se ela não existir, a API usa a Service Role como fallback de segredo, mas o ideal é criar uma variável própria.
+Se ela não existir, a API de votação deve bloquear votos por segurança. Não use Service Role como fallback desse segredo.
 
 ### Privacidade
 
@@ -329,8 +330,8 @@ Depois aplica os pesos da edição:
 
 ```text
 pontuação_final =
-  percentual_site × peso_site +
-  percentual_instagram × peso_instagram
+  percentual_site x peso_site +
+  percentual_instagram x peso_instagram
 ```
 
 ### Publicação do resultado
@@ -341,7 +342,7 @@ A função `melhores_publicar_resultado`:
 - exige edição encerrada, em apuração ou já publicada;
 - apaga snapshot anterior da edição;
 - grava novo snapshot em `melhores_resultados`;
-- marca vencedores e finalistas;
+- marca vencedores e demais indicados;
 - registra auditoria;
 - atualiza a edição como `resultado_publicado`;
 - consolida os votos individuais.
@@ -474,7 +475,7 @@ Impacto esperado:
 
 - não remove dados;
 - define `limite_indicados` padrão como 4;
-- impede mais finalistas ativos/aprovados do que o limite da categoria;
+- impede mais indicados ativos/aprovados do que o limite da categoria;
 - troca a retenção para priorizar 7 dias após `resultado_publicado_em`;
 - adiciona limpeza manual exclusiva para Super Admin;
 - permite voto múltiplo quando a categoria estiver configurada para isso;

@@ -195,4 +195,4 @@ Além da página da edição e resultados, existem:
 - `/melhores-de-urania/ANO/metodologia/`;
 - `/melhores-de-urania/ANO/categorias/SLUG/`.
 
-Use essas páginas para divulgar regras, fórmula de apuração e finalistas por categoria.
+Use essas páginas para divulgar regras, fórmula de apuração e indicados por categoria.

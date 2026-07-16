@@ -1,34 +1,15 @@
 import { definirMeta } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 import { EDITORIAL_POLICY_BY_KEY, EDITORIAL_POLICY_PAGES } from "../editorialPolicies.js";
+import { sanitizeInstitutionalHtml } from "../security/sanitize-html.js";
 
 const DEFAULT_IMAGE = "https://euamourania.com.br/assets/AD3A1763-min%20(1).jpg";
 const SITE_URL = "https://euamourania.com.br";
-const ALLOWED_TAGS = new Set(["A", "B", "BLOCKQUOTE", "BR", "EM", "H2", "H3", "H4", "HR", "I", "LI", "OL", "P", "STRONG", "UL"]);
 
 const text = (value = "") => String(value ?? "").trim();
 
 function sanitizeHtml(html = "") {
-  const template = document.createElement("template");
-  template.innerHTML = String(html || "");
-  template.content.querySelectorAll("script,style,iframe,object,embed,form,input,button").forEach((node) => node.remove());
-  template.content.querySelectorAll("*").forEach((node) => {
-    if (!ALLOWED_TAGS.has(node.tagName)) {
-      node.replaceWith(...node.childNodes);
-      return;
-    }
-    [...node.attributes].forEach((attr) => {
-      const name = attr.name.toLowerCase();
-      const value = attr.value || "";
-      const allowedLink = node.tagName === "A" && ["href", "target", "rel"].includes(name);
-      if (!allowedLink || /^javascript:/i.test(value)) node.removeAttribute(attr.name);
-    });
-    if (node.tagName === "A") {
-      node.rel = "noopener";
-      if (/^https?:\/\//i.test(node.href)) node.target = "_blank";
-    }
-  });
-  return template.innerHTML;
+  return sanitizeInstitutionalHtml(html);
 }
 
 function setText(id, value) {

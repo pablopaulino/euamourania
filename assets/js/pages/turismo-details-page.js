@@ -1,5 +1,6 @@
 import { definirMeta, textoPuro } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
+import { sanitizeArticleHtml } from "../security/sanitize-html.js";
 
 const container = document.getElementById("turismo-details");
 const slug = new URLSearchParams(location.search).get("slug");
@@ -96,9 +97,7 @@ async function carregar() {
       descricao: item.seo_descricao || item.descricao || textoPuro(item.conteudo_html).slice(0, 160),
       imagem: new URL(imagem, location.origin).href
     });
-    const conteudo = window.DOMPurify
-      ? window.DOMPurify.sanitize(item.conteudo_html || `<p>${escapeHtml(item.descricao)}</p>`, { ADD_TAGS: ["iframe"], ADD_ATTR: ["allow", "allowfullscreen", "frameborder"] })
-      : `<p>${escapeHtml(textoPuro(item.conteudo_html || item.descricao))}</p>`;
+    const conteudo = sanitizeArticleHtml(item.conteudo_html || `<p>${escapeHtml(item.descricao)}</p>`);
     const mapUrl = safeUrl(item.mapa_url);
     const mapQuery = [item.nome, item.endereco, "Urânia SP"].filter(Boolean).join(" ");
     const relacionamentos = await relatedBlocks(item);

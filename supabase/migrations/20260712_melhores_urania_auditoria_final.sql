@@ -1,7 +1,7 @@
 -- Auditoria final do módulo Melhores de Urânia
 -- Migração segura/idempotente. Não remove dados existentes.
 
--- 1) Limite padrão de quatro finalistas por categoria.
+-- 1) Limite padrão de quatro indicados por categoria.
 alter table public.melhores_categorias
   alter column limite_indicados set default 4;
 
@@ -9,8 +9,8 @@ update public.melhores_categorias
 set limite_indicados = 4
 where limite_indicados is null;
 
--- 2) Impede mais finalistas ativos/aprovados que o limite da categoria.
-create or replace function public.melhores_validar_limite_finalistas()
+-- 2) Impede mais indicados ativos/aprovados que o limite da categoria.
+create or replace function public.melhores_validar_limite_indicados()
 returns trigger
 language plpgsql
 security definer
@@ -38,7 +38,7 @@ begin
         and id is distinct from new.id;
 
     if v_total >= v_limite then
-      raise exception 'Limite de % finalistas ativos/aprovados atingido para esta categoria.', v_limite
+      raise exception 'Limite de % indicados ativos/aprovados atingido para esta categoria.', v_limite
         using errcode='23514';
     end if;
   end if;
@@ -47,11 +47,11 @@ begin
 end;
 $$;
 
-drop trigger if exists melhores_indicados_limite_finalistas on public.melhores_indicados;
-create trigger melhores_indicados_limite_finalistas
+drop trigger if exists melhores_indicados_limite_indicados on public.melhores_indicados;
+create trigger melhores_indicados_limite_indicados
 before insert or update of edicao_id,categoria_id,status,aprovado
 on public.melhores_indicados
-for each row execute function public.melhores_validar_limite_finalistas();
+for each row execute function public.melhores_validar_limite_indicados();
 
 -- 3) Retenção: sete dias após a publicação oficial do resultado.
 -- Mantém compatibilidade com edições antigas sem resultado_publicado_em usando fallback conservador.

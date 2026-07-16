@@ -1,5 +1,6 @@
 import { definirMeta, formatarData, gerarSlug, textoPuro } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
+import { sanitizeArticleHtml } from "../security/sanitize-html.js";
 
 const container = document.getElementById("newsDetails");
 const params = new URLSearchParams(location.search || location.hash.slice(1));
@@ -19,35 +20,7 @@ const icons = {
 };
 
 function sanitizeArticle(value) {
-  const documentCopy = new DOMParser().parseFromString(`<div>${value || ""}</div>`, "text/html");
-  const root = documentCopy.body.firstElementChild;
-  const allowed = new Set(["P", "H2", "H3", "H4", "STRONG", "B", "EM", "I", "U", "A", "UL", "OL", "LI", "BLOCKQUOTE", "IMG", "FIGURE", "FIGCAPTION", "BR", "HR", "IFRAME"]);
-  root.querySelectorAll("script,style,object,embed,form,input,button").forEach(node => node.remove());
-  [...root.querySelectorAll("*")].forEach(node => {
-    if (!allowed.has(node.tagName)) {
-      node.replaceWith(...node.childNodes);
-      return;
-    }
-    [...node.attributes].forEach(attribute => {
-      const allowedAttribute = ["href", "target", "rel", "src", "alt", "title", "loading", "width", "height", "allow", "allowfullscreen", "frameborder"].includes(attribute.name.toLowerCase());
-      if (!allowedAttribute || /^on/i.test(attribute.name)) node.removeAttribute(attribute.name);
-    });
-    if (node.hasAttribute("href") && !/^(https?:|mailto:|tel:|\/|#)/i.test(node.getAttribute("href"))) node.removeAttribute("href");
-    if (node.tagName === "IMG") {
-      if (!/^(https?:|\/?assets\/)/i.test(node.getAttribute("src") || "")) node.remove();
-      else {
-        node.loading = "lazy";
-        node.decoding = "async";
-      }
-    }
-    if (node.tagName === "IFRAME") {
-      const source = node.getAttribute("src") || "";
-      if (!/^https:\/\/(www\.)?(youtube(-nocookie)?\.com|player\.vimeo\.com)\//i.test(source)) node.remove();
-      else node.loading = "lazy";
-    }
-    if (node.tagName === "A" && node.target === "_blank") node.rel = "noopener noreferrer";
-  });
-  return root.innerHTML;
+  return sanitizeArticleHtml(value);
 }
 
 function initialNews() {

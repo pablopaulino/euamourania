@@ -883,7 +883,7 @@ function resultGroup(rows) {
         <tbody>${rows.map(row => `<tr>
           <td><strong>${Number(row.colocacao || 0)}º</strong></td>
           <td>${escapeHtml(row.melhores_indicados?.nome || "Indicado")}</td>
-          <td><span class="awards-status ${row.vencedor ? "ativo" : ""}">${escapeHtml(row.selo || "finalista")}</span></td>
+          <td><span class="awards-status ${row.vencedor ? "ativo" : ""}">${escapeHtml(row.selo || "indicado")}</span></td>
           <td>${Number(row.pontuacao_final || 0).toFixed(4)}</td>
           <td>${fmtDate(row.publicado_em)}</td>
         </tr>`).join("")}</tbody>

@@ -29,6 +29,9 @@ must(publicService.includes('/api/melhores-votar'), "Serviço público não usa 
 must(!editionPage.includes(".from(\"melhores_votos\")") && !editionPage.includes("melhores_votos"), "Frontend não deve gravar votos direto no Supabase");
 must(api.includes("SUPABASE_SERVICE_ROLE_KEY"), "API precisa usar Service Role apenas no backend");
 must(api.includes("MELHORES_VOTO_SECRET"), "API precisa suportar segredo dedicado para hash");
+must(api.includes('const HASH_SECRET = process.env.MELHORES_VOTO_SECRET || "";'), "API não pode usar fallback para MELHORES_VOTO_SECRET");
+must(api.includes("TURNSTILE_SECRET_KEY") && api.includes("missing-turnstile-secret"), "Turnstile precisa ser obrigatório na API de votação");
+must(!api.includes("turnstile.skipped") && !api.includes("nao_configurado"), "API não pode aceitar votação com Turnstile ignorado");
 must(api.includes("votingOpen") && api.includes("status === \"votacao_aberta\""), "API não valida período/status da votação");
 must(api.includes("identificador_hash") && api.includes("duplicate key"), "API não trata duplicidade de voto");
 must(api.includes("ip_hash") && !api.includes("ip:"), "API deve armazenar apenas hash de IP");

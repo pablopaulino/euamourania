@@ -1,5 +1,6 @@
 import { obterEdicaoPorAno, listarCategoriasPublicas, listarIndicadosPublicos, enviarVotoMelhores, enviarIndicacaoMelhores } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
+import { TURNSTILE_SITE_KEY } from "../supabase-config.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
@@ -56,6 +57,7 @@ function toast(message) {
 
 const turnstileSiteKey = () => window.EUAM_TURNSTILE_SITE_KEY
   || document.querySelector('meta[name="turnstile-site-key"]')?.getAttribute("content")
+  || TURNSTILE_SITE_KEY
   || "";
 let turnstileLoadPromise;
 let turnstileWidgetId = null;
@@ -78,7 +80,7 @@ function loadTurnstile() {
 
 async function getTurnstileToken(action = "vote") {
   const sitekey = turnstileSiteKey();
-  if (!sitekey) return "";
+  if (!sitekey) throw new Error("Votação indisponível: chave pública do Turnstile não configurada.");
   await loadTurnstile();
   return new Promise((resolve, reject) => {
     let container = document.getElementById("awards-turnstile");

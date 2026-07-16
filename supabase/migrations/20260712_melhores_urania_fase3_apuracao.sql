@@ -223,7 +223,7 @@ begin
     pontuacao_final,
     colocacao,
     colocacao=1,
-    case when colocacao=1 then 'vencedor' else 'finalista' end,
+    case when colocacao=1 then 'vencedor' else 'indicado' end,
     empate,
     case
       when empate and colocacao=1 then 'Empate identificado; revisar criterio da organizacao.'

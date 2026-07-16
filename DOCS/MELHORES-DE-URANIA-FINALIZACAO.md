@@ -20,7 +20,7 @@ Ela consolida a edição, remove votos individuais após o prazo de retenção e
 
 ## Cloudflare Turnstile
 
-A votação e as indicações públicas possuem suporte opcional ao Cloudflare Turnstile.
+A votação pública exige Cloudflare Turnstile obrigatório. As indicações públicas também usam Turnstile quando configuradas.
 
 Variável segura na Vercel:
 
@@ -31,9 +31,7 @@ Chave pública no frontend:
 - definir `window.EUAM_TURNSTILE_SITE_KEY = "sua_site_key"` antes do script da página; ou
 - adicionar `<meta name="turnstile-site-key" content="sua_site_key">`.
 
-Se `TURNSTILE_SECRET_KEY` não estiver configurada, o sistema continua funcionando com as proteções já existentes: cookie técnico, hash de visitante, hash de IP, hash de user-agent, limite de tentativas e status `suspeito`/`bloqueado`.
-
-Quando `TURNSTILE_SECRET_KEY` estiver configurada, votos e indicações precisam enviar token válido. A chave secreta nunca deve ser colocada no navegador.
+Se `TURNSTILE_SECRET_KEY` não estiver configurada, a votação fica indisponível por segurança. A chave secreta nunca deve ser colocada no navegador.
 
 ## Audiência avançada
 
