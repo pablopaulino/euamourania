@@ -94,8 +94,59 @@ function optionList(values, selected) {
   return values.map(value => `<option value="${value}" ${value === selected ? "selected" : ""}>${escapeHtml(value.replaceAll("_", " "))}</option>`).join("");
 }
 
+function statusText(value = "") {
+  return String(value || "não definido").replaceAll("_", " ");
+}
+
+function phaseLabel(status = "") {
+  const labels = {
+    planejamento: "Preparação da edição",
+    indicacoes_abertas: "Recebendo indicações",
+    indicacoes_encerradas: "Revisão das indicações",
+    votacao_aberta: "Votação popular aberta",
+    votacao_encerrada: "Votação encerrada",
+    apuracao: "Apuração dos resultados",
+    resultado_publicado: "Resultado publicado",
+    arquivada: "Edição arquivada"
+  };
+  return labels[status] || "Sem edição ativa";
+}
+
+function phaseProgress(status = "") {
+  const order = ["planejamento", "indicacoes_abertas", "indicacoes_encerradas", "votacao_aberta", "votacao_encerrada", "apuracao", "resultado_publicado"];
+  const index = Math.max(0, order.indexOf(status));
+  return Math.round(((index + 1) / order.length) * 100);
+}
+
+function dateDistance(value) {
+  if (!value) return "";
+  const target = new Date(value).getTime();
+  const diffDays = Math.ceil((target - Date.now()) / 86400000);
+  if (Number.isNaN(diffDays)) return "";
+  if (diffDays === 0) return "hoje";
+  if (diffDays === 1) return "amanhã";
+  if (diffDays > 1) return `em ${diffDays} dias`;
+  if (diffDays === -1) return "ontem";
+  return `há ${Math.abs(diffDays)} dias`;
+}
+
+function dashboardTask({ title, text, action, tab, tone = "" }) {
+  return `<button class="awards-dashboard-task ${tone}" type="button" data-dashboard-tab="${escapeHtml(tab)}">
+    <span>${escapeHtml(title)}</span>
+    <small>${escapeHtml(text)}</small>
+    <strong>${escapeHtml(action)} →</strong>
+  </button>`;
+}
+
+function dashboardListRow({ title, detail, badge = "", tab = "" }) {
+  return `<button class="awards-dashboard-row" type="button" ${tab ? `data-dashboard-tab="${escapeHtml(tab)}"` : ""}>
+    <span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(detail)}</small></span>
+    ${badge ? `<em>${escapeHtml(badge)}</em>` : ""}
+  </button>`;
+}
+
 const tabLoaders = {
-  dashboard: loadDashboard,
+  dashboard: loadDashboardV2,
   editions: loadEditions,
   categories: loadCategories,
   indications: loadIndications,
@@ -185,6 +236,135 @@ async function loadDashboard() {
           <div class="awards-actions" style="margin-top:1rem">
             <button type="button" onclick="location.href='index.html#audiencia'">Abrir audiência</button>
             <button type="button" onclick="location.href='melhores.html#votes'">Ver votos</button>
+          </div>
+        </article>
+      </div>`;
+  } catch (error) {
+    showError(error);
+  }
+}
+
+async function loadDashboardV2() {
+  setActiveTab("dashboard");
+  $("#dashboard-view").innerHTML = '<div class="loading">Carregando visão geral…</div>';
+  try {
+    const [resumo, edicoes, audiencia] = await Promise.all([
+      obterResumoMelhores(),
+      listarEdicoes(),
+      obterAudienciaMelhores({ dias: 7 }).catch(() => null)
+    ]);
+    state.edicoes = edicoes;
+    const edicao = resumo.edicaoAtiva;
+    const status = edicao?.status || "";
+    const progress = edicao ? phaseProgress(status) : 0;
+    const recentes = edicoes.slice(0, 4);
+    const tasks = [];
+
+    if (!edicao) {
+      tasks.push({ title: "Criar edição ativa", text: "Nenhuma edição em andamento aparece para operação.", action: "Nova edição", tab: "editions", tone: "warning" });
+    } else {
+      if (!resumo.categorias) tasks.push({ title: "Adicionar categorias", text: "A edição ativa ainda não tem categorias cadastradas.", action: "Abrir categorias", tab: "categories", tone: "warning" });
+      if (!resumo.indicadosAtivos) tasks.push({ title: "Cadastrar indicados", text: "Sem indicados ativos para exibir ou votar nesta edição.", action: "Abrir indicados", tab: "nominees", tone: "warning" });
+      if (resumo.indicacoesPendentes) tasks.push({ title: "Revisar indicações", text: `${resumo.indicacoesPendentes} indicação${resumo.indicacoesPendentes === 1 ? "" : "ões"} aguardando moderação.`, action: "Moderar", tab: "indications", tone: "attention" });
+      if (status === "votacao_encerrada") tasks.push({ title: "Iniciar apuração", text: "A votação foi encerrada e os resultados podem ser revisados.", action: "Apurar", tab: "apuration", tone: "attention" });
+      if (status === "apuracao") tasks.push({ title: "Publicar resultado", text: "Revise a apuração e publique o snapshot oficial.", action: "Publicar", tab: "apuration", tone: "attention" });
+      if (status === "resultado_publicado") tasks.push({ title: "Preparar exibição", text: "Resultado publicado. Organize a vitrine do app/site se desejar.", action: "Exibição", tab: "app" });
+    }
+    if (!tasks.length) tasks.push({ title: "Operação em ordem", text: "Nenhuma pendência crítica encontrada na edição ativa.", action: "Ver edição", tab: "editions" });
+
+    const timeline = edicao ? [
+      ["Indicações", edicao.indicacoes_inicio, edicao.indicacoes_fim],
+      ["Votação", edicao.votacao_inicio, edicao.votacao_fim],
+      ["Divulgação", edicao.divulgacao_em || edicao.resultado_publicado_em, ""]
+    ].filter(([, start, end]) => start || end) : [];
+
+    $("#dashboard-view").innerHTML = `
+      <section class="awards-dashboard-hero">
+        <div>
+          <p class="eyebrow">Operação do prêmio</p>
+          <h2>${escapeHtml(edicao ? edicao.nome : "Melhores de Urânia")}</h2>
+          <p>${escapeHtml(edicao ? `Edição ${edicao.ano} em ${phaseLabel(status).toLowerCase()}.` : "Crie ou ative uma edição para iniciar a operação do prêmio.")}</p>
+          <div class="awards-phase-track" aria-label="Progresso da edição"><span style="width:${progress}%"></span></div>
+        </div>
+        <div class="awards-dashboard-status">
+          <span class="awards-status ${escapeHtml(status)}">${escapeHtml(statusText(status))}</span>
+          <strong>${escapeHtml(phaseLabel(status))}</strong>
+          <small>${edicao?.atualizado_em ? `Atualizado ${escapeHtml(dateDistance(edicao.atualizado_em))}` : "Sem edição ativa"}</small>
+        </div>
+      </section>
+      <div class="awards-grid awards-dashboard-metrics">
+        ${[
+          ["Edições", resumo.edicoes, "Total visível"],
+          ["Categorias", resumo.categorias],
+          ["Indicados", resumo.indicados],
+          ["Indicados ativos", resumo.indicadosAtivos],
+          ["Indicações pendentes", resumo.indicacoesPendentes],
+          ["Views 7 dias", audiencia?.views ?? "—"],
+          ["Inícios de voto", audiencia?.voteStart ?? "—"],
+          ["Conclusão de voto", audiencia ? `${audiencia.completionRate}%` : "—"]
+        ].map(([label, value, hint]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong>${hint ? `<small>${escapeHtml(hint)}</small>` : ""}</article>`).join("")}
+      </div>
+      <div class="awards-dashboard-layout">
+        <article class="awards-card awards-dashboard-main">
+          <div class="awards-panel-head">
+            <div><h3>Edição ativa</h3><p>Resumo da configuração principal da edição em andamento.</p></div>
+            <div class="awards-actions">
+              <button type="button" data-dashboard-tab="editions">Editar edição</button>
+              <button type="button" data-dashboard-tab="settings">Checklist</button>
+            </div>
+          </div>
+          ${edicao ? `
+            <div class="awards-name">
+              ${edicao.imagem_capa_url ? `<img class="awards-thumb" src="${escapeHtml(edicao.imagem_capa_url)}" alt="">` : '<span class="awards-thumb"></span>'}
+              <div>
+                <strong>${escapeHtml(edicao.nome)}</strong>
+                <small>${escapeHtml(String(edicao.ano))} · <span class="awards-status ${escapeHtml(edicao.status)}">${escapeHtml(statusText(edicao.status))}</span></small>
+              </div>
+            </div>
+            <div class="awards-kv awards-dashboard-kv" style="margin-top:1rem">
+              <div><span>Indicações</span><strong>${fmtDate(edicao.indicacoes_inicio)} — ${fmtDate(edicao.indicacoes_fim)}</strong></div>
+              <div><span>Votação</span><strong>${fmtDate(edicao.votacao_inicio)} — ${fmtDate(edicao.votacao_fim)}</strong></div>
+              <div><span>Pesos</span><strong>Site ${edicao.peso_site}% · Instagram ${edicao.peso_instagram}%</strong></div>
+              <div><span>Retenção de votos</span><strong>7 dias após encerramento</strong></div>
+            </div>
+          ` : '<div class="awards-empty">Nenhuma edição ativa. Crie uma edição ou altere o status de uma existente.</div>'}
+        </article>
+        <article class="awards-card awards-dashboard-side">
+          <h3>Próximas ações</h3>
+          <div class="awards-dashboard-tasks">${tasks.map(dashboardTask).join("")}</div>
+        </article>
+      </div>
+      <div class="awards-dashboard-layout compact">
+        <article class="awards-card">
+          <h3>Linha do tempo</h3>
+          <div class="awards-dashboard-rows">
+            ${timeline.length ? timeline.map(([label, start, end]) => dashboardListRow({
+              title: label,
+              detail: `${start ? fmtDate(start) : "início a definir"}${end ? ` até ${fmtDate(end)}` : ""}`,
+              badge: dateDistance(end || start)
+            })).join("") : '<div class="awards-empty">Defina datas de indicação, votação e divulgação.</div>'}
+          </div>
+        </article>
+        <article class="awards-card">
+          <h3>Últimas edições</h3>
+          <div class="awards-dashboard-rows">
+            ${recentes.length ? recentes.map(item => dashboardListRow({
+              title: item.nome || `Melhores ${item.ano}`,
+              detail: `${item.ano} · atualizado em ${fmtDate(item.atualizado_em)}`,
+              badge: statusText(item.status),
+              tab: "editions"
+            })).join("") : '<div class="awards-empty">Nenhuma edição cadastrada.</div>'}
+          </div>
+        </article>
+        <article class="awards-card">
+          <h3>Audiência rápida</h3>
+          <div class="awards-dashboard-audience">
+            ${audiencia ? `
+              <div><span>Eventos</span><strong>${audiencia.total}</strong></div>
+              <div><span>Visualizações</span><strong>${audiencia.views}</strong></div>
+              <div><span>Compartilhamentos</span><strong>${audiencia.shares}</strong></div>
+              <button type="button" class="admin-button secondary" data-open-audience>Abrir audiência completa</button>
+            ` : '<div class="awards-empty">Audiência indisponível no momento.</div>'}
           </div>
         </article>
       </div>`;
@@ -1354,6 +1534,9 @@ async function init() {
     }
     if (button.dataset.tab) {
       return loadTab(button.dataset.tab);
+    }
+    if (button.dataset.dashboardTab) {
+      return loadTab(button.dataset.dashboardTab);
     }
     if (button.id === "new-edition" || button.hasAttribute("data-new-edition")) return editionForm();
     if (button.dataset.editEdition) return editionForm(button.dataset.editEdition);
