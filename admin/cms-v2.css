@@ -40,10 +40,10 @@
 .news-editorial-card:hover{border-color:#cbdde2;box-shadow:0 14px 30px rgba(7,59,76,.07)}
 .news-editorial-card .news-title-main{grid-template-columns:112px minmax(0,1fr);min-width:0;align-items:stretch}
 .news-editorial-card .news-thumb{width:112px;height:100%;min-height:116px;border-radius:16px}
-.news-card-copy{display:flex;min-width:0;flex-direction:column;justify-content:center}
+.news-card-copy{display:flex;min-width:0;flex-direction:column;justify-content:center;text-align:left}
 .news-card-copy strong{max-width:620px;color:#073b4c;font-size:.98rem;line-height:1.18;letter-spacing:-.02em}
 .news-card-copy small{order:-1;margin-bottom:.25rem;color:#647780;font-size:.82rem}
-.news-card-copy p{max-width:680px;margin:.55rem 0 0;color:#647780;font-size:.94rem;line-height:1.45}
+.news-card-copy p{max-width:680px;margin:.55rem 0 0;color:#647780;font-size:.94rem;line-height:1.45;text-align:left}
 .news-card-editorial{display:flex;flex-direction:column;justify-content:center;gap:.65rem}
 .news-card-badges{display:flex;flex-wrap:wrap;gap:.35rem;margin:0}
 .news-card-meta{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;padding:.75rem;border:1px solid #eef3f4;border-radius:14px;background:#f8fbfc}
