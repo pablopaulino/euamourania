@@ -89,13 +89,13 @@ async function loadRelated(news) {
     };
     let related = [];
     if (news.categoria_nome) {
-      related = await fetchPublicRows("noticias", { ...common, categoria_nome: `eq.${news.categoria_nome}`, limit: "3" });
+      related = await fetchPublicRows("noticias", { ...common, categoria_nome: `eq.${news.categoria_nome}`, limit: "4" });
     }
-    if (related.length < 3) {
+    if (related.length < 4) {
       const latest = await fetchPublicRows("noticias", common);
       const used = new Set(related.map(item => item.slug));
       latest.forEach(item => {
-        if (related.length < 3 && !used.has(item.slug)) {
+        if (related.length < 4 && !used.has(item.slug)) {
           related.push(item);
           used.add(item.slug);
         }
@@ -170,14 +170,23 @@ function renderNews(news) {
   const readingMinutes=Math.max(1,Math.ceil(wordCount/220));
   const categoryLabel = news.categoria_nome || "Notícias de Urânia";
   const categoryAnchor = `<a href="${urlCategoria(categoryLabel)}">${esc(categoryLabel)}</a>`;
-  const shareBlock = `<div class="share-buttons" aria-label="Compartilhar notícia"><div class="share-heading"><span>Compartilhe</span><p>Envie esta notícia para quem também precisa saber.</p></div><a class="btn-share btn-share-whatsapp" target="_blank" rel="noopener" aria-label="Compartilhar no WhatsApp" href="https://api.whatsapp.com/send?text=${encodeURIComponent(`${news.titulo} - ${canonical}`)}">${icons.whatsapp}<span>WhatsApp</span></a><a class="btn-share btn-share-facebook" target="_blank" rel="noopener" aria-label="Compartilhar no Facebook" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}">${icons.facebook}<span>Facebook</span></a><button class="btn-share btn-share-copy" id="copy-link" type="button" aria-label="Copiar link da notícia">${icons.copy}<span>Copiar link</span></button></div>`;
+  const shareBlock = `<div class="share-buttons" aria-label="Compartilhar notícia"><div class="share-heading"><span>Compartilhe</span><p>Envie esta notícia para quem também precisa saber.</p></div><a class="btn-share btn-share-whatsapp" target="_blank" rel="noopener" aria-label="Compartilhar no WhatsApp" href="https://api.whatsapp.com/send?text=${encodeURIComponent(`${news.titulo} - ${canonical}`)}">${icons.whatsapp}<span>WhatsApp</span></a><a class="btn-share btn-share-facebook" target="_blank" rel="noopener" aria-label="Compartilhar no Facebook" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}">${icons.facebook}<span>Facebook</span></a><button class="btn-share btn-share-copy" id="copy-link" type="button" aria-label="Compartilhar notícia">${icons.copy}<span>Compartilhar</span></button></div>`;
   container.innerHTML = `<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div><article class="news-detail-container"><nav class="article-breadcrumb" aria-label="Navegação da notícia"><a href="/news/">Notícias</a><span aria-hidden="true">/</span>${categoryAnchor}</nav><header class="article-header"><p class="eyebrow">${categoryAnchor}</p><h1>${esc(news.titulo)}</h1>${news.subtitulo ? `<p class="article-subtitle">${esc(news.subtitulo)}</p>` : ""}<p class="meta article-meta"><span>Por ${esc(news.autor || "Eu Amo Urânia")}</span><time datetime="${esc(news.publicado_em)}">${esc(formatarData(news.publicado_em))}</time><span>${readingMinutes} min de leitura</span></p>${shareBlock}</header>${safeImage(news.imagem_url) ? `<figure class="article-figure"><img src="${safeImage(news.imagem_url)}" alt="${esc(news.legenda_imagem || news.titulo)}" class="main-image" decoding="async" fetchpriority="high">${news.legenda_imagem ? `<figcaption>${esc(news.legenda_imagem)}</figcaption>` : ""}</figure>` : ""}<div class="article-copy">${contentWithSuggestion}</div><section class="related-news" id="related-news" aria-label="Notícias relacionadas"><p class="related-loading">Carregando mais notícias…</p></section></article>`;
   document.getElementById("copy-link").addEventListener("click", async event => {
+    const buttonLabel = event.currentTarget.querySelector("span");
+    if (navigator.share && matchMedia("(max-width: 650px)").matches) {
+      try {
+        await navigator.share({ title: news.titulo, text: resumo(news).slice(0, 120), url: canonical });
+        return;
+      } catch (error) {
+        if (error?.name === "AbortError") return;
+      }
+    }
     try{
       await navigator.clipboard.writeText(canonical);
-      event.currentTarget.querySelector("span").textContent = "Link copiado";
+      buttonLabel.textContent = "Link copiado";
     }catch{
-      event.currentTarget.querySelector("span").textContent = "Copie pela barra";
+      buttonLabel.textContent = "Copie pela barra";
     }
   });
   window.dispatchEvent(new CustomEvent("noticia:renderizada"));
