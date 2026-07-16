@@ -30,6 +30,7 @@
       "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
       "permanent": true
     },
+    { "source": "/urania.html", "destination": "/urania/", "permanent": true },
     {
       "source": "/news-detalhes.html",
       "has": [

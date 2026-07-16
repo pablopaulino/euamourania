@@ -108,7 +108,7 @@ function staticPages() {
       id: "pagina-urania",
       title: "Urânia",
       description: "História, identidade e informações sobre a cidade de Urânia.",
-      url: "/urania.html",
+      url: "/urania/",
       category: "Cidade",
       meta: "Conheça Urânia",
       actionLabel: "Abrir página",
