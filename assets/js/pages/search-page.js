@@ -6,15 +6,16 @@ const filters = document.getElementById("portal-search-filters");
 const count = document.getElementById("portal-search-count");
 const resultsContainer = document.getElementById("portal-search-results");
 const loadMore = document.getElementById("portal-search-more");
-const esc = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
+const esc = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
-}[char]));
+})[char]);
 const types = [
   ["", "Tudo"],
   ["noticia", "Notícias"],
   ["guia", "Guia"],
   ["turismo", "Turismo"],
-  ["evento", "Eventos"]
+  ["evento", "Eventos"],
+  ["pagina", "Páginas"]
 ];
 const PAGE_SIZE = 24;
 let allResults = [];
@@ -33,11 +34,11 @@ function dateLabel(value) {
 
 function resultCard(item) {
   const meta = [item.category, item.meta, dateLabel(item.date)].filter(Boolean).slice(0, 2).join(" · ");
-  return `<a class="search-result-card" href="${esc(item.url)}"><span class="search-result-media">${item.image ? `<img src="${esc(item.image)}" alt="${esc(item.title)}" loading="lazy" decoding="async">` : esc(item.typeLabel)}</span><span class="search-result-body"><span class="search-result-kind">${esc(item.typeLabel)}${meta ? ` · ${esc(meta)}` : ""}</span><h2>${esc(item.title)}</h2>${item.description ? `<span class="search-result-description">${esc(item.description)}</span>` : ""}<span class="search-result-action">${esc(item.actionLabel)} <span aria-hidden="true">→</span></span></span></a>`;
+  return `<a class="search-result-card search-result-${esc(item.type)}" href="${esc(item.url)}"><span class="search-result-media">${item.image ? `<img src="${esc(item.image)}" alt="${esc(item.title)}" loading="lazy" decoding="async">` : esc(item.typeLabel)}</span><span class="search-result-body"><span class="search-result-kind">${esc(item.typeLabel)}${meta ? ` · ${esc(meta)}` : ""}</span><h2>${esc(item.title)}</h2>${item.description ? `<span class="search-result-description">${esc(item.description)}</span>` : ""}<span class="search-result-action">${esc(item.actionLabel)} <span aria-hidden="true">→</span></span></span></a>`;
 }
 
 function filtered() {
-  return selectedType ? allResults.filter(item => item.type === selectedType) : allResults;
+  return selectedType ? allResults.filter((item) => item.type === selectedType) : allResults;
 }
 
 function renderFilters() {
@@ -68,7 +69,7 @@ async function runSearch(query, { updateUrl = true } = {}) {
     document.title = "Busca | Eu Amo Urânia";
     filters.innerHTML = "";
     count.textContent = "";
-    resultsContainer.innerHTML = '<div class="search-empty"><h2>O que você procura?</h2><p>Pesquise uma notícia, empresa, ponto turístico ou evento de Urânia.</p></div>';
+    resultsContainer.innerHTML = '<div class="search-empty"><h2>O que você procura?</h2><p>Pesquise uma notícia, empresa, ponto turístico, evento ou página do portal.</p></div>';
     loadMore.hidden = true;
     return;
   }
@@ -76,12 +77,13 @@ async function runSearch(query, { updateUrl = true } = {}) {
   document.title = `${currentQuery} — Busca | Eu Amo Urânia`;
   count.textContent = "Buscando em todo o portal…";
   resultsContainer.setAttribute("aria-busy", "true");
-  resultsContainer.innerHTML = '<div class="search-empty"><p>Consultando notícias, empresas, turismo e eventos…</p></div>';
+  resultsContainer.innerHTML = '<div class="search-empty"><p>Consultando notícias, empresas, turismo, eventos e páginas…</p></div>';
   try {
     allResults = await searchPortal(currentQuery, { limit: 500 });
     renderFilters();
     render();
-  } catch {
+  } catch (error) {
+    console.error("Busca:", error);
     filters.innerHTML = "";
     count.textContent = "";
     resultsContainer.innerHTML = '<div class="search-empty"><h2>Busca temporariamente indisponível</h2><p>Tente novamente em alguns instantes.</p></div>';
@@ -90,7 +92,7 @@ async function runSearch(query, { updateUrl = true } = {}) {
   }
 }
 
-filters.addEventListener("click", event => {
+filters.addEventListener("click", (event) => {
   const button = event.target.closest("[data-search-type]");
   if (!button) return;
   selectedType = button.dataset.searchType;
@@ -99,7 +101,7 @@ filters.addEventListener("click", event => {
   render();
 });
 
-form.addEventListener("submit", event => {
+form.addEventListener("submit", (event) => {
   event.preventDefault();
   runSearch(input.value);
 });

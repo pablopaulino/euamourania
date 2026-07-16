@@ -2,7 +2,7 @@ import { fetchPublicRows } from "./publicDataService.js";
 
 let indexPromise;
 
-const normalize = value => String(value || "")
+const normalize = (value) => String(value || "")
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g, "")
   .toLowerCase()
@@ -15,7 +15,7 @@ const trimText = (value, length = 180) => {
   return text.length > length ? `${text.slice(0, length).trim()}…` : text;
 };
 
-const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? value : "";
+const image = (value) => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? value : "";
 
 function makeItem(type, row) {
   const types = {
@@ -83,6 +83,73 @@ function makeItem(type, row) {
   };
 }
 
+function staticPage({ id, title, description, url, category, meta, actionLabel, featured = false, terms = "", imageUrl = "assets/1505 - Urania - Logo Horizontal - 1.png" }) {
+  return {
+    id,
+    type: "pagina",
+    typeLabel: "Página",
+    title,
+    description,
+    image: imageUrl,
+    url,
+    category,
+    meta,
+    date: null,
+    actionLabel,
+    featured,
+    normalizedTitle: normalize(title),
+    searchable: normalize([title, description, category, meta, terms].filter(Boolean).join(" "))
+  };
+}
+
+function staticPages() {
+  return [
+    staticPage({
+      id: "pagina-urania",
+      title: "Urânia",
+      description: "História, identidade e informações sobre a cidade de Urânia.",
+      url: "/urania.html",
+      category: "Cidade",
+      meta: "Conheça Urânia",
+      actionLabel: "Abrir página",
+      featured: true,
+      imageUrl: "assets/AD3A1763-min (1).jpg",
+      terms: "história noroeste paulista turismo comunidade informações cidade"
+    }),
+    staticPage({
+      id: "pagina-quem-somos",
+      title: "Quem somos",
+      description: "Conheça o propósito do Eu Amo Urânia e como o portal valoriza a cidade.",
+      url: "/quem-somos.html",
+      category: "Institucional",
+      meta: "Eu Amo Urânia",
+      actionLabel: "Abrir página",
+      terms: "contato portal comunidade institucional sobre nós"
+    }),
+    staticPage({
+      id: "pagina-links",
+      title: "Links e canais",
+      description: "Acesse canais oficiais, contatos e links úteis do Eu Amo Urânia.",
+      url: "/links/",
+      category: "Serviço",
+      meta: "Canais",
+      actionLabel: "Ver links",
+      terms: "whatsapp contato instagram facebook canais úteis"
+    }),
+    staticPage({
+      id: "pagina-melhores",
+      title: "Melhores de Urânia",
+      description: "Votação, categorias, indicados e resultados do Melhores de Urânia.",
+      url: "/melhores-de-urania/",
+      category: "Melhores de Urânia",
+      meta: "Votação popular",
+      actionLabel: "Abrir votação",
+      featured: true,
+      terms: "votação popular indicados categorias empresas prêmio comércio"
+    })
+  ];
+}
+
 async function buildIndex() {
   const now = new Date().toISOString();
   const [news, guide, tourism, events] = await Promise.all([
@@ -114,15 +181,16 @@ async function buildIndex() {
   ]);
 
   return [
-    ...news.map(row => makeItem("noticia", row)),
-    ...guide.map(row => makeItem("guia", row)),
-    ...tourism.map(row => makeItem("turismo", row)),
-    ...events.map(row => makeItem("evento", row))
+    ...news.map((row) => makeItem("noticia", row)),
+    ...guide.map((row) => makeItem("guia", row)),
+    ...tourism.map((row) => makeItem("turismo", row)),
+    ...events.map((row) => makeItem("evento", row)),
+    ...staticPages()
   ];
 }
 
 export function loadSearchIndex() {
-  if (!indexPromise) indexPromise = buildIndex().catch(error => {
+  if (!indexPromise) indexPromise = buildIndex().catch((error) => {
     indexPromise = null;
     throw error;
   });
@@ -134,7 +202,7 @@ function score(item, term, tokens) {
   if (item.normalizedTitle === term) value += 120;
   else if (item.normalizedTitle.startsWith(term)) value += 90;
   else if (item.normalizedTitle.includes(term)) value += 65;
-  tokens.forEach(token => {
+  tokens.forEach((token) => {
     if (item.normalizedTitle.startsWith(token)) value += 18;
     else if (item.normalizedTitle.includes(token)) value += 12;
     else if (normalize(item.category).includes(token)) value += 7;
@@ -154,8 +222,8 @@ export async function searchPortal(query, { type = "", limit = 40 } = {}) {
   const tokens = term.split(" ").filter(Boolean);
   const index = await loadSearchIndex();
   return index
-    .filter(item => (!type || item.type === type) && tokens.every(token => item.searchable.includes(token)))
-    .map(item => ({ ...item, score: score(item, term, tokens) }))
+    .filter((item) => (!type || item.type === type) && tokens.every((token) => item.searchable.includes(token)))
+    .map((item) => ({ ...item, score: score(item, term, tokens) }))
     .sort((a, b) => b.score - a.score || String(b.date || "").localeCompare(String(a.date || "")) || a.title.localeCompare(b.title, "pt-BR"))
     .slice(0, limit);
 }
@@ -164,5 +232,5 @@ export function searchTypeCounts(results) {
   return results.reduce((counts, item) => {
     counts[item.type] = (counts[item.type] || 0) + 1;
     return counts;
-  }, { noticia: 0, guia: 0, turismo: 0, evento: 0 });
+  }, { noticia: 0, guia: 0, turismo: 0, evento: 0, pagina: 0 });
 }
