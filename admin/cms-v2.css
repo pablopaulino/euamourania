@@ -36,16 +36,22 @@
 .news-actions button:first-child{grid-column:1/-1}
 .news-actions .danger{background:#fff4f1;color:#b42318}
 .news-editorial-list{display:grid;gap:.75rem;margin-top:1rem}
-.news-editorial-card{display:grid;grid-template-columns:minmax(360px,1fr) minmax(240px,.48fr) minmax(180px,.26fr);gap:1rem;align-items:center;padding:1rem;border:1px solid #dce7ea;border-radius:18px;background:#fff;box-shadow:0 8px 22px rgba(7,59,76,.04)}
+.news-editorial-card{display:grid;grid-template-columns:minmax(460px,1fr) minmax(270px,.46fr) minmax(170px,.22fr);gap:1rem;align-items:stretch;padding:1rem;border:1px solid #dce7ea;border-radius:18px;background:#fff;box-shadow:0 8px 22px rgba(7,59,76,.04)}
 .news-editorial-card:hover{border-color:#cbdde2;box-shadow:0 14px 30px rgba(7,59,76,.07)}
-.news-editorial-card .news-title-main{min-width:0}
-.news-card-badges{display:flex;flex-wrap:wrap;gap:.35rem;margin:.45rem 0 .25rem}
+.news-editorial-card .news-title-main{grid-template-columns:112px minmax(0,1fr);min-width:0;align-items:stretch}
+.news-editorial-card .news-thumb{width:112px;height:100%;min-height:116px;border-radius:16px}
+.news-card-copy{display:flex;min-width:0;flex-direction:column;justify-content:center}
+.news-card-copy strong{max-width:620px;color:#073b4c;font-size:.98rem;line-height:1.18;letter-spacing:-.02em}
+.news-card-copy small{order:-1;margin-bottom:.25rem;color:#647780;font-size:.82rem}
+.news-card-copy p{max-width:680px;margin:.55rem 0 0;color:#647780;font-size:.94rem;line-height:1.45}
+.news-card-editorial{display:flex;flex-direction:column;justify-content:center;gap:.65rem}
+.news-card-badges{display:flex;flex-wrap:wrap;gap:.35rem;margin:0}
 .news-card-meta{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;padding:.75rem;border:1px solid #eef3f4;border-radius:14px;background:#f8fbfc}
 .news-card-meta .news-date-cell{min-width:0}
 .news-card-meta .news-date-cell span{color:#647780;font-size:.68rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
 .news-editorial-card .news-actions{align-self:stretch;grid-template-columns:1fr;min-width:0}
 .news-editorial-card .news-actions button{width:100%;min-height:38px}
 @media(max-width:1180px){.news-admin-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.news-admin-toolbar{grid-template-columns:1fr 1fr}.news-admin-head{align-items:flex-start}}
-@media(max-width:1180px){.news-admin-metrics.editorial{grid-template-columns:repeat(3,minmax(0,1fr))}.news-editorial-card{grid-template-columns:1fr}.news-editorial-card .news-actions{grid-template-columns:repeat(3,minmax(0,1fr))}.news-editorial-card .news-actions button:first-child{grid-column:auto}}
-@media(max-width:760px){.news-admin-metrics{grid-template-columns:1fr 1fr}.news-admin-metrics.editorial{grid-template-columns:1fr 1fr}.news-admin-toolbar{grid-template-columns:1fr}.news-admin-head-actions{width:100%;justify-content:stretch}.news-admin-head-actions .admin-button{flex:1 1 160px}.news-admin-table{min-width:980px}.news-title-main{min-width:0;grid-template-columns:62px minmax(0,1fr)}.news-card-meta{grid-template-columns:1fr}.news-editorial-card .news-actions{grid-template-columns:1fr}}
+@media(max-width:1180px){.news-admin-metrics.editorial{grid-template-columns:repeat(3,minmax(0,1fr))}.news-editorial-card{grid-template-columns:1fr}.news-editorial-card .news-title-main{grid-template-columns:104px minmax(0,1fr)}.news-editorial-card .news-actions{grid-template-columns:repeat(3,minmax(0,1fr))}.news-editorial-card .news-actions button:first-child{grid-column:auto}}
+@media(max-width:760px){.news-admin-metrics{grid-template-columns:1fr 1fr}.news-admin-metrics.editorial{grid-template-columns:1fr 1fr}.news-admin-toolbar{grid-template-columns:1fr}.news-admin-head-actions{width:100%;justify-content:stretch}.news-admin-head-actions .admin-button{flex:1 1 160px}.news-admin-table{min-width:980px}.news-title-main{min-width:0}.news-editorial-card .news-title-main{grid-template-columns:92px minmax(0,1fr)}.news-editorial-card .news-thumb{width:92px;min-height:104px}.news-card-meta{grid-template-columns:1fr}.news-editorial-card .news-actions{grid-template-columns:1fr}}
 @media(max-width:520px){.news-admin-metrics{grid-template-columns:1fr}.news-admin-panel{padding:1rem}.news-admin-table-wrap{margin-inline:-.35rem;border-radius:14px}}
