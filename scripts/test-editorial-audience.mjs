@@ -57,7 +57,7 @@ must(analytics.includes("sessionStorage") && !analytics.includes("ip:"), "Rastre
 must(analytics.includes("noticiaView();") && analytics.includes('window.addEventListener("noticia:renderizada",noticiaView'), "Visualizacao de noticia depende apenas do evento tardio");
 must(analytics.includes("observePublicCards") && analytics.includes('observeCards("[data-guide-id]"') && analytics.includes('observeCards("[data-tourism-id]"'), "Cards publicos nao sao observados quando a audiencia carrega depois");
 must(!cms.includes("obterMaisAcessados") && cms.includes("rankingPorEventos") && cms.includes('tipo==="page_view"'), "Estatisticas antigas ainda misturam contador acumulado com eventos por periodo");
-must(cms.includes("acessosNoticiasPorSlug") && cms.includes("Acessos 30d"), "Lista de noticias nao usa acessos recentes por URL");
+must(cms.includes("function acessosNoticias") && cms.includes('x.tipo==="noticia_view"') && cms.includes("slugNoticiaPagina") && cms.includes("Acessos 30d"), "Lista de noticias nao concilia acessos recentes por URL e noticia_view");
 must(admin.includes("mergeNewsPageViews") && admin.includes('match(/^\\/noticias\\/'), "Conteudos mais acessados nao conciliam page_view de noticias por URL");
 
 for (const event of ["guia_click", "turismo_click", "link_click"]) {
