@@ -277,7 +277,7 @@ async function dashboard() {
       noticias, publicadas, rascunhos, agendadas, emRevisao,
       empresas, empresasAtivas, pontos, pontosAtivos, eventos, eventosAtivos, eventosProximos,
       links, campanhas, campanhasAtivas, campanhasVencendo, assinantes, melhoresEdicoes, melhoresIndicados,
-      aprovacoes, categorias, usuariosAtivos, views7d, views30d, whatsapp7d, external7d
+      aprovacoes, colaboradores, colaboradoresNovos, categorias, usuariosAtivos, views7d, views30d, whatsapp7d, external7d
     ] = await Promise.all([
       safeCount("noticias"),
       safeCount("noticias", { status: "publicado" }),
@@ -299,6 +299,8 @@ async function dashboard() {
       safeCount("melhores_edicoes", { status: { op: "neq", value: "arquivada" } }),
       safeCount("melhores_indicados", { status: "ativo" }),
       safeCount("solicitacoes_aprovacao", { status: "pendente" }),
+      safeCount("colaboradores_voluntarios"),
+      safeCount("colaboradores_voluntarios", { status: "novo" }),
       safeCount("categorias", { status: "ativo" }),
       safeCount("usuarios_admin", { ativo: true }),
       safeCount("analytics_eventos", { criado_em: { op: "gte", value: sevenDaysAgo } }),
@@ -307,14 +309,15 @@ async function dashboard() {
       safeCount("analytics_eventos", { tipo: "external_click", criado_em: { op: "gte", value: sevenDaysAgo } })
     ]);
 
-    const [recentNews, pendingApprovals, recentEditions, recentActivities, analyticsEvents, upcomingEvents, endingCampaigns] = await Promise.all([
+    const [recentNews, pendingApprovals, recentEditions, recentActivities, analyticsEvents, upcomingEvents, endingCampaigns, recentCollaborators] = await Promise.all([
       safeList(() => supabase.from("noticias").select("titulo,status,status_editorial,publicado_em,atualizado_em").order("atualizado_em", { ascending: false }).limit(6)),
       safeList(() => supabase.from("solicitacoes_aprovacao").select("id,status,enviado_em,noticias(titulo,status,status_editorial)").eq("status", "pendente").order("enviado_em", { ascending: false }).limit(5)),
       safeList(() => supabase.from("melhores_edicoes").select("nome,ano,status,atualizado_em").neq("status", "arquivada").order("ano", { ascending: false }).limit(4)),
       safeList(() => supabase.from("cms_atividades").select("titulo,acao,tabela,criado_em").order("criado_em", { ascending: false }).limit(6)),
       safeList(() => supabase.from("analytics_eventos").select("tipo,pagina,dispositivo,origem,sessao_hash,criado_em").gte("criado_em", sevenDaysAgo).order("criado_em", { ascending: false }).limit(900)),
       safeList(() => supabase.from("eventos").select("titulo,status,data_inicio,local").eq("status", "publicado").gte("data_inicio", isoNow).order("data_inicio", { ascending: true }).limit(5)),
-      safeList(() => supabase.from("campanhas_publicitarias").select("nome,status,data_fim,empresa_anunciante").eq("status", "ativo").lte("data_fim", nextSevenDays).order("data_fim", { ascending: true }).limit(5))
+      safeList(() => supabase.from("campanhas_publicitarias").select("nome,status,data_fim,empresa_anunciante").eq("status", "ativo").lte("data_fim", nextSevenDays).order("data_fim", { ascending: true }).limit(5)),
+      safeList(() => supabase.from("colaboradores_voluntarios").select("nome,cidade,status,interesses,criado_em").order("criado_em", { ascending: false }).limit(5))
     ]);
 
     const uniqueVisitors = new Set(analyticsEvents.map(item => item.sessao_hash).filter(Boolean)).size;
@@ -323,6 +326,7 @@ async function dashboard() {
     const topOrigins = rank(analyticsEvents, "origem", 4);
     const importantAlerts = [
       aprovacoes ? [`${aprovacoes} notícia(s) aguardando aprovação`, "Abrir aprovações", "aprovacoes", "warning"] : null,
+      colaboradoresNovos ? [`${colaboradoresNovos} colaborador(es) voluntário(s) aguardando contato`, "Ver colaborações", "colaboradores_voluntarios", "info"] : null,
       emRevisao ? [`${emRevisao} notícia(s) em revisão editorial`, "Ver notícias", "noticias", "info"] : null,
       rascunhos ? [`${rascunhos} rascunho(s) parado(s) no editorial`, "Organizar pauta", "noticias", "warning"] : null,
       agendadas ? [`${agendadas} notícia(s) agendada(s) para o futuro`, "Conferir agenda", "noticias", "info"] : null,
@@ -343,6 +347,7 @@ async function dashboard() {
       ["Turismo", pontos, `${pontosAtivos} pontos publicados`],
       ["Eventos", eventos, `${eventosAtivos} publicados · ${eventosProximos} futuros`],
       ["Comunicação", assinantes, "assinantes ativos"],
+      ["Colaborações", colaboradores, `${colaboradoresNovos} novo(s) contato(s)`],
       ["Melhores", melhoresEdicoes, `${melhoresIndicados} indicados ativos`],
       ["Links", links, "links ativos"],
       ["Categorias", categorias, "categorias ativas"],
@@ -354,6 +359,7 @@ async function dashboard() {
     const activityRows = recentActivities.map(item => ({ title: item.titulo || item.tabela || "Atividade", detail: `${item.acao || "ação"} · ${fmtDate(item.criado_em)}`, badge: item.tabela || "" }));
     const eventRows = upcomingEvents.map(item => ({ title: item.titulo || "Evento", detail: `${fmtDate(item.data_inicio)}${item.local ? ` · ${item.local}` : ""}`, badge: item.status || "" }));
     const campaignRows = endingCampaigns.map(item => ({ title: item.nome || "Campanha", detail: `${item.empresa_anunciante || "Anunciante"} · vence em ${fmtDate(item.data_fim)}`, badge: item.status || "ativo", badgeClass: "ativo" }));
+    const collaboratorRows = recentCollaborators.map(item => ({ title: item.nome || "Colaborador voluntário", detail: `${item.cidade || "Cidade não informada"} · ${(item.interesses || []).slice(0, 3).join(", ") || "sem interesses"} · ${fmtDate(item.criado_em)}`, badge: item.status || "novo", badgeClass: item.status || "" }));
 
     app.innerHTML = `
       <section class="dashboard-hero panel dashboard-hero-pro">
@@ -420,8 +426,8 @@ async function dashboard() {
       </div>
       <div class="dashboard-layout dashboard-bottom">
         <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Últimas atividades</h2><p>Rastro recente das ações feitas no CMS.</p></div></header>
-          <div class="dashboard-list">${listRows(activityRows)}</div>
+          <header class="panel-header"><div><h2>Colaborações e atividades</h2><p>Novos voluntários e rastro recente das ações feitas no CMS.</p></div><button class="admin-button secondary" data-view="colaboradores_voluntarios">Ver colaborações</button></header>
+          <div class="dashboard-list">${listRows([...collaboratorRows, ...activityRows].slice(0, 8))}</div>
         </section>
         <section class="panel dashboard-section">
           <header class="panel-header"><div><h2>Ações rápidas</h2><p>Caminhos mais usados na rotina do portal.</p></div></header>
@@ -430,6 +436,7 @@ async function dashboard() {
             <button class="metric-card" onclick="location.href='publicidade.html'"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
             <button class="metric-card" onclick="location.href='melhores.html'"><span>Prêmio</span><strong>Melhores</strong><small>Votação e apuração</small></button>
             <button class="metric-card" onclick="location.href='comunicacao.html'"><span>Comunicação</span><strong>Newsletter</strong><small>Assinantes e campanhas</small></button>
+            <button class="metric-card" data-view="colaboradores_voluntarios"><span>Comunidade</span><strong>Colaborações</strong><small>Voluntários, pautas e contatos</small></button>
           </div>
         </section>
       </div>`;

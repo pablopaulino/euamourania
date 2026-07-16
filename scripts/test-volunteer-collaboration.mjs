@@ -16,6 +16,8 @@ const [
   newsDetails,
   adminIndex,
   adminScript,
+  adminAccessControl,
+  adminAuth,
   sitemap,
   searchService
 ] = await Promise.all([
@@ -28,6 +30,8 @@ const [
   read("news-details.html"),
   read("admin/index.html"),
   read("admin/admin.js"),
+  read("admin/access-control.js"),
+  read("admin/auth.js"),
   read("api/sitemaps.js"),
   read("assets/js/services/searchService.js")
 ]);
@@ -50,6 +54,9 @@ must(newsDetails.includes("colabore-public.js"), "Convite voluntario ausente na 
 
 must(adminIndex.includes('data-view="colaboradores_voluntarios"'), "Menu administrativo de colaboracoes ausente.");
 must(adminScript.includes("colaboradores_voluntarios"), "Recurso administrativo de colaboradores ausente.");
+must(adminScript.includes("colaboradoresNovos") && adminScript.includes("recentCollaborators"), "Dashboard nao integra colaboradores voluntarios.");
+must(adminAccessControl.includes("colaboradores_voluntarios") && adminAccessControl.includes("colaboradores"), "Menu dinamico nao conhece colaboradores.");
+must(adminAuth.includes("colaboradores:*"), "Permissoes administrativas de colaboradores ausentes.");
 must(adminScript.includes('type==="tags"'), "Campo de interesses como tags ausente.");
 must(adminScript.includes('type==="volunteer-status"'), "Status dos colaboradores ausente.");
 must(adminScript.includes('split(",")'), "Conversao de interesses para lista ausente.");
