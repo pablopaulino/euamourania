@@ -73,11 +73,11 @@
     { "source": "/news-sitemap.xml", "destination": "/api/sitemaps?type=news" },
     { "source": "/rss.xml", "destination": "/api/rss" },
     {
-      "source": "/:categoria((?!api|admin|assets|news|noticias|guia|turismo|eventos|links|urania|melhores-de-urania|quem-somos|termos-de-servico|politica-de-privacidade)[a-z0-9-]+)",
+      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|melhores-de-urania$|quem-somos$|termos-de-servico$|politica-de-privacidade$)[a-z0-9-]+)",
       "destination": "/categorias/index.html?categoria=:categoria"
     },
     {
-      "source": "/:categoria((?!api|admin|assets|news|noticias|guia|turismo|eventos|links|urania|melhores-de-urania|quem-somos|termos-de-servico|politica-de-privacidade)[a-z0-9-]+)/",
+      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|melhores-de-urania$|quem-somos$|termos-de-servico$|politica-de-privacidade$)[a-z0-9-]+)/",
       "destination": "/categorias/index.html?categoria=:categoria"
     }
   ],
