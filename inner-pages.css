@@ -326,9 +326,9 @@
 .article-popular-news ol { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
 .article-popular-news li + li { border-top: 1px solid rgba(7,59,76,.08); }
 .article-popular-news a { display: grid; grid-template-columns: 34px minmax(0,1fr); gap: .8rem; padding: .75rem 0; color: inherit; text-decoration: none; }
-.article-popular-news span { display: grid; width: 28px; height: 28px; place-items: center; color: var(--navy); background: rgba(247,201,72,.75); border-radius: 50%; font-size: .78rem; font-weight: 950; }
-.article-popular-news strong { display: block; color: #153845; font-size: .96rem; line-height: 1.3; }
-.article-popular-news small { display: block; max-width: 100%; margin-top: .22rem; overflow: hidden; color: #7a8b92; font-size: .7rem; font-weight: 750; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.article-popular-news span { display: grid; grid-row: 1 / span 2; width: 28px; height: 28px; place-items: center; color: var(--navy); background: rgba(247,201,72,.75); border-radius: 50%; font-size: .78rem; font-weight: 950; }
+.article-popular-news strong { display: block; grid-column: 2; color: #153845; font-size: .96rem; line-height: 1.3; }
+.article-popular-news small { display: block; grid-column: 2; max-width: 100%; margin-top: .22rem; overflow: visible; color: #7a8b92; font-size: .72rem; font-weight: 750; line-height: 1.25; white-space: normal; }
 .article-popular-news a:hover strong { color: var(--blue); }
 
 @media (max-width: 650px) {
