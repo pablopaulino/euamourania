@@ -10,9 +10,10 @@ const searchForm = document.getElementById("news-search-form");
 const resultsCount = document.getElementById("news-results-count");
 const loadMore = document.getElementById("news-load-more");
 const clearFilters = document.getElementById("news-clear-filters");
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 9;
 
 let feed = [];
+let allNews = [];
 let selectedCategory = "";
 let visibleCount = PAGE_SIZE;
 
@@ -23,80 +24,138 @@ const esc = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({
   "'": "&#39;",
   '"': "&quot;",
 })[char]);
+
 const safeImage = (value) => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "../assets/Design sem nome (9).png";
 const newsUrl = (slug) => `/noticias/${encodeURIComponent(slug)}`;
 const summary = (item) => (item.resumo || textoPuro(item.conteudo_html || "")).trim();
-const categoryUrl = (category) => `/${encodeURIComponent(gerarSlug(category || "urania"))}/`;
-const categoryLink = (category) => {
-  const label = category || "Urânia";
-  return `<a class="news-category-link" href="${categoryUrl(label)}">${esc(label)}</a>`;
-};
 const normalize = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const categoryUrl = (category) => `/${encodeURIComponent(gerarSlug(category || "urania"))}/`;
 
-function secondaryCard(item) {
-  const url = newsUrl(item.slug);
-  return `<article class="news-secondary"><a class="news-secondary-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="eager" decoding="async"></a><div class="news-secondary-content"><p class="news-secondary-meta"><span>${categoryLink(item.categoria_nome)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p><h3><a href="${url}">${esc(item.titulo)}</a></h3><a class="news-secondary-action" href="${url}">Ler notícia <span aria-hidden="true">→</span></a></div></article>`;
+function categoryLink(category, className = "news-category-link") {
+  const label = category || "Urânia";
+  return `<a class="${className}" href="${categoryUrl(label)}">${esc(label)}</a>`;
 }
 
-function leadCard(item, index = 0) {
-  const text = summary(item);
+function readingTime(item) {
+  const words = textoPuro(`${item.resumo || ""} ${item.conteudo_html || ""}`).split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 220));
+}
+
+function shortText(text = "", limit = 150) {
+  const clean = String(text || "").trim();
+  return clean.length > limit ? `${clean.slice(0, limit).trim()}…` : clean;
+}
+
+function leadCard(item) {
   const url = newsUrl(item.slug);
-  return `<article class="news-lead ${index === 0 ? "primary" : ""}"><a class="news-lead-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" ${index === 0 ? 'fetchpriority="high"' : 'loading="eager"'} decoding="async"></a><div class="news-lead-content"><span class="news-lead-label">${index === 0 ? "Manchete principal" : "Também em destaque"}</span><p class="eyebrow">${categoryLink(item.categoria_nome)}</p><h2><a href="${url}">${esc(item.titulo)}</a></h2><p class="news-lead-date">${esc(formatarData(item.publicado_em))}</p>${text ? `<p class="news-lead-summary">${esc(text.slice(0, 180))}${text.length > 180 ? "…" : ""}</p>` : ""}<a class="news-lead-action" href="${url}"><span>Ler notícia</span><span aria-hidden="true">→</span></a></div></article>`;
+  const text = summary(item);
+  return `<article class="news-cover-lead">
+    <a class="news-cover-media" href="${url}" aria-label="${esc(item.titulo)}">
+      <img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" fetchpriority="high" decoding="async">
+    </a>
+    <div class="news-cover-copy">
+      <p class="news-cover-meta"><span>Manchete local</span>${categoryLink(item.categoria_nome)}</p>
+      <h2><a href="${url}">${esc(item.titulo)}</a></h2>
+      ${text ? `<p>${esc(shortText(text, 210))}</p>` : ""}
+      <div class="news-cover-footer">
+        <time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time>
+        <a href="${url}">Ler notícia <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </article>`;
+}
+
+function compactCard(item, label = "Destaque") {
+  const url = newsUrl(item.slug);
+  return `<article class="news-compact-card">
+    <a class="news-compact-media" href="${url}" aria-label="${esc(item.titulo)}">
+      <img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="eager" decoding="async">
+    </a>
+    <div>
+      <p>${esc(label)}</p>
+      <h3><a href="${url}">${esc(item.titulo)}</a></h3>
+      <time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time>
+    </div>
+  </article>`;
+}
+
+function headlineItem(item, index) {
+  const url = newsUrl(item.slug);
+  return `<a class="news-headline-item" href="${url}">
+    <span>${String(index + 1).padStart(2, "0")}</span>
+    <strong>${esc(item.titulo)}</strong>
+  </a>`;
+}
+
+function popularItem(item, index) {
+  const url = newsUrl(item.slug);
+  return `<a class="news-popular-item" href="${url}">
+    <span>${index + 1}</span>
+    <strong>${esc(item.titulo)}</strong>
+  </a>`;
+}
+
+function renderBreaking(items) {
+  const breaking = items.slice(0, 6);
+  const links = breaking.map((item) => `<a href="${newsUrl(item.slug)}">${esc(item.titulo)}</a>`).join("");
+  return `<div class="news-breaking-strip" aria-label="Plantão local">
+    <span>Plantão local</span>
+    <div class="news-breaking-viewport"><div class="news-breaking-track">${links}${links}</div></div>
+  </div>`;
+}
+
+function renderEditorialSections(items) {
+  const categories = [...new Set(items.map((item) => item.categoria_nome).filter(Boolean))];
+  const sections = categories.slice(0, 4).map((category) => {
+    const categoryNews = items.filter((item) => item.categoria_nome === category).slice(0, 3);
+    if (!categoryNews.length) return "";
+    return `<section class="news-editorial-section">
+      <div class="news-editorial-section-head">
+        <p class="eyebrow">${esc(category)}</p>
+        <h3>${esc(category)}</h3>
+      </div>
+      <div class="news-editorial-mini-list">${categoryNews.map((item) => compactCard(item, category)).join("")}</div>
+    </section>`;
+  }).filter(Boolean).join("");
+  return sections ? `<div class="news-editorial-sections">${sections}</div>` : "";
 }
 
 function renderFeatured(items = []) {
-  const leads = items.slice(0, 2);
-  const secondary = items.slice(2, 5);
-  const breaking = items.slice(0, 4);
-  const breakingLinks = breaking.map((item) => `<a href="${newsUrl(item.slug)}">${esc(item.titulo)}</a>`).join("");
-  featured.innerHTML = `<section class="news-top-stories" aria-labelledby="top-stories-title"><div class="news-breaking-strip"><span>Plantão local</span><div class="news-breaking-viewport"><div class="news-breaking-track">${breakingLinks}${breakingLinks}</div></div></div><div class="news-top-heading"><div><p class="eyebrow">Redação Eu Amo Urânia</p><h2 id="top-stories-title">O que movimenta Urânia agora</h2></div><a href="#news-feed-title" class="news-top-link">Ver todas as matérias</a></div><div class="news-portal-grid"><div class="news-featured-main">${leads.map(leadCard).join("")}</div>${secondary.length ? `<div class="news-secondary-stack">${secondary.map(secondaryCard).join("")}</div>` : ""}</div></section>`;
-}
+  const lead = items[0];
+  if (!lead) return;
+  const side = items.slice(1, 4);
+  const headlines = items.slice(0, 5);
+  const popular = [...allNews].sort((a, b) => (Number(b.visualizacoes || 0) - Number(a.visualizacoes || 0)) || new Date(b.publicado_em) - new Date(a.publicado_em)).slice(0, 5);
 
-function weatherDescription(code) {
-  if (code === 0) return ["Céu limpo", "\u2600\uFE0F"];
-  if ([1, 2].includes(code)) return ["Parcialmente nublado", "🌤️"];
-  if (code === 3) return ["Nublado", "\u2601\uFE0F"];
-  if ([45, 48].includes(code)) return ["Neblina", "🌤️"];
-  if ([51, 53, 55, 56, 57].includes(code)) return ["Garoa", "🌤️"];
-  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return ["Chuva", "🌤️"];
-  if ([71, 73, 75, 77, 85, 86].includes(code)) return ["Precipitação gelada", "🌤️"];
-  if ([95, 96, 99].includes(code)) return ["Trovoadas", "⛈️"];
-  return ["Condição variável", "🌤️"];
-}
-
-function buildLocalServiceBar() {
-  const masthead = document.querySelector(".news-masthead");
-  if (!masthead || document.querySelector(".news-service-bar")) return null;
-  masthead.insertAdjacentHTML("afterend", `<section class="news-service-bar" aria-label="Informações locais"><div class="container news-service-layout"><div class="news-today"><span>Agora em Urânia</span><time id="news-current-date"></time></div><div id="news-weather" class="news-weather" role="status" aria-live="polite"><span class="weather-icon" aria-hidden="true">\u2600\uFE0F</span><span class="weather-copy"><strong>Previsão local</strong><small>Carregando clima…</small></span></div></div></section>`);
-  const date = document.getElementById("news-current-date");
-  date.textContent = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" }).format(new Date());
-  return document.getElementById("news-weather");
-}
-
-async function loadWeather() {
-  const widget = buildLocalServiceBar();
-  if (!widget) return;
-  const cacheKey = "euamourania-weather-v1";
-  try {
-    const cached = JSON.parse(sessionStorage.getItem(cacheKey) || "null");
-    let data = cached?.expires > Date.now() ? cached.data : null;
-    if (!data) {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
-      const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=-20.24611&longitude=-50.64306&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FSao_Paulo&forecast_days=1", { signal: controller.signal });
-      clearTimeout(timeout);
-      if (!response.ok) throw new Error("weather-unavailable");
-      data = await response.json();
-      sessionStorage.setItem(cacheKey, JSON.stringify({ expires: Date.now() + 15 * 60 * 1000, data }));
-    }
-    const [description, icon] = weatherDescription(data.current?.weather_code);
-    const current = Math.round(data.current?.temperature_2m);
-    const minimum = Math.round(data.daily?.temperature_2m_min?.[0]);
-    const maximum = Math.round(data.daily?.temperature_2m_max?.[0]);
-    widget.innerHTML = `<span class="weather-icon" aria-hidden="true">${icon}</span><span class="weather-copy"><strong>${Number.isFinite(current) ? `${current}° em Urânia` : "Clima em Urânia"}</strong><small>${description}${Number.isFinite(minimum) && Number.isFinite(maximum) ? ` · mín. ${minimum}° / máx. ${maximum}°` : ""}</small></span>`;
-  } catch {
-    widget.innerHTML = '<span class="weather-icon" aria-hidden="true">🌤️</span><span class="weather-copy"><strong>Clima em Urânia</strong><small>Previsão indisponível agora</small></span>';
-  }
+  featured.innerHTML = `<section class="news-cover" aria-labelledby="news-cover-title">
+    ${renderBreaking(allNews)}
+    <div class="news-cover-heading">
+      <div>
+        <p class="eyebrow">Capa editorial</p>
+        <h2 id="news-cover-title">O que movimenta Urânia agora</h2>
+      </div>
+      <a href="#news-feed-title">Ver todas as notícias</a>
+    </div>
+    <div class="news-cover-grid">
+      ${leadCard(lead)}
+      <aside class="news-cover-side" aria-label="Chamadas secundárias">
+        ${side.map((item, index) => compactCard(item, index === 0 ? "Também em destaque" : "Atualização")).join("")}
+      </aside>
+      <aside class="news-cover-digest" aria-label="Resumo editorial">
+        <div class="news-digest-card">
+          <p class="eyebrow">Agora na redação</p>
+          <h3>Resumo rápido</h3>
+          <div class="news-headline-list">${headlines.map(headlineItem).join("")}</div>
+        </div>
+        <div class="news-digest-card news-popular-card">
+          <p class="eyebrow">Mais lidas</p>
+          <h3>Em alta</h3>
+          <div class="news-popular-list">${popular.map(popularItem).join("")}</div>
+        </div>
+      </aside>
+    </div>
+    ${renderEditorialSections(allNews)}
+  </section>`;
 }
 
 function renderFilters(items) {
@@ -113,18 +172,36 @@ function filteredNews() {
   });
 }
 
-function card(item) {
-  const text = summary(item);
-  const url = newsUrl(item.slug);
-  return `<article class="news-item"><a class="news-item-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async"></a><div class="content"><p class="news-item-meta"><span>${categoryLink(item.categoria_nome)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p><h3><a href="${url}">${esc(item.titulo)}</a></h3>${text ? `<p class="news-item-summary">${esc(text.slice(0, 155))}${text.length > 155 ? "…" : ""}</p>` : ""}<a href="${url}" class="news-item-action"><span>Ler notícia</span><span aria-hidden="true">→</span></a></div></article>`;
-}
-
 function streamCard(item, index = 0) {
   const text = summary(item);
   const url = newsUrl(item.slug);
   const label = index === 0 ? "Mais recente" : (item.categoria_nome || "Urânia");
   const limit = index === 0 ? 210 : 125;
-  return `<article class="news-stream-card ${index === 0 ? "is-latest" : ""}"><a class="news-stream-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async"></a><div class="news-stream-content"><p class="news-stream-meta"><span>${esc(label)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p><h3><a href="${url}">${esc(item.titulo)}</a></h3>${text ? `<p>${esc(text.slice(0, limit))}${text.length > limit ? "…" : ""}</p>` : ""}<a class="news-stream-action" href="${url}">Abrir matéria <span aria-hidden="true">→</span></a></div></article>`;
+  return `<article class="news-stream-card ${index === 0 ? "is-latest" : ""}">
+    <a class="news-stream-media" href="${url}" aria-label="${esc(item.titulo)}">
+      <img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async">
+    </a>
+    <div class="news-stream-content">
+      <p class="news-stream-meta"><span>${esc(label)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time><small>${readingTime(item)} min</small></p>
+      <h3><a href="${url}">${esc(item.titulo)}</a></h3>
+      ${text ? `<p>${esc(shortText(text, limit))}</p>` : ""}
+      <a class="news-stream-action" href="${url}">Abrir matéria <span aria-hidden="true">→</span></a>
+    </div>
+  </article>`;
+}
+
+function card(item) {
+  const text = summary(item);
+  const url = newsUrl(item.slug);
+  return `<article class="news-item">
+    <a class="news-item-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async"></a>
+    <div class="content">
+      <p class="news-item-meta"><span>${categoryLink(item.categoria_nome)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p>
+      <h3><a href="${url}">${esc(item.titulo)}</a></h3>
+      ${text ? `<p class="news-item-summary">${esc(shortText(text, 155))}</p>` : ""}
+      <a href="${url}" class="news-item-action"><span>Ler notícia</span><span aria-hidden="true">→</span></a>
+    </div>
+  </article>`;
 }
 
 function renderFeed() {
@@ -193,7 +270,7 @@ async function carregarNoticias() {
   }
   try {
     const news = await fetchPublicRows("noticias", {
-      select: "id,titulo,slug,resumo,imagem_url,categoria_nome,publicado_em,destaque",
+      select: "id,titulo,slug,resumo,conteudo_html,imagem_url,categoria_nome,publicado_em,destaque,visualizacoes",
       status: "eq.publicado",
       publicado_em: `lte.${new Date().toISOString()}`,
       order: "publicado_em.desc",
@@ -202,12 +279,13 @@ async function carregarNoticias() {
       status.textContent = "Nenhuma notícia publicada.";
       return;
     }
+    allNews = news;
     const lead = news.find((item) => item.destaque) || news[0];
-    const featuredItems = [lead, ...news.filter((item) => item.id !== lead.id)].slice(0, 5);
-    const highlightedIds = new Set(featuredItems.map((item) => item.id));
+    const featuredItems = [lead, ...news.filter((item) => item.id !== lead.id)].slice(0, 6);
+    const highlightedIds = new Set(featuredItems.slice(0, 4).map((item) => item.id));
     feed = news.filter((item) => !highlightedIds.has(item.id));
     renderFeatured(featuredItems);
-    renderFilters(feed);
+    renderFilters(news);
     renderFeed();
     renderPolicyLinks();
     status.hidden = true;
