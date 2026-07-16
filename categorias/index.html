@@ -52,27 +52,32 @@
   </header>
   <main id="conteudo" class="news-hub">
     <section class="page-hero news-masthead category-masthead" aria-labelledby="category-title">
-      <div class="container news-masthead-layout">
-        <div>
+      <div class="container category-masthead-layout">
+        <div class="category-masthead-copy">
           <p class="eyebrow">Editoria</p>
           <h1 id="category-title">Carregando editoria</h1>
+          <p id="category-description">Notícias de Urânia organizadas por assunto para facilitar sua leitura.</p>
         </div>
-        <p id="category-description">Notícias de Urânia organizadas por assunto para facilitar sua leitura.</p>
+        <div class="category-masthead-stats" aria-label="Resumo da editoria">
+          <span><strong id="category-total">—</strong> publicações</span>
+          <span><strong id="category-updated">—</strong> última atualização</span>
+        </div>
       </div>
     </section>
     <section class="news-hub-content">
       <div class="container">
         <nav class="category-nav" aria-label="Outras editorias" id="category-nav"></nav>
-        <section class="news-feed category-feed" aria-labelledby="category-feed-title">
-          <div class="news-feed-header">
+        <section class="category-feed" aria-labelledby="category-feed-title">
+          <div id="category-featured"></div>
+          <div class="category-section-bar">
             <div>
-              <p class="eyebrow">Arquivo da editoria</p>
-              <h2 id="category-feed-title">Últimas publicações</h2>
+              <p class="eyebrow">Atualizações</p>
+              <h2 id="category-feed-title">Últimas notícias</h2>
               <p class="news-feed-description" id="category-count">Carregando notícias…</p>
             </div>
             <a class="category-back-link" href="/news/">Ver todas as notícias</a>
           </div>
-          <div class="news-controls">
+          <div class="category-search-row">
             <form id="category-search-form" class="news-search-form" role="search">
               <label class="news-search-control" for="category-search">
                 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg>
