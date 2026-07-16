@@ -1,0 +1,3 @@
+Eu Amo Urânia deploy marker
+Atualizado em: 2026-07-16
+Motivo: forçar novo deployment na Vercel após integração de colaboradores.
