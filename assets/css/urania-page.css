@@ -1,9 +1,10 @@
 .urania-page{background:#f7f9f9}
-.urania-hero{position:relative;overflow:hidden;padding:clamp(3rem,8vw,6.4rem) 0;background:linear-gradient(135deg,#eef8fa 0%,#fff8d8 100%)}
-.urania-hero::after{content:"";position:absolute;right:-8vw;top:-12vw;width:42vw;height:42vw;border-radius:50%;background:rgba(247,201,72,.32);filter:blur(8px)}
+.urania-page{--urania-primary:var(--blue);--urania-accent:var(--yellow);--urania-soft:#eef8fa}
+.urania-hero{position:relative;overflow:hidden;padding:clamp(3rem,8vw,6.4rem) 0;background:linear-gradient(135deg,var(--urania-soft) 0%,#fff8d8 100%)}
+.urania-hero::after{content:"";position:absolute;right:-8vw;top:-12vw;width:42vw;height:42vw;border-radius:50%;background:color-mix(in srgb,var(--urania-accent) 42%,transparent);filter:blur(8px)}
 .urania-hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.78fr);gap:clamp(2rem,6vw,5rem);align-items:center}
 .urania-hero h1{max-width:850px;margin:.45rem 0 1rem;color:var(--navy);font-size:clamp(2.7rem,7vw,5.2rem);line-height:.98;letter-spacing:-.065em}
-.urania-hero h1 span{color:var(--blue)}
+.urania-hero h1 span{color:var(--urania-primary)}
 .urania-hero p:not(.eyebrow){max-width:680px;color:#4f6973;font-size:clamp(1.05rem,2vw,1.25rem);line-height:1.7}
 .urania-hero-card{position:relative;padding:1rem;background:#fff;border:1px solid rgba(7,59,76,.12);border-radius:30px;box-shadow:0 28px 75px rgba(7,59,76,.14)}
 .urania-hero-card img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:22px}
@@ -18,7 +19,7 @@
 .urania-section{padding:clamp(3rem,7vw,5.6rem) 0}
 .urania-section.alt{background:#fff}
 .urania-heading{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,440px);align-items:end;gap:1.5rem;margin-bottom:1.5rem}
-.urania-heading .eyebrow{margin-bottom:.35rem;color:var(--blue)}
+.urania-heading .eyebrow{margin-bottom:.35rem;color:var(--urania-primary)}
 .urania-heading h2{margin:0;color:var(--navy);font-size:clamp(2rem,4vw,3.1rem);line-height:1.04;letter-spacing:-.055em}
 .urania-heading p{margin:0;color:#5f7680;line-height:1.7}
 .urania-story-card{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);overflow:hidden;background:#fff;border:1px solid rgba(7,59,76,.1);border-radius:28px;box-shadow:0 18px 50px rgba(7,59,76,.08)}
@@ -28,16 +29,16 @@
 .urania-story-copy p{color:#526872;line-height:1.85}
 .urania-timeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
 .urania-timeline article,.urania-card{padding:1.35rem;background:#fff;border:1px solid rgba(7,59,76,.1);border-radius:22px;box-shadow:0 12px 34px rgba(7,59,76,.06)}
-.urania-timeline span{display:inline-flex;margin-bottom:.75rem;padding:.38rem .62rem;color:#5a4300;background:var(--yellow);border-radius:999px;font-size:.75rem;font-weight:900}
+.urania-timeline span{display:inline-flex;margin-bottom:.75rem;padding:.38rem .62rem;color:#5a4300;background:var(--urania-accent);border-radius:999px;font-size:.75rem;font-weight:900}
 .urania-timeline h3,.urania-card h3{margin:0 0 .6rem;color:var(--navy);font-size:1.2rem}
 .urania-timeline p,.urania-card p{margin:0;color:#617780;line-height:1.65}
 .urania-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
-.urania-card.featured{background:linear-gradient(135deg,#073b4c,#0b5d78);color:#fff}
+.urania-card.featured{background:linear-gradient(135deg,#073b4c,var(--urania-primary));color:#fff}
 .urania-card.featured h3,.urania-card.featured p{color:#fff}
-.urania-card a{display:inline-flex;margin-top:1rem;color:var(--blue);font-weight:900;text-decoration:none}
-.urania-card.featured a{color:var(--yellow)}
+.urania-card a{display:inline-flex;margin-top:1rem;color:var(--urania-primary);font-weight:900;text-decoration:none}
+.urania-card.featured a{color:var(--urania-accent)}
 .urania-source-box{padding:1.25rem;background:#eef7f9;border:1px solid #d6e8ed;border-radius:20px;color:#526872;font-size:.92rem;line-height:1.7}
-.urania-source-box a{color:var(--blue);font-weight:800}
+.urania-source-box a{color:var(--urania-primary);font-weight:800}
 .urania-cta{padding:clamp(3rem,7vw,5rem) 0;background:var(--navy);color:#fff}
 .urania-cta-box{display:flex;align-items:center;justify-content:space-between;gap:1.5rem}
 .urania-cta h2{margin:0;color:#fff;font-size:clamp(1.8rem,4vw,3rem);letter-spacing:-.045em}
