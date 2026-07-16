@@ -1,4 +1,4 @@
-import { formatarData, textoPuro } from "../utils.js";
+import { formatarData, gerarSlug, textoPuro } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 
 const container = document.getElementById("news-container");
@@ -26,17 +26,22 @@ const esc = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({
 const safeImage = (value) => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "../assets/Design sem nome (9).png";
 const newsUrl = (slug) => `/noticias/${encodeURIComponent(slug)}`;
 const summary = (item) => (item.resumo || textoPuro(item.conteudo_html || "")).trim();
+const categoryUrl = (category) => `/${encodeURIComponent(gerarSlug(category || "urania"))}/`;
+const categoryLink = (category) => {
+  const label = category || "Urânia";
+  return `<a class="news-category-link" href="${categoryUrl(label)}">${esc(label)}</a>`;
+};
 const normalize = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 function secondaryCard(item) {
   const url = newsUrl(item.slug);
-  return `<article class="news-secondary"><a class="news-secondary-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="eager" decoding="async"></a><div class="news-secondary-content"><p class="news-secondary-meta"><span>${esc(item.categoria_nome || "Urânia")}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p><h3><a href="${url}">${esc(item.titulo)}</a></h3><a class="news-secondary-action" href="${url}">Ler notícia <span aria-hidden="true">→</span></a></div></article>`;
+  return `<article class="news-secondary"><a class="news-secondary-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="eager" decoding="async"></a><div class="news-secondary-content"><p class="news-secondary-meta"><span>${categoryLink(item.categoria_nome)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p><h3><a href="${url}">${esc(item.titulo)}</a></h3><a class="news-secondary-action" href="${url}">Ler notícia <span aria-hidden="true">→</span></a></div></article>`;
 }
 
 function leadCard(item, index = 0) {
   const text = summary(item);
   const url = newsUrl(item.slug);
-  return `<article class="news-lead ${index === 0 ? "primary" : ""}"><a class="news-lead-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" ${index === 0 ? 'fetchpriority="high"' : 'loading="eager"'} decoding="async"></a><div class="news-lead-content"><span class="news-lead-label">${index === 0 ? "Manchete principal" : "Também em destaque"}</span><p class="eyebrow">${esc(item.categoria_nome || "Urânia")}</p><h2><a href="${url}">${esc(item.titulo)}</a></h2><p class="news-lead-date">${esc(formatarData(item.publicado_em))}</p>${text ? `<p class="news-lead-summary">${esc(text.slice(0, 180))}${text.length > 180 ? "…" : ""}</p>` : ""}<a class="news-lead-action" href="${url}"><span>Ler notícia</span><span aria-hidden="true">→</span></a></div></article>`;
+  return `<article class="news-lead ${index === 0 ? "primary" : ""}"><a class="news-lead-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" ${index === 0 ? 'fetchpriority="high"' : 'loading="eager"'} decoding="async"></a><div class="news-lead-content"><span class="news-lead-label">${index === 0 ? "Manchete principal" : "Também em destaque"}</span><p class="eyebrow">${categoryLink(item.categoria_nome)}</p><h2><a href="${url}">${esc(item.titulo)}</a></h2><p class="news-lead-date">${esc(formatarData(item.publicado_em))}</p>${text ? `<p class="news-lead-summary">${esc(text.slice(0, 180))}${text.length > 180 ? "…" : ""}</p>` : ""}<a class="news-lead-action" href="${url}"><span>Ler notícia</span><span aria-hidden="true">→</span></a></div></article>`;
 }
 
 function renderFeatured(items = []) {
@@ -48,13 +53,13 @@ function renderFeatured(items = []) {
 }
 
 function weatherDescription(code) {
-  if (code === 0) return ["Céu limpo", "☀️"];
+  if (code === 0) return ["Céu limpo", "\u2600\uFE0F"];
   if ([1, 2].includes(code)) return ["Parcialmente nublado", "🌤️"];
-  if (code === 3) return ["Nublado", "☁️"];
-  if ([45, 48].includes(code)) return ["Neblina", "🌫️"];
-  if ([51, 53, 55, 56, 57].includes(code)) return ["Garoa", "🌦️"];
-  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return ["Chuva", "🌧️"];
-  if ([71, 73, 75, 77, 85, 86].includes(code)) return ["Precipitação gelada", "🌨️"];
+  if (code === 3) return ["Nublado", "\u2601\uFE0F"];
+  if ([45, 48].includes(code)) return ["Neblina", "🌤️"];
+  if ([51, 53, 55, 56, 57].includes(code)) return ["Garoa", "🌤️"];
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return ["Chuva", "🌤️"];
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return ["Precipitação gelada", "🌤️"];
   if ([95, 96, 99].includes(code)) return ["Trovoadas", "⛈️"];
   return ["Condição variável", "🌤️"];
 }
@@ -62,7 +67,7 @@ function weatherDescription(code) {
 function buildLocalServiceBar() {
   const masthead = document.querySelector(".news-masthead");
   if (!masthead || document.querySelector(".news-service-bar")) return null;
-  masthead.insertAdjacentHTML("afterend", `<section class="news-service-bar" aria-label="Informações locais"><div class="container news-service-layout"><div class="news-today"><span>Agora em Urânia</span><time id="news-current-date"></time></div><div id="news-weather" class="news-weather" role="status" aria-live="polite"><span class="weather-icon" aria-hidden="true">☀️</span><span class="weather-copy"><strong>Previsão local</strong><small>Carregando clima…</small></span></div></div></section>`);
+  masthead.insertAdjacentHTML("afterend", `<section class="news-service-bar" aria-label="Informações locais"><div class="container news-service-layout"><div class="news-today"><span>Agora em Urânia</span><time id="news-current-date"></time></div><div id="news-weather" class="news-weather" role="status" aria-live="polite"><span class="weather-icon" aria-hidden="true">\u2600\uFE0F</span><span class="weather-copy"><strong>Previsão local</strong><small>Carregando clima…</small></span></div></div></section>`);
   const date = document.getElementById("news-current-date");
   date.textContent = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" }).format(new Date());
   return document.getElementById("news-weather");
@@ -111,7 +116,7 @@ function filteredNews() {
 function card(item) {
   const text = summary(item);
   const url = newsUrl(item.slug);
-  return `<article class="news-item"><a class="news-item-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async"></a><div class="content"><p class="news-item-meta"><span>${esc(item.categoria_nome || "Urânia")}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p><h3><a href="${url}">${esc(item.titulo)}</a></h3>${text ? `<p class="news-item-summary">${esc(text.slice(0, 155))}${text.length > 155 ? "…" : ""}</p>` : ""}<a href="${url}" class="news-item-action"><span>Ler notícia</span><span aria-hidden="true">→</span></a></div></article>`;
+  return `<article class="news-item"><a class="news-item-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async"></a><div class="content"><p class="news-item-meta"><span>${categoryLink(item.categoria_nome)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p><h3><a href="${url}">${esc(item.titulo)}</a></h3>${text ? `<p class="news-item-summary">${esc(text.slice(0, 155))}${text.length > 155 ? "…" : ""}</p>` : ""}<a href="${url}" class="news-item-action"><span>Ler notícia</span><span aria-hidden="true">→</span></a></div></article>`;
 }
 
 function streamCard(item, index = 0) {

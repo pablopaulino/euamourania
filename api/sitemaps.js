@@ -8,6 +8,14 @@ const xml = value => String(value || "")
   .replace(/</g, "&lt;")
   .replace(/>/g, "&gt;")
   .replace(/"/g, "&quot;");
+const slugify = value => String(value || "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase()
+  .trim()
+  .replace(/[^a-z0-9\s-]/g, "")
+  .replace(/\s+/g, "-")
+  .replace(/-+/g, "-");
 
 async function rows(table, select, order, filters = []) {
   const query = new URLSearchParams({
@@ -58,7 +66,7 @@ module.exports = async (req, res) => {
     const publicationFilters = [["publicado_em", `lte.${now.toISOString()}`]];
     const noticias = await rows(
       "noticias",
-      "slug,titulo,publicado_em,imagem_url,seo_imagem",
+      "slug,titulo,publicado_em,imagem_url,seo_imagem,categoria_nome",
       "publicado_em.desc",
       type === "news"
         ? [...publicationFilters, ["publicado_em", `gte.${new Date(now.getTime() - TWO_DAYS_MS).toISOString()}`]]
@@ -85,6 +93,10 @@ module.exports = async (req, res) => {
       melhoresCategoriasRows()
     ]);
     const statics = ["/", "/urania/", "/news/", "/guia.html", "/turismo.html", "/eventos/", "/melhores-de-urania/", "/links/", "/quem-somos.html"];
+    const categoriasNoticias = [...new Map(noticias
+      .filter(item => item.categoria_nome && slugify(item.categoria_nome))
+      .map(item => [slugify(item.categoria_nome), item])
+    ).values()];
     const imageTag = item => {
       const image = item.seo_imagem || item.imagem_url;
       return image ? `<image:image><image:loc>${xml(new URL(image, `${DOMAIN}/`).href)}</image:loc></image:image>` : "";
@@ -116,6 +128,10 @@ module.exports = async (req, res) => {
         loc: `${DOMAIN}/noticias/${noticia.slug}`,
         lastmod: noticia.publicado_em,
         image: imageTag(noticia)
+      })),
+      ...categoriasNoticias.map(item => ({
+        loc: `${DOMAIN}/${slugify(item.categoria_nome)}/`,
+        lastmod: item.publicado_em
       })),
       ...guia.map(item => ({
         loc: `${DOMAIN}/guia/${item.slug}`,
