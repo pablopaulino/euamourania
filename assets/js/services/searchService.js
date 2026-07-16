@@ -138,6 +138,16 @@ function staticPages() {
       terms: "whatsapp contato instagram facebook canais úteis"
     }),
     staticPage({
+      id: "pagina-colabore",
+      title: "Colabore voluntariamente",
+      description: "Cadastre-se para colaborar voluntariamente com pautas, historias, fotos e informacoes locais do Eu Amo Urania.",
+      url: "/colabore/",
+      category: "Comunidade",
+      meta: "Colaboracao voluntaria",
+      actionLabel: "Quero colaborar",
+      terms: "colaborar voluntario voluntaria pauta pautas escrever textos fotos eventos historias informacoes cidade redacao comunidade"
+    }),
+    staticPage({
       id: "pagina-melhores",
       title: "Melhores de Urânia",
       description: "Votação, categorias, indicados e resultados do Melhores de Urânia.",

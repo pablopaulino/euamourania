@@ -99,6 +99,7 @@ module.exports = async (req, res) => {
       "/news/sobre-publicacoes/",
       "/news/politica-editorial/",
       "/news/correcoes-transparencia-contato/",
+      "/colabore/",
       "/guia.html",
       "/turismo.html",
       "/eventos/",

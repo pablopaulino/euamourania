@@ -1,0 +1,233 @@
+.volunteer-page {
+  background: linear-gradient(180deg, #f6fbfc 0%, #fff 44%, #f8fbfc 100%);
+}
+
+.volunteer-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(2.5rem, 6vw, 5rem) 0;
+  border-bottom: 1px solid rgba(7, 59, 76, .08);
+  background:
+    radial-gradient(circle at 82% 16%, rgba(123, 44, 191, .12), transparent 18rem),
+    radial-gradient(circle at 22% 18%, rgba(247, 201, 72, .18), transparent 20rem),
+    linear-gradient(135deg, #fff 0%, #eef8fa 100%);
+}
+
+.volunteer-hero-grid,
+.volunteer-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, .58fr);
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: center;
+}
+
+.volunteer-hero h1 {
+  max-width: 780px;
+  margin: .25rem 0 .75rem;
+  color: var(--navy);
+  font-size: clamp(2.25rem, 6vw, 4.85rem);
+  line-height: .98;
+  letter-spacing: -.07em;
+}
+
+.volunteer-hero p,
+.volunteer-copy p {
+  max-width: 720px;
+  color: #4f6872;
+  line-height: 1.68;
+}
+
+.volunteer-alert {
+  max-width: 760px;
+  margin-top: 1.15rem;
+  padding: .95rem 1rem;
+  border: 1px solid rgba(247, 201, 72, .48);
+  border-radius: 18px;
+  color: #4f3d05;
+  background: rgba(255, 247, 214, .86);
+}
+
+.volunteer-card,
+.volunteer-form {
+  border: 1px solid rgba(220, 232, 236, .95);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 20px 48px rgba(7, 59, 76, .09);
+}
+
+.volunteer-card {
+  padding: clamp(1rem, 3vw, 1.35rem);
+}
+
+.volunteer-card span {
+  display: block;
+  margin-bottom: .75rem;
+  color: var(--blue);
+  font-size: .78rem;
+  font-weight: 950;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.volunteer-card ul {
+  display: grid;
+  gap: .6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.volunteer-card li {
+  padding: .72rem .85rem;
+  border-radius: 16px;
+  color: var(--navy);
+  background: #f2f8f9;
+  font-weight: 800;
+}
+
+.volunteer-content {
+  padding: clamp(2.2rem, 6vw, 4.5rem) 0;
+}
+
+.volunteer-copy h2 {
+  max-width: 620px;
+  margin: .25rem 0 .75rem;
+  color: var(--navy);
+  font-size: clamp(1.7rem, 4vw, 2.65rem);
+  line-height: 1.05;
+  letter-spacing: -.055em;
+}
+
+.volunteer-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .85rem;
+  padding: clamp(1rem, 3vw, 1.35rem);
+}
+
+.volunteer-field {
+  display: grid;
+  gap: .38rem;
+}
+
+.volunteer-field.full,
+.volunteer-consent.full,
+.volunteer-actions.full {
+  grid-column: 1 / -1;
+}
+
+.volunteer-field label,
+.volunteer-field legend {
+  color: var(--navy);
+  font-size: .82rem;
+  font-weight: 900;
+}
+
+.volunteer-field input,
+.volunteer-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d5e2e6;
+  border-radius: 16px;
+  padding: .82rem .92rem;
+  color: var(--navy);
+  background: #fff;
+  font: inherit;
+}
+
+.volunteer-field textarea {
+  resize: vertical;
+}
+
+.volunteer-field input:focus,
+.volunteer-field textarea:focus {
+  outline: 3px solid rgba(11, 79, 108, .13);
+  border-color: var(--blue);
+}
+
+.volunteer-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+}
+
+.volunteer-checks label,
+.volunteer-consent {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: .45rem;
+  padding: .55rem .68rem;
+  border-radius: 999px;
+  color: #34535f;
+  background: #f2f8f9;
+  font-size: .82rem;
+  font-weight: 750;
+}
+
+.volunteer-consent {
+  border-radius: 18px;
+  line-height: 1.45;
+}
+
+.volunteer-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.volunteer-actions button {
+  border: 0;
+}
+
+.volunteer-message {
+  min-height: 1.3em;
+  margin: 0;
+  color: #4f6872;
+  font-size: .9rem;
+}
+
+.volunteer-message.ok {
+  color: #087443;
+}
+
+.volunteer-message.error {
+  color: #a83b35;
+}
+
+.volunteer-honeypot {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+}
+
+@media (max-width: 860px) {
+  .volunteer-hero-grid,
+  .volunteer-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .volunteer-hero {
+    padding: 2rem 0;
+  }
+
+  .volunteer-form {
+    grid-template-columns: 1fr;
+    border-radius: 22px;
+  }
+
+  .volunteer-checks label {
+    width: 100%;
+    border-radius: 16px;
+  }
+
+  .volunteer-actions {
+    display: grid;
+  }
+
+  .volunteer-actions button {
+    width: 100%;
+  }
+}

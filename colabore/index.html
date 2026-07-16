@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Cadastre-se para colaborar voluntariamente com pautas, histórias, fotos e informações locais do Eu Amo Urânia.">
+  <meta name="theme-color" content="#0b4f6c">
+  <link rel="canonical" href="https://euamourania.com.br/colabore/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="Eu Amo Urânia">
+  <meta property="og:title" content="Colabore voluntariamente | Eu Amo Urânia">
+  <meta property="og:description" content="Ajude a contar histórias de Urânia de forma voluntária, enviando pautas, informações, fotos ou textos colaborativos.">
+  <meta property="og:url" content="https://euamourania.com.br/colabore/">
+  <meta property="og:image" content="https://euamourania.com.br/assets/AD3A1763-min%20(1).jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Colabore voluntariamente | Eu Amo Urânia</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../inner-pages.css">
+  <link rel="stylesheet" href="../assets/css/colabore-page.css">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="inner-page volunteer-page">
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <header class="site-header">
+    <div class="container header-content">
+      <a class="brand" href="../index.html" aria-label="Eu Amo Urânia — início">
+        <img src="../assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56">
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal">
+        <span class="menu-icon" aria-hidden="true"></span><span>Menu</span>
+      </button>
+      <nav class="main-nav" id="menu-principal" aria-label="Navegação principal">
+        <ul>
+          <li><a href="../index.html">Início</a></li>
+          <li><a href="../guia.html">Guia</a></li>
+          <li><a href="../turismo.html">Turismo</a></li>
+          <li><a href="../news/">Notícias</a></li>
+          <li><a href="../quem-somos.html">Quem somos</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="conteudo">
+    <section class="volunteer-hero">
+      <div class="container volunteer-hero-grid">
+        <div>
+          <p class="eyebrow">Colaboração voluntária</p>
+          <h1>Ajude a contar histórias de Urânia</h1>
+          <p>Se você gosta da cidade, acompanha os acontecimentos locais ou tem vontade de sugerir pautas, fotos e histórias, este espaço é para deixar seu contato com a redação do Eu Amo Urânia.</p>
+          <div class="volunteer-alert">
+            <strong>Importante:</strong> este cadastro é para colaboração voluntária. Não é vaga de emprego, contratação, estágio ou prestação de serviço remunerada.
+          </div>
+        </div>
+        <aside class="volunteer-card">
+          <span>Você pode colaborar com</span>
+          <ul>
+            <li>Sugestões de pauta</li>
+            <li>Fotos e informações locais</li>
+            <li>Histórias de moradores</li>
+            <li>Cobertura espontânea de eventos</li>
+            <li>Textos colaborativos</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+    <section class="volunteer-content">
+      <div class="container volunteer-layout">
+        <div class="volunteer-copy">
+          <p class="eyebrow">Como funciona</p>
+          <h2>Um convite aberto, leve e sem obrigação</h2>
+          <p>O cadastro serve para conhecermos pessoas que querem contribuir de forma livre com o projeto. A participação não cria vínculo, não exige produção fixa e não garante publicação automática do conteúdo enviado.</p>
+          <p>Quando fizer sentido, a equipe poderá entrar em contato para conversar sobre uma pauta, confirmar informações ou combinar uma colaboração pontual.</p>
+        </div>
+        <form id="volunteer-form" class="volunteer-form">
+          <input type="text" name="website" tabindex="-1" autocomplete="off" class="volunteer-honeypot" aria-hidden="true">
+          <div class="volunteer-field">
+            <label for="volunteer-name">Nome *</label>
+            <input id="volunteer-name" name="nome" autocomplete="name" required maxlength="160">
+          </div>
+          <div class="volunteer-field">
+            <label for="volunteer-whatsapp">WhatsApp *</label>
+            <input id="volunteer-whatsapp" name="whatsapp" inputmode="tel" autocomplete="tel" required maxlength="40" placeholder="(17) 99999-9999">
+          </div>
+          <div class="volunteer-field">
+            <label for="volunteer-email">E-mail</label>
+            <input id="volunteer-email" name="email" type="email" autocomplete="email" maxlength="180">
+          </div>
+          <div class="volunteer-field">
+            <label for="volunteer-city">Cidade</label>
+            <input id="volunteer-city" name="cidade" autocomplete="address-level2" maxlength="120" value="Urânia">
+          </div>
+          <fieldset class="volunteer-field full">
+            <legend>Como você gostaria de colaborar?</legend>
+            <div class="volunteer-checks">
+              <label><input type="checkbox" name="interesses" value="pautas"> Sugerir pautas</label>
+              <label><input type="checkbox" name="interesses" value="textos"> Escrever textos</label>
+              <label><input type="checkbox" name="interesses" value="fotos"> Enviar fotos</label>
+              <label><input type="checkbox" name="interesses" value="eventos"> Cobrir eventos</label>
+              <label><input type="checkbox" name="interesses" value="historias"> Contar histórias</label>
+              <label><input type="checkbox" name="interesses" value="turismo"> Turismo e cultura</label>
+            </div>
+          </fieldset>
+          <div class="volunteer-field full">
+            <label for="volunteer-message">Mensagem</label>
+            <textarea id="volunteer-message" name="mensagem" rows="5" maxlength="1200" placeholder="Conte rapidamente como você gostaria de colaborar."></textarea>
+          </div>
+          <label class="volunteer-consent full">
+            <input type="checkbox" name="aceite_voluntario" required>
+            Entendo que a colaboração é voluntária, sem remuneração, sem vínculo empregatício, sem obrigação de produção e sem garantia de publicação.
+          </label>
+          <div class="volunteer-actions full">
+            <button class="button button-primary" type="submit">Enviar cadastro</button>
+            <p id="volunteer-status" class="volunteer-message" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <a href="https://wa.me/5517976005583" class="whatsapp-float" target="_blank" rel="noopener" aria-label="Falar pelo WhatsApp"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt=""></a>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div><img src="../assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" class="footer-logo"><p>Informação, turismo e comunidade.</p></div>
+      <nav aria-label="Links do rodapé"><a href="mailto:euamourania@gmail.com">Contato</a><a href="../termos-de-servico.html">Termos</a><a href="../politica-de-privacidade.html">Privacidade</a></nav>
+    </div>
+    <div class="container footer-bottom"><p>&copy; <span id="year"></span> Eu Amo Urânia.</p></div>
+  </footer>
+  <div id="cookie-banner" class="cookie-banner" hidden><p>Usamos cookies para melhorar sua experiência.</p><button id="accept-cookies">Entendi</button></div>
+  <script src="../script.js"></script>
+  <script type="module" src="../assets/js/pages/colabore-page.js"></script>
+</body>
+</html>

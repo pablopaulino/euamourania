@@ -22,6 +22,7 @@ const ALLOWED_TABLES = new Set([
 ]);
 const ALLOWED_RPCS = new Set([
   "assinar_newsletter",
+  "enviar_colaboracao_voluntaria",
   "registrar_evento_publicidade",
   "registrar_evento_site"
 ]);
