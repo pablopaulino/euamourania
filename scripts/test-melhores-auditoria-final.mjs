@@ -11,6 +11,7 @@ const must = (condition, message) => {
 };
 
 const migration = read("supabase/migrations/20260712_melhores_urania_auditoria_final.sql");
+const securityMigration = read("supabase/migrations/20260716_melhores_apuracao_security_invoker.sql");
 const rollback = read("supabase/rollbacks/20260712_melhores_urania_auditoria_final_rollback.sql");
 const service = read("assets/js/services/melhoresService.js");
 const publicService = read("assets/js/services/melhoresPublicService.js");
@@ -29,6 +30,7 @@ must(migration.includes("resultado_publicado_em") && migration.includes("7 dias 
 must(migration.includes("melhores_limpar_votos_edicao_manual") && migration.includes("public.is_super_admin()"), "Limpeza manual deve ser exclusiva para Super Admin");
 must(migration.includes("drop index if exists public.melhores_votos_um_valido_por_categoria_uidx"), "Migração deve remover bloqueio antigo de voto único rígido");
 must(migration.includes("melhores_votos_um_valido_por_indicado_uidx"), "Migração deve impedir voto duplicado no mesmo indicado");
+must(securityMigration.includes("melhores_apuracao_previa") && securityMigration.includes("security_invoker = true"), "View de apuracao previa deve usar security_invoker");
 must(rollback.includes("melhores_votos_um_valido_por_categoria_uidx") && rollback.includes("drop function if exists public.melhores_limpar_votos_edicao_manual"), "Rollback deve desfazer regras novas");
 
 must(service.includes('from("melhores_edicoes").delete()'), "Edições devem permitir exclusão definitiva quando solicitada");

@@ -83,7 +83,7 @@ export async function enviarVotoMelhores(payload) {
   const response = await fetch("/api/melhores-votar", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    credentials: "omit",
+    credentials: "same-origin",
     body: JSON.stringify(payload)
   });
   const data = await response.json().catch(() => ({}));
@@ -97,7 +97,7 @@ export async function enviarIndicacaoMelhores(payload) {
   const response = await fetch("/api/melhores-indicar", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    credentials: "omit",
+    credentials: "same-origin",
     body: JSON.stringify(payload)
   });
   const data = await response.json().catch(() => ({}));

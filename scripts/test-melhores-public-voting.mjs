@@ -27,6 +27,7 @@ for (const table of ["melhores_edicoes", "melhores_categorias", "melhores_indica
 must(!publicData.includes('"melhores_votos"'), "Votos individuais não podem ser liberados para leitura pública direta");
 must(publicService.includes('/api/melhores-votar'), "Serviço público não usa API segura de votação");
 must(!editionPage.includes(".from(\"melhores_votos\")") && !editionPage.includes("melhores_votos"), "Frontend não deve gravar votos direto no Supabase");
+must(publicService.includes('credentials: "same-origin"'), "Servico publico precisa preservar cookies tecnicos antifraude da votacao");
 must(api.includes("SUPABASE_SERVICE_ROLE_KEY"), "API precisa usar Service Role apenas no backend");
 must(api.includes("MELHORES_VOTO_SECRET"), "API precisa suportar segredo dedicado para hash");
 must(api.includes('const HASH_SECRET = process.env.MELHORES_VOTO_SECRET || "";'), "API não pode usar fallback para MELHORES_VOTO_SECRET");
