@@ -42,7 +42,8 @@ function leadCard(item, index = 0) {
 function renderFeatured(items = []) {
   const leads = items.slice(0, 2);
   const secondary = items.slice(2, 5);
-  featured.innerHTML = `<section class="news-top-stories" aria-labelledby="top-stories-title"><div class="news-top-heading"><div><p class="eyebrow">Em destaque</p><h2 id="top-stories-title">O que movimenta Urânia</h2></div><a href="/news/" class="news-top-link">Atualizado em tempo real</a></div><div class="news-portal-grid"><div class="news-featured-main">${leads.map(leadCard).join("")}</div>${secondary.length ? `<div class="news-secondary-stack">${secondary.map(secondaryCard).join("")}</div>` : ""}</div></section>`;
+  const breaking = items.slice(0, 4);
+  featured.innerHTML = `<section class="news-top-stories" aria-labelledby="top-stories-title"><div class="news-breaking-strip"><span>Plantão local</span><div>${breaking.map((item) => `<a href="${newsUrl(item.slug)}">${esc(item.titulo)}</a>`).join("")}</div></div><div class="news-top-heading"><div><p class="eyebrow">Redação Eu Amo Urânia</p><h2 id="top-stories-title">O que movimenta Urânia agora</h2></div><a href="#news-feed-title" class="news-top-link">Ver todas as matérias</a></div><div class="news-portal-grid"><div class="news-featured-main">${leads.map(leadCard).join("")}</div>${secondary.length ? `<div class="news-secondary-stack">${secondary.map(secondaryCard).join("")}</div>` : ""}</div></section>`;
 }
 
 function weatherDescription(code) {
@@ -112,11 +113,21 @@ function card(item) {
   return `<article class="news-item"><a class="news-item-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async"></a><div class="content"><p class="news-item-meta"><span>${esc(item.categoria_nome || "Urânia")}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p><h3><a href="${url}">${esc(item.titulo)}</a></h3>${text ? `<p class="news-item-summary">${esc(text.slice(0, 155))}${text.length > 155 ? "…" : ""}</p>` : ""}<a href="${url}" class="news-item-action"><span>Ler notícia</span><span aria-hidden="true">→</span></a></div></article>`;
 }
 
+function streamCard(item, index = 0) {
+  const text = summary(item);
+  const url = newsUrl(item.slug);
+  const label = index === 0 ? "Mais recente" : (item.categoria_nome || "Urânia");
+  const limit = index === 0 ? 210 : 125;
+  return `<article class="news-stream-card ${index === 0 ? "is-latest" : ""}"><a class="news-stream-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async"></a><div class="news-stream-content"><p class="news-stream-meta"><span>${esc(label)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p><h3><a href="${url}">${esc(item.titulo)}</a></h3>${text ? `<p>${esc(text.slice(0, limit))}${text.length > limit ? "…" : ""}</p>` : ""}<a class="news-stream-action" href="${url}">Abrir matéria <span aria-hidden="true">→</span></a></div></article>`;
+}
+
 function renderFeed() {
   const items = filteredNews();
   const visible = items.slice(0, visibleCount);
   resultsCount.textContent = items.length === 1 ? "1 notícia encontrada" : `${items.length} notícias encontradas`;
-  container.innerHTML = visible.length ? visible.map(card).join("") : '<div class="empty-state news-empty"><strong>Nenhuma notícia encontrada.</strong><p>Tente outro termo ou escolha uma categoria diferente.</p></div>';
+  const streamItems = visible.slice(0, 5);
+  const regularCards = visible.slice(5);
+  container.innerHTML = visible.length ? `<div class="news-stream">${streamItems.map(streamCard).join("")}</div>${regularCards.length ? `<div class="news-card-grid">${regularCards.map(card).join("")}</div>` : ""}` : '<div class="empty-state news-empty"><strong>Nenhuma notícia encontrada.</strong><p>Tente outro termo ou escolha uma categoria diferente.</p></div>';
   loadMore.hidden = visible.length >= items.length;
   clearFilters.hidden = !selectedCategory && !search.value.trim();
 }
