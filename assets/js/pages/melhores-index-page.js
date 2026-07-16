@@ -35,14 +35,33 @@ function setupFaqAccordion() {
   if (!items.length) return;
   const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-  const setPanelHeight = (item, open) => {
-    const panel = item.querySelector(".awards-faq-panel");
-    if (!panel) return;
+  const openItem = (item, summary, panel) => {
+    item.open = true;
+    summary.setAttribute("aria-expanded", "true");
     if (reduceMotion) {
-      panel.style.height = open ? "auto" : "0px";
+      panel.style.height = "auto";
       return;
     }
-    panel.style.height = open ? `${panel.scrollHeight}px` : "0px";
+    panel.style.height = "0px";
+    requestAnimationFrame(() => {
+      panel.style.height = `${panel.scrollHeight}px`;
+    });
+  };
+
+  const closeItem = (item, summary, panel) => {
+    summary.setAttribute("aria-expanded", "false");
+    if (reduceMotion) {
+      panel.style.height = "0px";
+      item.open = false;
+      return;
+    }
+    panel.style.height = `${panel.scrollHeight}px`;
+    requestAnimationFrame(() => {
+      panel.style.height = "0px";
+    });
+    window.setTimeout(() => {
+      if (summary.getAttribute("aria-expanded") === "false") item.open = false;
+    }, 320);
   };
 
   items.forEach((item) => {
@@ -55,17 +74,13 @@ function setupFaqAccordion() {
 
     summary.addEventListener("click", (event) => {
       event.preventDefault();
-      const shouldOpen = !item.open;
-      if (shouldOpen) item.open = true;
-      summary.setAttribute("aria-expanded", String(shouldOpen));
-      setPanelHeight(item, shouldOpen);
-      if (!shouldOpen) {
-        panel.addEventListener("transitionend", () => { item.open = false; }, { once: true });
-      }
+      const isExpanded = summary.getAttribute("aria-expanded") === "true";
+      if (isExpanded) closeItem(item, summary, panel);
+      else openItem(item, summary, panel);
     });
 
     panel.addEventListener("transitionend", () => {
-      if (item.open) panel.style.height = "auto";
+      if (summary.getAttribute("aria-expanded") === "true") panel.style.height = "auto";
     });
   });
 
