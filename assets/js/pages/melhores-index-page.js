@@ -30,7 +30,56 @@ function editionCard(edition) {
   </article>`;
 }
 
+function setupFaqAccordion() {
+  const items = [...document.querySelectorAll(".awards-faq-item")];
+  if (!items.length) return;
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+  const setPanelHeight = (item, open) => {
+    const panel = item.querySelector(".awards-faq-panel");
+    if (!panel) return;
+    if (reduceMotion) {
+      panel.style.height = open ? "auto" : "0px";
+      return;
+    }
+    panel.style.height = open ? `${panel.scrollHeight}px` : "0px";
+  };
+
+  items.forEach((item) => {
+    const summary = item.querySelector("summary");
+    const panel = item.querySelector(".awards-faq-panel");
+    if (!summary || !panel) return;
+    summary.setAttribute("role", "button");
+    summary.setAttribute("aria-expanded", "false");
+    panel.style.height = "0px";
+
+    summary.addEventListener("click", (event) => {
+      event.preventDefault();
+      const shouldOpen = !item.open;
+      if (shouldOpen) item.open = true;
+      summary.setAttribute("aria-expanded", String(shouldOpen));
+      setPanelHeight(item, shouldOpen);
+      if (!shouldOpen) {
+        panel.addEventListener("transitionend", () => { item.open = false; }, { once: true });
+      }
+    });
+
+    panel.addEventListener("transitionend", () => {
+      if (item.open) panel.style.height = "auto";
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    items.filter((item) => item.open).forEach((item) => {
+      const panel = item.querySelector(".awards-faq-panel");
+      if (!panel) return;
+      panel.style.height = "auto";
+    });
+  }, { passive: true });
+}
+
 async function init() {
+  setupFaqAccordion();
   try {
     registrarEventoMelhores("melhores_index_view");
     const editions = await listarEdicoesPublicas();

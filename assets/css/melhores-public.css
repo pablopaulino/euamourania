@@ -644,3 +644,107 @@
     color:#0b4f6c;
   }
 }
+
+.awards-faq-section{
+  background:
+    radial-gradient(circle at top right, rgba(252,206,72,.14), transparent 28rem),
+    #f7fbfb;
+}
+.awards-faq-list{
+  display:grid;
+  gap:.85rem;
+  max-width:920px;
+  margin:0 auto;
+}
+.awards-faq-item{
+  border:1px solid rgba(11,79,108,.12);
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 16px 38px rgba(11,79,108,.07);
+  overflow:hidden;
+}
+.awards-faq-item summary{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  width:100%;
+  padding:1.05rem 1.2rem;
+  color:#073b4c;
+  cursor:pointer;
+  font-size:1rem;
+  font-weight:900;
+  line-height:1.25;
+  list-style:none;
+}
+.awards-faq-item summary::-webkit-details-marker{
+  display:none;
+}
+.awards-faq-item summary::after{
+  content:"+";
+  display:grid;
+  place-items:center;
+  flex:0 0 2rem;
+  width:2rem;
+  height:2rem;
+  border-radius:999px;
+  background:#eff7f8;
+  color:#0b4f6c;
+  font-size:1.2rem;
+  font-weight:900;
+  transition:transform .2s ease, background .2s ease;
+}
+.awards-faq-item[open] summary::after{
+  content:"−";
+  background:#fcce48;
+  transform:rotate(180deg);
+}
+.awards-faq-item summary:focus-visible{
+  outline:3px solid #fcce48;
+  outline-offset:4px;
+}
+.awards-faq-panel{
+  height:0;
+  opacity:0;
+  overflow:hidden;
+  transition:height .28s ease, opacity .24s ease;
+}
+.awards-faq-item[open] .awards-faq-panel{
+  opacity:1;
+}
+.awards-faq-panel p{
+  margin:0;
+  padding:0 1.2rem 1.15rem;
+  color:#526670;
+  font-size:.98rem;
+  line-height:1.65;
+}
+@media(max-width:720px){
+  .awards-faq-list{
+    gap:.65rem;
+  }
+  .awards-faq-item{
+    border-radius:18px;
+  }
+  .awards-faq-item summary{
+    align-items:flex-start;
+    padding:.95rem 1rem;
+    font-size:.95rem;
+  }
+  .awards-faq-item summary::after{
+    flex-basis:1.8rem;
+    width:1.8rem;
+    height:1.8rem;
+  }
+  .awards-faq-panel p{
+    padding:0 1rem 1rem;
+    font-size:.92rem;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .awards-faq-panel,
+  .awards-faq-item summary::after{
+    transition:none;
+  }
+}
