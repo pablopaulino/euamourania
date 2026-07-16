@@ -255,10 +255,10 @@ async function resourceNames(resources=[]){
  await Promise.all(Object.entries(config).map(async([type,[table,label]])=>{
   const ids=[...new Set(resources.filter(item=>item.tipo===type).map(item=>item.id).filter(Boolean))];
   if(!ids.length)return;
-  const {data}=await db.from(table).select(`id,${label}`).in("id",ids);
-  (data||[]).forEach(item=>map.set(`${type}:${item.id}`,item[label]));
+  const {data}=await db.from(table).select(`id,${label},slug`).in("id",ids);
+  (data||[]).forEach(item=>map.set(`${type}:${item.id}`,{nome:item[label],slug:item.slug}));
  }));
- return resources.map(item=>({...item,nome:map.get(`${item.tipo}:${item.id}`)||"Conteúdo removido"}));
+ return resources.map(item=>({...item,...(map.get(`${item.tipo}:${item.id}`)||{nome:"Conteúdo removido"})}));
 }
 function completeDailySeries(start,end,series=[]){
  const values=new Map(series.map(item=>[item.dia,Number(item.visualizacoes||0)]));
@@ -307,6 +307,34 @@ function googlePanels(google){
  <section class="panel"><header class="panel-header"><h2>Consultas no Google</h2></header>${(search.queries||[]).map((item,index)=>`<div class="rank-item"><span>${index+1}</span><div><strong>${esc(item.item)}</strong><small>Posição média ${Number(item.position||0).toFixed(1)}</small></div><small>${item.clicks} cliques · ${item.impressions} impressões</small></div>`).join("")||'<div class="empty-state">O Search Console ainda não retornou consultas.</div>'}</section>
  <section class="panel"><header class="panel-header"><h2>Páginas na Pesquisa Google</h2></header>${(search.pages||[]).map((item,index)=>`<div class="rank-item"><span>${index+1}</span><div><strong>${esc(item.item.replace("https://euamourania.com.br","")||"/")}</strong><small>CTR ${percent(item.ctr)}</small></div><small>${item.clicks} cliques</small></div>`).join("")||'<div class="empty-state">Sem páginas no período.</div>'}</section>`;
 }
+const fmt=value=>Number(value||0).toLocaleString("pt-BR");
+const typeLabel={noticia:"Notícia",guia:"Guia",turismo:"Turismo",evento:"Evento",link:"Link"};
+function contentUrl(item){
+ if(item.tipo==="noticia"&&item.slug)return`/noticias/${encodeURIComponent(item.slug)}`;
+ if(item.tipo==="guia"&&item.slug)return`/guia/${encodeURIComponent(item.slug)}/`;
+ if(item.tipo==="turismo"&&item.slug)return`/turismo/${encodeURIComponent(item.slug)}/`;
+ return null;
+}
+function compactRank(rows=[],label,value="total",limit=6){
+ return rows.slice(0,limit).map((row,index)=>`<div class="audience-rank-row"><span>${index+1}</span><div><strong>${esc(row[label]||"Não identificado")}</strong></div><small>${fmt(row[value])}</small></div>`).join("")||'<div class="empty-state">Sem dados no período.</div>';
+}
+function contentCard(item,index,total=1){
+ const share=total?Math.round((Number(item.total||0)/total)*100):0,url=contentUrl(item);
+ return`<article class="audience-content-card"><span>${index+1}</span><div><p>${esc(typeLabel[item.tipo]||item.tipo||"Conteúdo")}</p><h3>${esc(item.nome||"Conteúdo removido")}</h3><small>${fmt(item.total)} interação(ões) · ${share}% do ranking</small></div>${url?`<a href="${url}" target="_blank" rel="noopener">Abrir</a>`:""}</article>`;
+}
+function strategicInsights(summary={},previous={},series=[],content=[],searches=[]){
+ const views=Number(summary.visualizacoes||0),useful=Number(summary.whatsapp||0)+Number(summary.externos||0)+Number(summary.cliques_conteudo||0);
+ const avg=Math.round(views/Math.max(series.length,1)),best=[...series].sort((a,b)=>Number(b.visualizacoes||0)-Number(a.visualizacoes||0))[0];
+ const items=[
+  views>Number(previous.visualizacoes||0)?["Audiência em alta",`As visualizações cresceram ${variation(views,previous.visualizacoes||0)} em relação ao período anterior.`]:["Atenção ao alcance",`As visualizações ficaram ${variation(views,previous.visualizacoes||0)} versus o período anterior.`],
+  ["Média diária",`${fmt(avg)} visualizações por dia no período selecionado.`],
+  best?.visualizacoes?["Melhor dia",`${best.dia.split("-").reverse().join("/")} concentrou ${fmt(best.visualizacoes)} visualizações.`]:["Sem pico definido","Ainda não há volume suficiente para identificar um melhor dia."],
+  useful?["Ações úteis",`${fmt(useful)} cliques ou interações indicam intenção real do público.`]:["Oportunidade","Poucos cliques úteis; vale reforçar chamadas para WhatsApp, guia e links."],
+  searches?.length?["Busca interna",`"${searches[0].termo}" foi o termo mais pesquisado no portal.`]:["Busca interna","Ainda não há pesquisas suficientes para revelar demanda do público."],
+  content?.[0]?["Conteúdo líder",`${content[0].nome} puxou o ranking de conteúdos.`]:["Conteúdo líder","Ainda não há conteúdo destacado no período."]
+ ];
+ return items.map(([title,text])=>`<article><strong>${esc(title)}</strong><p>${esc(text)}</p></article>`).join("");
+}
 async function renderAudience(days=30,customStart=null,customEnd=null){
  setActive("audience-nav","Audiência","audiencia");
  loading();
@@ -331,6 +359,31 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
    ["Cliques em conteúdos",summary.cliques_conteudo||0,"—"]
   ];
   const content=(data.recursos||[]).filter(item=>["noticia","guia","evento","turismo","link"].includes(item.tipo)).slice(0,12);
+  const series=completeDailySeries(startString,endString,data.serie),usefulClicks=Number(summary.whatsapp||0)+Number(summary.externos||0)+Number(summary.cliques_conteudo||0);
+  const strategicMetrics=[
+   ["Visualizações",summary.visualizacoes||0,variation(summary.visualizacoes||0,previous.visualizacoes||0),"Volume total de páginas vistas"],
+   ["Visitantes",summary.visitantes||0,variation(summary.visitantes||0,previous.visitantes||0),"Sessões identificadas sem dados pessoais"],
+   ["Notícias lidas",summary.noticias||0,variation(summary.noticias||0,previous.noticias||0),"Leituras registradas em matérias"],
+   ["Ações úteis",usefulClicks,"—","WhatsApp, links externos e cliques em conteúdos"]
+  ];
+  const news=content.filter(item=>item.tipo==="noticia").slice(0,6),localServices=content.filter(item=>item.tipo!=="noticia").slice(0,6),contentTotal=content.reduce((sum,item)=>sum+Number(item.total||0),0);
+  app.innerHTML=`<section class="audience-head panel"><div><p class="eyebrow">Inteligência do portal</p><h2>Central de audiência</h2><p>Visão estratégica do comportamento do público, desempenho editorial e oportunidades do Eu Amo Urânia.</p></div>
+   <div class="audience-filters"><select id="audience-period"><option value="7">7 dias</option><option value="30" ${days===30?"selected":""}>30 dias</option><option value="90" ${days===90?"selected":""}>90 dias</option><option value="custom">Personalizado</option></select><input id="audience-start" type="date" value="${isoDate(start)}"><input id="audience-end" type="date" value="${isoDate(end)}"><button class="admin-button secondary" id="audience-apply">Aplicar</button><button class="admin-button secondary" id="audience-export">Exportar CSV</button></div>
+  </section>
+  <div class="insight-grid audience-metrics pro">${strategicMetrics.map(([label,value,change,help])=>`<article class="metric-card"><span>${label}</span><strong>${fmt(value)}</strong><small class="${String(change).startsWith("-")?"down":"up"}">${change} vs. período anterior</small><em>${esc(help)}</em></article>`).join("")}</div>
+  <section class="panel audience-strategy"><div><p class="eyebrow">Leitura rápida</p><h2>O que os dados indicam</h2><p>Resumo automático para ajudar na tomada de decisão editorial e comercial.</p></div><div class="audience-insights">${strategicInsights(summary,previous,series,content,data.buscas||[])}</div></section>
+  <div class="insight-layout audience-layout pro">
+   <section class="panel wide audience-chart-panel"><header class="panel-header"><div><h2>Evolução diária</h2><p>Ajuda a identificar picos, quedas e efeito de novas publicações.</p></div></header>${chart(series,Math.round((end-start)/864e5)+1<=7)}</section>
+   <section class="panel wide audience-content-panel"><header class="panel-header"><div><h2>Conteúdos que puxaram audiência</h2><p>Ranking consolidado entre notícias, guia, turismo e eventos.</p></div></header><div class="audience-content-grid">${content.slice(0,6).map((item,index)=>contentCard(item,index,contentTotal)).join("")||'<div class="empty-state">Sem conteúdos com interação no período.</div>'}</div></section>
+   <section class="panel"><header class="panel-header"><h2>Notícias mais fortes</h2></header>${news.map((item,index)=>contentCard(item,index,contentTotal)).join("")||'<div class="empty-state">Sem notícias no período.</div>'}</section>
+   <section class="panel"><header class="panel-header"><h2>Guia, turismo e eventos</h2></header>${localServices.map((item,index)=>contentCard(item,index,contentTotal)).join("")||'<div class="empty-state">Sem interações locais no período.</div>'}</section>
+   <section class="panel"><header class="panel-header"><h2>Páginas mais acessadas</h2></header>${compactRank(data.paginas,"pagina","total",8)}</section>
+   <section class="panel"><header class="panel-header"><h2>Origem e dispositivo</h2></header><h3 class="audience-subtitle">Origem dos acessos</h3>${compactRank(data.origens,"origem","total",5)}<h3 class="audience-subtitle">Dispositivos</h3>${compactRank(data.dispositivos,"dispositivo","total",5)}</section>
+   <section class="panel"><header class="panel-header"><h2>Pesquisas no portal</h2></header>${compactRank(data.buscas,"termo","total",8)}</section>
+   <section class="panel"><header class="panel-header"><h2>Publicidade</h2></header>${(ads.data||[]).map((item,index)=>`<div class="audience-rank-row"><span>${index+1}</span><div><strong>${esc(item.nome)}</strong><small>${item.cliques||0} cliques · CTR ${item.ctr||0}%</small></div><small>${fmt(item.impressoes)} imp.</small></div>`).join("")||'<div class="empty-state">Sem campanhas.</div>'}</section>
+   ${googlePanels(google)}
+  </div>`;
+  return;
   app.innerHTML=`<section class="audience-head panel"><div><h2>Central de audiência</h2><p>Dados próprios do portal, sem armazenamento de IP ou informações pessoais.</p></div>
    <div class="audience-filters"><select id="audience-period"><option value="7">7 dias</option><option value="30" ${days===30?"selected":""}>30 dias</option><option value="90" ${days===90?"selected":""}>90 dias</option><option value="custom">Personalizado</option></select><input id="audience-start" type="date" value="${isoDate(start)}"><input id="audience-end" type="date" value="${isoDate(end)}"><button class="admin-button secondary" id="audience-apply">Aplicar</button><button class="admin-button secondary" id="audience-export">Exportar CSV</button></div>
   </section>
