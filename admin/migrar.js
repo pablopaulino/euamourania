@@ -39,6 +39,12 @@ const onlyUrl=value=>{
   const text=String(value||"").trim();if(!text)return null;
   try{const url=new URL(text);return["http:","https:"].includes(url.protocol)?url.href:null}catch{return null}
 };
+const siteReference=value=>{
+  const text=String(value||"").trim();if(!text)return null;
+  if(/^javascript:/i.test(text))return null;
+  if(/^(?:https?:\/\/|\/(?!\/)|\.{1,2}\/)/i.test(text))return text;
+  return /^[\w.-]/u.test(text)&&!text.includes("<")&&!text.includes(">")&&!text.includes('"')?text:null;
+};
 const optional=value=>{const text=String(value??"").trim();return text||null};
 const allowedStatus=new Set(["rascunho","publicado","arquivado"]);
 
@@ -58,13 +64,14 @@ function normalizeItem(item,index){
   if(!slug)errors.push(`Item ${index+1}: não foi possível gerar o slug.`);
   const statusItem=String(item?.status||"publicado").toLowerCase();
   if(!allowedStatus.has(statusItem))errors.push(`Item ${index+1}: status inválido.`);
-  const urlFields=["imagem_url","instagram","facebook","site","mapa_url"];
+  const urlFields=["instagram","facebook","site","mapa_url"];
   for(const field of urlFields)if(item?.[field]&&!onlyUrl(item[field]))errors.push(`Item ${index+1}: ${field} precisa ser uma URL válida.`);
+  if((item?.imagem_url||item?.imagem)&&!siteReference(item?.imagem_url||item?.imagem))errors.push(`Item ${index+1}: imagem_url precisa ser um link ou caminho interno válido.`);
   const galeria=Array.isArray(item?.galeria_urls)?item.galeria_urls.filter(Boolean):[];
-  if(galeria.some(url=>!onlyUrl(url)))errors.push(`Item ${index+1}: galeria_urls contém uma URL inválida.`);
+  if(galeria.some(url=>!siteReference(url)))errors.push(`Item ${index+1}: galeria_urls contém link ou caminho inválido.`);
   return{errors,data:{
     nome,slug,categoria_nome:categoria,descricao:optional(item?.descricao),
-    imagem_url:onlyUrl(item?.imagem_url||item?.imagem),galeria_urls:galeria.map(onlyUrl),
+    imagem_url:siteReference(item?.imagem_url||item?.imagem),galeria_urls:galeria.map(siteReference),
     whatsapp:optional(item?.whatsapp),telefone:optional(item?.telefone),
     instagram:onlyUrl(item?.instagram),facebook:onlyUrl(item?.facebook),site:onlyUrl(item?.site),
     endereco:optional(item?.endereco),horario:optional(item?.horario),mapa_url:onlyUrl(item?.mapa_url),
