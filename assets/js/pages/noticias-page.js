@@ -10,7 +10,7 @@ const searchForm = document.getElementById("news-search-form");
 const resultsCount = document.getElementById("news-results-count");
 const loadMore = document.getElementById("news-load-more");
 const clearFilters = document.getElementById("news-clear-filters");
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 10;
 
 let feed = [];
 let allNews = [];
@@ -36,11 +36,6 @@ function categoryLink(category, className = "news-category-link") {
   return `<a class="${className}" href="${categoryUrl(label)}">${esc(label)}</a>`;
 }
 
-function readingTime(item) {
-  const words = textoPuro(`${item.resumo || ""} ${item.conteudo_html || ""}`).split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.ceil(words / 220));
-}
-
 function shortText(text = "", limit = 150) {
   const clean = String(text || "").trim();
   return clean.length > limit ? `${clean.slice(0, limit).trim()}…` : clean;
@@ -56,7 +51,7 @@ function leadCard(item) {
     <div class="news-cover-copy">
       <p class="news-cover-meta"><span>Manchete local</span>${categoryLink(item.categoria_nome)}</p>
       <h2><a href="${url}">${esc(item.titulo)}</a></h2>
-      ${text ? `<p>${esc(shortText(text, 210))}</p>` : ""}
+      ${text ? `<p>${esc(shortText(text, 220))}</p>` : ""}
       <div class="news-cover-footer">
         <time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time>
         <a href="${url}">Ler notícia <span aria-hidden="true">→</span></a>
@@ -65,7 +60,7 @@ function leadCard(item) {
   </article>`;
 }
 
-function compactCard(item, label = "Destaque") {
+function compactCard(item, label = "Última") {
   const url = newsUrl(item.slug);
   return `<article class="news-compact-card">
     <a class="news-compact-media" href="${url}" aria-label="${esc(item.titulo)}">
@@ -80,16 +75,14 @@ function compactCard(item, label = "Destaque") {
 }
 
 function headlineItem(item, index) {
-  const url = newsUrl(item.slug);
-  return `<a class="news-headline-item" href="${url}">
+  return `<a class="news-headline-item" href="${newsUrl(item.slug)}">
     <span>${String(index + 1).padStart(2, "0")}</span>
     <strong>${esc(item.titulo)}</strong>
   </a>`;
 }
 
 function popularItem(item, index) {
-  const url = newsUrl(item.slug);
-  return `<a class="news-popular-item" href="${url}">
+  return `<a class="news-popular-item" href="${newsUrl(item.slug)}">
     <span>${index + 1}</span>
     <strong>${esc(item.titulo)}</strong>
   </a>`;
@@ -104,26 +97,10 @@ function renderBreaking(items) {
   </div>`;
 }
 
-function renderEditorialSections(items) {
-  const categories = [...new Set(items.map((item) => item.categoria_nome).filter(Boolean))];
-  const sections = categories.slice(0, 4).map((category) => {
-    const categoryNews = items.filter((item) => item.categoria_nome === category).slice(0, 3);
-    if (!categoryNews.length) return "";
-    return `<section class="news-editorial-section">
-      <div class="news-editorial-section-head">
-        <p class="eyebrow">${esc(category)}</p>
-        <h3>${esc(category)}</h3>
-      </div>
-      <div class="news-editorial-mini-list">${categoryNews.map((item) => compactCard(item, category)).join("")}</div>
-    </section>`;
-  }).filter(Boolean).join("");
-  return sections ? `<div class="news-editorial-sections">${sections}</div>` : "";
-}
-
 function renderFeatured(items = []) {
   const lead = items[0];
   if (!lead) return;
-  const side = items.slice(1, 4);
+  const latest = items.slice(1, 4);
   const headlines = items.slice(0, 5);
   const popular = [...allNews].sort((a, b) => (Number(b.visualizacoes || 0) - Number(a.visualizacoes || 0)) || new Date(b.publicado_em) - new Date(a.publicado_em)).slice(0, 5);
 
@@ -138,23 +115,23 @@ function renderFeatured(items = []) {
     </div>
     <div class="news-cover-grid">
       ${leadCard(lead)}
-      <aside class="news-cover-side" aria-label="Chamadas secundárias">
-        ${side.map((item, index) => compactCard(item, index === 0 ? "Também em destaque" : "Atualização")).join("")}
-      </aside>
-      <aside class="news-cover-digest" aria-label="Resumo editorial">
-        <div class="news-digest-card">
+      <aside class="news-cover-sidebar" aria-label="Resumo da capa de notícias">
+        <section class="news-sidebar-block">
+          <div class="news-sidebar-head"><p class="eyebrow">Últimas</p><h3>Atualizações recentes</h3></div>
+          <div class="news-cover-latest">${latest.map((item) => compactCard(item, "Última notícia")).join("")}</div>
+        </section>
+        <section class="news-sidebar-block news-digest-card">
           <p class="eyebrow">Agora na redação</p>
           <h3>Resumo rápido</h3>
           <div class="news-headline-list">${headlines.map(headlineItem).join("")}</div>
-        </div>
-        <div class="news-digest-card news-popular-card">
+        </section>
+        <section class="news-sidebar-block news-popular-card">
           <p class="eyebrow">Mais lidas</p>
           <h3>Em alta</h3>
           <div class="news-popular-list">${popular.map(popularItem).join("")}</div>
-        </div>
+        </section>
       </aside>
     </div>
-    ${renderEditorialSections(allNews)}
   </section>`;
 }
 
@@ -172,25 +149,7 @@ function filteredNews() {
   });
 }
 
-function streamCard(item, index = 0) {
-  const text = summary(item);
-  const url = newsUrl(item.slug);
-  const label = index === 0 ? "Mais recente" : (item.categoria_nome || "Urânia");
-  const limit = index === 0 ? 210 : 125;
-  return `<article class="news-stream-card ${index === 0 ? "is-latest" : ""}">
-    <a class="news-stream-media" href="${url}" aria-label="${esc(item.titulo)}">
-      <img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async">
-    </a>
-    <div class="news-stream-content">
-      <p class="news-stream-meta"><span>${esc(label)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time><small>${readingTime(item)} min</small></p>
-      <h3><a href="${url}">${esc(item.titulo)}</a></h3>
-      ${text ? `<p>${esc(shortText(text, limit))}</p>` : ""}
-      <a class="news-stream-action" href="${url}">Abrir matéria <span aria-hidden="true">→</span></a>
-    </div>
-  </article>`;
-}
-
-function card(item) {
+function newsCard(item) {
   const text = summary(item);
   const url = newsUrl(item.slug);
   return `<article class="news-item">
@@ -198,7 +157,7 @@ function card(item) {
     <div class="content">
       <p class="news-item-meta"><span>${categoryLink(item.categoria_nome)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p>
       <h3><a href="${url}">${esc(item.titulo)}</a></h3>
-      ${text ? `<p class="news-item-summary">${esc(shortText(text, 155))}</p>` : ""}
+      ${text ? `<p class="news-item-summary">${esc(shortText(text, 160))}</p>` : ""}
       <a href="${url}" class="news-item-action"><span>Ler notícia</span><span aria-hidden="true">→</span></a>
     </div>
   </article>`;
@@ -208,9 +167,7 @@ function renderFeed() {
   const items = filteredNews();
   const visible = items.slice(0, visibleCount);
   resultsCount.textContent = items.length === 1 ? "1 notícia encontrada" : `${items.length} notícias encontradas`;
-  const streamItems = visible.slice(0, 5);
-  const regularCards = visible.slice(5);
-  container.innerHTML = visible.length ? `<div class="news-stream">${streamItems.map(streamCard).join("")}</div>${regularCards.length ? `<div class="news-card-grid">${regularCards.map(card).join("")}</div>` : ""}` : '<div class="empty-state news-empty"><strong>Nenhuma notícia encontrada.</strong><p>Tente outro termo ou escolha uma categoria diferente.</p></div>';
+  container.innerHTML = visible.length ? `<div class="news-card-grid">${visible.map(newsCard).join("")}</div>` : '<div class="empty-state news-empty"><strong>Nenhuma notícia encontrada.</strong><p>Tente outro termo ou escolha uma categoria diferente.</p></div>';
   loadMore.hidden = visible.length >= items.length;
   clearFilters.hidden = !selectedCategory && !search.value.trim();
 }
