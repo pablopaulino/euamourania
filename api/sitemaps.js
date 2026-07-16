@@ -84,7 +84,7 @@ module.exports = async (req, res) => {
       melhoresRows(),
       melhoresCategoriasRows()
     ]);
-    const statics = ["/", "/news/", "/guia.html", "/turismo.html", "/eventos/", "/melhores-de-urania/", "/links/", "/quem-somos.html"];
+    const statics = ["/", "/urania.html", "/news/", "/guia.html", "/turismo.html", "/eventos/", "/melhores-de-urania/", "/links/", "/quem-somos.html"];
     const imageTag = item => {
       const image = item.seo_imagem || item.imagem_url;
       return image ? `<image:image><image:loc>${xml(new URL(image, `${DOMAIN}/`).href)}</image:loc></image:image>` : "";
