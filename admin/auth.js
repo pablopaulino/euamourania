@@ -2,7 +2,7 @@ import { getSupabase, supabaseConfigurado } from "../assets/js/services/supabase
 
 const permissoesPorFuncao={
   super_admin:["*:*"] ,
-  administrador:["dashboard:acessar","insights:acessar","insights:ler","noticias:*","categorias:*","guia_comercial:*","turismo:*","eventos:*","publicidade:*","comunicacao:*","notificacoes:*","melhores:*","links:*"],
+  administrador:["dashboard:acessar","insights:acessar","insights:ler","noticias:*","colaboradores:*","categorias:*","guia_comercial:*","turismo:*","eventos:*","publicidade:*","comunicacao:*","notificacoes:*","melhores:*","links:*"],
   editor:["dashboard:acessar","noticias:acessar","noticias:ler","noticias:criar","noticias:editar","noticias:publicar","categorias:acessar","categorias:ler","categorias:criar","categorias:editar","melhores:acessar","melhores:ler"],
   redator:["dashboard:acessar","noticias:acessar","noticias:ler","noticias:criar","noticias:editar"],
   comercial:["dashboard:acessar","guia_comercial:acessar","guia_comercial:ler","guia_comercial:criar","guia_comercial:editar","publicidade:acessar","publicidade:ler","publicidade:criar","publicidade:editar","melhores:acessar","melhores:ler"],

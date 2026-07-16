@@ -1,8 +1,9 @@
-const viewModules={dashboard:"dashboard",noticias:"noticias",guia_comercial:"guia_comercial",turismo:"turismo",links:"links",eventos:"eventos",categorias:"categorias",insights:"insights",configuracoes_site:"configuracoes"};
+const viewModules={dashboard:"dashboard",noticias:"noticias",colaboradores_voluntarios:"colaboradores",guia_comercial:"guia_comercial",turismo:"turismo",links:"links",eventos:"eventos",categorias:"categorias",insights:"insights",configuracoes_site:"configuracoes"};
 const navItems=[
   ["dashboard","Visão geral","dashboard"],
   ["noticias","Notícias","noticias"],
   ["aprovacoes","Aprovações","noticias"],
+  ["colaboradores_voluntarios","Colaborações","colaboradores"],
   ["guia_comercial","Guia comercial","guia_comercial"],
   ["turismo","Turismo","turismo"],
   ["links","Links","links"],
@@ -34,7 +35,7 @@ function buttonForNav([key,label,module],isIndex,current){
   const attrs=[`type="button"`,`data-module="${module}"`];
   if(current===key)attrs.push('class="active"');
   if(isIndex){
-    if(["dashboard","noticias","guia_comercial","turismo","links","eventos","categorias","configuracoes_site"].includes(key))attrs.push(`data-view="${key}"`);
+    if(["dashboard","noticias","colaboradores_voluntarios","guia_comercial","turismo","links","eventos","categorias","configuracoes_site"].includes(key))attrs.push(`data-view="${key}"`);
     else if(key==="aprovacoes")attrs.push('id="editorial-approvals-nav"');
     else if(key==="audiencia")attrs.push('id="audience-nav"');
     else if(key==="publicidade")attrs.push(`onclick="location.href='publicidade.html'"`);
@@ -48,6 +49,7 @@ function buttonForNav([key,label,module],isIndex,current){
       dashboard:"index.html",
       noticias:"index.html#noticias",
       aprovacoes:"index.html#aprovacoes",
+      colaboradores_voluntarios:"index.html#colaboradores_voluntarios",
       guia_comercial:"index.html#guia_comercial",
       turismo:"index.html#turismo",
       links:"index.html#links",
