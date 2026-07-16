@@ -23,6 +23,14 @@ function sanitizeArticle(value) {
   return sanitizeArticleHtml(value);
 }
 
+function insertSuggestionBox(html) {
+  const box = '<aside class="article-suggestion-box"><p><strong>Tem uma sugestão de reportagem?</strong></p><p>Envie informações, fotos ou relatos para o Eu Amo Urânia pelo WhatsApp.</p><a href="https://wa.me/5517976005583" target="_blank" rel="noopener">Falar com a redação</a></aside>';
+  const paragraphs = [...html.matchAll(/<\/p>/gi)];
+  if (paragraphs.length < 4) return `${html}${box}`;
+  const insertAt = paragraphs[Math.min(3, paragraphs.length - 1)].index + paragraphs[Math.min(3, paragraphs.length - 1)][0].length;
+  return `${html.slice(0, insertAt)}${box}${html.slice(insertAt)}`;
+}
+
 let readingProgressBound = false;
 
 function setupReadingProgress() {
@@ -93,11 +101,20 @@ async function loadRelated(news) {
         }
       });
     }
-    if (!related.length) return;
-    section.innerHTML = `<div class="related-heading"><p class="eyebrow">Mais notícias</p><h2>Continue lendo</h2></div><div class="related-grid">${related.slice(0, 3).map(item => {
-      const text = resumo(item);
+    const popular = await fetchPublicRows("noticias", {
+      select: "titulo,slug,categoria_nome,publicado_em,visualizacoes",
+      status: "eq.publicado",
+      publicado_em: `lte.${new Date().toISOString()}`,
+      slug: `neq.${news.slug}`,
+      order: "visualizacoes.desc",
+      limit: "5"
+    }).catch(() => []);
+    if (!related.length && !popular.length) return;
+    const suggested = related[0] || popular[0];
+    const relatedGrid = related.filter(item => item.slug !== suggested?.slug).slice(0, 3);
+    section.innerHTML = `${suggested ? `<aside class="article-suggested-news"><div><p class="eyebrow">Sugerida para você</p><h2><a href="${urlNoticia(suggested.slug)}">${esc(suggested.titulo)}</a></h2><p>${esc(suggested.categoria_nome || "Notícias")} · ${esc(formatarData(suggested.publicado_em))}</p></div><a href="${urlNoticia(suggested.slug)}" aria-label="Ler notícia sugerida">Ler agora →</a></aside>` : ""}${relatedGrid.length ? `<div class="related-heading"><p class="eyebrow">Mais notícias</p><h2>Continue lendo</h2></div><div class="related-grid">${relatedGrid.map(item => {
       return `<a class="related-card" href="${urlNoticia(item.slug)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async">` : '<div class="related-placeholder">Eu Amo Urânia</div>'}<div class="related-card-body"><p class="related-meta">${esc(item.categoria_nome || "Notícias")} · ${esc(formatarData(item.publicado_em))}</p><h3>${esc(item.titulo)}</h3></div></a>`;
-    }).join("")}</div>`;
+    }).join("")}</div>` : ""}${popular.length ? `<div class="article-popular-news"><div class="related-heading"><p class="eyebrow">Em alta</p><h2>Mais lidas</h2></div><ol>${popular.map((item, index) => `<li><a href="${urlNoticia(item.slug)}"><span>${index + 1}</span><strong>${esc(item.titulo)}</strong><small>${esc(item.categoria_nome || "Notícias")} · ${esc(formatarData(item.publicado_em))}</small></a></li>`).join("")}</ol></div>` : ""}`;
   } catch (error) {
     console.warn("Notícias relacionadas indisponíveis:", error.message);
   }
@@ -148,11 +165,13 @@ function renderNews(news) {
     ]
   });
   const content = sanitizeArticle(news.conteudo_html) || `<p>${esc(resumo(news))}</p>`;
+  const contentWithSuggestion = insertSuggestionBox(content);
   const wordCount=textoPuro(content).split(/\s+/).filter(Boolean).length;
   const readingMinutes=Math.max(1,Math.ceil(wordCount/220));
   const categoryLabel = news.categoria_nome || "Notícias de Urânia";
   const categoryAnchor = `<a href="${urlCategoria(categoryLabel)}">${esc(categoryLabel)}</a>`;
-  container.innerHTML = `<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div><article class="news-detail-container"><nav class="article-breadcrumb" aria-label="Navegação da notícia"><a href="/news/">Notícias</a><span aria-hidden="true">/</span>${categoryAnchor}</nav><header class="article-header"><p class="eyebrow">${categoryAnchor}</p><h1>${esc(news.titulo)}</h1>${news.subtitulo ? `<p class="article-subtitle">${esc(news.subtitulo)}</p>` : ""}<p class="meta article-meta"><span>Por ${esc(news.autor || "Eu Amo Urânia")}</span><time datetime="${esc(news.publicado_em)}">${esc(formatarData(news.publicado_em))}</time><span>${readingMinutes} min de leitura</span></p></header>${safeImage(news.imagem_url) ? `<figure class="article-figure"><img src="${safeImage(news.imagem_url)}" alt="${esc(news.legenda_imagem || news.titulo)}" class="main-image" decoding="async" fetchpriority="high">${news.legenda_imagem ? `<figcaption>${esc(news.legenda_imagem)}</figcaption>` : ""}</figure>` : ""}<div class="article-copy">${content}</div><div class="share-buttons" aria-label="Compartilhar notícia"><div class="share-heading"><span>Compartilhe</span><p>Envie esta notícia para quem também precisa saber.</p></div><a class="btn-share btn-share-whatsapp" target="_blank" rel="noopener" aria-label="Compartilhar no WhatsApp" href="https://api.whatsapp.com/send?text=${encodeURIComponent(`${news.titulo} - ${canonical}`)}">${icons.whatsapp}<span>WhatsApp</span></a><a class="btn-share btn-share-facebook" target="_blank" rel="noopener" aria-label="Compartilhar no Facebook" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}">${icons.facebook}<span>Facebook</span></a><button class="btn-share btn-share-copy" id="copy-link" type="button" aria-label="Copiar link da notícia">${icons.copy}<span>Copiar link</span></button></div><section class="related-news" id="related-news" aria-label="Notícias relacionadas"><p class="related-loading">Carregando mais notícias…</p></section></article>`;
+  const shareBlock = `<div class="share-buttons" aria-label="Compartilhar notícia"><div class="share-heading"><span>Compartilhe</span><p>Envie esta notícia para quem também precisa saber.</p></div><a class="btn-share btn-share-whatsapp" target="_blank" rel="noopener" aria-label="Compartilhar no WhatsApp" href="https://api.whatsapp.com/send?text=${encodeURIComponent(`${news.titulo} - ${canonical}`)}">${icons.whatsapp}<span>WhatsApp</span></a><a class="btn-share btn-share-facebook" target="_blank" rel="noopener" aria-label="Compartilhar no Facebook" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}">${icons.facebook}<span>Facebook</span></a><button class="btn-share btn-share-copy" id="copy-link" type="button" aria-label="Copiar link da notícia">${icons.copy}<span>Copiar link</span></button></div>`;
+  container.innerHTML = `<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div><article class="news-detail-container"><nav class="article-breadcrumb" aria-label="Navegação da notícia"><a href="/news/">Notícias</a><span aria-hidden="true">/</span>${categoryAnchor}</nav><header class="article-header"><p class="eyebrow">${categoryAnchor}</p><h1>${esc(news.titulo)}</h1>${news.subtitulo ? `<p class="article-subtitle">${esc(news.subtitulo)}</p>` : ""}<p class="meta article-meta"><span>Por ${esc(news.autor || "Eu Amo Urânia")}</span><time datetime="${esc(news.publicado_em)}">${esc(formatarData(news.publicado_em))}</time><span>${readingMinutes} min de leitura</span></p>${shareBlock}</header>${safeImage(news.imagem_url) ? `<figure class="article-figure"><img src="${safeImage(news.imagem_url)}" alt="${esc(news.legenda_imagem || news.titulo)}" class="main-image" decoding="async" fetchpriority="high">${news.legenda_imagem ? `<figcaption>${esc(news.legenda_imagem)}</figcaption>` : ""}</figure>` : ""}<div class="article-copy">${contentWithSuggestion}</div><section class="related-news" id="related-news" aria-label="Notícias relacionadas"><p class="related-loading">Carregando mais notícias…</p></section></article>`;
   document.getElementById("copy-link").addEventListener("click", async event => {
     try{
       await navigator.clipboard.writeText(canonical);
