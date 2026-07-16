@@ -63,7 +63,6 @@ function popularItem(item, index) {
     <span>${index + 1}</span>
     <div>
       <strong>${esc(item.titulo)}</strong>
-      <small>${Number(item.visualizacoes || 0).toLocaleString("pt-BR")} leitura${Number(item.visualizacoes || 0) === 1 ? "" : "s"}</small>
     </div>
   </a>`;
 }
@@ -78,15 +77,17 @@ function addStyle() {
     .home-editorial-head h2{margin:.2rem 0;color:var(--navy);font-size:clamp(2rem,4.2vw,3.2rem)}
     .home-editorial-head p:not(.eyebrow){max-width:560px;margin:0;color:var(--muted);line-height:1.65}
     .home-editorial-link{color:var(--blue);font-weight:850;text-decoration:none}
-    .home-editorial-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(290px,.75fr);gap:1.15rem;align-items:start}
+    .home-editorial-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(290px,.65fr);gap:1.15rem;align-items:start}
+    .home-news-main{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.15rem}
     .home-news-lead,.home-news-side{overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:26px;box-shadow:0 16px 42px rgba(7,59,76,.08)}
-    .home-news-lead{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(300px,.98fr);min-height:430px}
+    .home-news-lead{display:flex;min-height:100%;flex-direction:column}
     .home-news-lead-media{display:grid;overflow:hidden;place-items:center;color:var(--blue);background:var(--pale);font-weight:850;text-decoration:none}
+    .home-news-lead-media{aspect-ratio:16/10}
     .home-news-lead-media img{width:100%;height:100%;object-fit:cover;transition:transform .3s ease}
     .home-news-lead:hover img{transform:scale(1.03)}
-    .home-news-lead-copy{display:flex;flex-direction:column;padding:clamp(1.35rem,3vw,2.25rem)}
+    .home-news-lead-copy{display:flex;flex:1;flex-direction:column;padding:clamp(1.1rem,2.4vw,1.65rem)}
     .home-news-label{align-self:flex-start;margin-bottom:.9rem;padding:.38rem .68rem;color:var(--navy);background:var(--yellow);border-radius:999px;font-size:.68rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
-    .home-news-lead h3{margin:.1rem 0 .75rem;font-size:clamp(1.65rem,3.2vw,2.45rem);line-height:1.08}
+    .home-news-lead h3{margin:.1rem 0 .7rem;font-size:clamp(1.35rem,2.4vw,1.85rem);line-height:1.12}
     .home-news-lead h3 a{text-decoration:none}
     .home-news-lead-copy>p:not(.eyebrow){color:#526872;line-height:1.65}
     .home-news-action{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:auto;padding-top:1rem;color:var(--blue);border-top:1px solid var(--line);font-weight:850;text-decoration:none}
@@ -105,8 +106,9 @@ function addStyle() {
     .home-popular-item>span{display:grid;width:30px;height:30px;place-items:center;color:var(--navy);background:var(--yellow);border-radius:50%;font-size:.82rem;font-weight:900}
     .home-popular-item strong{display:block;color:var(--navy);font-size:.92rem;line-height:1.24}
     .home-popular-item small{color:var(--muted);font-size:.72rem}
+    @media(max-width:1100px){.home-news-main{grid-template-columns:1fr}.home-news-lead{display:grid;grid-template-columns:minmax(0,.9fr) minmax(260px,1.1fr)}.home-news-lead-media{aspect-ratio:auto}}
     @media(max-width:980px){.home-editorial-grid,.home-news-lead{grid-template-columns:1fr}.home-news-lead{min-height:0}.home-news-lead-media{aspect-ratio:16/9}.home-news-side{grid-template-columns:1fr 1fr}.home-popular{padding-top:0;border-top:0}}
-    @media(max-width:700px){.home-editorial{padding:2.7rem 0}.home-editorial-head{display:grid}.home-editorial-head h2{font-size:2rem}.home-editorial-link{justify-self:start}.home-news-lead,.home-news-side{border-radius:20px}.home-news-lead-media{aspect-ratio:16/10}.home-news-lead-copy{padding:1.15rem}.home-news-lead h3{font-size:1.55rem}.home-news-side{grid-template-columns:1fr;padding:.75rem}.home-news-latest-card{grid-template-columns:82px minmax(0,1fr)}.home-news-latest-card img,.home-news-placeholder{width:82px;height:70px}.home-popular{padding-top:.8rem;border-top:1px solid var(--line)}}
+    @media(max-width:700px){.home-editorial{padding:2.45rem 0}.home-editorial-head{display:grid;margin-bottom:1rem}.home-editorial-head h2{font-size:1.85rem}.home-editorial-head p:not(.eyebrow){font-size:.92rem}.home-editorial-link{justify-self:start}.home-news-main{gap:.9rem}.home-news-main .home-news-lead:nth-child(n+2){display:none}.home-news-lead,.home-news-side{border-radius:20px}.home-news-lead-media{aspect-ratio:16/9}.home-news-lead-copy{padding:1rem}.home-news-label{margin-bottom:.6rem;font-size:.62rem}.home-news-lead h3{font-size:1.35rem}.home-news-lead-copy>p:not(.eyebrow){display:-webkit-box;overflow:hidden;font-size:.9rem;line-height:1.48;-webkit-line-clamp:2;-webkit-box-orient:vertical}.home-news-action{padding-top:.75rem;font-size:.82rem}.home-news-side{grid-template-columns:1fr;padding:.75rem}.home-news-latest-card{grid-template-columns:82px minmax(0,1fr)}.home-news-latest-card img,.home-news-placeholder{width:82px;height:70px}.home-popular{padding-top:.8rem;border-top:1px solid var(--line)}}
   `;
   document.head.append(style);
 }
@@ -116,12 +118,14 @@ function render(news = []) {
   if (!target || document.querySelector(".home-editorial") || !news.length) return;
 
   const lead = news.find((item) => item.destaque) || news[0];
-  const latest = news.filter((item) => item.id !== lead.id).slice(0, 4);
+  const leads = [lead, ...news.filter((item) => item.id !== lead.id)].slice(0, 2);
+  const leadIds = new Set(leads.map((item) => item.id));
+  const latest = news.filter((item) => !leadIds.has(item.id)).slice(0, 4);
   const popular = [...news]
     .filter((item) => Number(item.visualizacoes || 0) > 0)
     .sort((a, b) => Number(b.visualizacoes || 0) - Number(a.visualizacoes || 0))
     .slice(0, 5);
-  const popularList = popular.length ? popular : news.filter((item) => item.id !== lead.id).slice(0, 5);
+  const popularList = popular.length ? popular : news.filter((item) => !leadIds.has(item.id)).slice(0, 5);
 
   target.insertAdjacentHTML("afterend", `<section class="home-editorial" aria-labelledby="home-editorial-title">
     <div class="container">
@@ -134,7 +138,7 @@ function render(news = []) {
         <a class="home-editorial-link" href="/news/">Ver todas as notícias →</a>
       </div>
       <div class="home-editorial-grid">
-        ${leadCard(lead)}
+        <div class="home-news-main">${leads.map(leadCard).join("")}</div>
         <aside class="home-news-side" aria-label="Últimas e mais lidas">
           <div>
             <h3>Últimas notícias</h3>
