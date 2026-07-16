@@ -43,7 +43,8 @@ function renderFeatured(items = []) {
   const leads = items.slice(0, 2);
   const secondary = items.slice(2, 5);
   const breaking = items.slice(0, 4);
-  featured.innerHTML = `<section class="news-top-stories" aria-labelledby="top-stories-title"><div class="news-breaking-strip"><span>Plantão local</span><div>${breaking.map((item) => `<a href="${newsUrl(item.slug)}">${esc(item.titulo)}</a>`).join("")}</div></div><div class="news-top-heading"><div><p class="eyebrow">Redação Eu Amo Urânia</p><h2 id="top-stories-title">O que movimenta Urânia agora</h2></div><a href="#news-feed-title" class="news-top-link">Ver todas as matérias</a></div><div class="news-portal-grid"><div class="news-featured-main">${leads.map(leadCard).join("")}</div>${secondary.length ? `<div class="news-secondary-stack">${secondary.map(secondaryCard).join("")}</div>` : ""}</div></section>`;
+  const breakingLinks = breaking.map((item) => `<a href="${newsUrl(item.slug)}">${esc(item.titulo)}</a>`).join("");
+  featured.innerHTML = `<section class="news-top-stories" aria-labelledby="top-stories-title"><div class="news-breaking-strip"><span>Plantão local</span><div class="news-breaking-viewport"><div class="news-breaking-track">${breakingLinks}${breakingLinks}</div></div></div><div class="news-top-heading"><div><p class="eyebrow">Redação Eu Amo Urânia</p><h2 id="top-stories-title">O que movimenta Urânia agora</h2></div><a href="#news-feed-title" class="news-top-link">Ver todas as matérias</a></div><div class="news-portal-grid"><div class="news-featured-main">${leads.map(leadCard).join("")}</div>${secondary.length ? `<div class="news-secondary-stack">${secondary.map(secondaryCard).join("")}</div>` : ""}</div></section>`;
 }
 
 function weatherDescription(code) {
@@ -192,5 +193,4 @@ async function carregarNoticias() {
   }
 }
 
-loadWeather();
 carregarNoticias();
