@@ -100,7 +100,7 @@ function renderBreaking(items) {
 function renderFeatured(items = []) {
   const lead = items[0];
   if (!lead) return;
-  const latest = items.slice(1, 4);
+  const supporting = items.slice(1, 3);
   const headlines = items.slice(0, 5);
   const popular = [...allNews].sort((a, b) => (Number(b.visualizacoes || 0) - Number(a.visualizacoes || 0)) || new Date(b.publicado_em) - new Date(a.publicado_em)).slice(0, 5);
 
@@ -114,12 +114,11 @@ function renderFeatured(items = []) {
       <a href="#news-feed-title">Ver todas as notícias</a>
     </div>
     <div class="news-cover-grid">
-      ${leadCard(lead)}
+      <div class="news-cover-main">
+        ${leadCard(lead)}
+        ${supporting.length ? `<div class="news-cover-support">${supporting.map((item) => compactCard(item, "Atualização recente")).join("")}</div>` : ""}
+      </div>
       <aside class="news-cover-sidebar" aria-label="Resumo da capa de notícias">
-        <section class="news-sidebar-block">
-          <div class="news-sidebar-head"><p class="eyebrow">Últimas</p><h3>Atualizações recentes</h3></div>
-          <div class="news-cover-latest">${latest.map((item) => compactCard(item, "Última notícia")).join("")}</div>
-        </section>
         <section class="news-sidebar-block news-digest-card">
           <p class="eyebrow">Agora na redação</p>
           <h3>Resumo rápido</h3>
@@ -239,7 +238,7 @@ async function carregarNoticias() {
     allNews = news;
     const lead = news.find((item) => item.destaque) || news[0];
     const featuredItems = [lead, ...news.filter((item) => item.id !== lead.id)].slice(0, 6);
-    const highlightedIds = new Set(featuredItems.slice(0, 4).map((item) => item.id));
+    const highlightedIds = new Set(featuredItems.slice(0, 3).map((item) => item.id));
     feed = news.filter((item) => !highlightedIds.has(item.id));
     renderFeatured(featuredItems);
     renderFilters(news);
