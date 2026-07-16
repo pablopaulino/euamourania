@@ -1,4 +1,5 @@
 import { fetchPublicRows } from "./publicDataService.js";
+import { EDITORIAL_POLICY_PAGES } from "../editorialPolicies.js";
 
 let indexPromise;
 
@@ -146,7 +147,17 @@ function staticPages() {
       actionLabel: "Abrir votação",
       featured: true,
       terms: "votação popular indicados categorias empresas prêmio comércio"
-    })
+    }),
+    ...EDITORIAL_POLICY_PAGES.map((page) => staticPage({
+      id: `pagina-${page.slug}`,
+      title: page.title,
+      description: page.description,
+      url: `/news/${page.slug}/`,
+      category: "Transparência editorial",
+      meta: "Notícias",
+      actionLabel: "Abrir política",
+      terms: "publicações política editorial correções direito de resposta denúncias transparência publicidade fontes créditos contato editorial"
+    }))
   ];
 }
 

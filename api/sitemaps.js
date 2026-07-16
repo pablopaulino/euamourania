@@ -92,7 +92,20 @@ module.exports = async (req, res) => {
       melhoresRows(),
       melhoresCategoriasRows()
     ]);
-    const statics = ["/", "/urania/", "/news/", "/guia.html", "/turismo.html", "/eventos/", "/melhores-de-urania/", "/links/", "/quem-somos.html"];
+    const statics = [
+      "/",
+      "/urania/",
+      "/news/",
+      "/news/sobre-publicacoes/",
+      "/news/politica-editorial/",
+      "/news/correcoes-transparencia-contato/",
+      "/guia.html",
+      "/turismo.html",
+      "/eventos/",
+      "/melhores-de-urania/",
+      "/links/",
+      "/quem-somos.html"
+    ];
     const categoriasNoticias = [...new Map(noticias
       .filter(item => item.categoria_nome && slugify(item.categoria_nome))
       .map(item => [slugify(item.categoria_nome), item])

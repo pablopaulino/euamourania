@@ -1,4 +1,5 @@
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
+import { EDITORIAL_POLICY_PAGES } from "../assets/js/editorialPolicies.js";
 
 const db = getSupabase();
 const esc = (v = "") =>
@@ -40,6 +41,16 @@ const defaultValues = {
   urania_cta_texto: "Ajude o Eu Amo Urânia a construir uma página cada vez mais completa sobre a nossa cidade.",
   urania_cta_botao: "Enviar pelo WhatsApp",
 };
+
+Object.assign(
+  defaultValues,
+  Object.fromEntries(EDITORIAL_POLICY_PAGES.flatMap((page) => [
+    [`${page.key}_titulo`, page.title],
+    [`${page.key}_descricao`, page.description],
+    [`${page.key}_html`, page.html],
+    [`${page.key}_atualizado_em`, page.updatedAt],
+  ])),
+);
 
 const groups = [
   [
@@ -128,6 +139,16 @@ const groups = [
       ["seo_publicador", "Publicador"],
       ["dominio_principal", "Domínio principal", "url"],
     ],
+  ],
+  [
+    "Políticas editoriais",
+    "Páginas públicas da área de notícias sobre publicações, correções, transparência e contato editorial.",
+    EDITORIAL_POLICY_PAGES.flatMap((page) => [
+      [`${page.key}_titulo`, `${page.title} — título`],
+      [`${page.key}_descricao`, `${page.title} — descrição`, "textarea"],
+      [`${page.key}_html`, `${page.title} — conteúdo`, "html"],
+      [`${page.key}_atualizado_em`, `${page.title} — última atualização`],
+    ]),
   ],
   [
     "Páginas legais",

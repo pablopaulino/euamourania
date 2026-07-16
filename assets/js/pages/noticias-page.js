@@ -138,6 +138,24 @@ function renderFeed() {
   clearFilters.hidden = !selectedCategory && !search.value.trim();
 }
 
+function renderPolicyLinks() {
+  if (document.querySelector(".news-policy-links")) return;
+  const feedSection = document.querySelector(".news-feed");
+  if (!feedSection?.parentElement) return;
+  feedSection.insertAdjacentHTML("afterend", `
+    <section class="news-policy-links" aria-labelledby="news-policy-title">
+      <p class="eyebrow">Transparência</p>
+      <h2 id="news-policy-title">Como publicamos informações</h2>
+      <p>Consulte nossos critérios editoriais, políticas de correção, direito de resposta, publicidade, fontes e canais de contato.</p>
+      <div class="policy-links-grid">
+        <a href="/news/sobre-publicacoes/">Sobre nossas publicações</a>
+        <a href="/news/politica-editorial/">Política Editorial</a>
+        <a href="/news/correcoes-transparencia-contato/">Correções e transparência</a>
+      </div>
+    </section>
+  `);
+}
+
 filters.addEventListener("click", (event) => {
   const button = event.target.closest("[data-category]");
   if (!button) return;
@@ -191,6 +209,7 @@ async function carregarNoticias() {
     renderFeatured(featuredItems);
     renderFilters(feed);
     renderFeed();
+    renderPolicyLinks();
     status.hidden = true;
   } catch (error) {
     console.error(error);
