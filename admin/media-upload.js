@@ -427,10 +427,14 @@ function enhance(){
  }
  const resourceForm=app?.querySelector("#resource-form");
  if(resourceForm){
-  const table=location.hash.slice(1),folder={guia_comercial:"guia",turismo:"turismo",eventos:"eventos"}[table];
+  const table=location.hash.slice(1),folder={guia_comercial:"guia",turismo:"turismo",eventos:"eventos",eventos_principais:"eventos/principais",eventos_edicoes:"eventos/edicoes"}[table];
   if(folder){
    attachUrlUpload(resourceForm.elements.imagem_url,folder,"card");
+   attachUrlUpload(resourceForm.elements.imagem_capa_url,folder,"wide");
+   attachUrlUpload(resourceForm.elements.cartaz_url,folder,"classic");
+   attachUrlUpload(resourceForm.elements.banner_url,folder,"wide");
    if(table==="turismo")attachEditorUpload(resourceForm.querySelector("#editor"),`${folder}/conteudo`);
+   if(table==="eventos_principais"||table==="eventos_edicoes")attachEditorUpload(resourceForm.querySelector("#editor"),`${folder}/conteudo`);
   }
  }
  if(location.hash==="#midia"&&!libraryOpened&&obterAcessoAtual()?.admin?.funcao==="super_admin")renderMediaLibrary();

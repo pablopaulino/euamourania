@@ -8,6 +8,8 @@ const title = document.getElementById("page-title");
 const sidebar = document.getElementById("sidebar");
 let currentView = "dashboard";
 let quill;
+let currentResourceTable = null;
+let currentResourceId = null;
 
 const resources = {
   noticias: { label:"Notícias", title:"titulo", order:"atualizado_em", fields:[
@@ -26,12 +28,15 @@ const resources = {
 resources.eventos_principais = { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","DescriÃ§Ã£o curta","textarea"],["historia_html","HistÃ³ria do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histÃ³rica (JSON)","textarea"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","RecorrÃªncia","event-recurrence"],["periodo_aproximado","PerÃ­odo aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"],["palavras_chave","Palavras-chave","text"]] };
 resources.eventos_edicoes = { label:"EdiÃ§Ãµes de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","ID do evento principal","text",true],["ano","Ano","number",true],["slug","Slug da ediÃ§Ã£o","text"],["titulo","TÃ­tulo da ediÃ§Ã£o","text",true],["subtitulo","SubtÃ­tulo","text"],["data_inicio","InÃ­cio","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","ProgramaÃ§Ã£o","editor"],["atracoes_html","AtraÃ§Ãµes","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria (JSON)","textarea"],["videos","VÃ­deos (JSON)","textarea"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links Ãºteis (JSON)","textarea"],["patrocinadores","Patrocinadores (JSON)","textarea"],["status","Status da ediÃ§Ã£o","event-edition-status"],["resumo_pos_evento_html","Resumo pÃ³s-evento","textarea"],["publico_estimado","PÃºblico estimado","number"],["observacoes","ObservaÃ§Ãµes","textarea"],["destaque","Destaque","boolean"]] };
 
-resources.eventos_principais = { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","Descrição curta","textarea"],["historia_html","História do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histórica (JSON)","textarea"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","Recorrência","event-recurrence"],["periodo_aproximado","Período aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]] };
-resources.eventos_edicoes = { label:"Edições de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["slug","Slug da edição","text"],["titulo","Título da edição","text",true],["subtitulo","Subtítulo","text"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","Programação","editor"],["atracoes_html","Atrações","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria (JSON)","textarea"],["videos","Vídeos (JSON)","textarea"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links úteis (JSON)","textarea"],["patrocinadores","Patrocinadores (JSON)","textarea"],["status","Status da edição","event-edition-status"],["resumo_pos_evento_html","Resumo pós-evento","textarea"],["publico_estimado","Público estimado","number"],["observacoes","Observações","textarea"],["destaque","Destaque","boolean"]] };
+resources.eventos_principais = { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","Descrição curta","textarea"],["historia_html","História do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histórica","url-list"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","Recorrência","event-recurrence"],["periodo_aproximado","Período aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]] };
+resources.eventos_edicoes = { label:"Edições de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["slug","Slug da edição","text"],["titulo","Título da edição","text",true],["subtitulo","Subtítulo","text"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","Programação","editor"],["atracoes_html","Atrações","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da edição","url-list"],["videos","Vídeos","line-list"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links úteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da edição","event-edition-status"],["resumo_pos_evento_html","Resumo pós-evento","textarea"],["publico_estimado","Público estimado","number"],["observacoes","Observações","textarea"],["destaque","Destaque","boolean"]] };
 
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const inputValue = (value, type) => type === "datetime-local" && value ? new Date(value).toISOString().slice(0,16) : value ?? "";
 const validSiteReference = value => !value || /^(?:https?:\/\/|mailto:|tel:|\/(?!\/)|\.{1,2}\/|#)/i.test(value) || (/^[\w.-]+(?:\/[\w\-./%~:+?#[\]@!$&'()*+,;=]*)?$/u.test(value) && !/^javascript:/i.test(value));
+const listValue = value => Array.isArray(value) ? value.map(item => item?.url || item?.nome || item?.titulo || item).filter(Boolean).join("\n") : "";
+const parseUrlList = value => String(value || "").split(/\r?\n/).map(item => item.trim()).filter(Boolean).map(url => ({ url }));
+const parseLineList = value => String(value || "").split(/\r?\n/).map(item => item.trim()).filter(Boolean).map(nome => ({ nome }));
 
 async function legacyDashboard() {
   title.textContent = "Visão geral";
@@ -489,11 +494,51 @@ async function carregarSelectEventosPrincipais() {
   }
 }
 
+async function salvarEvento2Form(event) {
+  if(event.target.id!=="resource-form"||!["eventos_principais","eventos_edicoes"].includes(currentResourceTable))return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const table=currentResourceTable,config=resources[table],message=document.getElementById("form-message");
+  message.textContent="Salvando…";
+  const form=new FormData(event.target),payload={id:currentResourceId};
+  for(const field of config.fields){
+    const [name,label,type]=field;
+    if(type==="editor")payload[name]=quill.root.innerHTML;
+    else if(type==="boolean")payload[name]=form.get(name)==="true";
+    else if(type==="number")payload[name]=form.get(name)===""?null:Number(form.get(name)||0);
+    else if(type==="url-list")payload[name]=parseUrlList(form.get(name));
+    else if(type==="line-list")payload[name]=parseLineList(form.get(name));
+    else{
+      const value=form.get(name)||null;
+      if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.target.elements[name]?.focus();return}
+      payload[name]=value;
+    }
+  }
+  try{await salvarRegistro(table,payload);currentResourceId=null;await resourceList(table)}
+  catch(error){message.textContent=error.message;}
+}
+document.addEventListener("submit",salvarEvento2Form,true);
+
+function fieldHtmlCorrigido([name,label,type,required], value) {
+  const req=required?"required":"", full=["textarea","editor","url-list","line-list"].includes(type)?"full-row":"";
+  if(type==="editor") return `<label class="${full}">${label}<div id="editor"></div><input type="hidden" name="${name}"></label>`;
+  if(type==="textarea") return `<label class="${full}">${label}<textarea name="${name}" ${req}>${escapeHtml(inputValue(value,type))}</textarea></label>`;
+  if(type==="url-list") return `<label class="${full}">${label}<textarea name="${name}" placeholder="Cole uma URL de imagem por linha">${escapeHtml(listValue(value))}</textarea><small>Use uma imagem por linha para montar a galeria.</small></label>`;
+  if(type==="line-list") return `<label class="${full}">${label}<textarea name="${name}" placeholder="Digite um item por linha">${escapeHtml(listValue(value))}</textarea><small>Digite um item por linha. Exemplo: nome do patrocinador, link útil ou vídeo.</small></label>`;
+  if(type==="boolean"){const checked=value===undefined&&name==="ativo"?true:Boolean(value);return `<label>${label}<select name="${name}"><option value="false" ${!checked?"selected":""}>Não</option><option value="true" ${checked?"selected":""}>Sim</option></select></label>`}
+  if(type==="tags") return `<label class="${full}">${label}<input type="text" name="${name}" value="${escapeHtml(Array.isArray(value)?value.join(", "):inputValue(value,type))}" placeholder="pautas, fotos, eventos"><small>Separe por vírgula.</small></label>`;
+  if(type==="event-principal-select") return `<label>${label}<select name="${name}" data-event-principal-select data-current="${escapeHtml(inputValue(value,type))}" ${req}><option value="">Carregando eventos principais...</option></select><small>Escolha o evento principal. Não precisa copiar ID.</small></label>`;
+  const options=type==="status"?["rascunho","publicado","arquivado"]:type==="active-status"?["ativo","inativo"]:type==="category-type"?["noticias","guia","turismo","eventos"]:type==="volunteer-status"?["novo","em_conversa","aprovado","recusado","arquivado"]:type==="event-recurrence"?["anual","mensal","unico","outro"]:type==="event-edition-status"?["anunciado","confirmado","acontecendo","encerrado","cancelado"]:null;
+  if(options) return `<label>${label}<select name="${name}">${options.map(o=>`<option value="${o}" ${value===o?"selected":""}>${o}</option>`).join("")}</select></label>`;
+  const inputType=type==="url"?"text":type,urlAttributes=type==="url"?' inputmode="url" data-type="url" placeholder="https://... ou /assets/..."':"";
+  return `<label class="${full}">${label}<input type="${inputType}"${urlAttributes} name="${name}" value="${escapeHtml(inputValue(value,type))}" ${req}></label>`;
+}
+
 async function editForm(table,id) {
   const config=resources[table]; let row={};
+  currentResourceTable=table;currentResourceId=id||null;
   if(id){const {data,error}=await getSupabase().from(table).select("*").eq("id",id).single();if(error)throw error;row=data;}
   title.textContent=`${id?"Editar":"Novo"} · ${config.label}`;
-  app.innerHTML=`<section class="panel"><form id="resource-form" class="resource-form">${config.fields.map(field=>fieldHtml(field,row[field[0]])).join("")}<div class="form-actions"><button type="button" class="admin-button secondary" data-cancel="${table}">Cancelar</button><button class="admin-button" type="submit">Salvar</button></div><p id="form-message" class="form-message full-row"></p></form></section>`;
+  app.innerHTML=`<section class="panel"><form id="resource-form" class="resource-form">${config.fields.map(field=>fieldHtmlCorrigido(field,row[field[0]])).join("")}<div class="form-actions"><button type="button" class="admin-button secondary" data-cancel="${table}">Cancelar</button><button class="admin-button" type="submit">Salvar</button></div><p id="form-message" class="form-message full-row"></p></form></section>`;
   const editorField=config.fields.find(f=>f[2]==="editor");
   if(editorField){quill=new Quill("#editor",{theme:"snow",modules:{toolbar:[["bold","italic","blockquote"],[{header:[2,3,false]}],[{list:"ordered"},{list:"bullet"}],["link","image","video"],["clean"]]}});quill.root.innerHTML=row[editorField[0]]||"";}
   await carregarSelectEventosPrincipais();

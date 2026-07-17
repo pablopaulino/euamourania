@@ -45,7 +45,20 @@ const access = read("admin/access-control.js");
 assert(admin.includes('["descricao_curta","Descrição curta"'), "painel usa acentos corretos em eventos principais");
 assert(admin.includes('["evento_id","Evento principal","event-principal-select"'), "edições usam seletor de evento principal em vez de ID manual");
 assert(admin.includes("carregarSelectEventosPrincipais"), "painel carrega eventos principais no seletor");
+assert(admin.includes('["galeria_historica","Galeria histórica","url-list"'), "galeria histórica usa campo amigável por linhas");
+assert(admin.includes('["patrocinadores","Patrocinadores","line-list"'), "patrocinadores não exigem JSON manual");
+assert(admin.includes('value===undefined&&name==="ativo"?true'), "evento principal novo nasce ativo por padrão");
 assert(access.includes('eventosEdicoesNav[1] = "Edições"'), "menu do painel corrige o texto Edições");
+
+const media = read("admin/media-upload.js");
+assert(media.includes("eventos_principais:\"eventos/principais\""), "biblioteca de mídia atende eventos principais");
+assert(media.includes("imagem_capa_url"), "imagem de capa usa biblioteca de mídia");
+assert(media.includes("cartaz_url"), "cartaz da edição usa biblioteca de mídia");
+assert(media.includes("banner_url"), "banner da edição usa biblioteca de mídia");
+
+const categories = read("admin/category-fields.js");
+assert(categories.includes("eventos_principais:{tipo:\"eventos\""), "eventos principais usam categorias do tipo eventos");
+assert(categories.includes('nameField:"categoria"'), "categoria do evento principal salva no campo correto");
 
 const apiFunctions = readdirSync("api").filter(name => name.endsWith(".js"));
 assert(apiFunctions.length <= 12, `projeto mantém até 12 funções serverless (${apiFunctions.length})`);

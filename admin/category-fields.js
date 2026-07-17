@@ -2,7 +2,12 @@ import { getSupabase } from "../assets/js/services/supabaseClient.js";
 
 const db=getSupabase();
 const originalFrom=db.from.bind(db);
-const types={guia_comercial:"guia",turismo:"turismo",eventos:"eventos"};
+const types={
+ guia_comercial:{tipo:"guia",idField:"categoria_id",nameField:"categoria_nome"},
+ turismo:{tipo:"turismo",idField:"categoria_id",nameField:"categoria_nome"},
+ eventos:{tipo:"eventos",idField:"categoria_id",nameField:"categoria_nome"},
+ eventos_principais:{tipo:"eventos",idField:null,nameField:"categoria"}
+};
 const app=document.getElementById("app-content");
 let currentTable=null;
 let currentId=null;
@@ -17,7 +22,10 @@ db.from=function(table){
    if(pendingCategory?.table===table&&values){
     const selected=pendingCategory;
     pendingCategory=null;
-    return original({...values,categoria_id:selected.id,categoria_nome:selected.nome},...args);
+    const config=types[table],patch={...values};
+    if(config.idField)patch[config.idField]=selected.id;
+    if(config.nameField)patch[config.nameField]=selected.nome;
+    return original(patch,...args);
    }
    return original(values,...args);
   };
@@ -52,15 +60,16 @@ const escapeHtml=value=>String(value??"").replace(/[&<>'"]/g,char=>({"&":"&amp;"
 async function enhanceCategoryField(form){
  if(form.dataset.categoryField||!types[currentTable])return;
  form.dataset.categoryField="loading";
+ const config=types[currentTable];
  const [{data:categories,error},record]=await Promise.all([
-  originalFrom("categorias").select("id,nome").eq("tipo",types[currentTable]).eq("status","ativo").order("ordem").order("nome"),
-  currentId?originalFrom(currentTable).select("categoria_id").eq("id",currentId).maybeSingle():Promise.resolve({data:null})
+  originalFrom("categorias").select("id,nome").eq("tipo",config.tipo).eq("status","ativo").order("ordem").order("nome"),
+  currentId?originalFrom(currentTable).select(config.idField||config.nameField).eq("id",currentId).maybeSingle():Promise.resolve({data:null})
  ]);
  if(error){console.error("Categorias:",error);form.dataset.categoryField="error";return}
- const selected=record.data?.categoria_id||"";
+ const selected=config.idField?record.data?.[config.idField]||"":categories?.find(item=>item.nome===record.data?.[config.nameField])?.id||"";
  const field=document.createElement("label");
  field.innerHTML=`Categoria<select name="cms_categoria_id"><option value="">Sem categoria</option>${(categories||[]).map(item=>`<option value="${item.id}" ${item.id===selected?"selected":""}>${escapeHtml(item.nome)}</option>`).join("")}</select><small>O menor número em “Ordem” aparece primeiro nos filtros públicos.</small>`;
- const legacy=form.querySelector('[name="categoria_nome"]')?.closest("label");
+ const legacy=form.querySelector('[name="categoria_nome"]')?.closest("label")||form.querySelector('[name="categoria"]')?.closest("label");
  if(legacy)legacy.replaceWith(field);
  else{
   const description=form.querySelector('[name="descricao"]')?.closest("label");
