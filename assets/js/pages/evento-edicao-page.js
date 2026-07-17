@@ -90,10 +90,12 @@ async function init() {
   const noticias = await relatedNews(evento, 4);
   const image = safeImage(edicao.banner_url || edicao.cartaz_url || evento.imagem_capa_url);
   const canonical = `${DOMAIN}/eventos/${evento.slug}/${edicao.ano}`;
+  const seoTitle = `${edicao.titulo || `${evento.nome} ${edicao.ano}`} | Eu Amo Urânia`;
+  const seoDescription = edicao.subtitulo || evento.descricao_curta || `Veja programação, atrações e registros da edição ${edicao.ano} de ${evento.nome}.`;
 
   definirMeta({
-    titulo: `${edicao.titulo} | ${evento.nome}`,
-    descricao: edicao.subtitulo || evento.descricao_curta || "Edição de evento em Urânia.",
+    titulo: seoTitle,
+    descricao: seoDescription,
     imagem: image,
     url: canonical
   });

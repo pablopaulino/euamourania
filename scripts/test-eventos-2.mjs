@@ -30,13 +30,22 @@ assert(existsSync("assets/js/pages/evento-edicao-page.js"), "existe script da ed
 
 const eventoPrincipal = read("assets/js/pages/evento-principal-page.js");
 const eventoEdicao = read("assets/js/pages/evento-edicao-page.js");
+const eventosPage = read("assets/js/pages/eventos-page.js");
+const eventosHelpers = read("assets/js/pages/eventos-helpers.js");
 assert(eventoPrincipal.includes("function getEventSlug()"), "pagina do evento le slug pela URL bonita");
 assert(eventoPrincipal.includes('parts[0] === "eventos"'), "evento principal funciona em /eventos/slug");
 assert(eventoPrincipal.includes("event-public-hero"), "evento principal renderiza cabecalho visual");
 assert(eventoPrincipal.includes("event-copy"), "evento principal renderiza historia do evento");
 assert(eventoPrincipal.includes("event-editions-grid"), "evento principal renderiza edicoes em cards");
+assert(eventoPrincipal.includes("definirMeta"), "evento principal possui SEO dinamico");
+assert(eventoPrincipal.includes("canonical"), "evento principal define URL canonica");
 assert(eventoEdicao.includes("function getRouteParams()"), "pagina da edicao le slug e ano pela URL bonita");
 assert(eventoEdicao.includes('parts[0] === "eventos"'), "edicao funciona em /eventos/slug/ano");
+assert(eventoEdicao.includes("seoTitle"), "edicao possui titulo SEO proprio");
+assert(eventoEdicao.includes("seoDescription"), "edicao possui descricao SEO propria");
+assert(eventoEdicao.includes("canonical"), "edicao define URL canonica propria");
+assert(eventosPage.includes("Abrir evento"), "cards de eventos principais possuem botao abrir evento");
+assert(eventosHelpers.includes("Abrir edição"), "cards de edicoes possuem botao abrir edicao");
 
 const vercel = read("vercel.json");
 assert(vercel.includes('/eventos/:slug/:ano'), "Vercel reescreve edição anual de evento");

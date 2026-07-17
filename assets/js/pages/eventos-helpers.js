@@ -59,6 +59,7 @@ export function editionCard(evento, edicao) {
       <span class="event-status ${esc(edicao.status)}">${esc(edicao.status || "edição")}</span>
       <h3><a href="${url}">${esc(edicao.titulo || `${evento.nome} ${edicao.ano}`)}</a></h3>
       <p>${esc(edicao.subtitulo || `${fmtDate(edicao.data_inicio)}${edicao.local ? ` · ${edicao.local}` : ""}`)}</p>
+      <a class="event-card-action" href="${url}">Abrir edição</a>
     </div>
   </article>`;
 }

@@ -71,7 +71,7 @@ async function init() {
 
   definirMeta({
     titulo: evento.seo_titulo || `${evento.nome} | Eventos em Urânia`,
-    descricao: evento.seo_descricao || evento.descricao_curta || "Evento tradicional em Urânia.",
+    descricao: evento.seo_descricao || evento.descricao_curta || `História, edições e informações sobre ${evento.nome} em Urânia.`,
     imagem: heroImage,
     url: canonical
   });
@@ -87,7 +87,7 @@ async function init() {
             <p>${esc(evento.descricao_curta || clamp(evento.historia_html, 220))}</p>
             <div class="event-hero-actions">
               ${proxima ? `<a class="button button-primary" href="/eventos/${encodeURIComponent(evento.slug)}/${proxima.ano}">Ver edição ${esc(proxima.ano)}</a>` : ""}
-              <a class="button button-secondary" href="#edicoes">Ver histórico</a>
+              <a class="button button-secondary" href="#edicoes">Ver edições</a>
             </div>
           </div>
           ${heroImage ? `<img src="${esc(heroImage)}" alt="${esc(evento.nome)}" decoding="async" fetchpriority="high">` : '<div class="event-hero-placeholder">Eu Amo Urânia</div>'}

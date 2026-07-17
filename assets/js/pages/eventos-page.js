@@ -48,16 +48,19 @@ function acervoCard(evento, edicoes = []) {
   const proxima = edicoes.find(item => ["anunciado", "confirmado", "acontecendo"].includes(item.status));
   return `<article class="event-archive-card">
     ${imagem ? `<a href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.nome)}" loading="lazy"></a>` : '<a class="event-archive-placeholder" href="${url}">Eu Amo Urânia</a>'}
-    <div>
+    <div class="event-archive-body">
       <p class="eyebrow">${esc(evento.categoria || "Evento de Urânia")}</p>
       <h3><a href="${url}">${esc(evento.nome)}</a></h3>
-      <p>${esc(clamp(evento.descricao_curta || evento.historia_html, 170))}</p>
+      <p>${esc(clamp(evento.descricao_curta || evento.historia_html, 180))}</p>
       <div class="event-facts-row">
         ${evento.recorrencia ? `<span>${esc(evento.recorrencia)}</span>` : ""}
         ${evento.periodo_aproximado ? `<span>${esc(evento.periodo_aproximado)}</span>` : ""}
         ${edicoes.length ? `<span>${edicoes.length} edição${edicoes.length > 1 ? "s" : ""}</span>` : ""}
       </div>
-      ${proxima ? `<a class="event-mini-link" href="${url}/${proxima.ano}">Próxima edição: ${esc(proxima.ano)}</a>` : `<a class="event-mini-link" href="${url}">Ver histórico do evento</a>`}
+      <div class="event-card-actions">
+        <a class="event-card-action" href="${url}">Abrir evento</a>
+        ${proxima ? `<a class="event-mini-link" href="${url}/${proxima.ano}">Edição ${esc(proxima.ano)}</a>` : `<a class="event-mini-link" href="${url}#edicoes">Ver edições</a>`}
+      </div>
     </div>
   </article>`;
 }
@@ -102,18 +105,19 @@ async function init() {
     const acervo = principais.map(evento => acervoCard(evento, edicoesPorEvento.get(evento.id) || []));
     list.className = "container eventos-landing";
     list.innerHTML = `
-      <section class="eventos-featured">
-        <div>
+      <section class="eventos-featured eventos-current">
+        <div class="eventos-section-heading">
           <p class="eyebrow">Agenda atual</p>
           <h2>Próximos eventos</h2>
+          <p>Eventos com data marcada, programação vigente e atividades abertas à comunidade.</p>
         </div>
         ${ativos.length ? `<div class="events-grid">${ativos.slice(0, 6).map(agendaCard).join("")}</div>` : '<div class="empty-state">Nenhum evento com data futura publicado no momento.</div>'}
       </section>
-      <section class="eventos-featured">
-        <div>
+      <section class="eventos-featured eventos-archive">
+        <div class="eventos-section-heading">
           <p class="eyebrow">Acervo permanente</p>
           <h2>Eventos tradicionais e anuais</h2>
-          <p>História, edições, cartazes, programação e registros dos eventos de Urânia.</p>
+          <p>Páginas especiais com história, edições, cartazes, programação e registros dos eventos de Urânia.</p>
         </div>
         ${acervo.length ? `<div class="event-archive-grid">${acervo.join("")}</div>` : '<div class="empty-state">Cadastre eventos principais no painel para montar o acervo permanente.</div>'}
       </section>`;
