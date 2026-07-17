@@ -87,7 +87,7 @@ module.exports = async (req, res) => {
 
     const [guia, turismo, eventos, melhores, melhoresCategorias] = await Promise.all([
       rows("guia_comercial", "slug,atualizado_em,imagem_url", "atualizado_em.desc"),
-      rows("turismo", "slug,atualizado_em", "atualizado_em.desc"),
+      rows("turismo", "slug,atualizado_em,imagem_url", "atualizado_em.desc"),
       rows("eventos", "slug,atualizado_em", "atualizado_em.desc"),
       melhoresRows(),
       melhoresCategoriasRows()
@@ -153,8 +153,9 @@ module.exports = async (req, res) => {
         image: imageTag(item)
       })),
       ...turismo.map(item => ({
-        loc: `${DOMAIN}/turismo-details.html?slug=${item.slug}`,
-        lastmod: item.atualizado_em
+        loc: `${DOMAIN}/turismo/${item.slug}`,
+        lastmod: item.atualizado_em,
+        image: imageTag(item)
       })),
       ...eventos.map(item => ({
         loc: `${DOMAIN}/eventos/detalhes.html?slug=${item.slug}`,

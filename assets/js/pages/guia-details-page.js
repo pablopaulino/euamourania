@@ -55,7 +55,7 @@ function newsCard(item) {
 
 function tourismCard(item) {
   const image = safeImage(item.imagem_url);
-  return `<a class="guide-related-card compact" href="/turismo-details.html?slug=${encodeURIComponent(item.slug)}">
+  return `<a class="guide-related-card compact" href="/turismo/${encodeURIComponent(item.slug)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Turismo</div>`}
     <div><small>Turismo em Urânia</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao))}</p><span>Conhecer lugar →</span></div>
   </a>`;

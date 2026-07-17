@@ -49,6 +49,15 @@
     },
     { "source": "/news-detalhes.html", "destination": "/news/", "permanent": true },
     { "source": "/news-details.html", "destination": "/news/", "permanent": true },
+    {
+      "source": "/turismo-details.html",
+      "has": [
+        { "type": "query", "key": "slug", "value": "(?<slug>[a-z0-9-]+)" }
+      ],
+      "destination": "/turismo/:slug",
+      "permanent": true
+    },
+    { "source": "/turismo-details.html", "destination": "/turismo.html", "permanent": true },
     { "source": "/categorias/:categoria", "destination": "/:categoria", "permanent": true },
     { "source": "/categorias/:categoria/", "destination": "/:categoria/", "permanent": true }
   ],
@@ -69,6 +78,8 @@
     { "source": "/noticias/feed.xml", "destination": "/api/rss" },
     { "source": "/noticias/:slug", "destination": "/api/noticia?slug=:slug" },
     { "source": "/guia/:slug", "destination": "/api/noticia?tipo=guia&slug=:slug" },
+    { "source": "/turismo/:slug", "destination": "/api/noticia?tipo=turismo&slug=:slug" },
+    { "source": "/turismo/:slug/", "destination": "/api/noticia?tipo=turismo&slug=:slug" },
     { "source": "/sitemap.xml", "destination": "/api/sitemaps?type=standard" },
     { "source": "/news-sitemap.xml", "destination": "/api/sitemaps?type=news" },
     { "source": "/rss.xml", "destination": "/api/rss" },

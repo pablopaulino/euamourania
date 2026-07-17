@@ -18,7 +18,7 @@ let allItems = [];
 let activeFilter = "todos";
 
 function tourismCard(item,index) {
-  const url = `turismo-details.html?slug=${encodeURIComponent(item.slug)}`;
+  const url = `/turismo/${encodeURIComponent(item.slug)}`;
   const description = String(item.descricao || "").trim();
   return `<article class="card-guia tourism-card" data-tourism-id="${escapeHtml(item.id)}">
     <a class="tourism-card-media" href="${url}" aria-label="Conhecer ${escapeHtml(item.nome)}">

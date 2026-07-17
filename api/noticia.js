@@ -45,7 +45,7 @@ const formatDate = value => {
 };
 
 async function getConfig() {
-  const keys = "nome_site,seo_publicador,seo_logo,dominio_principal,imagem_compartilhamento,imagem_padrao_noticia,imagem_padrao_guia,logo_principal,favicon";
+  const keys = "nome_site,seo_publicador,seo_logo,dominio_principal,imagem_compartilhamento,imagem_padrao_noticia,imagem_padrao_guia,imagem_padrao_turismo,logo_principal,favicon";
   try {
     const response = await fetch(
       `${SUPABASE_URL}/rest/v1/configuracoes_site?select=chave,valor&chave=in.(${keys})`,
@@ -128,6 +128,80 @@ async function renderGuia(req, res, slug) {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
   return res.status(200).send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${esc(canonical)}"><meta property="og:type" content="business.business"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:image" content="${esc(image)}"><meta property="og:image:secure_url" content="${esc(image)}"><meta property="og:image:alt" content="${esc(item.nome)}"><meta property="og:url" content="${esc(canonical)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(image)}"><meta name="twitter:image:alt" content="${esc(item.nome)}"><meta name="theme-color" content="#0b4f6c"><script id="guide-structured-data" type="application/ld+json">${structured}</script><script id="initial-guide-data" type="application/json">${initialGuide}</script><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/inner-pages.css"><link rel="stylesheet" href="/assets/css/turismo-details-page.css"><link rel="stylesheet" href="/assets/css/guia-details-page.css"><link rel="icon" href="${esc(favicon)}" sizes="any"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="preload" as="image" href="${esc(image)}" fetchpriority="high"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></head><body class="inner-page tourism-detail-page guide-detail-page"><a class="skip-link" href="#guia-details">Pular para o conteúdo</a>${renderHeader({ siteName, logo, current: "guia" })}<main id="guia-details" class="tourism-detail-main" aria-live="polite">${serverContent}</main>${renderFooter({ siteName, logo })}<script src="/script.js"></script><script type="module" src="/assets/js/pages/guia-details-page.js"></script></body></html>`);
+}
+
+async function renderTurismo(req, res, slug) {
+  const [response, config] = await Promise.all([
+    fetch(
+      `${SUPABASE_URL}/rest/v1/turismo?slug=eq.${encodeURIComponent(slug)}&status=eq.publicado&select=*&limit=1`,
+      { headers: { apikey: SUPABASE_KEY } }
+    ),
+    getConfig()
+  ]);
+
+  const rows = await response.json().catch(() => []);
+  const item = rows?.[0];
+  if (!response.ok || !item) return res.status(404).send("Ponto turístico não encontrado");
+
+  const domain = validDomain(config.dominio_principal || DEFAULT_DOMAIN);
+  const siteName = config.nome_site || "Eu Amo Urânia";
+  const logo = absolute(config.seo_logo || config.logo_principal, domain);
+  const favicon = absolute(DEFAULT_FAVICON, domain);
+  const canonical = `${domain}/turismo/${encodeURIComponent(item.slug)}`;
+  const articleText = plain(item.conteudo_html) || item.descricao || "";
+  const description = (item.seo_descricao || item.descricao || articleText || `${item.nome} em Urânia.`).slice(0, 160);
+  const image = absolute(item.imagem_url || config.imagem_padrao_turismo || config.imagem_compartilhamento, domain);
+  const title = `${item.seo_titulo || item.nome} | Turismo em Urânia`;
+  const structured = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TouristAttraction",
+        "@id": `${canonical}#touristattraction`,
+        name: item.nome,
+        description,
+        image,
+        url: canonical,
+        address: item.endereco || undefined,
+        openingHours: item.horario || undefined,
+        telephone: item.whatsapp || undefined,
+        touristType: "Visitantes de Urânia e região",
+        isAccessibleForFree: true,
+        inLanguage: "pt-BR"
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${canonical}#webpage`,
+        name: item.nome,
+        description,
+        url: canonical,
+        primaryImageOfPage: { "@type": "ImageObject", url: image },
+        about: { "@id": `${canonical}#touristattraction` },
+        publisher: {
+          "@type": "Organization",
+          name: siteName,
+          url: domain,
+          logo: { "@type": "ImageObject", url: logo }
+        },
+        inLanguage: "pt-BR"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${canonical}#breadcrumb`,
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Início", item: `${domain}/` },
+          { "@type": "ListItem", position: 2, name: "Turismo", item: `${domain}/turismo.html` },
+          { "@type": "ListItem", position: 3, name: item.nome, item: canonical }
+        ]
+      }
+    ]
+  }).replace(/</g, "\\u003c");
+  const initialTourism = JSON.stringify(item).replace(/</g, "\\u003c");
+  const serverContent = `<article class="tourism-detail" data-tourism-id="${esc(item.id)}" data-server-rendered="true"><a class="tourism-detail-back" href="/turismo.html"><span aria-hidden="true">←</span> Voltar aos lugares</a><section class="tourism-detail-hero"><figure><img src="${esc(image)}" alt="${esc(item.nome)}" decoding="async" fetchpriority="high"></figure><header class="tourism-detail-header"><p class="eyebrow">Experiência em Urânia</p><h1>${esc(item.nome)}</h1>${description ? `<p class="tourism-detail-summary">${esc(description)}</p>` : ""}<span class="tourism-detail-label">Turismo local</span></header></section><div class="tourism-detail-layout"><section class="tourism-detail-copy" aria-labelledby="tourism-about-title"><p class="eyebrow">Sobre a experiência</p><h2 id="tourism-about-title">Conheça este lugar</h2><div class="article-copy">${articleText ? `<p>${esc(articleText)}</p>` : ""}</div></section><aside class="tourism-planner" aria-labelledby="tourism-planner-title"><p class="eyebrow">Informações úteis</p><h2 id="tourism-planner-title">Planeje sua visita</h2><div class="tourism-detail-facts">${item.endereco ? `<div><p><small>Endereço</small>${esc(item.endereco)}</p></div>` : ""}${item.horario ? `<div><p><small>Horário</small>${esc(item.horario)}</p></div>` : ""}</div></aside></div></article>`;
+
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
+  return res.status(200).send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${esc(canonical)}"><meta property="og:type" content="place"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:image" content="${esc(image)}"><meta property="og:image:secure_url" content="${esc(image)}"><meta property="og:image:alt" content="${esc(item.nome)}"><meta property="og:url" content="${esc(canonical)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(image)}"><meta name="twitter:image:alt" content="${esc(item.nome)}"><meta name="theme-color" content="#0b4f6c"><script id="tourism-structured-data" type="application/ld+json">${structured}</script><script id="initial-tourism-data" type="application/json">${initialTourism}</script><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/inner-pages.css"><link rel="stylesheet" href="/assets/css/turismo-details-page.css"><link rel="icon" href="${esc(favicon)}" sizes="any"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="preload" as="image" href="${esc(image)}" fetchpriority="high"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></head><body class="inner-page tourism-detail-page"><a class="skip-link" href="#turismo-details">Pular para o conteúdo</a>${renderHeader({ siteName, logo, current: "turismo" })}<main id="turismo-details" class="tourism-detail-main" aria-live="polite">${serverContent}</main>${renderFooter({ siteName, logo })}<script src="/script.js"></script><script type="module" src="/assets/js/pages/turismo-details-page.js"></script></body></html>`);
 }
 
 async function renderNoticia(req, res, slug) {
@@ -213,6 +287,7 @@ module.exports = async (req, res) => {
 
   try {
     if (req.query.tipo === "guia") return renderGuia(req, res, slug);
+    if (req.query.tipo === "turismo") return renderTurismo(req, res, slug);
     return renderNoticia(req, res, slug);
   } catch (error) {
     console.error("noticia:", error);

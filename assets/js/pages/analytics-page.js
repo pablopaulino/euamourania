@@ -92,10 +92,10 @@ async function noticiaView(){
 window.addEventListener("noticia:renderizada",noticiaView,{once:true});
 noticiaView();
 async function detailView(){
- const params=new URLSearchParams(location.search),slug=params.get("slug")||location.pathname.match(/^\/guia\/([^/]+)/)?.[1];
+ const params=new URLSearchParams(location.search),slug=params.get("slug")||location.pathname.match(/^\/guia\/([^/]+)/)?.[1]||location.pathname.match(/^\/turismo\/([^/]+)/)?.[1];
  if(!slug)return;
  const isEvent=location.pathname.includes("/eventos/");
- const isTourism=location.pathname.endsWith("/turismo-details.html");
+ const isTourism=location.pathname.endsWith("/turismo-details.html")||location.pathname.startsWith("/turismo/");
  const isGuide=location.pathname.endsWith("/guia-details.html")||location.pathname.startsWith("/guia/");
  if(!isEvent&&!isTourism&&!isGuide)return;
  const table=isEvent?"eventos":isGuide?"guia_comercial":"turismo",type=isEvent?"evento":isGuide?"guia":"turismo";

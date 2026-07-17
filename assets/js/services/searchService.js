@@ -42,7 +42,7 @@ function makeItem(type, row) {
       label: "Turismo",
       title: row.nome,
       description: row.descricao,
-      url: `/turismo-details.html?slug=${encodeURIComponent(row.slug)}`,
+      url: `/turismo/${encodeURIComponent(row.slug)}`,
       category: row.categoria_nome,
       meta: row.endereco,
       action: "Conhecer lugar"

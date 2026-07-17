@@ -32,7 +32,9 @@ function hasLabel(source, label, htmlLabel) {
   return source.includes(`>${label}<`)
     || source.includes(`>${htmlLabel}<`)
     || source.includes(`>${label}</a>`)
-    || source.includes(`>${htmlLabel}</a>`);
+    || source.includes(`>${htmlLabel}</a>`)
+    || source.includes(`["${label}",`)
+    || source.includes(`['${label}',`);
 }
 
 for (const file of await collectHtml()) {

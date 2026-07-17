@@ -3,7 +3,8 @@ import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDat
 import { sanitizeArticleHtml } from "../security/sanitize-html.js";
 
 const container = document.getElementById("turismo-details");
-const slug = new URLSearchParams(location.search).get("slug");
+const pathParts = location.pathname.split("/").filter(Boolean);
+const slug = new URLSearchParams(location.search).get("slug") || (pathParts[0] === "turismo" ? decodeURIComponent(pathParts.at(-1) || "") : "");
 const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[char]));
 const safeUrl = value => /^https?:\/\//i.test(value || "") ? escapeHtml(value) : "";
 const safeImage = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? escapeHtml(value) : "";
@@ -51,10 +52,20 @@ function companyCard(item) {
 
 function tourismCard(item) {
   const image = safeImage(item.imagem_url);
-  return `<a class="tourism-related-card compact" href="/turismo-details.html?slug=${encodeURIComponent(item.slug)}">
+  return `<a class="tourism-related-card compact" href="/turismo/${encodeURIComponent(item.slug)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Turismo</div>`}
     <div><small>Turismo local</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao))}</p><span>Conhecer lugar →</span></div>
   </a>`;
+}
+
+function readInitialTourism() {
+  const node = document.getElementById("initial-tourism-data");
+  if (!node?.textContent) return null;
+  try {
+    return JSON.parse(node.textContent);
+  } catch {
+    return null;
+  }
 }
 
 function newsCard(item) {
@@ -84,12 +95,15 @@ async function carregar() {
   if (!publicSupabaseConfigured()) { container.innerHTML = '<p class="not-found-message">Configure o Supabase para carregar este ponto turístico.</p>'; return; }
   if (!slug) { container.innerHTML = '<p class="not-found-message">Ponto turístico não encontrado.</p>'; return; }
   try {
-    const [item] = await fetchPublicRows("turismo", {
-      select: "*",
-      slug: `eq.${slug}`,
-      status: "eq.publicado",
-      limit: "1"
-    });
+    let item = readInitialTourism();
+    if (!item) {
+      [item] = await fetchPublicRows("turismo", {
+        select: "*",
+        slug: `eq.${slug}`,
+        status: "eq.publicado",
+        limit: "1"
+      });
+    }
     if (!item || item.status !== "publicado") { container.innerHTML = '<p class="not-found-message">Ponto turístico não encontrado.</p>'; return; }
     const imagem = safeImage(item.imagem_url) || fallbackImage;
     definirMeta({
