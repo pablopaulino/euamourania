@@ -31,6 +31,7 @@
       "permanent": true
     },
     { "source": "/urania.html", "destination": "/urania/", "permanent": true },
+    { "source": "/links/", "destination": "/links", "permanent": true },
     {
       "source": "/news-detalhes.html",
       "has": [
@@ -77,6 +78,7 @@
     { "source": "/eventos/:slug/:ano/", "destination": "/eventos/edicao.html?slug=:slug&ano=:ano" },
     { "source": "/eventos/:slug", "destination": "/eventos/evento.html?slug=:slug" },
     { "source": "/eventos/:slug/", "destination": "/eventos/evento.html?slug=:slug" },
+    { "source": "/links", "destination": "/links/index.html" },
     { "source": "/api/newsletter-open", "destination": "/api/newsletter-track?event=open" },
     { "source": "/api/newsletter-click", "destination": "/api/newsletter-track?event=click" },
     { "source": "/noticias/feed.xml", "destination": "/api/rss" },
