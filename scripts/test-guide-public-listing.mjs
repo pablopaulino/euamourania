@@ -15,6 +15,8 @@ const checks = [
   [script.includes("alvo>=0?Math.max(PAGE_SIZE,alvo+1)"), "links diretos para empresas podem ficar ocultos"],
   [homeGuide.includes('select: "id,nome,slug,categoria_nome,descricao,imagem_url,recomendado"'), "Home do Guia nao consulta os campos corretos"],
   [!homeGuide.includes("slug,categoria,"), "Home do Guia ainda consulta o campo inexistente categoria"],
+  [homeGuide.includes('order: "recomendado.desc,nome.asc"'), "Home do Guia nao prioriza empresas recomendadas"],
+  [homeGuide.includes("home-guide-badge") && homeGuide.includes("Destaque"), "Home do Guia nao sinaliza empresas em destaque"],
   [css.includes(".guia-load-more-wrap"), "estilo do botao do Guia ausente"]
 ];
 

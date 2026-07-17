@@ -35,8 +35,11 @@ function addStyle() {
     .home-guide-head p:not(.eyebrow){max-width:600px;margin:0;color:#536b75;line-height:1.62}
     .home-guide-link{color:var(--blue);font-weight:900;text-decoration:none}
     .home-guide-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
-    .home-guide-card{display:grid;grid-template-columns:96px minmax(0,1fr);gap:.9rem;align-items:center;min-height:132px;padding:.78rem;color:inherit;background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 14px 36px rgba(7,59,76,.07);text-decoration:none;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+    .home-guide-card{position:relative;display:grid;grid-template-columns:96px minmax(0,1fr);gap:.9rem;align-items:center;min-height:132px;padding:.78rem;color:inherit;background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 14px 36px rgba(7,59,76,.07);text-decoration:none;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
     .home-guide-card:hover{transform:translateY(-3px);border-color:rgba(11,79,108,.2);box-shadow:0 18px 44px rgba(7,59,76,.1)}
+    .home-guide-card:focus-visible{outline:3px solid rgba(247,201,72,.85);outline-offset:4px}
+    .home-guide-card.is-featured{border-color:rgba(247,201,72,.5);background:linear-gradient(135deg,#fff 0%,#fffaf0 100%)}
+    .home-guide-badge{position:absolute;top:.7rem;right:.75rem;padding:.24rem .5rem;color:#5d4500;background:var(--yellow);border-radius:999px;font-size:.58rem;font-weight:950;letter-spacing:.06em;text-transform:uppercase;box-shadow:0 8px 18px rgba(247,201,72,.22)}
     .home-guide-media{display:grid;width:96px;height:96px;place-items:center;overflow:hidden;color:var(--blue);background:linear-gradient(135deg,#eef8fa,#fff4cf);border-radius:18px;font-size:.7rem;font-weight:900;text-align:center}
     .home-guide-media img{width:100%;height:100%;object-fit:cover}
     .home-guide-card small{display:block;margin-bottom:.28rem;color:var(--blue);font-size:.68rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase}
@@ -47,14 +50,15 @@ function addStyle() {
     .home-guide-bottom p{margin:0;color:#536b75;line-height:1.5}
     .home-guide-bottom .button{border:0;text-decoration:none;white-space:nowrap}
     @media(max-width:1040px){.home-guide-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:720px){.home-guide{padding:2.25rem 0}.home-guide-head{display:grid;margin-bottom:1rem}.home-guide-head h2{font-size:1.9rem}.home-guide-link{justify-self:start}.home-guide-grid{grid-template-columns:1fr;gap:.75rem}.home-guide-card{grid-template-columns:78px minmax(0,1fr);min-height:104px;border-radius:18px}.home-guide-media{width:78px;height:78px;border-radius:14px}.home-guide-card h3{font-size:1rem}.home-guide-card p{font-size:.82rem;-webkit-line-clamp:1}.home-guide-bottom{grid-template-columns:1fr;padding:.95rem;border-radius:20px}.home-guide-bottom .button{width:100%;justify-content:center}}
+    @media(max-width:720px){.home-guide{padding:2.25rem 0}.home-guide-head{display:grid;margin-bottom:1rem}.home-guide-head h2{font-size:1.9rem}.home-guide-link{justify-self:start}.home-guide-grid{grid-template-columns:1fr;gap:.75rem}.home-guide-card{grid-template-columns:78px minmax(0,1fr);min-height:104px;border-radius:18px}.home-guide-badge{top:.55rem;right:.6rem;font-size:.52rem}.home-guide-media{width:78px;height:78px;border-radius:14px}.home-guide-card h3{font-size:1rem}.home-guide-card p{font-size:.82rem;-webkit-line-clamp:1}.home-guide-bottom{grid-template-columns:1fr;padding:.95rem;border-radius:20px}.home-guide-bottom .button{width:100%;justify-content:center}}
   `;
   document.head.append(style);
 }
 
 function card(item) {
   const image = safeImage(item.imagem_url);
-  return `<a class="home-guide-card" href="${guideUrl(item.slug)}">
+  return `<a class="home-guide-card${item.recomendado ? " is-featured" : ""}" href="${guideUrl(item.slug)}">
+    ${item.recomendado ? '<span class="home-guide-badge">Destaque</span>' : ""}
     <span class="home-guide-media">${image ? `<img src="${esc(image)}" alt="${esc(item.nome)}" loading="lazy" decoding="async">` : "Eu Amo Urânia"}</span>
     <span>
       <small>${esc(item.categoria_nome || "Guia")}</small>

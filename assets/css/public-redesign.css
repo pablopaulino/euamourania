@@ -14,6 +14,242 @@
   --radius-md: 18px;
 }
 
+/* Home polish: mantém a estrutura atual, mas deixa a primeira impressão mais editorial e acolhedora. */
+.hero {
+  isolation: isolate;
+}
+
+.hero:before {
+  content: "";
+  position: absolute;
+  inset: 1.2rem;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, .5), transparent 36%),
+    radial-gradient(circle at 72% 18%, rgba(255, 255, 255, .72), transparent 23rem);
+  border: 1px solid rgba(255, 255, 255, .62);
+  border-radius: 34px;
+}
+
+.hero-content {
+  position: relative;
+}
+
+.hero .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 1rem;
+  padding: .48rem .72rem;
+  color: #0a4057;
+  background: rgba(255, 255, 255, .72);
+  border: 1px solid rgba(11, 79, 108, .1);
+  border-radius: 999px;
+  box-shadow: 0 12px 28px rgba(7, 59, 76, .06);
+}
+
+.hero h1 {
+  text-wrap: balance;
+}
+
+.hero-lead {
+  line-height: 1.68;
+}
+
+.hero-topics {
+  gap: .65rem;
+}
+
+.hero-topics li {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: .35rem .7rem;
+  color: #31505d;
+  background: rgba(255, 255, 255, .68);
+  border: 1px solid rgba(11, 79, 108, .1);
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(7, 59, 76, .05);
+}
+
+.hero-topics li:before {
+  width: 6px;
+  height: 6px;
+}
+
+.hero-visual > img {
+  filter: saturate(1.03) contrast(1.02);
+}
+
+.quick-access {
+  background: linear-gradient(180deg, #fff 0%, #f8fbfb 100%);
+}
+
+.feature-card {
+  overflow: hidden;
+}
+
+.feature-card:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 88% 10%, rgba(247, 201, 72, .18), transparent 9rem);
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+
+.feature-card:hover:before {
+  opacity: 1;
+}
+
+.feature-card-highlight:before {
+  background: radial-gradient(circle at 88% 10%, rgba(255, 255, 255, .18), transparent 9rem);
+  opacity: 1;
+}
+
+.feature-number {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  margin-bottom: 2.4rem;
+  background: #eef7f9;
+  border-radius: 16px;
+}
+
+.feature-card-highlight .feature-number {
+  background: rgba(255, 255, 255, .16);
+}
+
+.feature-card h3,
+.feature-card p,
+.feature-card .card-link {
+  position: relative;
+}
+
+.home-editorial,
+.home-guide {
+  position: relative;
+  overflow: hidden;
+}
+
+.home-editorial:before,
+.home-guide:before {
+  content: "";
+  position: absolute;
+  inset: 1rem;
+  pointer-events: none;
+  border: 1px solid rgba(7, 59, 76, .045);
+  border-radius: 34px;
+}
+
+.home-editorial-head,
+.home-guide-head {
+  position: relative;
+}
+
+.home-editorial-head .eyebrow,
+.home-guide-head .eyebrow {
+  margin-bottom: .55rem;
+}
+
+.home-editorial-link,
+.home-guide-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: 40px;
+  padding: .45rem .72rem;
+  background: rgba(255, 255, 255, .72);
+  border: 1px solid rgba(7, 59, 76, .08);
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(7, 59, 76, .05);
+}
+
+.home-news-lead,
+.home-news-side,
+.home-guide-card,
+.home-guide-bottom {
+  backdrop-filter: blur(12px);
+}
+
+.destination {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(247, 201, 72, .22), transparent 16rem),
+    var(--cream);
+}
+
+.destination-gallery img {
+  filter: saturate(1.04);
+}
+
+.community-box {
+  position: relative;
+  overflow: hidden;
+}
+
+.community-box:after {
+  content: "";
+  position: absolute;
+  right: -4rem;
+  bottom: -5rem;
+  width: 14rem;
+  height: 14rem;
+  background: rgba(247, 201, 72, .22);
+  border-radius: 50%;
+}
+
+.community-box > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 650px) {
+  .hero:before,
+  .home-editorial:before,
+  .home-guide:before {
+    inset: .5rem;
+    border-radius: 24px;
+  }
+
+  .hero .eyebrow {
+    max-width: none;
+    padding: .42rem .62rem;
+  }
+
+  .hero-topics {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: .15rem;
+    scrollbar-width: none;
+  }
+
+  .hero-topics::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hero-topics li {
+    flex: 0 0 auto;
+    min-height: 34px;
+    font-size: .78rem;
+  }
+
+  .feature-number {
+    width: 38px;
+    height: 38px;
+    margin-bottom: 1.6rem;
+    border-radius: 14px;
+  }
+
+  .home-editorial-link,
+  .home-guide-link {
+    min-height: 38px;
+    padding-inline: .65rem;
+  }
+}
+
 body {
   background:
     radial-gradient(circle at 8% 4%, rgba(247, 201, 72, .12), transparent 28rem),
