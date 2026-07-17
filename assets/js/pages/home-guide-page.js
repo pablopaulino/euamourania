@@ -57,7 +57,7 @@ function card(item) {
   return `<a class="home-guide-card" href="${guideUrl(item.slug)}">
     <span class="home-guide-media">${image ? `<img src="${esc(image)}" alt="${esc(item.nome)}" loading="lazy" decoding="async">` : "Eu Amo Urânia"}</span>
     <span>
-      <small>${esc(item.categoria_nome || item.categoria || "Guia")}</small>
+      <small>${esc(item.categoria_nome || "Guia")}</small>
       <h3>${esc(item.nome)}</h3>
       ${item.descricao ? `<p>${esc(shortText(item.descricao))}</p>` : ""}
     </span>
@@ -108,7 +108,7 @@ async function init() {
   addStyle();
   await waitForAnchor();
   const items = await fetchPublicRows("guia_comercial", {
-    select: "id,nome,slug,categoria,categoria_nome,descricao,imagem_url,recomendado",
+    select: "id,nome,slug,categoria_nome,descricao,imagem_url,recomendado",
     status: "eq.publicado",
     order: "recomendado.desc,nome.asc",
     limit: "6"
