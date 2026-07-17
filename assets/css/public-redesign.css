@@ -1128,3 +1128,32 @@ h1 {
     flex-basis: min(100%, 340px) !important;
   }
 }
+
+@media (max-width: 650px) {
+  .destination-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 1.35rem !important;
+  }
+
+  .destination-gallery {
+    display: block !important;
+    width: min(100%, 340px) !important;
+    margin: 0 auto .35rem !important;
+    order: -1;
+  }
+
+  .destination-gallery .gallery-main {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 4 / 3 !important;
+    object-fit: cover !important;
+    border-radius: 18px !important;
+  }
+
+  .destination-gallery img:not(.gallery-main) {
+    display: none !important;
+  }
+}
