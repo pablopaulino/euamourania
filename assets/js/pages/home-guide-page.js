@@ -45,12 +45,13 @@ function addStyle() {
     .home-guide-card small{display:block;margin-bottom:.28rem;color:var(--blue);font-size:.68rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase}
     .home-guide-card h3{display:-webkit-box;overflow:hidden;margin:0 0 .35rem;color:var(--navy);font-size:1.05rem;line-height:1.15;-webkit-line-clamp:2;-webkit-box-orient:vertical}
     .home-guide-card p{display:-webkit-box;overflow:hidden;margin:0;color:#607781;font-size:.88rem;line-height:1.4;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-    .home-guide-bottom{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1rem;align-items:center;margin-top:1.1rem;padding:1rem 1.1rem;border:1px solid rgba(220,232,236,.95);border-radius:24px;background:#fff;box-shadow:0 14px 36px rgba(7,59,76,.06)}
-    .home-guide-bottom h3{margin:0 0 .25rem;color:var(--navy);font-size:1.25rem;letter-spacing:-.03em}
-    .home-guide-bottom p{margin:0;color:#536b75;line-height:1.5}
-    .home-guide-bottom .button{border:0;text-decoration:none;white-space:nowrap}
+    .home-collab-strip{padding:clamp(1.4rem,4vw,2.35rem) 0;background:linear-gradient(180deg,#fff,#f7fbfb)}
+    .home-collab-box{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1rem;align-items:center;padding:1.1rem 1.25rem;border:1px solid rgba(220,232,236,.95);border-radius:24px;background:#fff;box-shadow:0 14px 36px rgba(7,59,76,.06)}
+    .home-collab-box h3{margin:0 0 .25rem;color:var(--navy);font-size:1.25rem;letter-spacing:-.03em}
+    .home-collab-box p{margin:0;color:#536b75;line-height:1.5}
+    .home-collab-box .button{border:0;text-decoration:none;white-space:nowrap}
     @media(max-width:1040px){.home-guide-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:720px){.home-guide{padding:2.25rem 0}.home-guide-head{display:grid;margin-bottom:1rem}.home-guide-head h2{font-size:1.9rem}.home-guide-link{justify-self:start}.home-guide-grid{grid-template-columns:1fr;gap:.75rem}.home-guide-card{grid-template-columns:78px minmax(0,1fr);min-height:104px;border-radius:18px}.home-guide-badge{top:.55rem;right:.6rem;font-size:.52rem}.home-guide-media{width:78px;height:78px;border-radius:14px}.home-guide-card h3{font-size:1rem}.home-guide-card p{font-size:.82rem;-webkit-line-clamp:1}.home-guide-bottom{grid-template-columns:1fr;padding:.95rem;border-radius:20px}.home-guide-bottom .button{width:100%;justify-content:center}}
+    @media(max-width:720px){.home-guide{padding:2.25rem 0}.home-guide-head{display:grid;margin-bottom:1rem}.home-guide-head h2{font-size:1.9rem}.home-guide-link{justify-self:start}.home-guide-grid{grid-template-columns:1fr;gap:.75rem}.home-guide-card{grid-template-columns:78px minmax(0,1fr);min-height:104px;border-radius:18px}.home-guide-badge{top:.55rem;right:.6rem;font-size:.52rem}.home-guide-media{width:78px;height:78px;border-radius:14px}.home-guide-card h3{font-size:1rem}.home-guide-card p{font-size:.82rem;-webkit-line-clamp:1}.home-collab-box{grid-template-columns:1fr;padding:.95rem;border-radius:20px}.home-collab-box .button{width:100%;justify-content:center}}
   `;
   document.head.append(style);
 }
@@ -95,15 +96,21 @@ function render(items = []) {
         <a class="home-guide-link" href="/guia.html">Ver guia completo →</a>
       </div>
       <div class="home-guide-grid">${visible.map(card).join("")}</div>
-      <div class="home-guide-bottom">
+    </div>
+  </section>`);
+  const collabAnchor = document.querySelector(".about") || document.querySelector(".community");
+  if (collabAnchor && !document.querySelector(".home-collab-strip")) {
+    collabAnchor.insertAdjacentHTML("beforebegin", `<section class="home-collab-strip" aria-labelledby="home-collab-title">
+      <div class="container home-collab-box">
         <div>
-          <h3>Tem uma pauta, foto ou história da cidade?</h3>
+          <p class="eyebrow">Colaboração voluntária</p>
+          <h3 id="home-collab-title">Tem uma pauta, foto ou história da cidade?</h3>
           <p>Cadastre-se como colaborador voluntário e envie informações quando tiver algo relevante para compartilhar.</p>
         </div>
         <a class="button button-secondary" href="/colabore/">Quero colaborar</a>
       </div>
-    </div>
-  </section>`);
+    </section>`);
+  }
 }
 
 async function init() {

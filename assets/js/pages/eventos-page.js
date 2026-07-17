@@ -67,7 +67,7 @@ function acervoCard(evento, edicoes = []) {
 
 function renderHomeEvents(eventos, principais, edicoes) {
   if (!(location.pathname === "/" || location.pathname === "/index.html")) return;
-  const anchor = document.querySelector(".community");
+  const anchor = document.querySelector(".about") || document.querySelector(".community");
   if (!anchor) return;
   const proximos = eventos.filter(e => e.destaque).slice(0, 2);
   const destaques = principais.filter(e => e.destaque).slice(0, 2);
