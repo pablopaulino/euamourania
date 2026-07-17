@@ -20,6 +20,8 @@ const navItems=[
   ["usuarios","Usuários","usuarios"],
   ["importacao","Importar JSON","importacao"]
 ];
+const eventosEdicoesNav = navItems.find(item => item[0] === "eventos_edicoes");
+if (eventosEdicoesNav) eventosEdicoesNav[1] = "Edições";
 function currentAdminKey(){
   const page=location.pathname.split("/").pop()||"index.html";
   if(page==="publicidade.html")return"publicidade";

@@ -40,6 +40,13 @@ const search = read("assets/js/services/searchService.js");
 assert(search.includes("evento_principal"), "busca global indexa eventos principais");
 assert(search.includes("evento_edicao"), "busca global indexa edições");
 
+const admin = read("admin/admin.js");
+const access = read("admin/access-control.js");
+assert(admin.includes('["descricao_curta","Descrição curta"'), "painel usa acentos corretos em eventos principais");
+assert(admin.includes('["evento_id","Evento principal","event-principal-select"'), "edições usam seletor de evento principal em vez de ID manual");
+assert(admin.includes("carregarSelectEventosPrincipais"), "painel carrega eventos principais no seletor");
+assert(access.includes('eventosEdicoesNav[1] = "Edições"'), "menu do painel corrige o texto Edições");
+
 const apiFunctions = readdirSync("api").filter(name => name.endsWith(".js"));
 assert(apiFunctions.length <= 12, `projeto mantém até 12 funções serverless (${apiFunctions.length})`);
 
