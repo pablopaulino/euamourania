@@ -12,6 +12,13 @@ const NEWS_GROUP_LINK = {
   description: "Entre para receber avisos, notícias e informações importantes de Urânia direto no WhatsApp."
 };
 
+const NEWS_PAGE_LINK = {
+  id: "pagina-noticias",
+  titulo: "Notícias",
+  url: "/news/",
+  iconType: "news"
+};
+
 const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
   "&": "&amp;",
   "<": "&lt;",
@@ -20,7 +27,7 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
   '"': "&quot;"
 }[char]));
 
-const safeUrl = value => /^https?:\/\//i.test(value || "") ? escapeHtml(value) : "#";
+const safeUrl = value => /^(https?:\/\/|\/)/i.test(value || "") ? escapeHtml(value) : "#";
 const normalize = value => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const icons = {
@@ -42,13 +49,31 @@ function isWhatsappGroup(link) {
 }
 
 function iconFor(link) {
-  const value = `${normalize(link.titulo)} ${normalize(link.icone)} ${normalize(link.url)}`;
+  if (link.iconType && icons[link.iconType]) return icons[link.iconType];
+  const value = `${normalize(displayTitle(link))} ${normalize(link.titulo)} ${normalize(link.icone)} ${normalize(link.url)}`;
   if (value.includes("whatsapp") || value.includes("wa.me") || value.includes("chat.whatsapp")) return icons.whatsapp;
   if (value.includes("instagram")) return icons.instagram;
   if (value.includes("facebook") || value.includes("fb.")) return icons.facebook;
   if (value.includes("youtube") || value.includes("youtu.be")) return icons.youtube;
   if (value.includes("noticia") || value.includes("news")) return icons.news;
   return icons.site;
+}
+
+function displayTitle(link) {
+  if (link.featured) return link.titulo;
+  const title = normalize(link.titulo);
+  const url = normalize(link.url);
+  if ((title.includes("canal") && title.includes("whatsapp")) || title.includes("canal de noticia") || title.includes("canal noticias")) {
+    return "Canal de Notícias";
+  }
+  if ((url.includes("wa.me") || url.includes("api.whatsapp.com") || title === "whatsapp" || title.includes("whatsapp")) && !isWhatsappGroup(link)) {
+    return "Falar com a Equipe";
+  }
+  return link.titulo;
+}
+
+function linkAttributes(url = "") {
+  return /^https?:\/\//i.test(url) ? 'target="_blank" rel="noopener noreferrer"' : "";
 }
 
 function sameDestination(a = "", b = "") {
@@ -64,10 +89,10 @@ function sameDestination(a = "", b = "") {
 function renderLink(link, index) {
   if (link.featured || isWhatsappGroup(link)) return renderFeaturedLink(link, index);
   return `
-    <a href="${safeUrl(link.url)}" class="link-button" data-link-id="${escapeHtml(link.id)}" target="_blank" rel="noopener noreferrer" style="--link-delay:${index * 45}ms">
+    <a href="${safeUrl(link.url)}" class="link-button" data-link-id="${escapeHtml(link.id)}" ${linkAttributes(link.url)} style="--link-delay:${index * 45}ms">
       <span class="link-button-main">
         <span class="link-button-icon">${iconFor(link)}</span>
-        <span>${escapeHtml(link.titulo)}</span>
+        <span>${escapeHtml(displayTitle(link))}</span>
       </span>
       <span class="link-button-arrow" aria-hidden="true">→</span>
     </a>
@@ -90,8 +115,9 @@ function renderFeaturedLink(link, index) {
 }
 
 function withNewsGroup(links) {
-  const withoutDuplicate = links.filter(link => !sameDestination(link.url, NEWS_GROUP_LINK.url));
+  const withoutDuplicate = links.filter(link => !sameDestination(link.url, NEWS_GROUP_LINK.url) && !sameDestination(link.url, NEWS_PAGE_LINK.url));
   const ordered = [...withoutDuplicate];
+  ordered.splice(Math.min(1, ordered.length), 0, NEWS_PAGE_LINK);
   ordered.splice(Math.min(2, ordered.length), 0, NEWS_GROUP_LINK);
   return ordered;
 }
@@ -111,7 +137,7 @@ async function carregarLinks() {
       order: "ordem.asc"
     });
 
-    const renderedLinks = links.length ? withNewsGroup(links) : [NEWS_GROUP_LINK];
+    const renderedLinks = links.length ? withNewsGroup(links) : [NEWS_PAGE_LINK, NEWS_GROUP_LINK];
 
     status.hidden = true;
     container.innerHTML = renderedLinks.map(renderLink).join("");
