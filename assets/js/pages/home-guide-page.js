@@ -112,7 +112,10 @@ async function init() {
     status: "eq.publicado",
     order: "recomendado.desc,nome.asc",
     limit: "6"
-  }, { ttl: 180000 }).catch(() => []);
+  }, { ttl: 180000 }).catch(error => {
+    console.warn("Guia na home:", error);
+    return [];
+  });
   render(items || []);
 }
 
