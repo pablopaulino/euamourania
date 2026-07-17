@@ -1,4 +1,4 @@
-const viewModules={dashboard:"dashboard",noticias:"noticias",colaboradores_voluntarios:"colaboradores",guia_comercial:"guia_comercial",turismo:"turismo",links:"links",eventos:"eventos",categorias:"categorias",insights:"insights",configuracoes_site:"configuracoes"};
+const viewModules={dashboard:"dashboard",noticias:"noticias",colaboradores_voluntarios:"colaboradores",guia_comercial:"guia_comercial",turismo:"turismo",links:"links",eventos:"eventos",eventos_principais:"eventos",eventos_edicoes:"eventos",categorias:"categorias",insights:"insights",configuracoes_site:"configuracoes"};
 const navItems=[
   ["dashboard","Visão geral","dashboard"],
   ["noticias","Notícias","noticias"],
@@ -7,7 +7,9 @@ const navItems=[
   ["guia_comercial","Guia comercial","guia_comercial"],
   ["turismo","Turismo","turismo"],
   ["links","Links","links"],
-  ["eventos","Eventos","eventos"],
+  ["eventos","Agenda simples","eventos"],
+  ["eventos_principais","Eventos principais","eventos"],
+  ["eventos_edicoes","EdiÃ§Ãµes","eventos"],
   ["publicidade","Publicidade","publicidade"],
   ["comunicacao","Comunicação","comunicacao"],
   ["notificacoes","Notificações do app","notificacoes"],
@@ -35,7 +37,7 @@ function buttonForNav([key,label,module],isIndex,current){
   const attrs=[`type="button"`,`data-module="${module}"`];
   if(current===key)attrs.push('class="active"');
   if(isIndex){
-    if(["dashboard","noticias","colaboradores_voluntarios","guia_comercial","turismo","links","eventos","categorias","configuracoes_site"].includes(key))attrs.push(`data-view="${key}"`);
+    if(["dashboard","noticias","colaboradores_voluntarios","guia_comercial","turismo","links","eventos","eventos_principais","eventos_edicoes","categorias","configuracoes_site"].includes(key))attrs.push(`data-view="${key}"`);
     else if(key==="aprovacoes")attrs.push('id="editorial-approvals-nav"');
     else if(key==="audiencia")attrs.push('id="audience-nav"');
     else if(key==="publicidade")attrs.push(`onclick="location.href='publicidade.html'"`);
@@ -54,6 +56,8 @@ function buttonForNav([key,label,module],isIndex,current){
       turismo:"index.html#turismo",
       links:"index.html#links",
       eventos:"index.html#eventos",
+      eventos_principais:"index.html#eventos_principais",
+      eventos_edicoes:"index.html#eventos_edicoes",
       publicidade:"publicidade.html",
       comunicacao:"comunicacao.html",
       notificacoes:"notificacoes-app.html",

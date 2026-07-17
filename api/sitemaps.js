@@ -59,6 +59,15 @@ async function melhoresCategoriasRows() {
   return response.json();
 }
 
+async function optionalRows(table, params) {
+  const query = new URLSearchParams(params);
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+    headers: { apikey: SUPABASE_KEY }
+  });
+  if (!response.ok) return [];
+  return response.json();
+}
+
 module.exports = async (req, res) => {
   try {
     const type = req.query.type === "news" ? "news" : "standard";
@@ -85,10 +94,20 @@ module.exports = async (req, res) => {
       );
     }
 
-    const [guia, turismo, eventos, melhores, melhoresCategorias] = await Promise.all([
+    const [guia, turismo, eventos, eventPrincipals, eventEditions, melhores, melhoresCategorias] = await Promise.all([
       rows("guia_comercial", "slug,atualizado_em,imagem_url", "atualizado_em.desc"),
       rows("turismo", "slug,atualizado_em,imagem_url", "atualizado_em.desc"),
       rows("eventos", "slug,atualizado_em", "atualizado_em.desc"),
+      optionalRows("eventos_principais", {
+        select: "id,slug,atualizado_em,imagem_capa_url",
+        ativo: "eq.true",
+        order: "atualizado_em.desc"
+      }),
+      optionalRows("eventos_edicoes", {
+        select: "ano,atualizado_em,banner_url,cartaz_url,eventos_principais!inner(slug,ativo)",
+        "eventos_principais.ativo": "eq.true",
+        order: "ano.desc"
+      }),
       melhoresRows(),
       melhoresCategoriasRows()
     ]);
@@ -160,6 +179,16 @@ module.exports = async (req, res) => {
       ...eventos.map(item => ({
         loc: `${DOMAIN}/eventos/detalhes.html?slug=${item.slug}`,
         lastmod: item.atualizado_em
+      })),
+      ...eventPrincipals.map(item => ({
+        loc: `${DOMAIN}/eventos/${item.slug}`,
+        lastmod: item.atualizado_em,
+        image: item.imagem_capa_url ? `<image:image><image:loc>${xml(new URL(item.imagem_capa_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
+      })),
+      ...eventEditions.map(item => ({
+        loc: `${DOMAIN}/eventos/${item.eventos_principais?.slug}/${item.ano}`,
+        lastmod: item.atualizado_em,
+        image: (item.banner_url || item.cartaz_url) ? `<image:image><image:loc>${xml(new URL(item.banner_url || item.cartaz_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
       })),
       ...melhoresCategorias.map(item => ({
         loc: `${DOMAIN}/melhores-de-urania/${item.melhores_edicoes?.ano}/categorias/${item.slug}/`,

@@ -56,6 +56,25 @@ function makeItem(type, row) {
       meta: row.local,
       date: row.data_inicio,
       action: "Ver evento"
+    },
+    evento_principal: {
+      label: "Evento",
+      title: row.nome,
+      description: row.descricao_curta || row.historia_html,
+      url: `/eventos/${encodeURIComponent(row.slug)}`,
+      category: row.categoria || "Eventos",
+      meta: row.local_tradicional,
+      action: "Ver evento"
+    },
+    evento_edicao: {
+      label: "Edição de evento",
+      title: row.titulo,
+      description: row.subtitulo || row.programacao_html,
+      url: row.eventos_principais?.slug ? `/eventos/${encodeURIComponent(row.eventos_principais.slug)}/${encodeURIComponent(row.ano)}` : "/eventos/",
+      category: row.eventos_principais?.nome || "Eventos",
+      meta: row.local,
+      date: row.data_inicio,
+      action: "Ver edição"
     }
   };
   const config = types[type];
@@ -173,7 +192,11 @@ function staticPages() {
 
 async function buildIndex() {
   const now = new Date().toISOString();
-  const [news, guide, tourism, events] = await Promise.all([
+  const safeFetch = async (table, params, options) => {
+    try { return await fetchPublicRows(table, params, options); }
+    catch { return []; }
+  };
+  const [news, guide, tourism, events, eventPrincipals, eventEditions] = await Promise.all([
     fetchPublicRows("noticias", {
       select: "id,titulo,slug,resumo,imagem_url,categoria_nome,publicado_em,destaque",
       status: "eq.publicado",
@@ -198,6 +221,18 @@ async function buildIndex() {
       status: "eq.publicado",
       order: "data_inicio.desc",
       limit: "150"
+    }, { ttl: 300000 }),
+    safeFetch("eventos_principais", {
+      select: "id,nome,slug,descricao_curta,historia_html,imagem_capa_url,categoria,local_tradicional,destaque",
+      ativo: "eq.true",
+      order: "destaque.desc,atualizado_em.desc",
+      limit: "150"
+    }, { ttl: 300000 }),
+    safeFetch("eventos_edicoes", {
+      select: "id,titulo,ano,subtitulo,programacao_html,banner_url,cartaz_url,data_inicio,local,destaque,eventos_principais!inner(nome,slug,ativo)",
+      order: "ano.desc,data_inicio.desc",
+      limit: "200",
+      "eventos_principais.ativo": "eq.true"
     }, { ttl: 300000 })
   ]);
 
@@ -206,6 +241,8 @@ async function buildIndex() {
     ...guide.map((row) => makeItem("guia", row)),
     ...tourism.map((row) => makeItem("turismo", row)),
     ...events.map((row) => makeItem("evento", row)),
+    ...eventPrincipals.map((row) => ({ ...makeItem("evento_principal", { ...row, imagem_url: row.imagem_capa_url }), type: "evento" })),
+    ...eventEditions.map((row) => ({ ...makeItem("evento_edicao", { ...row, imagem_url: row.banner_url || row.cartaz_url }), type: "evento" })),
     ...staticPages()
   ];
 }
