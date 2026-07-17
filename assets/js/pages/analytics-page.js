@@ -47,10 +47,10 @@ record("page_view");
 
 document.addEventListener("click",event=>{
  const link=event.target.closest("a[href]");if(!link)return;
- const href=link.href||"",guide=link.closest("[data-guide-id]"),eventCard=link.closest("[data-event-id]"),tourism=link.closest("[data-tourism-id]"),channel=link.closest("[data-link-id]");
- const resource=guide?{recursoTipo:"guia",recursoId:guide.dataset.guideId}:eventCard?{recursoTipo:"evento",recursoId:eventCard.dataset.eventId}:tourism?{recursoTipo:"turismo",recursoId:tourism.dataset.tourismId}:channel?{recursoTipo:"link",recursoId:channel.dataset.linkId}:{};
+ const href=link.href||"",guide=link.closest("[data-guide-id]"),eventCard=link.closest("[data-event-id]"),eventPrincipal=link.closest("[data-event-principal-id]"),eventEdition=link.closest("[data-event-edition-id]"),tourism=link.closest("[data-tourism-id]"),channel=link.closest("[data-link-id]");
+ const resource=guide?{recursoTipo:"guia",recursoId:guide.dataset.guideId}:eventPrincipal?{recursoTipo:"evento_principal",recursoId:eventPrincipal.dataset.eventPrincipalId}:eventEdition?{recursoTipo:"evento_edicao",recursoId:eventEdition.dataset.eventEditionId}:eventCard?{recursoTipo:"evento",recursoId:eventCard.dataset.eventId}:tourism?{recursoTipo:"turismo",recursoId:tourism.dataset.tourismId}:channel?{recursoTipo:"link",recursoId:channel.dataset.linkId}:{};
  if(guide)record("guia_click",resource);
- if(eventCard)record("evento_click",resource);
+ if(eventCard||eventPrincipal||eventEdition)record("evento_click",resource);
  if(tourism)record("turismo_click",resource);
  if(channel)record("link_click",{...resource,destino:href});
  if(/wa\.me|whatsapp\.com/i.test(href))record("whatsapp_click",{...resource,destino:href});
@@ -72,6 +72,8 @@ function observePublicCards(){
  observeCards("[data-guide-id]","guia_view","guideId","guia");
  observeCards("[data-tourism-id]","turismo_view","tourismId","turismo");
  observeCards("[data-event-id]","evento_view","eventId","evento");
+ observeCards("[data-event-principal-id]","evento_view","eventPrincipalId","evento_principal");
+ observeCards("[data-event-edition-id]","evento_view","eventEditionId","evento_edicao");
 }
 document.addEventListener("guia:renderizado",observePublicCards);
 document.addEventListener("turismo:renderizado",observePublicCards);
@@ -104,7 +106,8 @@ async function detailView(){
 }
 detailView();
 window.addEventListener("evento:renderizado",event=>{
- const id=event.detail?.id;if(id)record("evento_view",{recursoTipo:"evento",recursoId:id});
+ const id=event.detail?.id,recursoTipo=event.detail?.recursoTipo||"evento";
+ if(id)record("evento_view",{recursoTipo,recursoId:id});
 },{once:true});
 window.addEventListener("turismo:renderizado",event=>{
  const id=event.detail?.id;if(id)record("turismo_view",{recursoTipo:"turismo",recursoId:id});

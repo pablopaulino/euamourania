@@ -250,13 +250,14 @@ async function mergeNewsPageViews(resources=[],pages=[]){
  return[...grouped.values()].sort((a,b)=>b.total-a.total);
 }
 async function resourceNames(resources=[]){
- const config={noticia:["noticias","titulo"],guia:["guia_comercial","nome"],evento:["eventos","titulo"],turismo:["turismo","nome"],link:["links","titulo"]};
+ const config={noticia:["noticias","titulo"],guia:["guia_comercial","nome"],evento:["eventos","titulo"],evento_principal:["eventos_principais","nome"],evento_edicao:["eventos_edicoes","titulo"],turismo:["turismo","nome"],link:["links","titulo"]};
  const map=new Map();
  await Promise.all(Object.entries(config).map(async([type,[table,label]])=>{
   const ids=[...new Set(resources.filter(item=>item.tipo===type).map(item=>item.id).filter(Boolean))];
   if(!ids.length)return;
-  const {data}=await db.from(table).select(`id,${label},slug`).in("id",ids);
-  (data||[]).forEach(item=>map.set(`${type}:${item.id}`,{nome:item[label],slug:item.slug}));
+  const select = type === "evento_edicao" ? `id,${label},slug,ano,eventos_principais(slug,nome)` : `id,${label},slug`;
+  const {data}=await db.from(table).select(select).in("id",ids);
+  (data||[]).forEach(item=>map.set(`${type}:${item.id}`,{nome:item[label],slug:item.slug,ano:item.ano,eventoSlug:item.eventos_principais?.slug,eventoNome:item.eventos_principais?.nome}));
  }));
  return resources.map(item=>({...item,...(map.get(`${item.tipo}:${item.id}`)||{nome:"Conteúdo removido"})}));
 }
@@ -308,11 +309,13 @@ function googlePanels(google){
  <section class="panel"><header class="panel-header"><h2>Páginas na Pesquisa Google</h2></header>${(search.pages||[]).map((item,index)=>`<div class="rank-item"><span>${index+1}</span><div><strong>${esc(item.item.replace("https://euamourania.com.br","")||"/")}</strong><small>CTR ${percent(item.ctr)}</small></div><small>${item.clicks} cliques</small></div>`).join("")||'<div class="empty-state">Sem páginas no período.</div>'}</section>`;
 }
 const fmt=value=>Number(value||0).toLocaleString("pt-BR");
-const typeLabel={noticia:"Notícia",guia:"Guia",turismo:"Turismo",evento:"Evento",link:"Link"};
+const typeLabel={noticia:"Notícia",guia:"Guia",turismo:"Turismo",evento:"Agenda",evento_principal:"Evento principal",evento_edicao:"Edição de evento",link:"Link"};
 function contentUrl(item){
  if(item.tipo==="noticia"&&item.slug)return`/noticias/${encodeURIComponent(item.slug)}`;
  if(item.tipo==="guia"&&item.slug)return`/guia/${encodeURIComponent(item.slug)}/`;
  if(item.tipo==="turismo"&&item.slug)return`/turismo/${encodeURIComponent(item.slug)}/`;
+ if(item.tipo==="evento_principal"&&item.slug)return`/eventos/${encodeURIComponent(item.slug)}`;
+ if(item.tipo==="evento_edicao"&&item.eventoSlug&&item.ano)return`/eventos/${encodeURIComponent(item.eventoSlug)}/${encodeURIComponent(item.ano)}`;
  return null;
 }
 function compactRank(rows=[],label,value="total",limit=6){
@@ -358,7 +361,7 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
    ["Links externos",summary.externos||0,variation(summary.externos||0,previous.externos||0)],
    ["Cliques em conteúdos",summary.cliques_conteudo||0,"—"]
   ];
-  const content=(data.recursos||[]).filter(item=>["noticia","guia","evento","turismo","link"].includes(item.tipo)).slice(0,12);
+  const content=(data.recursos||[]).filter(item=>["noticia","guia","evento","evento_principal","evento_edicao","turismo","link"].includes(item.tipo)).slice(0,12);
   const series=completeDailySeries(startString,endString,data.serie),usefulClicks=Number(summary.whatsapp||0)+Number(summary.externos||0)+Number(summary.cliques_conteudo||0);
   const strategicMetrics=[
    ["Visualizações",summary.visualizacoes||0,variation(summary.visualizacoes||0,previous.visualizacoes||0),"Volume total de páginas vistas"],

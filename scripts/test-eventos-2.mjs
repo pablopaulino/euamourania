@@ -11,6 +11,7 @@ const assert = (condition, message) => {
 };
 
 const migration = read("supabase/migrations/20260717_eventos_2_0.sql");
+const editionSeoMigration = read("supabase/migrations/20260717_eventos_edicoes_seo.sql");
 assert(migration.includes("create table if not exists public.eventos_principais"), "migração cria eventos_principais");
 assert(migration.includes("create table if not exists public.eventos_edicoes"), "migração cria eventos_edicoes");
 assert(migration.includes("unique (evento_id, ano)"), "edições impedem ano duplicado no mesmo evento");
@@ -18,6 +19,8 @@ assert(migration.includes("enable row level security"), "RLS está habilitado na
 assert(migration.includes("tem_permissao_admin('eventos'"), "políticas usam permissão administrativa de eventos");
 
 const publicData = read("assets/js/services/publicDataService.js");
+assert(editionSeoMigration.includes("add column if not exists seo_titulo"), "edicoes de eventos possuem titulo SEO no banco");
+assert(editionSeoMigration.includes("add column if not exists seo_descricao"), "edicoes de eventos possuem descricao SEO no banco");
 assert(publicData.includes('"eventos_principais"'), "serviço público permite eventos principais");
 assert(publicData.includes('"eventos_edicoes"'), "serviço público permite edições");
 
@@ -43,9 +46,13 @@ assert(eventoEdicao.includes("function getRouteParams()"), "pagina da edicao le 
 assert(eventoEdicao.includes('parts[0] === "eventos"'), "edicao funciona em /eventos/slug/ano");
 assert(eventoEdicao.includes("seoTitle"), "edicao possui titulo SEO proprio");
 assert(eventoEdicao.includes("seoDescription"), "edicao possui descricao SEO propria");
+assert(eventoEdicao.includes("edicao.seo_titulo"), "edicao usa titulo SEO cadastrado quando existir");
+assert(eventoEdicao.includes("edicao.seo_descricao"), "edicao usa descricao SEO cadastrada quando existir");
 assert(eventoEdicao.includes("canonical"), "edicao define URL canonica propria");
 assert(eventosPage.includes("Abrir evento"), "cards de eventos principais possuem botao abrir evento");
 assert(eventosHelpers.includes("Abrir edição"), "cards de edicoes possuem botao abrir edicao");
+assert(eventosPage.includes("data-event-principal-id"), "cards de eventos principais registram audiencia");
+assert(eventosHelpers.includes("data-event-edition-id"), "cards de edicoes registram audiencia");
 
 const vercel = read("vercel.json");
 assert(vercel.includes('/eventos/:slug/:ano'), "Vercel reescreve edição anual de evento");
@@ -68,6 +75,9 @@ assert(admin.includes('["galeria_historica","Galeria histórica","url-list"'), "
 assert(admin.includes('["patrocinadores","Patrocinadores","line-list"'), "patrocinadores não exigem JSON manual");
 assert(admin.includes('value===undefined&&name==="ativo"?true'), "evento principal novo nasce ativo por padrão");
 assert(access.includes('eventosEdicoesNav[1] = "Edições"'), "menu do painel corrige o texto Edições");
+
+assert(admin.includes('["seo_titulo","Título SEO","text"]'), "painel permite titulo SEO em eventos e edicoes");
+assert(admin.includes('["seo_descricao","Descrição SEO","textarea"]'), "painel permite descricao SEO em eventos e edicoes");
 
 const media = read("admin/media-upload.js");
 assert(media.includes("eventos_principais:\"eventos/principais\""), "biblioteca de mídia atende eventos principais");

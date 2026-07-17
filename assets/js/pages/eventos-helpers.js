@@ -53,7 +53,7 @@ export function gallery(items, title = "Galeria") {
 export function editionCard(evento, edicao) {
   const image = safeImage(edicao.banner_url || edicao.cartaz_url || evento.imagem_capa_url);
   const url = `/eventos/${encodeURIComponent(evento.slug)}/${edicao.ano}`;
-  return `<article class="event-edition-card">
+  return `<article class="event-edition-card" data-event-edition-id="${esc(edicao.id)}">
     ${image ? `<a href="${url}"><img src="${esc(image)}" alt="${esc(edicao.titulo)}" loading="lazy"></a>` : ""}
     <div>
       <span class="event-status ${esc(edicao.status)}">${esc(edicao.status || "edição")}</span>

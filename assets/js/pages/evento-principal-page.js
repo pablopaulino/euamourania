@@ -133,6 +133,10 @@ async function init() {
         ${relatedNewsHtml(noticias)}
       </div>
     </article>`;
+
+  window.dispatchEvent(new CustomEvent("evento:renderizado", {
+    detail: { id: evento.id, recursoTipo: "evento_principal" }
+  }));
 }
 
 init().catch(error => {

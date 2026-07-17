@@ -56,9 +56,12 @@ must(admin.includes("completeDailySeries") && admin.includes("audience-bar-value
 must(analytics.includes("sessionStorage") && !analytics.includes("ip:"), "Rastreamento nao preserva privacidade");
 must(analytics.includes("noticiaView();") && analytics.includes('window.addEventListener("noticia:renderizada",noticiaView'), "Visualizacao de noticia depende apenas do evento tardio");
 must(analytics.includes("observePublicCards") && analytics.includes('observeCards("[data-guide-id]"') && analytics.includes('observeCards("[data-tourism-id]"'), "Cards publicos nao sao observados quando a audiencia carrega depois");
+must(analytics.includes('recursoTipo=event.detail?.recursoTipo||"evento"'), "Audiencia nao reconhece evento principal e edicao renderizados");
 must(!cms.includes("obterMaisAcessados") && cms.includes("rankingPorEventos") && cms.includes('tipo==="page_view"'), "Estatisticas antigas ainda misturam contador acumulado com eventos por periodo");
 must(!cms.includes("Ver audiência") && !cms.includes("Acessos 30d") && cms.includes("news-editorial-list"), "Lista de noticias deve manter foco editorial, sem bloco de audiencia");
 must(admin.includes("mergeNewsPageViews") && admin.includes('match(/^\\/noticias\\/'), "Conteudos mais acessados nao conciliam page_view de noticias por URL");
+must(admin.includes("evento_principal") && admin.includes("evento_edicao") && admin.includes("eventos_principais") && admin.includes("eventos_edicoes"), "Audiencia nao integra eventos principais e edicoes");
+must(index.includes("eventosPrincipais") && index.includes("eventosEdicoes"), "Visao geral nao consolida agenda, eventos principais e edicoes");
 
 for (const event of ["guia_click", "turismo_click", "link_click"]) {
   must(auditMigration.includes(`'${event}'`) && analytics.includes(`"${event}"`), `Metrica ausente: ${event}`);

@@ -46,7 +46,7 @@ function acervoCard(evento, edicoes = []) {
   const imagem = safeImage(evento.imagem_capa_url);
   const url = `/eventos/${encodeURIComponent(evento.slug)}`;
   const proxima = edicoes.find(item => ["anunciado", "confirmado", "acontecendo"].includes(item.status));
-  return `<article class="event-archive-card">
+  return `<article class="event-archive-card" data-event-principal-id="${esc(evento.id)}">
     ${imagem ? `<a href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.nome)}" loading="lazy"></a>` : '<a class="event-archive-placeholder" href="${url}">Eu Amo Urânia</a>'}
     <div class="event-archive-body">
       <p class="eyebrow">${esc(evento.categoria || "Evento de Urânia")}</p>

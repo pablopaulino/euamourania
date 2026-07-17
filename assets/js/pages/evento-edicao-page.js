@@ -90,8 +90,8 @@ async function init() {
   const noticias = await relatedNews(evento, 4);
   const image = safeImage(edicao.banner_url || edicao.cartaz_url || evento.imagem_capa_url);
   const canonical = `${DOMAIN}/eventos/${evento.slug}/${edicao.ano}`;
-  const seoTitle = `${edicao.titulo || `${evento.nome} ${edicao.ano}`} | Eu Amo Urânia`;
-  const seoDescription = edicao.subtitulo || evento.descricao_curta || `Veja programação, atrações e registros da edição ${edicao.ano} de ${evento.nome}.`;
+  const seoTitle = edicao.seo_titulo || `${edicao.titulo || `${evento.nome} ${edicao.ano}`} | Eu Amo Urânia`;
+  const seoDescription = edicao.seo_descricao || edicao.subtitulo || evento.descricao_curta || `Veja programação, atrações e registros da edição ${edicao.ano} de ${evento.nome}.`;
 
   definirMeta({
     titulo: seoTitle,
@@ -136,6 +136,10 @@ async function init() {
         ${relatedNewsHtml(noticias)}
       </div>
     </article>`;
+
+  window.dispatchEvent(new CustomEvent("evento:renderizado", {
+    detail: { id: edicao.id, recursoTipo: "evento_edicao" }
+  }));
 }
 
 init().catch(error => {

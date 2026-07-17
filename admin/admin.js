@@ -31,6 +31,25 @@ resources.eventos_edicoes = { label:"EdiÃ§Ãµes de eventos", title:"titulo", 
 resources.eventos_principais = { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","Descrição curta","textarea"],["historia_html","História do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histórica","url-list"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","Recorrência","event-recurrence"],["periodo_aproximado","Período aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]] };
 resources.eventos_edicoes = { label:"Edições de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["slug","Slug da edição","text"],["titulo","Título da edição","text",true],["subtitulo","Subtítulo","text"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","Programação","editor"],["atracoes_html","Atrações","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da edição","url-list"],["videos","Vídeos","line-list"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links úteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da edição","event-edition-status"],["resumo_pos_evento_html","Resumo pós-evento","textarea"],["publico_estimado","Público estimado","number"],["observacoes","Observações","textarea"],["destaque","Destaque","boolean"]] };
 
+resources.eventos_principais = { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","Descrição curta","textarea"],["historia_html","História do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histórica","url-list"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","Recorrência","event-recurrence"],["periodo_aproximado","Período aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]] };
+resources.eventos_edicoes = { label:"Edições de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["slug","Slug da edição","text"],["titulo","Título da edição","text",true],["subtitulo","Subtítulo","text"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","Programação","editor"],["atracoes_html","Atrações","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da edição","url-list"],["videos","Vídeos","line-list"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links úteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da edição","event-edition-status"],["resumo_pos_evento_html","Resumo pós-evento","textarea"],["publico_estimado","Público estimado","number"],["observacoes","Observações","textarea"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]] };
+
+Object.assign(resources, {
+  noticias: { label:"Notícias", title:"titulo", order:"atualizado_em", fields:[
+    ["titulo","Título","text",true],["slug","Slug","text",true],["subtitulo","Subtítulo","text"],["resumo","Resumo","textarea"],["categoria_nome","Categoria","text"],["autor","Autor","text"],["imagem_url","URL da imagem","url"],["legenda_imagem","Legenda da imagem","text"],["status","Status","status"],["destaque","Destaque","boolean"],["publicado_em","Publicação","datetime-local"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["seo_imagem","Imagem SEO","url"],["conteudo_html","Conteúdo","editor"]]},
+  guia_comercial: { label:"Guia comercial", title:"nome", order:"atualizado_em", fields:[
+    ["nome","Nome","text",true],["slug","Slug","text",true],["categoria_nome","Categoria","text"],["descricao","Descrição","textarea"],["imagem_url","URL da imagem","url"],["whatsapp","WhatsApp","text"],["telefone","Telefone","text"],["instagram","Instagram","url"],["facebook","Facebook","url"],["site","Site","url"],["endereco","Endereço","text"],["horario","Horário","text"],["mapa_url","Mapa","url"],["recomendado","Recomendado","boolean"],["status","Status","status"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"]]},
+  turismo: { label:"Turismo", title:"nome", order:"atualizado_em", fields:[["nome","Nome","text",true],["slug","Slug","text",true],["descricao","Descrição","textarea"],["conteudo_html","Conteúdo","editor"],["imagem_url","Imagem","url"],["endereco","Endereço","text"],["horario","Horário","text"],["whatsapp","WhatsApp","text"],["mapa_url","Mapa","url"],["destaque","Destaque","boolean"],["status","Status","status"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"]]},
+  links: { label:"Links", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","Título","text",true],["url","URL","url",true],["icone","Ícone/emoji","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
+  colaboradores_voluntarios: { label:"Colaborações voluntárias", title:"nome", order:"criado_em", fields:[["nome","Nome","text",true],["whatsapp","WhatsApp","text",true],["email","E-mail","email"],["cidade","Cidade","text"],["interesses","Interesses","tags"],["mensagem","Mensagem","textarea"],["status","Status","volunteer-status"],["observacoes_internas","Observações internas","textarea"],["aceite_voluntario","Aceite voluntário","boolean"]]},
+  eventos: { label:"Agenda simples", title:"titulo", order:"atualizado_em", fields:[["titulo","Título","text",true],["slug","Slug","text",true],["descricao","Descrição","textarea"],["imagem_url","Imagem","url"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["local","Local","text"],["endereco","Endereço","text"],["organizador","Organizador","text"],["whatsapp","WhatsApp","text"],["destaque","Destaque","boolean"],["status","Status","status"]]},
+  banners: { label:"Banners", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","Título","text"],["subtitulo","Subtítulo","text"],["imagem_url","Imagem","url"],["link_url","Link","url"],["posicao","Posição","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
+  categorias: { label:"Categorias", title:"nome", order:"ordem", ascending:true, fields:[["nome","Nome","text",true],["slug","Slug","text",true],["tipo","Tipo","category-type",true],["ordem","Ordem","number"],["status","Status","active-status"]]},
+  configuracoes_site: { label:"Configurações", title:"chave", order:"chave", ascending:true, fields:[["chave","Chave","text",true],["valor","Valor","textarea"],["tipo","Tipo","text"]]},
+  eventos_principais: { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","Descrição curta","textarea"],["historia_html","História do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histórica","url-list"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","Recorrência","event-recurrence"],["periodo_aproximado","Período aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]]},
+  eventos_edicoes: { label:"Edições de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["slug","Slug da edição","text"],["titulo","Título da edição","text",true],["subtitulo","Subtítulo","text"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","Programação","editor"],["atracoes_html","Atrações","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da edição","url-list"],["videos","Vídeos","line-list"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links úteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da edição","event-edition-status"],["resumo_pos_evento_html","Resumo pós-evento","textarea"],["publico_estimado","Público estimado","number"],["observacoes","Observações","textarea"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]]}
+});
+
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const inputValue = (value, type) => type === "datetime-local" && value ? new Date(value).toISOString().slice(0,16) : value ?? "";
 const validSiteReference = value => !value || /^(?:https?:\/\/|mailto:|tel:|\/(?!\/)|\.{1,2}\/|#)/i.test(value) || (/^[\w.-]+(?:\/[\w\-./%~:+?#[\]@!$&'()*+,;=]*)?$/u.test(value) && !/^javascript:/i.test(value));
@@ -286,7 +305,7 @@ async function dashboard() {
   try {
     const [
       noticias, publicadas, rascunhos, agendadas, emRevisao,
-      empresas, empresasAtivas, pontos, pontosAtivos, eventos, eventosAtivos, eventosProximos,
+      empresas, empresasAtivas, pontos, pontosAtivos, eventos, eventosAtivos, eventosProximos, eventosPrincipais, eventosEdicoes,
       links, campanhas, campanhasAtivas, campanhasVencendo, assinantes, melhoresEdicoes, melhoresIndicados,
       aprovacoes, colaboradores, colaboradoresNovos, categorias, usuariosAtivos, views7d, views30d, whatsapp7d, external7d
     ] = await Promise.all([
@@ -302,6 +321,8 @@ async function dashboard() {
       safeCount("eventos"),
       safeCount("eventos", { status: "publicado" }),
       safeCount("eventos", { status: "publicado", data_inicio: { op: "gte", value: isoNow } }),
+      safeCount("eventos_principais", { ativo: true }),
+      safeCount("eventos_edicoes"),
       safeCount("links", { status: "ativo" }),
       safeCount("campanhas_publicitarias"),
       safeCount("campanhas_publicitarias", { status: "ativo" }),
@@ -320,7 +341,7 @@ async function dashboard() {
       safeCount("analytics_eventos", { tipo: "external_click", criado_em: { op: "gte", value: sevenDaysAgo } })
     ]);
 
-    const [recentNews, pendingApprovals, recentEditions, recentActivities, analyticsEvents, upcomingEvents, endingCampaigns, recentCollaborators] = await Promise.all([
+    const [recentNews, pendingApprovals, recentEditions, recentActivities, analyticsEvents, upcomingEvents, endingCampaigns, recentCollaborators, recentMainEvents, recentEventEditions] = await Promise.all([
       safeList(() => supabase.from("noticias").select("titulo,status,status_editorial,publicado_em,atualizado_em").order("atualizado_em", { ascending: false }).limit(6)),
       safeList(() => supabase.from("solicitacoes_aprovacao").select("id,status,enviado_em,noticias(titulo,status,status_editorial)").eq("status", "pendente").order("enviado_em", { ascending: false }).limit(5)),
       safeList(() => supabase.from("melhores_edicoes").select("nome,ano,status,atualizado_em").neq("status", "arquivada").order("ano", { ascending: false }).limit(4)),
@@ -328,7 +349,9 @@ async function dashboard() {
       safeList(() => supabase.from("analytics_eventos").select("tipo,pagina,dispositivo,origem,sessao_hash,criado_em").gte("criado_em", sevenDaysAgo).order("criado_em", { ascending: false }).limit(900)),
       safeList(() => supabase.from("eventos").select("titulo,status,data_inicio,local").eq("status", "publicado").gte("data_inicio", isoNow).order("data_inicio", { ascending: true }).limit(5)),
       safeList(() => supabase.from("campanhas_publicitarias").select("nome,status,data_fim,empresa_anunciante").eq("status", "ativo").lte("data_fim", nextSevenDays).order("data_fim", { ascending: true }).limit(5)),
-      safeList(() => supabase.from("colaboradores_voluntarios").select("nome,cidade,status,interesses,criado_em").order("criado_em", { ascending: false }).limit(5))
+      safeList(() => supabase.from("colaboradores_voluntarios").select("nome,cidade,status,interesses,criado_em").order("criado_em", { ascending: false }).limit(5)),
+      safeList(() => supabase.from("eventos_principais").select("nome,categoria,ativo,atualizado_em").eq("ativo", true).order("atualizado_em", { ascending: false }).limit(4)),
+      safeList(() => supabase.from("eventos_edicoes").select("titulo,ano,status,data_inicio,atualizado_em,eventos_principais(nome)").order("ano", { ascending: false }).limit(4))
     ]);
 
     const uniqueVisitors = new Set(analyticsEvents.map(item => item.sessao_hash).filter(Boolean)).size;
@@ -343,7 +366,8 @@ async function dashboard() {
       agendadas ? [`${agendadas} notícia(s) agendada(s) para o futuro`, "Conferir agenda", "noticias", "info"] : null,
       campanhasVencendo ? [`${campanhasVencendo} campanha(s) vencendo em até 7 dias`, "Abrir publicidade", "publicidade", "danger"] : null,
       campanhasAtivas ? null : ["Nenhuma campanha publicitária ativa", "Criar campanha", "publicidade", "warning"],
-      eventosProximos ? [`${eventosProximos} evento(s) futuro(s) publicado(s)`, "Ver eventos", "eventos", "success"] : null,
+      eventosProximos ? [`${eventosProximos} evento(s) futuro(s) publicado(s)`, "Ver agenda", "eventos", "success"] : null,
+      eventosPrincipais && !eventosEdicoes ? ["Eventos principais sem edições cadastradas", "Abrir edições", "eventos_edicoes", "warning"] : null,
       melhoresEdicoes ? null : ["Nenhuma edição ativa do Melhores", "Abrir Melhores", "melhores", "warning"]
     ].filter(Boolean);
     const portalScore = Math.max(0, 100 - (aprovacoes * 8) - (rascunhos * 3) - (campanhasVencendo * 6) - (campanhasAtivas ? 0 : 10));
@@ -356,7 +380,7 @@ async function dashboard() {
     const secondaryMetrics = [
       ["Guia", empresas, `${empresasAtivas} empresas publicadas`],
       ["Turismo", pontos, `${pontosAtivos} pontos publicados`],
-      ["Eventos", eventos, `${eventosAtivos} publicados · ${eventosProximos} futuros`],
+      ["Eventos", Number(eventos || 0) + Number(eventosPrincipais || 0), `${eventosAtivos} agenda · ${eventosPrincipais} principais · ${eventosEdicoes} edições`],
       ["Comunicação", assinantes, "assinantes ativos"],
       ["Colaborações", colaboradores, `${colaboradoresNovos} novo(s) contato(s)`],
       ["Melhores", melhoresEdicoes, `${melhoresIndicados} indicados ativos`],
@@ -369,6 +393,8 @@ async function dashboard() {
     const editionRows = recentEditions.map(item => ({ title: item.nome || `Melhores ${item.ano}`, detail: `${item.ano} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.status || "—" }));
     const activityRows = recentActivities.map(item => ({ title: item.titulo || item.tabela || "Atividade", detail: `${item.acao || "ação"} · ${fmtDate(item.criado_em)}`, badge: item.tabela || "" }));
     const eventRows = upcomingEvents.map(item => ({ title: item.titulo || "Evento", detail: `${fmtDate(item.data_inicio)}${item.local ? ` · ${item.local}` : ""}`, badge: item.status || "" }));
+    const mainEventRows = recentMainEvents.map(item => ({ title: item.nome || "Evento principal", detail: `${item.categoria || "Acervo permanente"} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.ativo ? "ativo" : "inativo", badgeClass: item.ativo ? "ativo" : "" }));
+    const eventEditionRows = recentEventEditions.map(item => ({ title: item.titulo || `Edição ${item.ano}`, detail: `${item.eventos_principais?.nome || "Evento"} · ${item.ano} · ${fmtDate(item.data_inicio || item.atualizado_em)}`, badge: item.status || "edição" }));
     const campaignRows = endingCampaigns.map(item => ({ title: item.nome || "Campanha", detail: `${item.empresa_anunciante || "Anunciante"} · vence em ${fmtDate(item.data_fim)}`, badge: item.status || "ativo", badgeClass: "ativo" }));
     const collaboratorRows = recentCollaborators.map(item => ({ title: item.nome || "Colaborador voluntário", detail: `${item.cidade || "Cidade não informada"} · ${(item.interesses || []).slice(0, 3).join(", ") || "sem interesses"} · ${fmtDate(item.criado_em)}`, badge: item.status || "novo", badgeClass: item.status || "" }));
 
@@ -410,7 +436,7 @@ async function dashboard() {
         <section class="panel dashboard-section dashboard-audience-section">
           <header class="panel-header"><div><h2>Audiência rápida</h2><p>Últimos 7 dias: páginas, origem e dispositivos.</p></div><button class="admin-button secondary" id="dashboard-audience">Detalhes</button></header>
           <div class="dashboard-audience-grid">
-            <article><strong>${fmtNumber(views30d)}</strong><span>eventos em 30 dias</span></article>
+            <article><strong>${fmtNumber(views30d)}</strong><span>interações em 30 dias</span></article>
             <article><strong>${fmtNumber(whatsapp7d)}</strong><span>cliques no WhatsApp</span></article>
             <article><strong>${fmtNumber(external7d)}</strong><span>cliques externos</span></article>
           </div>
@@ -422,7 +448,7 @@ async function dashboard() {
         </section>
         <section class="panel dashboard-section">
           <header class="panel-header"><div><h2>Publicidade e eventos</h2><p>Campanhas vencendo e próximos eventos publicados.</p></div></header>
-          <div class="dashboard-list">${listRows([...campaignRows, ...eventRows].slice(0, 8))}</div>
+          <div class="dashboard-list">${listRows([...campaignRows, ...eventRows, ...mainEventRows, ...eventEditionRows].slice(0, 10))}</div>
         </section>
       </div>
       <div class="dashboard-layout dashboard-bottom">
