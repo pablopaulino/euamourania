@@ -27,7 +27,7 @@ const esc = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({
 
 const safeImage = (value) => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "../assets/Design sem nome (9).png";
 const newsUrl = (slug) => `/noticias/${encodeURIComponent(slug)}`;
-const summary = (item) => (item.resumo || textoPuro(item.conteudo_html || "")).trim();
+const summary = (item) => (item.resumo || "").trim();
 const normalize = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const categoryUrl = (category) => `/${encodeURIComponent(gerarSlug(category || "urania"))}/`;
 
@@ -226,7 +226,7 @@ async function carregarNoticias() {
   }
   try {
     const news = await fetchPublicRows("noticias", {
-      select: "id,titulo,slug,resumo,conteudo_html,imagem_url,categoria_nome,publicado_em,destaque,visualizacoes",
+      select: "id,titulo,slug,resumo,imagem_url,categoria_nome,publicado_em,destaque,visualizacoes",
       status: "eq.publicado",
       publicado_em: `lte.${new Date().toISOString()}`,
       order: "publicado_em.desc",

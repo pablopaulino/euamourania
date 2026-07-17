@@ -112,7 +112,7 @@ function pageAction(button){
   }
   if(path.endsWith("comunicacao.html")){
     if(["add-subscriber"].includes(button.id)||button.dataset.subEdit||button.dataset.subDelete)return["assinantes","gerenciar"];
-    if(["new-newsletter","add-news"].includes(button.id)||button.dataset.newsCopy)return["comunicacao","criar"];
+    if(["new-newsletter","add-news","generate-monthly"].includes(button.id)||button.dataset.newsCopy||button.dataset.generateMonthly!==undefined)return["comunicacao","criar"];
     if(button.dataset.newsEdit)return["comunicacao","editar"];
     if(button.dataset.newsTest||button.dataset.newsSend)return["comunicacao","enviar"];
     if(button.dataset.newsDelete)return["comunicacao","excluir"];
@@ -139,7 +139,7 @@ export function aplicarControleAcesso(access,can){
     }
     if(path.endsWith("comunicacao.html")){
       document.querySelectorAll("#add-subscriber,[data-sub-edit],[data-sub-delete]").forEach(x=>x.hidden=!allowed("assinantes","gerenciar"));
-      document.querySelectorAll("#new-newsletter,#add-news").forEach(x=>x.hidden=!allowed("comunicacao","criar"));
+      document.querySelectorAll("#new-newsletter,#add-news,#generate-monthly,[data-generate-monthly]").forEach(x=>x.hidden=!allowed("comunicacao","criar"));
       document.querySelectorAll("[data-news-edit]").forEach(x=>x.hidden=!allowed("comunicacao","editar"));
       document.querySelectorAll("[data-news-test],[data-news-send]").forEach(x=>x.hidden=!allowed("comunicacao","enviar"));
       document.querySelectorAll("[data-news-delete]").forEach(x=>x.hidden=!allowed("comunicacao","excluir"));
