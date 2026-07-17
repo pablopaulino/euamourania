@@ -7,7 +7,7 @@ if (footer && !document.querySelector(".volunteer-invite") && !location.pathname
         <div>
           <p class="eyebrow">Colaboração voluntária</p>
           <h2 id="volunteer-invite-title">Quer ajudar a contar histórias de Urânia?</h2>
-          <p>Cadastre-se para sugerir pautas, enviar informações, fotos ou colaborar voluntariamente com conteúdos do Eu Amo Urânia.</p>
+          <p>Cadastre-se como colaborador voluntário para enviar pautas, reportagens, fotos ou relatos quando tiver algo relevante para compartilhar.</p>
         </div>
         <a class="button button-primary" href="/colabore/">Quero colaborar</a>
       </div>

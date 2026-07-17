@@ -172,6 +172,11 @@
   white-space: nowrap;
 }
 
+.volunteer-checks input,
+.volunteer-consent input {
+  flex: 0 0 auto;
+}
+
 .volunteer-consent {
   align-items: flex-start;
   border-radius: 18px;
@@ -216,22 +221,95 @@
   .volunteer-layout {
     grid-template-columns: 1fr;
   }
+
+  .volunteer-content .volunteer-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .volunteer-copy {
+    max-width: 720px;
+  }
 }
 
 @media (max-width: 620px) {
   .volunteer-hero {
-    padding: 2rem 0;
+    padding: 1.65rem 0 1.9rem;
+  }
+
+  .volunteer-hero h1 {
+    font-size: clamp(2rem, 12vw, 3rem);
+    line-height: 1;
+    letter-spacing: -.06em;
+  }
+
+  .volunteer-hero p,
+  .volunteer-copy p {
+    line-height: 1.55;
+  }
+
+  .volunteer-alert {
+    padding: .82rem .9rem;
+    border-radius: 16px;
+    font-size: .92rem;
+    line-height: 1.45;
+  }
+
+  .volunteer-card {
+    border-radius: 22px;
+    box-shadow: 0 14px 34px rgba(7, 59, 76, .07);
+  }
+
+  .volunteer-card ul {
+    grid-template-columns: 1fr;
+    gap: .45rem;
+  }
+
+  .volunteer-card li {
+    padding: .62rem .75rem;
+    border-radius: 14px;
+    font-size: .9rem;
+  }
+
+  .volunteer-content {
+    padding: 1.75rem 0 2.5rem;
+  }
+
+  .volunteer-copy h2 {
+    font-size: clamp(1.55rem, 9vw, 2.15rem);
   }
 
   .volunteer-form {
     grid-template-columns: 1fr;
     border-radius: 22px;
+    gap: .65rem;
+    padding: .82rem;
+    box-shadow: 0 14px 34px rgba(7, 59, 76, .07);
+  }
+
+  .volunteer-field input,
+  .volunteer-field textarea {
+    padding: .68rem .76rem;
+    border-radius: 13px;
+  }
+
+  .volunteer-field textarea {
+    min-height: 86px;
+  }
+
+  .volunteer-checks {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .42rem;
   }
 
   .volunteer-checks label {
-    width: auto;
-    max-width: 100%;
-    border-radius: 999px;
+    width: 100%;
+    justify-content: flex-start;
+    border-radius: 14px;
+    padding: .58rem .68rem;
+    font-size: .78rem;
+    line-height: 1.2;
+    white-space: normal;
   }
 
   .volunteer-actions {
