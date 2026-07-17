@@ -144,9 +144,26 @@ function countBy(events, predicate) {
   return map;
 }
 
+function countNewsSlugsByPath(events) {
+  const map = new Map();
+  for (const event of events || []) {
+    if (!(event.tipo === "noticia_view" || event.recurso_tipo === "noticia" || String(event.pagina || "").includes("/noticias/"))) continue;
+    const match = String(event.pagina || "").match(/\/noticias\/([^/?#]+)/);
+    if (!match?.[1]) continue;
+    const slug = decodeURIComponent(match[1]);
+    map.set(slug, (map.get(slug) || 0) + 1);
+  }
+  return map;
+}
+
 async function fetchByIds(table, ids, select, token) {
   if (!ids.length) return [];
   return await rest(`${table}?id=in.(${ids.map(encodeURIComponent).join(",")})&select=${select}`, { token });
+}
+
+async function fetchNewsBySlugs(slugs, token) {
+  if (!slugs.length) return [];
+  return await rest(`noticias?slug=in.(${slugs.map(encodeURIComponent).join(",")})&select=id,titulo,slug,resumo,imagem_url,categoria_nome,publicado_em,visualizacoes`, { token });
 }
 
 function ranked(details, counts, urlBuilder, titleField = "titulo") {
@@ -175,6 +192,11 @@ function section(title, subtitle, items, label) {
   return `<div style="margin:28px 0"><p style="margin:0 0 6px;color:#f7c948;font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase">Resumo mensal</p><h2 style="margin:0 0 6px;font-size:23px;line-height:1.2;color:#073b4c">${esc(title)}</h2><p style="margin:0 0 16px;color:#637981;font-size:14px;line-height:1.5">${esc(subtitle)}</p>${items.map(item => card(item, label)).join("")}</div>`;
 }
 
+function compactNewsList(items) {
+  if (!items.length) return "";
+  return `<div style="margin:24px 0;padding:18px;border-radius:18px;background:#f7fbfc;border:1px solid #dce8ec"><h2 style="margin:0 0 12px;font-size:22px;line-height:1.2;color:#073b4c">O que marcou o mês</h2><p style="margin:0 0 14px;color:#526b73;font-size:14px;line-height:1.5">Estas foram as cinco notícias que mais chamaram atenção dos leitores no período:</p>${items.map((item, index) => `<p style="margin:0;padding:11px 0;border-top:${index ? "1px solid #dce8ec" : "0"};font-size:15px;line-height:1.45"><strong style="display:inline-block;min-width:26px;color:#0b4f6c">${index + 1}.</strong><a href="${esc(item.url)}" style="color:#073b4c;text-decoration:none;font-weight:700">${esc(item.titulo_exibicao)}</a><br><span style="margin-left:30px;color:#6a7e86;font-size:12px">${esc(item.categoria_nome || "Notícia")} · ${esc(formatDate(item.publicado_em))}${item.acessos_periodo ? ` · ${esc(item.acessos_periodo)} acessos` : ""}</span></p>`).join("")}</div>`;
+}
+
 async function activeRecipients(token, targets = ["tudo"]) {
   const all = await rest("newsletter_assinantes?status=eq.ativo&select=id,interesses", { token });
   return (all || []).filter(subscriber =>
@@ -192,7 +214,8 @@ async function existingMonthly(token, periodKey) {
 async function generateMonthlyDraft(token, body = {}) {
   const period = periodFromBody(body);
   const existing = await existingMonthly(token, period.key);
-  if (existing && !body.force) {
+  const canUpdateExisting = existing && ["rascunho", "erro"].includes(existing.status);
+  if (existing && !canUpdateExisting && !body.force) {
     return { duplicate: true, newsletter: existing, message: "Já existe uma newsletter mensal para este período." };
   }
 
@@ -209,20 +232,36 @@ async function generateMonthlyDraft(token, body = {}) {
   ]);
 
   const newsCounts = countBy(events, event => event.tipo === "noticia_view" || event.recurso_tipo === "noticia");
+  const newsSlugCounts = countNewsSlugsByPath(events);
   const companyCounts = countBy(events, event => event.tipo === "guia_view" || event.recurso_tipo === "guia" || event.recurso_tipo === "empresa");
 
   let newsDetails = await fetchByIds("noticias", [...newsCounts.keys()], "id,titulo,slug,resumo,imagem_url,categoria_nome,publicado_em,visualizacoes", token).catch(() => []);
+  if (!newsDetails.length && newsSlugCounts.size) {
+    newsDetails = await fetchNewsBySlugs([...newsSlugCounts.keys()], token).catch(() => []);
+    for (const item of newsDetails) {
+      if (newsSlugCounts.has(item.slug)) newsCounts.set(item.id, newsSlugCounts.get(item.slug));
+    }
+  }
   if (!newsDetails.length) newsDetails = publishedNews || [];
+  if (!newsDetails.length) {
+    newsDetails = await rest(`noticias?${query({ select: "id,titulo,slug,resumo,imagem_url,categoria_nome,publicado_em,visualizacoes", status: "eq.publicado", publicado_em: `lte.${endIso}` })}&order=visualizacoes.desc&limit=5`, { token }).catch(() => []);
+  }
 
   let companyDetails = await fetchByIds("guia_comercial", [...companyCounts.keys()], "id,nome,slug,descricao,imagem_url,categoria_nome,visualizacoes", token).catch(() => []);
   if (!companyDetails.length) companyDetails = newCompanies || [];
+  if (!companyDetails.length) {
+    companyDetails = await rest("guia_comercial?status=eq.publicado&select=id,nome,slug,descricao,imagem_url,categoria_nome,visualizacoes&order=visualizacoes.desc&limit=4", { token }).catch(() => []);
+  }
 
   const topNews = ranked(newsDetails, newsCounts, item => `${DEFAULT_DOMAIN}/noticias/${encodeURIComponent(item.slug)}`).slice(0, 5);
   const topCompanies = ranked(companyDetails, companyCounts, item => `${DEFAULT_DOMAIN}/guia/${encodeURIComponent(item.slug)}`, "nome").slice(0, 4);
   const newNews = (publishedNews || []).filter(item => !topNews.some(news => news.id === item.id)).slice(0, 4).map(item => ({ ...item, titulo_exibicao: item.titulo, imagem_absoluta: absolute(item.imagem_url, DEFAULT_DOMAIN, DEFAULT_IMAGE), url: `${DEFAULT_DOMAIN}/noticias/${encodeURIComponent(item.slug)}` }));
   const newCompanyCards = (newCompanies || []).filter(item => !topCompanies.some(company => company.id === item.id)).slice(0, 3).map(item => ({ ...item, titulo_exibicao: item.nome, imagem_absoluta: absolute(item.imagem_url, DEFAULT_DOMAIN, DEFAULT_IMAGE), url: `${DEFAULT_DOMAIN}/guia/${encodeURIComponent(item.slug)}` }));
 
-  const html = `<p style="margin:0 0 16px;color:#405b65;font-size:16px;line-height:1.6">Preparamos um resumo dos últimos 30 dias no Eu Amo Urânia, reunindo as notícias, empresas e novidades que mais chamaram atenção da comunidade.</p><p style="margin:0 0 22px;padding:13px 16px;background:#eef7f8;border-radius:14px;color:#0b4f6c;font-size:14px;line-height:1.45"><strong>Período analisado:</strong> ${esc(periodLabel)}</p>${section("Notícias mais acessadas", "Os conteúdos que mais movimentaram a leitura no portal.", topNews, "Notícia")}${section("Empresas mais visitadas", "Comércios e serviços que receberam mais visitas no Guia.", topCompanies, "Guia")}${section("Novidades publicadas", "Conteúdos e cadastros recentes para você acompanhar.", [...newNews, ...newCompanyCards].slice(0, 6), "Novo")}<div style="margin:30px 0 0;padding:20px;border-radius:18px;background:#073b4c;color:#fff"><h2 style="margin:0 0 8px;font-size:22px;color:#fff">Continue acompanhando Urânia</h2><p style="margin:0;color:#d9e6ea;font-size:14px;line-height:1.5">Acesse o portal para ver notícias, guia comercial, turismo, eventos e novidades da cidade.</p></div>`;
+  const monthSummary = topNews.length
+    ? `Neste mês, os leitores acompanharam principalmente ${topNews.slice(0, 3).map(item => item.titulo_exibicao).join(", ")}. A seleção abaixo reúne os conteúdos que mais movimentaram o portal e ajudam a entender o que esteve em destaque em Urânia.`
+    : "Neste mês, reunimos os principais conteúdos publicados no portal para facilitar o acompanhamento das novidades de Urânia.";
+  const html = `<p style="margin:0 0 16px;color:#405b65;font-size:16px;line-height:1.6">${esc(monthSummary)}</p><p style="margin:0 0 22px;padding:13px 16px;background:#eef7f8;border-radius:14px;color:#0b4f6c;font-size:14px;line-height:1.45"><strong>Período analisado:</strong> ${esc(periodLabel)}</p>${compactNewsList(topNews)}${section("Notícias mais acessadas", "Os conteúdos que mais movimentaram a leitura no portal.", topNews, "Notícia")}${section("Empresas mais visitadas", "Comércios e serviços que receberam mais visitas no Guia.", topCompanies, "Guia")}${section("Novidades publicadas", "Conteúdos e cadastros recentes para você acompanhar.", [...newNews, ...newCompanyCards].slice(0, 6), "Novo")}<div style="margin:30px 0 0;padding:20px;border-radius:18px;background:#073b4c;color:#fff"><h2 style="margin:0 0 8px;font-size:22px;color:#fff">Continue acompanhando Urânia</h2><p style="margin:0;color:#d9e6ea;font-size:14px;line-height:1.5">Acesse o portal para ver notícias, guia comercial, turismo, eventos e novidades da cidade.</p></div>`;
 
   const payload = {
     titulo: `Resumo mensal — ${monthName(period.end)}`,
@@ -251,6 +290,11 @@ async function generateMonthlyDraft(token, body = {}) {
       novos_conteudos: { noticias: newNews.map(item => item.id), empresas: newCompanyCards.map(item => item.id) }
     }
   };
+
+  if (canUpdateExisting) {
+    const updated = await rest(`newsletters?id=eq.${existing.id}`, { method: "PATCH", token, body: payload });
+    return { duplicate: false, newsletter: updated?.[0], message: "Resumo mensal atualizado como rascunho." };
+  }
 
   const inserted = await rest("newsletters", { method: "POST", token, body: payload });
   return { duplicate: false, newsletter: inserted?.[0], message: "Resumo mensal gerado como rascunho." };

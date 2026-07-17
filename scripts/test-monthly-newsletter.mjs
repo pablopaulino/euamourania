@@ -23,6 +23,9 @@ must(api.includes("status: \"rascunho\""), "Resumo mensal precisa nascer como ra
 must(api.includes("destinatarios_previstos"), "API não registra destinatários previstos.");
 must(api.includes("noticias_mais_acessadas") && api.includes("empresas_mais_visitadas"), "API não registra destaques analisados.");
 must(api.includes("existingMonthly") && api.includes("periodo_chave"), "API não impede duplicidade por período.");
+must(api.includes("compactNewsList(topNews)"), "Newsletter mensal precisa trazer resumo/lista das notícias mais lidas.");
+must(api.includes("countNewsSlugsByPath") && api.includes("fetchNewsBySlugs"), "Geração mensal deve recuperar notícias também por slug de URL.");
+must(api.includes("Resumo mensal atualizado como rascunho"), "Rascunho mensal existente precisa ser reconstruído com o novo conteúdo.");
 must(api.includes("tem_permissao_admin") && api.includes("comunicacao"), "API sem autorização administrativa.");
 must(api.includes("action === \"generate_monthly\""), "Geração mensal precisa reutilizar /api/newsletter-send.");
 const monthlyBranch = api.slice(api.indexOf("action === \"generate_monthly\""), api.indexOf("return await sendNewsletter"));
