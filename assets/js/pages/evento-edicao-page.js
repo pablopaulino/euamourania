@@ -4,10 +4,21 @@ import { DOMAIN, esc, fact, fmtDateTime, gallery, parseJsonList, relatedNews, re
 
 const container = document.getElementById("evento-edicao");
 const params = new URLSearchParams(location.search);
-const slug = params.get("slug");
-const ano = params.get("ano");
 
-function htmlList(items, title, emptyText) {
+function getRouteParams() {
+  const querySlug = params.get("slug");
+  const queryAno = params.get("ano");
+  if (querySlug && queryAno) return { slug: querySlug, ano: queryAno };
+  const parts = location.pathname.split("/").filter(Boolean);
+  if (parts[0] === "eventos" && parts[1] && parts[2]) {
+    return { slug: decodeURIComponent(parts[1]), ano: decodeURIComponent(parts[2]) };
+  }
+  return { slug: querySlug || "", ano: queryAno || "" };
+}
+
+const { slug, ano } = getRouteParams();
+
+function htmlList(items, title) {
   const list = parseJsonList(items);
   if (!list.length) return "";
   return `<section class="event-section">
@@ -51,19 +62,35 @@ async function init() {
     container.innerHTML = '<p class="not-found-message">Edição não encontrada.</p>';
     return;
   }
-  const [evento] = await safeRows("eventos_principais", { select: "*", slug: `eq.${slug}`, ativo: "eq.true", limit: "1" });
+
+  const [evento] = await safeRows("eventos_principais", {
+    select: "*",
+    slug: `eq.${slug}`,
+    ativo: "eq.true",
+    limit: "1"
+  });
+
   if (!evento) {
     container.innerHTML = '<p class="not-found-message">Evento não encontrado.</p>';
     return;
   }
-  const [edicao] = await safeRows("eventos_edicoes", { select: "*", evento_id: `eq.${evento.id}`, ano: `eq.${ano}`, limit: "1" });
+
+  const [edicao] = await safeRows("eventos_edicoes", {
+    select: "*",
+    evento_id: `eq.${evento.id}`,
+    ano: `eq.${ano}`,
+    limit: "1"
+  });
+
   if (!edicao) {
     container.innerHTML = '<p class="not-found-message">Edição não encontrada.</p>';
     return;
   }
+
   const noticias = await relatedNews(evento, 4);
   const image = safeImage(edicao.banner_url || edicao.cartaz_url || evento.imagem_capa_url);
   const canonical = `${DOMAIN}/eventos/${evento.slug}/${edicao.ano}`;
+
   definirMeta({
     titulo: `${edicao.titulo} | ${evento.nome}`,
     descricao: edicao.subtitulo || evento.descricao_curta || "Edição de evento em Urânia.",
@@ -71,6 +98,7 @@ async function init() {
     url: canonical
   });
   document.head.insertAdjacentHTML("beforeend", jsonLd(evento, edicao));
+
   container.innerHTML = `
     <article class="event-public-shell">
       <section class="event-public-hero edition">
@@ -87,18 +115,20 @@ async function init() {
           ${image ? `<img src="${esc(image)}" alt="${esc(edicao.titulo)}" decoding="async" fetchpriority="high">` : '<div class="event-hero-placeholder">Eu Amo Urânia</div>'}
         </div>
       </section>
+
       <div class="container event-public-content">
-        <section class="event-facts-grid">
+        <section class="event-facts-grid" aria-label="Informações da edição">
           ${fact("Início", fmtDateTime(edicao.data_inicio))}
           ${fact("Fim", edicao.data_fim ? fmtDateTime(edicao.data_fim) : "")}
           ${fact("Local", edicao.local || evento.local_tradicional)}
           ${fact("Público estimado", edicao.publico_estimado ? Number(edicao.publico_estimado).toLocaleString("pt-BR") : "")}
         </section>
+
         ${edicao.programacao_html ? `<section class="event-section"><div class="event-section-title"><p class="eyebrow">Programação</p><h2>O que acontece nesta edição</h2></div><div class="event-copy">${edicao.programacao_html}</div></section>` : ""}
         ${edicao.atracoes_html ? `<section class="event-section"><div class="event-section-title"><p class="eyebrow">Atrações</p><h2>Destaques confirmados</h2></div><div class="event-copy">${edicao.atracoes_html}</div></section>` : ""}
         ${edicao.cartaz_url ? `<section class="event-section"><div class="event-section-title"><p class="eyebrow">Cartaz oficial</p><h2>Divulgação da edição</h2></div><img class="event-poster" src="${esc(edicao.cartaz_url)}" alt="Cartaz oficial de ${esc(edicao.titulo)}" loading="lazy"></section>` : ""}
         ${gallery(edicao.galeria, "Galeria da edição")}
-        ${htmlList(edicao.videos, "Vídeos", "Nenhum vídeo cadastrado.")}
+        ${htmlList(edicao.videos, "Vídeos")}
         ${sponsors(edicao.patrocinadores)}
         ${edicao.resumo_pos_evento_html ? `<section class="event-section"><div class="event-section-title"><p class="eyebrow">Após o evento</p><h2>Resumo da edição</h2></div><div class="event-copy">${edicao.resumo_pos_evento_html}</div></section>` : ""}
         ${relatedNewsHtml(noticias)}

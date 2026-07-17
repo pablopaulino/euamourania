@@ -55,7 +55,7 @@ function acervoCard(evento, edicoes = []) {
       <div class="event-facts-row">
         ${evento.recorrencia ? `<span>${esc(evento.recorrencia)}</span>` : ""}
         ${evento.periodo_aproximado ? `<span>${esc(evento.periodo_aproximado)}</span>` : ""}
-        ${edicoes.length ? `<span>${edicoes.length} edição(ões)</span>` : ""}
+        ${edicoes.length ? `<span>${edicoes.length} edição${edicoes.length > 1 ? "s" : ""}</span>` : ""}
       </div>
       ${proxima ? `<a class="event-mini-link" href="${url}/${proxima.ano}">Próxima edição: ${esc(proxima.ano)}</a>` : `<a class="event-mini-link" href="${url}">Ver histórico do evento</a>`}
     </div>
@@ -72,13 +72,14 @@ function renderHomeEvents(eventos, principais, edicoes) {
   const section = document.createElement("section");
   section.className = "events-section";
   section.setAttribute("aria-labelledby", "eventos-home-title");
+  const cards = [...proximos.map(agendaCard), ...destaques.map(item => acervoCard(item, byEvent.get(item.id) || []))].slice(0, 3);
   section.innerHTML = `<div class="container">
     <div class="section-heading">
       <p class="eyebrow">Agenda e tradição</p>
       <h2 id="eventos-home-title">Eventos de Urânia</h2>
       <p>Programação atual e acervo dos eventos que fazem parte da cidade.</p>
     </div>
-    ${[...proximos.map(agendaCard), ...destaques.map(item => acervoCard(item, byEvent.get(item.id) || []))].length ? `<div class="events-grid">${[...proximos.map(agendaCard), ...destaques.map(item => acervoCard(item, byEvent.get(item.id) || []))].slice(0, 3).join("")}</div>` : '<div class="empty-state">Novos eventos serão publicados aqui em breve.</div>'}
+    ${cards.length ? `<div class="events-grid">${cards.join("")}</div>` : '<div class="empty-state">Novos eventos serão publicados aqui em breve.</div>'}
     <p style="margin-top:1.5rem"><a class="button button-secondary" href="/eventos/">Ver eventos</a></p>
   </div>`;
   anchor.before(section);

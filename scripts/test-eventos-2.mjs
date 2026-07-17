@@ -28,6 +28,16 @@ assert(existsSync("eventos/edicao.html"), "existe página pública da edição")
 assert(existsSync("assets/js/pages/evento-principal-page.js"), "existe script do evento principal");
 assert(existsSync("assets/js/pages/evento-edicao-page.js"), "existe script da edição");
 
+const eventoPrincipal = read("assets/js/pages/evento-principal-page.js");
+const eventoEdicao = read("assets/js/pages/evento-edicao-page.js");
+assert(eventoPrincipal.includes("function getEventSlug()"), "pagina do evento le slug pela URL bonita");
+assert(eventoPrincipal.includes('parts[0] === "eventos"'), "evento principal funciona em /eventos/slug");
+assert(eventoPrincipal.includes("event-public-hero"), "evento principal renderiza cabecalho visual");
+assert(eventoPrincipal.includes("event-copy"), "evento principal renderiza historia do evento");
+assert(eventoPrincipal.includes("event-editions-grid"), "evento principal renderiza edicoes em cards");
+assert(eventoEdicao.includes("function getRouteParams()"), "pagina da edicao le slug e ano pela URL bonita");
+assert(eventoEdicao.includes('parts[0] === "eventos"'), "edicao funciona em /eventos/slug/ano");
+
 const vercel = read("vercel.json");
 assert(vercel.includes('/eventos/:slug/:ano'), "Vercel reescreve edição anual de evento");
 assert(vercel.includes('/eventos/:slug'), "Vercel reescreve página permanente do evento");
