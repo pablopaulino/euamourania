@@ -413,10 +413,10 @@ async function generateMonthly() {
   }
 
   try {
-    const response = await fetch("/api/newsletter-monthly", {
+    const response = await fetch("/api/newsletter-send", {
       method: "POST",
       headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({})
+      body: JSON.stringify({ action: "generate_monthly" })
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Falha ao gerar resumo mensal");
