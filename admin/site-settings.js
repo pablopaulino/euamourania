@@ -28,14 +28,7 @@ function repairEncoding(value = "") {
 }
 
 const defaultValues = {
-  imagem_compartilhamento: "/assets/AD3A1763-min (1).jpg",
-  imagem_padrao_noticia: "/assets/Design sem nome (9).png",
-  imagem_padrao_guia: "/assets/1505 - Urania - Logo Horizontal - 1.png",
-  imagem_padrao_turismo: "/assets/AD3A1763-min (1).jpg",
-  imagem_padrao_evento: "/assets/Design sem nome (9).png",
-  home_hero_imagem: "/assets/AD3A1763-min (1).jpg",
-  home_turismo_imagem_1: "/assets/3Q2A7854-min-min.jpg",
-  home_turismo_imagem_2: "/assets/AD3A1763-min (1).jpg",
+  imagem_compartilhamento: "/assets/compartilhamento-logo.png",
   urania_hero_imagem: "/assets/AD3A1763-min (1).jpg",
   urania_historia_imagem: "/assets/3Q2A7854-min-min.jpg",
   urania_hero_eyebrow: "Cidade do Noroeste Paulista",
@@ -186,6 +179,25 @@ const groups = [
   ],
 ];
 
+const editableGlobalImages = new Set(["urania_hero_imagem", "urania_historia_imagem"]);
+
+function getVisibleGroups() {
+  return groups
+    .map(([title, description, fields]) => {
+      const visibleFields = fields.filter(([key, , type]) => type !== "image" || editableGlobalImages.has(key));
+      if (!visibleFields.length) return null;
+      if (title === "Imagens do site") {
+        return [
+          "Imagens da página Urânia",
+          "Somente imagens que aparecem visualmente na página pública da cidade.",
+          visibleFields,
+        ];
+      }
+      return [title, description, visibleFields];
+    })
+    .filter(Boolean);
+}
+
 function toast(message, type = "success") {
   let stack = document.getElementById("toasts");
   if (!stack) {
@@ -269,7 +281,7 @@ async function enhance(form) {
       <h2>Edite apenas o essencial do portal</h2>
       <p>Logos, favicons, imagens estruturais, menus, cores e blocos técnicos ficam protegidos no projeto. Aqui entram textos, contatos, SEO básico e páginas institucionais.</p>
     </div>` +
-    groups
+    getVisibleGroups()
       .map(
         ([title, description, fields]) => `<section class="cms-form-section">
           <div class="cms-section-head compact">
@@ -305,7 +317,7 @@ document.addEventListener(
     const fd = new FormData(form);
     const rows = [];
 
-    for (const [, , fields] of groups) {
+    for (const [, , fields] of getVisibleGroups()) {
       for (const [key, , type = "text"] of fields) {
         const value = repairEncoding(String(fd.get(key) || "").trim());
         if (["url", "image"].includes(type) && !validSiteReference(value)) {

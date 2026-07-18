@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
       : "https://euamourania.com.br";
     const title = config.seo_titulo_padrao || "Eu Amo Urânia | Guia, notícias e turismo";
     const description = config.seo_descricao_padrao || "Informação local, turismo, Guia, eventos e histórias de Urânia.";
-    const image = absolute(config.imagem_compartilhamento || "/assets/AD3A1763-min (1).jpg", domain);
+    const image = absolute(config.imagem_compartilhamento || "/assets/compartilhamento-logo.png", domain);
 
     let output = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
     output = meta(output, "description", description);
