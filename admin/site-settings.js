@@ -28,6 +28,16 @@ function repairEncoding(value = "") {
 }
 
 const defaultValues = {
+  imagem_compartilhamento: "/assets/AD3A1763-min (1).jpg",
+  imagem_padrao_noticia: "/assets/Design sem nome (9).png",
+  imagem_padrao_guia: "/assets/1505 - Urania - Logo Horizontal - 1.png",
+  imagem_padrao_turismo: "/assets/AD3A1763-min (1).jpg",
+  imagem_padrao_evento: "/assets/Design sem nome (9).png",
+  home_hero_imagem: "/assets/AD3A1763-min (1).jpg",
+  home_turismo_imagem_1: "/assets/3Q2A7854-min-min.jpg",
+  home_turismo_imagem_2: "/assets/AD3A1763-min (1).jpg",
+  urania_hero_imagem: "/assets/AD3A1763-min (1).jpg",
+  urania_historia_imagem: "/assets/3Q2A7854-min-min.jpg",
   urania_hero_eyebrow: "Cidade do Noroeste Paulista",
   urania_hero_titulo: "Urânia, uma cidade feita de histórias próximas.",
   urania_hero_texto:
@@ -53,6 +63,22 @@ Object.assign(
 );
 
 const groups = [
+  [
+    "Imagens do site",
+    "Imagens públicas que podem ser trocadas pela biblioteca do CMS sem alterar o código.",
+    [
+      ["imagem_compartilhamento", "Imagem padrão de compartilhamento", "image", "midia/compartilhamento", "social"],
+      ["imagem_padrao_noticia", "Imagem padrão de notícias", "image", "midia/padroes", "wide"],
+      ["imagem_padrao_guia", "Imagem padrão do Guia", "image", "midia/padroes", "card"],
+      ["imagem_padrao_turismo", "Imagem padrão de Turismo", "image", "midia/padroes", "wide"],
+      ["imagem_padrao_evento", "Imagem padrão de Eventos", "image", "midia/padroes", "wide"],
+      ["home_hero_imagem", "Imagem principal da Home", "image", "home/hero", "square"],
+      ["home_turismo_imagem_1", "Imagem do bloco Turismo 1", "image", "home/turismo", "wide"],
+      ["home_turismo_imagem_2", "Imagem do bloco Turismo 2", "image", "home/turismo", "wide"],
+      ["urania_hero_imagem", "Imagem principal da página Urânia", "image", "urania/hero", "square"],
+      ["urania_historia_imagem", "Imagem da história de Urânia", "image", "urania/historia", "wide"],
+    ],
+  ],
   [
     "Informações principais",
     "Dados simples que aparecem no site e ajudam o visitante a entender o portal.",
@@ -202,6 +228,28 @@ function field([key, label, type = "text"], value) {
   </div>`;
 }
 
+function configField([key, label, type = "text", folder = "configuracoes/imagens", preset = "wide"], value) {
+  const full = ["textarea", "html"].includes(type);
+  const hint =
+    type === "html"
+      ? "<small>HTML institucional permitido. Evite colar códigos externos.</small>"
+      : ["url", "image"].includes(type)
+        ? "<small>Aceita link completo, caminho interno ou imagem escolhida na biblioteca.</small>"
+        : "";
+  const inputType = ["url", "image"].includes(type) ? "text" : type;
+  const inputMode = ["url", "image"].includes(type) ? ` inputmode="url" data-type="${type}"` : "";
+  const mediaAttrs = type === "image" ? ` data-cms-image="true" data-media-folder="${esc(folder)}" data-media-preset="${esc(preset)}"` : "";
+  const cleanValue = repairEncoding(value);
+
+  return `<div class="cms-field ${full ? "full" : ""}">
+    <label for="cfg-${key}">${label}</label>
+    ${full
+      ? `<textarea id="cfg-${key}" name="${key}" data-type="${type}" rows="${type === "html" ? 10 : 4}">${esc(cleanValue)}</textarea>`
+      : `<input id="cfg-${key}" name="${key}" type="${inputType}"${inputMode}${mediaAttrs} value="${esc(cleanValue)}">`}
+    ${hint}
+  </div>`;
+}
+
 async function enhance(form) {
   if (form.dataset.globalSettings) return;
   form.dataset.globalSettings = "1";
@@ -230,7 +278,7 @@ async function enhance(form) {
               <p>${description}</p>
             </div>
           </div>
-          <div class="cms-form">${fields.map((f) => field(f, values[f[0]] || "")).join("")}</div>
+          <div class="cms-form">${fields.map((f) => configField(f, values[f[0]] || "")).join("")}</div>
         </section>`,
       )
       .join("") +
@@ -260,7 +308,7 @@ document.addEventListener(
     for (const [, , fields] of groups) {
       for (const [key, , type = "text"] of fields) {
         const value = repairEncoding(String(fd.get(key) || "").trim());
-        if (type === "url" && !validSiteReference(value)) {
+        if (["url", "image"].includes(type) && !validSiteReference(value)) {
           toast(`Link ou caminho inválido no campo: ${key}`, "error");
           document.getElementById(`cfg-${key}`)?.focus();
           return;

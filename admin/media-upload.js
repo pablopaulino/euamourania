@@ -437,6 +437,9 @@ function enhance(){
    if(table==="eventos_principais"||table==="eventos_edicoes")attachEditorUpload(resourceForm.querySelector("#editor"),`${folder}/conteudo`);
   }
  }
+ app?.querySelectorAll('input[data-cms-image="true"]').forEach(input=>{
+  attachUrlUpload(input,input.dataset.mediaFolder||"configuracoes/imagens",input.dataset.mediaPreset||"wide");
+ });
  if(location.hash==="#midia"&&!libraryOpened&&obterAcessoAtual()?.admin?.funcao==="super_admin")renderMediaLibrary();
 }
 
