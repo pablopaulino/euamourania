@@ -1,9 +1,10 @@
 import{readFile}from"node:fs/promises";
 const root=new URL("../",import.meta.url),read=path=>readFile(new URL(path,root),"utf8");
 const must=(condition,message)=>{if(!condition)throw new Error(message)};
-const[migration,libraryMigration,pickerMigration,service,ui,styles,admin,cms,communication]=await Promise.all([
+const[migration,libraryMigration,usageMigration,pickerMigration,service,ui,styles,admin,cms,communication]=await Promise.all([
  read("supabase/migrations/20260701_cms_media_upload.sql"),
  read("supabase/migrations/20260701_cms_media_library.sql"),
+ read("supabase/migrations/20260717_ampliar_uso_biblioteca_midias.sql"),
  read("supabase/migrations/20260701_cms_media_picker.sql"),
  read("assets/js/services/mediaService.js"),
  read("admin/media-upload.js"),
@@ -27,6 +28,7 @@ for(const feature of["Escolher da biblioteca","Criar outro formato","Editar / ou
 for(const feature of['document.body.style.overflow="hidden"','event.key==="Escape"','event.target===modal','await onSelect(item.url)','data-library-count'])must(ui.includes(feature),`Seletor de mídia sem comportamento esperado: ${feature}`);
 for(const feature of["grid-template-rows:auto auto minmax(0,1fr) auto","overflow-y:auto","display:flex!important","flex-wrap:wrap!important","flex:0 1 calc(25% - .75rem)!important",".cms-library-picker-card>img","height:150px!important",".cms-media-button{display:inline-flex;flex:1 1 0"])must(styles.includes(feature),`Layout da biblioteca incompleto: ${feature}`);
 must(libraryMigration.includes("midia_cms_em_uso")&&libraryMigration.includes("elegivel_limpeza")&&libraryMigration.includes("interval '7 days'"),"Banco não protege mídias usadas ou originais recentes");
+for(const feature of["eventos_principais","eventos_edicoes","galeria_historica::text","patrocinadores::text","configuracao_futura::text","melhores_edicoes","melhores_categorias","melhores_indicados","app_melhores_vencedores"])must(usageMigration.includes(feature),`Uso de mídia não cobre: ${feature}`);
 must(pickerMigration.includes('using(public.is_admin())'),"Biblioteca compartilhada não respeita autenticação administrativa");
 must(admin.includes('import("./media-upload.js")')&&communication.includes('import "./media-upload.js"'),"Módulo de upload não carregado no CMS");
 must(admin.includes('querySelectorAll(".admin-nav button")')&&cms.includes('querySelectorAll(".admin-nav button")'),"Menu administrativo pode manter duas seções ativas");
