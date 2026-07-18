@@ -1,30 +1,38 @@
-.banner-zone{position:relative;padding:clamp(.7rem,1.7vw,1.25rem) 0;background:transparent;content-visibility:auto;contain-intrinsic-size:160px}
+.banner-zone{position:relative;padding:clamp(.8rem,1.8vw,1.35rem) 0;background:transparent;content-visibility:auto;contain-intrinsic-size:180px}
 .banner-zone+.banner-zone{padding-top:0}
-.banner-list{display:block}
+.banner-list{display:block;padding-inline:clamp(.25rem,1.4vw,.85rem)}
 .ad-zone-inline{grid-column:1/-1;width:100%;margin:clamp(.75rem,1.8vw,1.35rem) 0;padding:0;background:transparent}
 .article-copy>.ad-zone-inline{margin:clamp(1.15rem,3vw,1.9rem) 0}
-.ad-rotator{position:relative;width:100%;margin-inline:auto}
+.ad-rotator{position:relative;width:min(100%,980px);margin-inline:auto;padding:clamp(8px,1.1vw,12px);background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(238,249,251,.72));border:1px solid rgba(7,59,76,.08);border-radius:32px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 18px 46px rgba(7,59,76,.07)}
+.ad-zone-inline .ad-rotator{width:min(100%,880px);padding:8px;border-radius:26px}
 .ad-slide[hidden]{display:none!important}
-.ad-slide.active{animation:ad-slide-in .3s ease}
-.banner-item{position:relative;display:block;width:min(100%,var(--ad-max-width,940px));margin-inline:auto;overflow:hidden;color:inherit;background:linear-gradient(135deg,#fff,rgba(246,251,252,.96));border:1px solid rgba(7,59,76,.1);border-radius:22px;box-shadow:0 14px 38px rgba(7,59,76,.09);text-decoration:none;isolation:isolate;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
-.banner-item::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(120deg,rgba(255,214,94,.16),transparent 34%,rgba(124,201,72,.11));opacity:.75}
-.banner-item:hover{transform:translateY(-2px);border-color:rgba(7,92,119,.2);box-shadow:0 18px 46px rgba(7,59,76,.14)}
-.ad-sponsored{position:absolute;top:10px;left:10px;z-index:4;padding:.25rem .55rem;color:#fff;background:rgba(4,35,45,.78);border-radius:999px;font-size:.56rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(5px)}
-.ad-campaign-picture{display:block;width:100%;height:100%}
+.ad-slide.active{animation:ad-slide-in .38s ease}
+.banner-item{position:relative;display:block;width:min(100%,var(--ad-max-width,940px));margin-inline:auto;overflow:hidden;color:inherit;background:linear-gradient(135deg,#fff,rgba(248,252,253,.98));border:1px solid rgba(7,59,76,.12);border-radius:26px;box-shadow:0 18px 48px rgba(7,59,76,.1);text-decoration:none;isolation:isolate;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.banner-item::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(circle at 16% 0,rgba(255,210,72,.2),transparent 34%),radial-gradient(circle at 100% 100%,rgba(124,201,72,.13),transparent 32%);opacity:.95}
+.banner-item::after{content:"";position:absolute;inset:auto 18px 14px 18px;z-index:4;height:1px;background:linear-gradient(90deg,transparent,rgba(7,92,119,.22),transparent);pointer-events:none}
+.banner-item:hover{transform:translateY(-3px);border-color:rgba(7,92,119,.22);box-shadow:0 22px 56px rgba(7,59,76,.16)}
+.ad-sponsored{position:absolute;top:12px;left:12px;z-index:5;padding:.27rem .62rem;color:#fff;background:rgba(4,35,45,.76);border:1px solid rgba(255,255,255,.16);border-radius:999px;font-size:.56rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(7px)}
+.ad-campaign-picture{position:relative;z-index:2;display:block;width:100%;height:100%}
 .banner-item .ad-campaign-picture img{display:block;width:100%;height:100%;max-height:none;object-fit:cover;background:#edf2f3}
 .ad-campaign iframe,.ad-campaign video{display:block;width:100%;height:100%;max-height:none;aspect-ratio:16/9;border:0;background:#071e27;object-fit:contain}
 .ad-format-automatico{--ad-max-width:970px}
-.ad-format-super_banner,.ad-layout-super_banner{--ad-max-width:940px;height:clamp(160px,18vw,210px)}
-.ad-format-horizontal,.ad-layout-horizontal{--ad-max-width:760px;height:86px}
-.ad-format-retangulo,.ad-layout-retangulo{--ad-max-width:760px;aspect-ratio:2.05/1;max-height:340px}
+.ad-format-super_banner,.ad-layout-super_banner{--ad-max-width:920px;height:clamp(176px,18.5vw,228px)}
+.ad-format-horizontal,.ad-layout-horizontal{--ad-max-width:860px;height:clamp(138px,13vw,168px)}
+.ad-format-horizontal .ad-campaign-picture img,.ad-layout-horizontal .ad-campaign-picture img{object-fit:contain;padding:clamp(.55rem,1.2vw,.9rem);background:linear-gradient(135deg,#f5fbfc,#fff)}
+.ad-format-horizontal:has(.ad-campaign-copy),.ad-layout-horizontal:has(.ad-campaign-copy){display:grid;grid-template-columns:minmax(210px,.48fr) minmax(280px,1fr);height:auto;min-height:clamp(132px,13vw,160px)}
+.ad-format-horizontal:has(.ad-campaign-copy) .ad-campaign-picture,.ad-layout-horizontal:has(.ad-campaign-copy) .ad-campaign-picture{min-height:132px}
+.ad-format-retangulo,.ad-layout-retangulo{--ad-max-width:780px;aspect-ratio:1200/680;max-height:355px}
 .ad-format-quadrado{--ad-max-width:440px;aspect-ratio:1}
 .ad-format-vertical{--ad-max-width:300px;aspect-ratio:1/2}
 .ad-format-nativo,.ad-layout-nativo{--ad-max-width:940px;display:grid;grid-template-columns:minmax(210px,.82fr) minmax(300px,1.18fr);aspect-ratio:auto;min-height:205px}
 .ad-format-nativo .ad-campaign-picture,.ad-layout-nativo .ad-campaign-picture{min-height:205px}
 .ad-format-nativo .ad-campaign-picture img,.ad-layout-nativo .ad-campaign-picture img{object-fit:cover}
-.ad-campaign-copy{display:flex;position:absolute;right:0;bottom:0;left:0;z-index:3;align-items:flex-start;gap:.25rem;padding:2.5rem 1.15rem 1rem;color:#fff;background:linear-gradient(transparent,rgba(3,31,41,.9));flex-direction:column}
+.ad-campaign-copy{display:flex;position:absolute;right:0;bottom:0;left:0;z-index:4;align-items:flex-start;gap:.25rem;padding:2.5rem 1.15rem 1rem;color:#fff;background:linear-gradient(transparent,rgba(3,31,41,.9));flex-direction:column}
 .ad-campaign-copy strong{font-size:clamp(1rem,2vw,1.35rem);line-height:1.2}
 .ad-campaign-copy>span:not(.ad-campaign-button){color:#e4eff2;font-size:.84rem}
+.ad-format-horizontal:has(.ad-campaign-copy) .ad-campaign-copy,.ad-layout-horizontal:has(.ad-campaign-copy) .ad-campaign-copy{position:relative;right:auto;bottom:auto;left:auto;justify-content:center;padding:clamp(1rem,2vw,1.45rem) clamp(1rem,2.3vw,1.75rem);color:var(--ink);background:rgba(255,255,255,.76)}
+.ad-format-horizontal:has(.ad-campaign-copy) .ad-campaign-copy strong,.ad-layout-horizontal:has(.ad-campaign-copy) .ad-campaign-copy strong{color:var(--navy);font-size:clamp(1rem,1.7vw,1.28rem)}
+.ad-format-horizontal:has(.ad-campaign-copy) .ad-campaign-copy>span:not(.ad-campaign-button),.ad-layout-horizontal:has(.ad-campaign-copy) .ad-campaign-copy>span:not(.ad-campaign-button){display:block;color:var(--muted);font-size:.86rem}
 .ad-format-nativo .ad-campaign-copy,.ad-layout-nativo .ad-campaign-copy{position:static;align-self:stretch;justify-content:center;padding:clamp(1.15rem,2.4vw,1.8rem);color:var(--ink);background:rgba(255,255,255,.96)}
 .ad-format-nativo .ad-campaign-copy strong,.ad-layout-nativo .ad-campaign-copy strong{color:var(--navy);font-size:clamp(1.08rem,2.1vw,1.5rem)}
 .ad-format-nativo .ad-campaign-copy>span:not(.ad-campaign-button),.ad-layout-nativo .ad-campaign-copy>span:not(.ad-campaign-button){color:var(--muted);font-size:.92rem}
@@ -34,7 +42,7 @@
 .ad-native-placeholder strong{color:var(--navy);font-size:clamp(1.2rem,3vw,2rem)}
 .ad-native-logo{display:block;width:min(180px,70%);max-height:100px;object-fit:contain}
 .ad-layout-nativo.no-media,.ad-format-nativo.no-media{grid-template-columns:minmax(180px,.7fr) minmax(280px,1.3fr)}
-.ad-campaign-button{display:inline-flex;position:static;right:auto;bottom:auto;align-items:center;justify-content:center;min-height:38px;margin-top:.5rem;padding:.55rem .9rem;color:#fff;background:var(--blue);border-radius:999px;font-size:.76rem;font-weight:800;box-shadow:0 5px 18px rgba(0,0,0,.16)}
+.ad-campaign-button{display:inline-flex;position:static;right:auto;bottom:auto;align-items:center;justify-content:center;min-height:36px;margin-top:.5rem;padding:.52rem .9rem;color:#fff;background:linear-gradient(135deg,var(--blue),#073b4c);border-radius:999px;font-size:.74rem;font-weight:850;box-shadow:0 8px 22px rgba(7,59,76,.16)}
 .ad-rotator-controls{display:flex;align-items:center;justify-content:center;gap:.7rem;margin-top:.75rem}
 .ad-rotator-controls>button{display:grid;width:34px;height:34px;padding:0;place-items:center;color:var(--blue);background:#fff;border:1px solid #c7d5da;border-radius:50%;font:inherit;font-size:1.25rem;cursor:pointer}
 .ad-rotator-dots{display:flex;gap:.4rem}
@@ -61,10 +69,13 @@
 @keyframes ad-popup-in{from{opacity:0;transform:scale(.94) translateY(10px)}}
 
 @media(max-width:650px){
-  .banner-zone{padding:.85rem 0;contain-intrinsic-size:140px}.banner-item{border-radius:17px}
+  .banner-zone{padding:.85rem 0;contain-intrinsic-size:160px}.banner-list{padding-inline:0}.ad-rotator{padding:7px;border-radius:24px}.banner-item{border-radius:19px}
   .adsense-unit .adsbygoogle{min-width:0}
   .ad-zone-inline{margin:1rem 0}
-  .ad-format-super_banner,.ad-layout-super_banner,.ad-format-horizontal,.ad-layout-horizontal{height:clamp(118px,36vw,155px);aspect-ratio:auto}
+  .ad-format-super_banner,.ad-layout-super_banner,.ad-format-horizontal,.ad-layout-horizontal{height:clamp(142px,40vw,175px);aspect-ratio:auto}
+  .ad-format-horizontal:has(.ad-campaign-copy),.ad-layout-horizontal:has(.ad-campaign-copy){grid-template-columns:1fr;min-height:0}
+  .ad-format-horizontal:has(.ad-campaign-copy) .ad-campaign-picture,.ad-layout-horizontal:has(.ad-campaign-copy) .ad-campaign-picture{height:132px;min-height:0}
+  .ad-format-horizontal:has(.ad-campaign-copy) .ad-campaign-copy,.ad-layout-horizontal:has(.ad-campaign-copy) .ad-campaign-copy{padding:.85rem .95rem}
   .ad-format-retangulo,.ad-layout-retangulo{--ad-max-width:100%;height:auto;aspect-ratio:16/7.7}
   .ad-format-quadrado{--ad-max-width:100%}
   .ad-format-vertical{--ad-max-width:280px}

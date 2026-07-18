@@ -21,6 +21,50 @@ const mobileRecommendations = {
   vertical: "Mobile recomendado: 600 × 900 px.",
   nativo: "Mobile recomendado: 720 × 480 px; título e texto permanecem separados."
 };
+const formatSpecs = {
+  automatico: {
+    title: "Automático premium",
+    desktop: "Desktop: 1600 × 600 px",
+    mobile: "Celular: 1080 × 1080 px ou 1080 × 1350 px",
+    tip: "Use quando quiser uma campanha flexível para vários pontos do site."
+  },
+  super_banner: {
+    title: "Destaque amplo",
+    desktop: "Desktop: 1600 × 520 px",
+    mobile: "Celular: 1080 × 720 px",
+    tip: "Ideal para campanhas bonitas entre seções, sem aparecer no topo."
+  },
+  horizontal: {
+    title: "Faixa premium",
+    desktop: "Desktop: 1440 × 420 px",
+    mobile: "Celular: 1080 × 640 px",
+    tip: "Use no final das páginas ou em chamadas compactas. Evite texto pequeno dentro da imagem."
+  },
+  retangulo: {
+    title: "Card editorial",
+    desktop: "Desktop: 1200 × 680 px",
+    mobile: "Celular: 1080 × 720 px",
+    tip: "Melhor opção para anúncios no meio de notícias, guia, turismo e eventos."
+  },
+  quadrado: {
+    title: "Quadrado social",
+    desktop: "Desktop/Celular: 1080 × 1080 px",
+    mobile: "Celular: 1080 × 1080 px",
+    tip: "Bom para logos, promoções simples e criativos vindos das redes sociais."
+  },
+  vertical: {
+    title: "Vertical especial",
+    desktop: "Desktop: 720 × 1200 px",
+    mobile: "Celular: 900 × 1200 px",
+    tip: "Use com cuidado, para campanhas visuais. Não recomendado para textos longos."
+  },
+  nativo: {
+    title: "Anúncio nativo",
+    desktop: "Desktop: imagem 1200 × 800 px + título e texto no painel",
+    mobile: "Celular: 1080 × 720 px",
+    tip: "Formato mais profissional: imagem, título, descrição e botão ficam separados."
+  }
+};
 const positionRecommendations = {
   todas_paginas: "Nativo ou horizontal compacto",
   home_hero_conteudo: "Nativo ou super banner",
@@ -83,7 +127,7 @@ function enhanceCreativeForm() {
   if(!document.querySelector('link[href*="publicidade-v2.css"]')){const link=document.createElement("link");link.rel="stylesheet";link.href="publicidade-v2.css";document.head.appendChild(link)}
   const imageField=$("#imagem_url")?.closest(".ads-field");
   if(!imageField||$("#formato"))return;
-  imageField.insertAdjacentHTML("afterend",`<div class="ads-field"><label for="formato">Formato do anúncio</label><select id="formato" name="formato">${Object.entries(formats).map(([value,[label]])=>`<option value="${value}">${label}</option>`).join("")}</select><small id="format-help">Adapta-se à posição escolhida.</small></div><div class="ads-field"><label for="imagem_mobile_url">Imagem para celular</label><div class="upload-row"><input id="imagem_mobile_url" name="imagem_mobile_url" type="text" inputmode="url" placeholder="Opcional · URL da versão mobile"><input id="mobile-image-upload" type="file" accept="image/*" title="Enviar imagem mobile"></div><small class="upload-state" id="mobile-image-state">Se não houver versão mobile, a imagem principal será adaptada.</small></div><div class="ads-field"><label for="titulo_publico">Título público</label><input id="titulo_publico" name="titulo_publico" maxlength="100" placeholder="Usado principalmente no formato nativo"></div><div class="ads-field"><label for="texto_publico">Texto público</label><textarea id="texto_publico" name="texto_publico" rows="3" maxlength="240" placeholder="Descrição curta e objetiva do anúncio"></textarea></div><div class="ads-field"><label for="rotacao_segundos">Tempo de exibição</label><input id="rotacao_segundos" name="rotacao_segundos" type="number" min="5" max="30" value="8"><small>Segundos desta campanha antes da próxima. Padrão: 8 segundos.</small></div><div class="ads-field full creative-preview-field"><div class="creative-preview-head"><div><label>Prévia real do anúncio</label><small>Confira formato, imagem, logo, texto e botão antes de publicar.</small></div><div class="preview-device-switch" role="group" aria-label="Dispositivo da prévia"><button type="button" class="active" data-preview-device="desktop" aria-pressed="true">Desktop</button><button type="button" data-preview-device="mobile" aria-pressed="false">Celular</button></div></div><div id="campaign-preview" class="campaign-preview" data-device="desktop"></div></div>`);
+  imageField.insertAdjacentHTML("afterend",`<div class="ads-field"><label for="formato">Formato do anúncio</label><select id="formato" name="formato">${Object.entries(formats).map(([value,[label]])=>`<option value="${value}">${label}</option>`).join("")}</select><small id="format-help">Adapta-se à posição escolhida.</small></div><div class="ads-field format-size-guide" id="format-size-guide" aria-live="polite"></div><div class="ads-field"><label for="imagem_mobile_url">Imagem para celular</label><div class="upload-row"><input id="imagem_mobile_url" name="imagem_mobile_url" type="text" inputmode="url" placeholder="Opcional · URL da versão mobile"><input id="mobile-image-upload" type="file" accept="image/*" title="Enviar imagem mobile"></div><small class="upload-state" id="mobile-image-state">Se não houver versão mobile, a imagem principal será adaptada.</small></div><div class="ads-field"><label for="titulo_publico">Título público</label><input id="titulo_publico" name="titulo_publico" maxlength="100" placeholder="Usado principalmente no formato nativo"></div><div class="ads-field"><label for="texto_publico">Texto público</label><textarea id="texto_publico" name="texto_publico" rows="3" maxlength="240" placeholder="Descrição curta e objetiva do anúncio"></textarea></div><div class="ads-field"><label for="rotacao_segundos">Tempo de exibição</label><input id="rotacao_segundos" name="rotacao_segundos" type="number" min="5" max="30" value="8"><small>Segundos desta campanha antes da próxima. Padrão: 8 segundos.</small></div><div class="ads-field full creative-preview-field"><div class="creative-preview-head"><div><label>Prévia real do anúncio</label><small>Confira formato, imagem, logo, texto e botão antes de publicar.</small></div><div class="preview-device-switch" role="group" aria-label="Dispositivo da prévia"><button type="button" class="active" data-preview-device="desktop" aria-pressed="true">Desktop</button><button type="button" data-preview-device="mobile" aria-pressed="false">Celular</button></div></div><div id="campaign-preview" class="campaign-preview" data-device="desktop"></div></div>`);
   const dashboard=$("#dashboard-view");
   if(dashboard&&!$("#placement-inventory"))dashboard.insertAdjacentHTML("beforeend",'<article class="ads-card placement-card"><div class="inventory-heading"><div><h3>Inventário de posições</h3><p>Veja onde existem campanhas configuradas no portal.</p></div><span>Formatos responsivos</span></div><div id="placement-inventory" class="placement-inventory"><div class="skeleton"></div></div></article>');
 }
@@ -117,6 +161,9 @@ function updateCreativePreview() {
   const help=formats[selected]?.[1]||formats.automatico[1];
   $("#format-help").textContent=help;
   $("#mobile-image-state").textContent=mobileRecommendations[selected]||mobileRecommendations.automatico;
+  const spec=formatSpecs[selected]||formatSpecs.automatico;
+  const guide=$("#format-size-guide");
+  if(guide)guide.innerHTML=`<strong>${escapeHtml(spec.title)}</strong><span>${escapeHtml(spec.desktop)}</span><span>${escapeHtml(spec.mobile)}</span><small>${escapeHtml(spec.tip)}</small>`;
 }
 
 function safePreviewUrl(value) {

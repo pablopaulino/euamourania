@@ -22,6 +22,7 @@ for (const format of ["automatico", "super_banner", "horizontal", "retangulo", "
 }
 must(adminJs.includes("imagem_mobile_url") && publicJs.includes("imagem_mobile_url"), "Campanha não aceita imagem específica para celular.");
 must(adminJs.includes("campaign-preview") && adminCss.includes(".campaign-preview"), "Painel não possui prévia do criativo.");
+must(adminJs.includes("formatSpecs") && adminJs.includes("format-size-guide") && adminCss.includes(".format-size-guide"), "Painel não orienta proporções e tamanhos de imagem por formato.");
 must(adminJs.includes("preview-logo") && adminJs.includes("youtubePreview"), "Prévia não representa logo ou vídeo.");
 must(adminJs.includes("positionRecommendations") && adminJs.includes("placement-inventory"), "Painel não orienta nem resume as posições.");
 must(adminJs.includes("position-option") && adminJs.includes("syncPositionCards") && adminCss.includes(".position-option.selected"), "Seleção de posições não usa cards acessíveis.");
@@ -35,8 +36,8 @@ must(publicJs.includes("rotationSeconds(items[current])") && publicJs.includes("
 must(!publicJs.includes("placedCampaigns"), "Campanha ainda é bloqueada ao selecionar várias posições.");
 must(publicJs.includes("isCampaignActive") && publicJs.includes("data_inicio") && publicJs.includes("data_fim"), "Regras de período não são validadas no componente.");
 must(publicJs.includes('if (!html) return false'), "Posição vazia pode reservar espaço no site.");
-must(publicCss.includes("@media(max-width:650px)") && publicCss.includes("clamp(118px,36vw,155px)"), "Banners não respeitam a altura móvel planejada.");
-must(publicCss.includes("height:clamp(160px,18vw,210px)") && publicCss.includes("aspect-ratio:2.05/1"), "Super banner ou retângulo usam proporção incorreta.");
+must(publicCss.includes("@media(max-width:650px)") && publicCss.includes("clamp(142px,40vw,175px)"), "Banners não respeitam a altura móvel planejada.");
+must(publicCss.includes("height:clamp(176px,18.5vw,228px)") && publicCss.includes("aspect-ratio:1200/680"), "Super banner ou retângulo usam proporção incorreta.");
 must(publicCss.includes(".ad-native-placeholder") && migration.includes("configuracao_futura->>'formato' = 'nativo'"), "Anúncio nativo sem imagem não está preparado.");
 must(styles.includes("publicidade-publica.css"), "Estilos de publicidade não carregam junto do site.");
 must(docs.includes("configuracao_futura"), "Documentação não descreve a configuração evolutiva.");
