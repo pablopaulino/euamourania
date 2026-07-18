@@ -36,8 +36,8 @@ must(publicJs.includes("rotationSeconds(items[current])") && publicJs.includes("
 must(!publicJs.includes("placedCampaigns"), "Campanha ainda é bloqueada ao selecionar várias posições.");
 must(publicJs.includes("isCampaignActive") && publicJs.includes("data_inicio") && publicJs.includes("data_fim"), "Regras de período não são validadas no componente.");
 must(publicJs.includes('if (!html) return false'), "Posição vazia pode reservar espaço no site.");
-must(publicCss.includes("@media(max-width:650px)") && publicCss.includes("clamp(142px,40vw,175px)"), "Banners não respeitam a altura móvel planejada.");
-must(publicCss.includes("height:clamp(176px,18.5vw,228px)") && publicCss.includes("aspect-ratio:1200/680"), "Super banner ou retângulo usam proporção incorreta.");
+must(publicCss.includes("@media(max-width:650px)") && publicCss.includes("clamp(170px,48vw,210px)"), "Banners não respeitam a altura móvel planejada.");
+must(publicCss.includes("height:clamp(190px,20vw,250px)") && publicCss.includes("aspect-ratio:1200/680"), "Super banner ou retângulo usam proporção incorreta.");
 must(publicCss.includes(".ad-native-placeholder") && migration.includes("configuracao_futura->>'formato' = 'nativo'"), "Anúncio nativo sem imagem não está preparado.");
 must(styles.includes("publicidade-publica.css"), "Estilos de publicidade não carregam junto do site.");
 must(docs.includes("configuracao_futura"), "Documentação não descreve a configuração evolutiva.");

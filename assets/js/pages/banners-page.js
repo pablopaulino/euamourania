@@ -110,7 +110,7 @@ function creative(campaign, position) {
   const logo = safe(campaign.logo_empresa_url)
     ? `<img class="ad-campaign-logo" src="${safe(campaign.logo_empresa_url)}" alt="${esc(campaign.empresa_anunciante)}" loading="lazy" decoding="async">`
     : "";
-  const buttonText = campaign.texto_botao || (layout === "nativo" && campaign.link_destino ? "Saiba mais" : "");
+  const buttonText = campaign.texto_botao || (campaign.link_destino ? "Veja agora" : "");
   const callToAction = buttonText
     ? `<span class="ad-campaign-button">${esc(buttonText)}</span>`
     : "";
