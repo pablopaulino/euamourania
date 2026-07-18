@@ -56,8 +56,9 @@ for (const page of publicPages) {
   must(html.includes('rel="canonical"'), `${page}: canonical ausente.`);
 }
 
-const [home, newsApi, sitemapApi, vercelSource] = await Promise.all([
+const [home, homeApi, newsApi, sitemapApi, vercelSource] = await Promise.all([
   read("index.html"),
+  read("api/home.js"),
   read("api/noticia.js"),
   read("api/sitemaps.js"),
   read("vercel.json")
