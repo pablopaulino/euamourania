@@ -5,8 +5,8 @@ const $ = s => document.querySelector(s);
 const state = { page: 1, perPage: 10, total: 0, timer: null, summaries: new Map(), currentConfig: {} };
 const formats = {
   automatico: ["Automático responsivo", "Adapta-se à posição escolhida"],
-  super_banner: ["Super banner", "970 × 250 px · destaques e topo"],
-  horizontal: ["Horizontal compacto", "728 × 90 px · topo e rodapé"],
+  super_banner: ["Super banner", "940 × 210 px · destaques amplos"],
+  horizontal: ["Horizontal compacto", "760 × 86 px · final e faixas leves"],
   retangulo: ["Retângulo", "800 × 400 ou 728 × 300 px · entre conteúdos"],
   quadrado: ["Quadrado", "600 × 600 px · redes e mobile"],
   vertical: ["Vertical", "300 × 600 px · campanhas especiais"],
@@ -22,52 +22,42 @@ const mobileRecommendations = {
   nativo: "Mobile recomendado: 720 × 480 px; título e texto permanecem separados."
 };
 const positionRecommendations = {
-  todas_paginas: "Automático ou horizontal",
-  home_topo: "Super banner 970 × 250",
+  todas_paginas: "Nativo ou horizontal compacto",
   home_hero_conteudo: "Nativo ou super banner",
   home_entre_secoes: "Super banner ou nativo",
   home_rodape: "Horizontal 728 × 90",
-  noticias_topo: "Super banner ou horizontal",
   noticias_entre_listagem: "Nativo ou retângulo",
   noticia_meio: "Nativo ou retângulo",
   noticia_final: "Super banner ou nativo",
-  guia_topo: "Super banner ou horizontal",
   guia_entre_estabelecimentos: "Nativo ou retângulo",
   guia_rodape: "Horizontal 728 × 90",
-  turismo_topo: "Super banner ou horizontal",
   turismo_entre_cartoes: "Nativo ou retângulo",
   turismo_rodape: "Horizontal 728 × 90",
-  eventos_topo: "Super banner ou horizontal",
   eventos_entre_eventos: "Nativo ou retângulo",
   eventos_rodape: "Horizontal 728 × 90"
 };
 const positionDescriptions = {
-  todas_paginas: "Faixa global exibida uma vez nas páginas públicas.",
-  home_topo: "Antes do destaque principal da página inicial.",
+  todas_paginas: "Campanha global exibida no fluxo ou no final das páginas, nunca no topo.",
   home_hero_conteudo: "Logo depois da apresentação da cidade.",
   home_entre_secoes: "Integra a campanha ao fluxo de conteúdo da home.",
   home_rodape: "Última oportunidade antes do rodapé.",
-  noticias_topo: "Antes da notícia principal e dos filtros.",
   noticias_entre_listagem: "Entre os cards do feed de notícias.",
   noticia_meio: "Dentro do texto, próximo ao centro da matéria.",
   noticia_final: "Depois da matéria e antes das recomendações.",
-  guia_topo: "Antes da listagem do guia da cidade.",
   guia_entre_estabelecimentos: "Entre os estabelecimentos cadastrados.",
   guia_rodape: "Depois do guia, antes do rodapé.",
-  turismo_topo: "Antes dos atrativos turísticos.",
   turismo_entre_cartoes: "Entre os cartões de turismo.",
   turismo_rodape: "Depois dos atrativos, antes do rodapé.",
-  eventos_topo: "Antes da agenda de eventos.",
   eventos_entre_eventos: "Entre os eventos da agenda.",
   eventos_rodape: "Depois da agenda, antes do rodapé."
 };
 const positions = {
   "Todas as páginas": [["todas_paginas","Exibir em todo o site"]],
-  "Home": [["home_topo","Topo"],["home_hero_conteudo","Entre Hero e conteúdo"],["home_entre_secoes","Entre seções"],["home_rodape","Rodapé"]],
-  "Notícias": [["noticias_topo","Topo"],["noticias_entre_listagem","Entre a listagem"],["noticia_meio","Meio da notícia"],["noticia_final","Final da notícia"]],
-  "Guia": [["guia_topo","Topo"],["guia_entre_estabelecimentos","Entre estabelecimentos"],["guia_rodape","Rodapé"]],
-  "Turismo": [["turismo_topo","Topo"],["turismo_entre_cartoes","Entre cartões"],["turismo_rodape","Rodapé"]],
-  "Eventos": [["eventos_topo","Topo"],["eventos_entre_eventos","Entre eventos"],["eventos_rodape","Rodapé"]]
+  "Home": [["home_hero_conteudo","Depois da abertura"],["home_entre_secoes","Entre seções"],["home_rodape","Final da home"]],
+  "Notícias": [["noticias_entre_listagem","Entre a listagem"],["noticia_meio","Meio da notícia"],["noticia_final","Final da notícia"]],
+  "Guia": [["guia_entre_estabelecimentos","Entre estabelecimentos"],["guia_rodape","Final do guia"]],
+  "Turismo": [["turismo_entre_cartoes","Entre cartões"],["turismo_rodape","Final do turismo"]],
+  "Eventos": [["eventos_entre_eventos","Entre eventos"],["eventos_rodape","Final dos eventos"]]
 };
 
 function escapeHtml(value="") { const el=document.createElement("div"); el.textContent=String(value); return el.innerHTML; }

@@ -45,15 +45,12 @@ const defaultValues = {
   urania_cta_botao: "Enviar pelo WhatsApp",
 };
 
-Object.assign(
-  defaultValues,
-  Object.fromEntries(EDITORIAL_POLICY_PAGES.flatMap((page) => [
-    [`${page.key}_titulo`, page.title],
-    [`${page.key}_descricao`, page.description],
-    [`${page.key}_html`, page.html],
-    [`${page.key}_atualizado_em`, page.updatedAt],
-  ])),
-);
+for (const page of EDITORIAL_POLICY_PAGES) {
+  defaultValues[`${page.key}_titulo`] = page.title;
+  defaultValues[`${page.key}_descricao`] = page.description;
+  defaultValues[`${page.key}_html`] = page.html;
+  defaultValues[`${page.key}_atualizado_em`] = page.updatedAt;
+}
 
 const groups = [
   [
@@ -179,7 +176,7 @@ const groups = [
   ],
 ];
 
-const editableGlobalImages = new Set(["urania_hero_imagem", "urania_historia_imagem"]);
+const editableGlobalImages = new Set("urania_hero_imagem|urania_historia_imagem".split("|"));
 
 function getVisibleGroups() {
   return groups
@@ -220,7 +217,7 @@ function validSiteReference(value) {
 }
 
 function field([key, label, type = "text"], value) {
-  const full = ["textarea", "html"].includes(type);
+  const full = ['textarea', 'html'].includes(type);
   const hint =
     type === "html"
       ? "<small>HTML institucional permitido. Evite colar códigos externos.</small>"
@@ -241,15 +238,15 @@ function field([key, label, type = "text"], value) {
 }
 
 function configField([key, label, type = "text", folder = "configuracoes/imagens", preset = "wide"], value) {
-  const full = ["textarea", "html"].includes(type);
+  const full = ['textarea', 'html'].includes(type);
   const hint =
     type === "html"
       ? "<small>HTML institucional permitido. Evite colar códigos externos.</small>"
-      : ["url", "image"].includes(type)
+      : ['url', 'image'].includes(type)
         ? "<small>Aceita link completo, caminho interno ou imagem escolhida na biblioteca.</small>"
         : "";
-  const inputType = ["url", "image"].includes(type) ? "text" : type;
-  const inputMode = ["url", "image"].includes(type) ? ` inputmode="url" data-type="${type}"` : "";
+  const inputType = ['url', 'image'].includes(type) ? "text" : type;
+  const inputMode = ['url', 'image'].includes(type) ? ` inputmode="url" data-type="${type}"` : "";
   const mediaAttrs = type === "image" ? ` data-cms-image="true" data-media-folder="${esc(folder)}" data-media-preset="${esc(preset)}"` : "";
   const cleanValue = repairEncoding(value);
 
@@ -320,7 +317,7 @@ document.addEventListener(
     for (const [, , fields] of getVisibleGroups()) {
       for (const [key, , type = "text"] of fields) {
         const value = repairEncoding(String(fd.get(key) || "").trim());
-        if (["url", "image"].includes(type) && !validSiteReference(value)) {
+        if (['url', 'image'].includes(type) && !validSiteReference(value)) {
           toast(`Link ou caminho inválido no campo: ${key}`, "error");
           document.getElementById(`cfg-${key}`)?.focus();
           return;

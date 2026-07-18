@@ -4,7 +4,7 @@ const esc = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
 }[char]));
 const safe = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
-const topPositions = new Set(["todas_paginas"]);
+const topPositions = new Set();
 const disabledTopPositions = new Set(["home_topo", "noticias_topo", "guia_topo", "turismo_topo", "eventos_topo"]);
 const trackedImpressions = new Set();
 const adsenseAttempted = new Set();
@@ -47,7 +47,10 @@ function automaticLayout(position, campaign) {
   if (["noticias_entre_listagem", "noticia_meio", "guia_entre_estabelecimentos", "turismo_entre_cartoes", "eventos_entre_eventos"].includes(position)) {
     return config(campaign).titulo_publico || config(campaign).texto_publico ? "nativo" : "retangulo";
   }
-  if (position.endsWith("_rodape") || position === "todas_paginas") return "horizontal";
+  if (position === "todas_paginas") {
+    return config(campaign).titulo_publico || config(campaign).texto_publico ? "nativo" : "horizontal";
+  }
+  if (position.endsWith("_rodape")) return "horizontal";
   return "super_banner";
 }
 
@@ -331,9 +334,19 @@ function insertInsideArticle() {
   insertZone(position, blocks[index], "afterend", true);
 }
 
+function insertFirstAvailable(position, targets, where = "beforebegin", inline = false) {
+  return targets.some(target => insertZone(position, target, where, inline));
+}
+
+function insertGlobalZone() {
+  const footer = document.querySelector(".site-footer, footer");
+  if (footer) return insertZone("todas_paginas", footer, "beforebegin");
+  const main = document.querySelector("main");
+  return main ? insertZone("todas_paginas", main, "beforeend") : false;
+}
+
 function render() {
   const path = location.pathname;
-  insertZone("todas_paginas", "main");
   if (path === "/" || path === "/index.html") {
     insertZone("home_hero_conteudo", ".hero", "afterend");
     insertZone("home_entre_secoes", ".destination");
@@ -350,14 +363,27 @@ function render() {
     insertBetweenCards("guia_entre_estabelecimentos", "#guia-container", ".card-guia", 5);
     insertZone("guia_rodape", ".site-footer");
   }
+  if (path.includes("guia-details") || path.startsWith("/guia/")) {
+    insertFirstAvailable("guia_entre_estabelecimentos", [".guide-related-sections", ".guide-business-actions", ".tourism-detail-layout", "main"], "afterend", true);
+    insertZone("guia_rodape", ".site-footer");
+  }
   if (path.endsWith("turismo.html")) {
     insertBetweenCards("turismo_entre_cartoes", "#turismo-container", ".card-guia", 2);
     insertZone("turismo_rodape", ".site-footer");
   }
+  if (path.includes("turismo-details")) {
+    insertFirstAvailable("turismo_entre_cartoes", [".tourism-related-sections", ".tourism-detail-layout", ".tourism-detail-content", "main"], "afterend", true);
+    insertZone("turismo_rodape", ".site-footer");
+  }
   if (path.includes("/eventos")) {
     insertBetweenCards("eventos_entre_eventos", "#eventos-list", ".event-card", 2);
+    insertFirstAvailable("eventos_entre_eventos", [".evento-edicoes", ".event-editions", ".event-detail-content", ".event-main-content", "main"], "afterend", true);
     insertZone("eventos_rodape", ".site-footer");
   }
+  if (path.includes("/links") || path.includes("/urania") || path.includes("/colabore") || path.includes("/categorias") || path.endsWith("quem-somos.html")) {
+    insertFirstAvailable("home_entre_secoes", [".newsletter-section", ".urania-cta", ".links-footer-actions", ".editorial-newsletter", ".site-footer"], "beforebegin");
+  }
+  insertGlobalZone();
 }
 
 function renderAdSense() {
