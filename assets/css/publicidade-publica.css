@@ -30,7 +30,7 @@
 .ad-campaign-copy::before{display:none}
 .ad-campaign-copy strong{color:var(--navy);font-size:clamp(.98rem,1.65vw,1.24rem);line-height:1.14;font-weight:900;letter-spacing:-.025em}
 .ad-campaign-copy>span:not(.ad-campaign-button){max-width:48ch;color:var(--muted);font-size:.82rem;line-height:1.35}
-.ad-campaign-logo{position:static!important;z-index:auto;width:auto!important;height:44px!important;max-width:132px!important;padding:7px;background:#fff;border:1px solid rgba(7,59,76,.1);border-radius:14px;box-shadow:0 8px 20px rgba(7,59,76,.1);object-fit:contain!important;flex:0 0 auto}
+.ad-campaign-logo{position:static!important;z-index:auto;width:auto!important;height:54px!important;max-width:158px!important;padding:3px;background:rgba(255,255,255,.68);border:0;border-radius:11px;box-shadow:0 6px 16px rgba(7,59,76,.07);object-fit:contain!important;flex:0 0 auto}
 .ad-campaign-button{display:inline-flex;position:static;align-items:center;justify-content:center;min-height:38px;padding:.58rem 1rem;color:#073b4c;background:#ffd54a;border:1px solid rgba(255,213,74,.7);border-radius:999px;font-size:.76rem;font-weight:900;letter-spacing:-.01em;text-shadow:none;box-shadow:0 10px 20px rgba(255,180,40,.2);white-space:nowrap;flex:0 0 auto}
 .ad-campaign-button::after{content:"→";margin-left:.42rem;font-weight:900}
 .ad-format-nativo,.ad-layout-nativo{--ad-max-width:900px;display:grid;grid-template-columns:minmax(240px,.82fr) minmax(300px,1fr);grid-template-rows:auto;min-height:230px;background:#fff;border:1px solid rgba(7,59,76,.1)}
@@ -88,7 +88,7 @@
   .ad-campaign-copy{max-width:100%}
   .ad-campaign-copy strong{font-size:clamp(1rem,5vw,1.28rem)}
   .ad-campaign-copy>span:not(.ad-campaign-button){display:none}
-  .ad-campaign-logo{height:34px!important;max-width:104px!important;border-radius:11px}
+  .ad-campaign-logo{height:42px!important;max-width:132px!important;padding:2px;border-radius:9px}
   .ad-campaign-button{min-height:34px;padding:.45rem .75rem;font-size:.7rem}
   .ad-sponsored{top:8px;left:8px;font-size:.52rem}
   .ad-rotator-controls>button{width:38px;height:38px}
