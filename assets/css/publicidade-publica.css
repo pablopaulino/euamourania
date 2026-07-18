@@ -118,12 +118,13 @@
   [data-banner="noticia_meio"] .ad-layout-horizontal.has-panel>.ad-campaign-picture,
   [data-banner="noticia_meio"] .ad-format-horizontal.has-panel>.ad-campaign-picture,
   [data-banner="noticia_meio"] .ad-layout-super_banner.has-panel>.ad-campaign-picture,
-  [data-banner="noticia_meio"] .ad-format-super_banner.has-panel>.ad-campaign-picture{aspect-ratio:16/8.5;height:auto;max-height:175px}
-  [data-banner="noticia_meio"] .ad-campaign-panel{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.55rem;min-height:52px;padding:.55rem .62rem;overflow:hidden}
-  [data-banner="noticia_meio"] .ad-campaign-logo{width:32px!important;height:32px!important;max-width:32px!important;border-radius:8px;padding:0}
+  [data-banner="noticia_meio"] .ad-format-super_banner.has-panel>.ad-campaign-picture{aspect-ratio:auto;height:clamp(128px,34vw,158px)!important;max-height:158px!important}
+  [data-banner="noticia_meio"] .banner-item .ad-campaign-picture img{height:100%!important;object-fit:cover}
+  [data-banner="noticia_meio"] .ad-campaign-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:.55rem;min-height:48px;padding:.52rem .6rem;overflow:hidden}
+  [data-banner="noticia_meio"] .ad-campaign-logo{display:none!important}
   [data-banner="noticia_meio"] .ad-campaign-copy{min-width:0;gap:0}
   [data-banner="noticia_meio"] .ad-campaign-copy strong{display:-webkit-box;overflow:hidden;font-size:.88rem;line-height:1.12;-webkit-box-orient:vertical;-webkit-line-clamp:1}
-  [data-banner="noticia_meio"] .ad-campaign-copy>span:not(.ad-campaign-button){display:-webkit-box;overflow:hidden;font-size:.7rem;line-height:1.15;-webkit-box-orient:vertical;-webkit-line-clamp:1}
+  [data-banner="noticia_meio"] .ad-campaign-copy>span:not(.ad-campaign-button){display:none}
   [data-banner="noticia_meio"] .ad-campaign-button{min-height:32px;padding:.44rem .64rem;font-size:.67rem;white-space:nowrap;box-shadow:none}
   [data-banner="noticia_meio"] .ad-sponsored{top:7px;left:8px;padding:.2rem .52rem;font-size:.48rem}
   [data-banner="noticia_meio"] .ad-rotator-controls{gap:.46rem;margin-top:.42rem}
@@ -133,7 +134,7 @@
 }
 
 @media(max-width:380px){
-  [data-banner="noticia_meio"] .ad-campaign-panel{grid-template-columns:auto minmax(0,1fr)}
+  [data-banner="noticia_meio"] .ad-campaign-panel{grid-template-columns:1fr}
   [data-banner="noticia_meio"] .ad-campaign-button{grid-column:1/-1;width:100%}
 }
 
