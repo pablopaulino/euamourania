@@ -5,7 +5,7 @@
 .tourism-hero .eyebrow{margin-bottom:.55rem}
 .tourism-hero h1{max-width:720px;margin:.12rem 0 .42rem;color:var(--navy);font-size:clamp(1.9rem,4.6vw,3.3rem);line-height:1;letter-spacing:-.06em}
 .tourism-hero p:last-child{max-width:620px;color:#566d76;font-size:clamp(.92rem,1.3vw,1.04rem);line-height:1.48}
-.tourism-explorer{position:relative;z-index:2;margin-top:clamp(-.75rem,-1.2vw,-.35rem);padding:0 0 clamp(3rem,6vw,5rem)}
+body.tourism-page .tourism-explorer{position:relative;z-index:2;margin-top:clamp(-.75rem,-1.2vw,-.35rem);padding:0 0 clamp(3rem,6vw,5rem)}
 .tourism-section-head{display:flex;align-items:center;justify-content:flex-start;gap:1rem;margin-bottom:.65rem}
 .tourism-section-head>div:first-child{display:none}
 .tourism-section-head .eyebrow{margin-bottom:.25rem;font-size:.68rem}
@@ -52,5 +52,5 @@
 .tourism-empty h3{margin-bottom:.35rem}
 .tourism-empty p{margin:0}
 @media(max-width:980px){.tourism-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tourism-card-media{aspect-ratio:16/9}}
-@media(max-width:700px){.tourism-hero{padding:1.05rem 0 .72rem}.tourism-hero .container{display:block}.tourism-hero .eyebrow{margin-bottom:.42rem}.tourism-hero h1{font-size:clamp(1.78rem,8.5vw,2.35rem);line-height:1.02}.tourism-hero p:last-child{font-size:.9rem;line-height:1.42}.tourism-explorer{margin-top:-.28rem;padding-top:0}.tourism-section-head{margin-bottom:.45rem}.tourism-result-summary{padding:.5rem .72rem}.tourism-result-summary strong{font-size:1.1rem}.tourism-result-summary span{font-size:.68rem}.tourism-toolbar{align-items:stretch;flex-direction:column;padding:.55rem;border-radius:20px}.tourism-filters{overflow-x:auto}.tourism-filter{flex:1}.tourism-grid{grid-template-columns:1fr;gap:1rem}.tourism-card{border-radius:24px}.tourism-card-media{aspect-ratio:16/9}.tourism-card-body{padding:1rem}.tourism-card .card-text{-webkit-line-clamp:2}}
+@media(max-width:700px){body.tourism-page .page-hero.tourism-hero{padding:1.05rem 0 .12rem!important;min-height:0!important}.tourism-hero .container{display:block}.tourism-hero .eyebrow{margin-bottom:.42rem}.tourism-hero h1{font-size:clamp(1.78rem,8.5vw,2.35rem);line-height:1.02}.tourism-hero p:last-child{margin-bottom:0;font-size:.9rem;line-height:1.42}body.tourism-page .tourism-explorer{margin-top:0!important;padding:1rem 0 clamp(3rem,6vw,5rem)!important}.tourism-section-head{margin-bottom:.45rem}.tourism-result-summary{padding:.5rem .72rem}.tourism-result-summary strong{font-size:1.1rem}.tourism-result-summary span{font-size:.68rem}.tourism-toolbar{align-items:stretch;flex-direction:column;padding:.55rem;border-radius:20px}.tourism-filters{overflow-x:auto}.tourism-filter{flex:1}.tourism-grid{grid-template-columns:1fr;gap:1rem}.tourism-card{border-radius:24px}.tourism-card-media{aspect-ratio:16/9}.tourism-card-body{padding:1rem}.tourism-card .card-text{-webkit-line-clamp:2}}
 @media(prefers-reduced-motion:reduce){.tourism-card,.tourism-card-media img,.tourism-card-action span:last-child{transition:none}}
