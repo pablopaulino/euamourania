@@ -17,7 +17,7 @@ function applyGlobal(c){
  window.updateFooterYear?.();
  const email=c.email_contato;if(email)document.querySelectorAll('a[href^="mailto:"]').forEach(a=>{a.href=`mailto:${email}`;if(a.textContent.includes("@"))a.textContent=email});
  if(c.whatsapp){const digits=c.whatsapp.replace(/\D/g,"");document.querySelectorAll(".whatsapp-float").forEach(a=>a.href=`https://wa.me/${digits}`)}
- const footerLinks=json(c.rodape_links).filter(i=>i.ativo!==false&&i.titulo&&i.url),footerNav=document.querySelector(".site-footer nav");if(footerNav&&footerLinks.length)footerNav.innerHTML=footerLinks.map(i=>`<a href="${esc(absolute(i.url))}">${esc(i.titulo)}</a>`).join("");
+ const footerLinks=json(c.rodape_links).filter(i=>i.ativo!==false&&i.titulo&&i.url);if(!footerLinks.some(i=>String(i.url||"").includes("eventos")))footerLinks.unshift({titulo:"Eventos",url:"/eventos/"});if(!footerLinks.some(i=>String(i.url||"").includes("quem-somos")))footerLinks.unshift({titulo:"Quem somos",url:"/quem-somos.html"});const footerNav=document.querySelector(".site-footer nav");if(footerNav&&footerLinks.length)footerNav.innerHTML=footerLinks.map(i=>`<a href="${esc(absolute(i.url))}">${esc(i.titulo)}</a>`).join("");
  applyMenu(c);window.normalizePublicNavigation?.();
  const path=location.pathname;if(path==="/"||path.endsWith("/index.html")){if(c.seo_titulo_padrao)document.title=c.seo_titulo_padrao;setMeta("description",c.seo_descricao_padrao)}
  setMeta("keywords",c.seo_palavras_chave);setMeta("author",c.seo_autor);if(!document.head.querySelector('meta[property="og:image"]'))setMeta("og:image",absolute(c.imagem_compartilhamento),true);if(!document.head.querySelector('meta[name="twitter:image"]'))setMeta("twitter:image",absolute(c.imagem_compartilhamento));
