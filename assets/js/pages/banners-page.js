@@ -115,13 +115,19 @@ function creative(campaign, position) {
     ? `<span class="ad-campaign-button">${esc(buttonText)}</span>`
     : "";
   const copy = title || description
-    ? `<span class="ad-campaign-copy">${title ? `<strong>${esc(title)}</strong>` : ""}${description ? `<span>${esc(description)}</span>` : ""}${callToAction}</span>`
-    : callToAction;
+    ? `<span class="ad-campaign-copy">${title ? `<strong>${esc(title)}</strong>` : ""}${description ? `<span>${esc(description)}</span>` : ""}</span>`
+    : "";
+  const campaignName = !copy && !logo && callToAction && campaign.empresa_anunciante
+    ? `<span class="ad-campaign-copy"><strong>${esc(campaign.empresa_anunciante)}</strong></span>`
+    : "";
+  const panel = logo || copy || campaignName || callToAction
+    ? `<span class="ad-campaign-panel">${logo}${copy || campaignName}${callToAction}</span>`
+    : "";
   const nativePlaceholder = !content && layout === "nativo"
     ? `<span class="ad-native-placeholder">${safe(campaign.logo_empresa_url) ? `<img class="ad-native-logo" src="${safe(campaign.logo_empresa_url)}" alt="${esc(campaign.empresa_anunciante)}" loading="lazy" decoding="async">` : `<strong>${esc(campaign.empresa_anunciante || "Publicidade")}</strong>`}</span>`
     : "";
-  const body = `<span class="ad-sponsored">Publicidade</span>${content || nativePlaceholder}${content ? logo : ""}${copy}`;
-  const classes = `banner-item ad-campaign ad-format-${selectedFormat} ad-layout-${layout}${content ? "" : " no-media"}${settings.imagem_mobile_url ? " has-mobile" : ""}`;
+  const body = `<span class="ad-sponsored">Publicidade</span>${content || nativePlaceholder}${panel}`;
+  const classes = `banner-item ad-campaign ad-format-${selectedFormat} ad-layout-${layout}${content ? "" : " no-media"}${panel ? " has-panel" : ""}${settings.imagem_mobile_url ? " has-mobile" : ""}`;
   return safe(campaign.link_destino)
     ? `<a class="${classes}" data-campaign-id="${campaign.id}" href="${safe(campaign.link_destino)}" ${campaign.abrir_nova_aba ? 'target="_blank" rel="noopener sponsored"' : 'rel="sponsored"'}>${body}</a>`
     : `<div class="${classes}" data-campaign-id="${campaign.id}">${body}</div>`;

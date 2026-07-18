@@ -7,36 +7,40 @@
 .ad-zone-inline .ad-rotator{--ad-zone-width:840px}
 .ad-slide[hidden]{display:none!important}
 .ad-slide.active{animation:ad-slide-in .28s ease}
-.banner-item{--ad-radius:24px;position:relative;display:block;width:min(100%,var(--ad-max-width,940px));margin-inline:auto;overflow:hidden;color:inherit;background:#f5fafb;border:0;border-radius:var(--ad-radius);box-shadow:0 14px 36px rgba(7,59,76,.12);text-decoration:none;isolation:isolate;transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+.banner-item{--ad-radius:24px;--ad-media-height:auto;position:relative;display:block;width:min(100%,var(--ad-max-width,940px));margin-inline:auto;overflow:hidden;color:inherit;background:#fff;border:1px solid rgba(7,59,76,.08);border-radius:var(--ad-radius);box-shadow:0 14px 36px rgba(7,59,76,.1);text-decoration:none;isolation:isolate;transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+.banner-item.has-panel{display:grid;grid-template-rows:minmax(0,var(--ad-media-height)) auto;height:auto!important}
 .banner-item:hover{transform:translateY(-2px);box-shadow:0 20px 48px rgba(7,59,76,.18);filter:saturate(1.04)}
 .ad-sponsored{position:absolute;top:12px;left:12px;z-index:6;display:inline-flex;align-items:center;min-height:25px;padding:.25rem .62rem;color:#fff;background:rgba(3,31,41,.72);border:1px solid rgba(255,255,255,.18);border-radius:999px;font-size:.56rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(9px)}
 .ad-campaign-picture{position:relative;z-index:1;display:block;width:100%;height:100%}
+.banner-item.has-panel>.ad-campaign-picture{height:var(--ad-media-height)}
 .banner-item .ad-campaign-picture img{display:block;width:100%;height:100%;max-height:none;object-fit:cover;background:#eef5f6}
 .ad-campaign iframe,.ad-campaign video{display:block;width:100%;height:100%;max-height:none;aspect-ratio:16/9;border:0;background:#071e27;object-fit:contain}
 .ad-format-automatico{--ad-max-width:940px}
-.ad-format-super_banner,.ad-layout-super_banner{--ad-max-width:940px;height:clamp(190px,20vw,250px)}
-.ad-format-horizontal,.ad-layout-horizontal{--ad-max-width:900px;height:clamp(170px,16vw,210px)}
-.ad-format-retangulo,.ad-layout-retangulo{--ad-max-width:820px;aspect-ratio:1200/680;max-height:380px}
+.ad-format-super_banner,.ad-layout-super_banner{--ad-max-width:940px;--ad-media-height:clamp(190px,20vw,250px);height:var(--ad-media-height)}
+.ad-format-horizontal,.ad-layout-horizontal{--ad-max-width:900px;--ad-media-height:clamp(170px,16vw,210px);height:var(--ad-media-height)}
+.ad-format-retangulo,.ad-layout-retangulo{--ad-max-width:820px;--ad-media-height:auto;aspect-ratio:1200/680;max-height:380px}
+.ad-format-retangulo.has-panel,.ad-layout-retangulo.has-panel{aspect-ratio:auto;max-height:none}
+.ad-format-retangulo.has-panel>.ad-campaign-picture,.ad-layout-retangulo.has-panel>.ad-campaign-picture{aspect-ratio:1200/680}
 .ad-format-quadrado{--ad-max-width:460px;aspect-ratio:1}
 .ad-format-vertical{--ad-max-width:320px;aspect-ratio:1/1.75}
 .ad-format-horizontal .ad-campaign-picture img,.ad-layout-horizontal .ad-campaign-picture img,.ad-format-super_banner .ad-campaign-picture img,.ad-layout-super_banner .ad-campaign-picture img{object-fit:cover}
-.ad-campaign-copy{position:absolute;right:14px;bottom:14px;left:14px;z-index:5;display:flex;align-items:flex-start;gap:.36rem;max-width:min(520px,calc(100% - 28px));padding:0;color:#fff;background:transparent;flex-direction:column;text-shadow:0 2px 14px rgba(0,0,0,.42)}
-.ad-campaign-copy::before{content:"";position:absolute;inset:-2.4rem -1rem -.8rem -1rem;z-index:-1;background:linear-gradient(transparent,rgba(3,31,41,.76));border-radius:0 0 18px 18px;pointer-events:none}
-.ad-campaign-copy strong{font-size:clamp(1.05rem,2.1vw,1.55rem);line-height:1.08;font-weight:900;letter-spacing:-.03em}
-.ad-campaign-copy>span:not(.ad-campaign-button){max-width:48ch;color:rgba(255,255,255,.88);font-size:.86rem;line-height:1.35}
-.ad-campaign-logo{position:absolute!important;right:12px;top:12px;z-index:6;width:auto!important;height:46px!important;max-width:138px!important;padding:7px;background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.5);border-radius:14px;box-shadow:0 10px 24px rgba(0,0,0,.12);object-fit:contain!important;backdrop-filter:blur(8px)}
-.ad-campaign-button{display:inline-flex;position:static;align-items:center;justify-content:center;min-height:38px;margin-top:.18rem;padding:.58rem .98rem;color:#073b4c;background:#ffd54a;border:1px solid rgba(255,255,255,.35);border-radius:999px;font-size:.76rem;font-weight:900;letter-spacing:-.01em;text-shadow:none;box-shadow:0 12px 24px rgba(0,0,0,.18)}
+.ad-campaign-panel{position:relative;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:clamp(.75rem,1.8vw,1.25rem);min-height:72px;padding:clamp(.72rem,1.55vw,1rem) clamp(.85rem,2vw,1.2rem);background:linear-gradient(135deg,#fff,#f7fbfc);border-top:1px solid rgba(7,59,76,.08)}
+.ad-campaign-panel::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#ffd54a,#7cc948,#075c77);opacity:.9}
+.ad-campaign-copy{position:static;z-index:auto;display:flex;align-items:flex-start;gap:.18rem;min-width:0;max-width:52ch;padding:0;color:var(--ink);background:transparent;flex:1;flex-direction:column;text-shadow:none}
+.ad-campaign-copy::before{display:none}
+.ad-campaign-copy strong{color:var(--navy);font-size:clamp(.98rem,1.65vw,1.24rem);line-height:1.14;font-weight:900;letter-spacing:-.025em}
+.ad-campaign-copy>span:not(.ad-campaign-button){max-width:48ch;color:var(--muted);font-size:.82rem;line-height:1.35}
+.ad-campaign-logo{position:static!important;z-index:auto;width:auto!important;height:44px!important;max-width:132px!important;padding:7px;background:#fff;border:1px solid rgba(7,59,76,.1);border-radius:14px;box-shadow:0 8px 20px rgba(7,59,76,.1);object-fit:contain!important;flex:0 0 auto}
+.ad-campaign-button{display:inline-flex;position:static;align-items:center;justify-content:center;min-height:38px;padding:.58rem 1rem;color:#073b4c;background:#ffd54a;border:1px solid rgba(255,213,74,.7);border-radius:999px;font-size:.76rem;font-weight:900;letter-spacing:-.01em;text-shadow:none;box-shadow:0 10px 20px rgba(255,180,40,.2);white-space:nowrap;flex:0 0 auto}
 .ad-campaign-button::after{content:"→";margin-left:.42rem;font-weight:900}
-.ad-format-horizontal:has(.ad-campaign-copy),.ad-layout-horizontal:has(.ad-campaign-copy){height:clamp(180px,17vw,220px)}
-.ad-format-nativo,.ad-layout-nativo{--ad-max-width:900px;display:grid;grid-template-columns:minmax(240px,.82fr) minmax(300px,1fr);min-height:230px;background:#fff;border:1px solid rgba(7,59,76,.1)}
+.ad-format-nativo,.ad-layout-nativo{--ad-max-width:900px;display:grid;grid-template-columns:minmax(240px,.82fr) minmax(300px,1fr);grid-template-rows:auto;min-height:230px;background:#fff;border:1px solid rgba(7,59,76,.1)}
+.ad-format-nativo.has-panel,.ad-layout-nativo.has-panel{grid-template-rows:auto}
 .ad-format-nativo .ad-campaign-picture,.ad-layout-nativo .ad-campaign-picture{min-height:230px}
 .ad-format-nativo .ad-campaign-picture img,.ad-layout-nativo .ad-campaign-picture img{object-fit:cover}
-.ad-format-nativo .ad-campaign-copy,.ad-layout-nativo .ad-campaign-copy{position:static;align-self:stretch;justify-content:center;max-width:none;padding:clamp(1.25rem,2.6vw,2rem);color:var(--ink);background:linear-gradient(135deg,#fff,#f7fbfc);text-shadow:none}
-.ad-format-nativo .ad-campaign-copy::before,.ad-layout-nativo .ad-campaign-copy::before{display:none}
+.ad-format-nativo .ad-campaign-panel,.ad-layout-nativo .ad-campaign-panel{align-self:stretch;justify-content:center;min-height:230px;padding:clamp(1.25rem,2.6vw,2rem);border-top:0;border-left:1px solid rgba(7,59,76,.08);flex-direction:column;align-items:flex-start}
 .ad-format-nativo .ad-campaign-copy strong,.ad-layout-nativo .ad-campaign-copy strong{color:var(--navy);font-size:clamp(1.18rem,2.2vw,1.65rem)}
 .ad-format-nativo .ad-campaign-copy>span:not(.ad-campaign-button),.ad-layout-nativo .ad-campaign-copy>span:not(.ad-campaign-button){display:block;color:var(--muted);font-size:.93rem;text-shadow:none}
 .ad-format-nativo .ad-campaign-button,.ad-layout-nativo .ad-campaign-button{color:#fff;background:linear-gradient(135deg,var(--blue),#073b4c)}
-.ad-format-nativo .ad-campaign-logo,.ad-layout-nativo .ad-campaign-logo{right:auto;top:14px;left:14px}
 .ad-native-placeholder{display:grid;min-height:230px;padding:1.6rem;place-items:center;background:linear-gradient(135deg,#e7f2f4,#fff6d6)}
 .ad-native-placeholder strong{color:var(--navy);font-size:clamp(1.2rem,3vw,2rem)}
 .ad-native-logo{display:block;width:min(180px,70%);max-height:100px;object-fit:contain}
@@ -70,18 +74,21 @@
   .banner-zone{padding:.9rem 0;contain-intrinsic-size:180px}
   .ad-zone-inline{margin:1rem 0}
   .banner-item{--ad-radius:20px}
-  .ad-format-super_banner,.ad-layout-super_banner,.ad-format-horizontal,.ad-layout-horizontal{height:clamp(170px,48vw,210px)}
+  .ad-format-super_banner,.ad-layout-super_banner,.ad-format-horizontal,.ad-layout-horizontal{--ad-media-height:clamp(160px,46vw,205px);height:var(--ad-media-height)}
+  .ad-format-super_banner.has-panel,.ad-layout-super_banner.has-panel,.ad-format-horizontal.has-panel,.ad-layout-horizontal.has-panel{height:auto}
   .ad-format-retangulo,.ad-layout-retangulo{--ad-max-width:100%;height:auto;aspect-ratio:16/9}
+  .ad-format-retangulo.has-panel,.ad-layout-retangulo.has-panel{aspect-ratio:auto}
   .ad-format-quadrado{--ad-max-width:100%}
   .ad-format-vertical{--ad-max-width:290px}
   .ad-format-nativo,.ad-layout-nativo,.ad-layout-nativo.no-media,.ad-format-nativo.no-media{grid-template-columns:1fr;min-height:0}
   .ad-format-nativo .ad-campaign-picture,.ad-layout-nativo .ad-campaign-picture{height:160px;min-height:0}
-  .ad-format-nativo .ad-campaign-copy,.ad-layout-nativo .ad-campaign-copy{padding:1rem}
+  .ad-format-nativo .ad-campaign-panel,.ad-layout-nativo .ad-campaign-panel{min-height:0;padding:1rem;border-left:0;border-top:1px solid rgba(7,59,76,.08)}
   .ad-native-placeholder{min-height:140px;padding:1rem}
-  .ad-campaign-copy{right:10px;bottom:10px;left:10px;max-width:calc(100% - 20px)}
+  .ad-campaign-panel{align-items:flex-start;gap:.58rem;min-height:0;padding:.78rem .86rem;flex-direction:column}
+  .ad-campaign-copy{max-width:100%}
   .ad-campaign-copy strong{font-size:clamp(1rem,5vw,1.28rem)}
   .ad-campaign-copy>span:not(.ad-campaign-button){display:none}
-  .ad-campaign-logo{right:9px;top:9px;height:34px!important;max-width:94px!important;border-radius:11px}
+  .ad-campaign-logo{height:34px!important;max-width:104px!important;border-radius:11px}
   .ad-campaign-button{min-height:34px;padding:.45rem .75rem;font-size:.7rem}
   .ad-sponsored{top:8px;left:8px;font-size:.52rem}
   .ad-rotator-controls>button{width:38px;height:38px}
