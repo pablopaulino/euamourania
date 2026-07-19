@@ -48,10 +48,10 @@ body.tourism-page .tourism-explorer{position:relative;z-index:2;margin-top:clamp
 .tourism-card-details svg{width:19px;height:19px;margin-top:.15rem;fill:none;stroke:var(--blue);stroke-linecap:round;stroke-linejoin:round;stroke-width:1.8}
 .tourism-card-details small{display:block;margin-bottom:.08rem;color:#788890;font-size:.64rem;font-weight:750;letter-spacing:.07em;text-transform:uppercase}
 .tourism-card-actions{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1rem}
-.tourism-card-action{display:flex;align-items:center;justify-content:center;gap:.55rem;min-height:42px;padding:.68rem .85rem;border-radius:999px;font-size:.8rem;font-weight:850;text-decoration:none;transition:.18s ease}
-.tourism-card-action.primary{flex:1 1 150px;color:#fff;background:var(--blue);box-shadow:0 12px 26px rgba(11,79,108,.16)}
-.tourism-card-action.secondary{flex:0 1 auto;color:var(--blue);background:#eef7f8;border:1px solid rgba(7,59,76,.08)}
-.tourism-card-action.primary span:last-child{display:grid;width:24px;height:24px;place-items:center;color:var(--blue);background:#fff;border-radius:50%;transition:.18s ease}
+.tourism-card-action{display:flex;align-items:center;justify-content:center;gap:.48rem;min-height:42px;padding:.66rem .9rem;border-radius:999px;font-size:.8rem;font-weight:850;text-decoration:none;transition:.18s ease}
+.tourism-card-action.primary{flex:1 1 150px;color:#fff;background:linear-gradient(135deg,var(--blue),#073b4c);box-shadow:0 12px 26px rgba(11,79,108,.14)}
+.tourism-card-action.secondary{flex:0 1 auto;color:var(--blue);background:#f3fbfc;border:1px solid rgba(7,59,76,.1)}
+.tourism-card-action.primary span:last-child{display:inline-flex;align-items:center;justify-content:center;width:auto;height:auto;color:inherit;background:transparent;border-radius:0;transition:.18s ease}
 .tourism-card-action.primary:hover{background:var(--navy)}
 .tourism-card-action.secondary:hover{color:#fff;background:var(--navy)}
 .tourism-card-action.primary:hover span:last-child{transform:translateX(2px)}
