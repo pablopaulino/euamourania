@@ -90,11 +90,12 @@
 [data-banner="guia_entre_estabelecimentos"] .ad-format-horizontal.has-panel>.ad-campaign-picture,
 [data-banner="guia_entre_estabelecimentos"] .ad-layout-super_banner.has-panel>.ad-campaign-picture,
 [data-banner="guia_entre_estabelecimentos"] .ad-format-super_banner.has-panel>.ad-campaign-picture{aspect-ratio:16/6;max-height:190px}
-[data-banner="guia_entre_estabelecimentos"] .ad-campaign-panel{min-height:58px;padding:.62rem .82rem}
-[data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy strong{font-size:clamp(.9rem,1.4vw,1.05rem)}
-[data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy>span:not(.ad-campaign-button){font-size:.74rem}
-[data-banner="guia_entre_estabelecimentos"] .ad-campaign-logo{height:36px!important;max-width:98px!important}
-[data-banner="guia_entre_estabelecimentos"] .ad-campaign-button{min-height:33px;padding:.46rem .72rem;font-size:.68rem}
+[data-banner="guia_entre_estabelecimentos"] .ad-campaign-panel{min-height:96px;padding:1rem 1.15rem .9rem}
+[data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy{gap:.26rem}
+[data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy strong{font-size:clamp(1.12rem,1.65vw,1.38rem);line-height:1.1}
+[data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy>span:not(.ad-campaign-button){font-size:.86rem;line-height:1.32}
+[data-banner="guia_entre_estabelecimentos"] .ad-campaign-logo{height:52px!important;max-width:140px!important}
+[data-banner="guia_entre_estabelecimentos"] .ad-campaign-button{min-height:42px;padding:.66rem 1rem;font-size:.78rem}
 [data-banner="noticias_entre_listagem"].ad-zone-inline{margin:.75rem 0 1rem}
 [data-banner="noticias_entre_listagem"] .ad-layout-retangulo.has-panel>.ad-campaign-picture,
 [data-banner="noticias_entre_listagem"] .ad-format-retangulo.has-panel>.ad-campaign-picture,
@@ -142,55 +143,38 @@
   .ad-campaign-logo{height:42px!important;max-width:132px!important;padding:2px;border-radius:9px}
   .ad-campaign-button{min-height:34px;padding:.45rem .75rem;font-size:.7rem}
   .ad-sponsored{top:8px;right:8px;left:auto;font-size:.48rem}
-  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .banner-item.has-panel{
-    display:grid!important;
-    grid-template-columns:42% minmax(0,58%)!important;
-    grid-template-rows:auto!important;
-    min-height:148px!important;
-    height:auto!important;
-    border-radius:22px;
-    box-shadow:0 16px 36px rgba(7,59,76,.09);
-  }
-  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .banner-item.has-panel>.ad-campaign-picture{
-    grid-column:1;
-    grid-row:1;
-    height:148px!important;
-    min-height:148px!important;
-    max-height:148px!important;
-  }
-  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .banner-item.has-panel>.ad-campaign-picture img{
-    height:100%!important;
-    object-fit:cover!important;
-  }
   .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-panel{
-    grid-column:2;
-    grid-row:1;
-    display:grid;
-    align-content:center;
-    gap:.5rem;
-    min-height:148px;
-    padding:1.55rem .85rem .72rem;
-    border-top:0;
-    border-left:1px solid rgba(7,59,76,.07);
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:.68rem;
+    min-height:68px;
+    padding:.66rem .72rem;
+    flex-direction:row;
   }
-  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-panel::before{
-    inset:0 auto 0 0;
-    width:3px;
-    height:auto;
+  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-panel::before{height:2px}
+  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-logo{
+    display:block!important;
+    width:42px!important;
+    height:42px!important;
+    max-width:42px!important;
+    padding:3px;
+    border-radius:12px;
+    flex:0 0 42px;
   }
-  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-logo{display:none!important}
   .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-copy strong{
     display:-webkit-box;
     overflow:hidden;
     font-size:.98rem;
     line-height:1.1;
-    -webkit-line-clamp:2;
+    -webkit-line-clamp:1;
     -webkit-box-orient:vertical;
   }
   .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-button{
     width:max-content;
-    min-height:33px;
-    padding:.44rem .7rem;
+    min-height:34px;
+    margin-left:auto;
+    padding:.45rem .72rem;
     color:#fff;
     background:linear-gradient(135deg,#075c77,#073b4c);
     border-color:rgba(255,213,74,.7);
