@@ -14,11 +14,11 @@ const esc = (v = "") => String(v).replace(/[&<>'"]/g, c => ({
 const safeImage = v => /^https?:\/\//i.test(v || "") || /^assets\//.test(v || "") ? esc(v) : "";
 const placeholder = '<div class="media-placeholder"><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia"></div>';
 const normalize = v => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-const slugify = v => normalize(v).trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
 const PAGE_SIZE = 6;
 let itens = [];
 let itensFiltrados = [];
 let quantidadeVisivel = PAGE_SIZE;
+let carregandoAutomatico = false;
 
 function renderizar(dados) {
   itensFiltrados = dados;
@@ -33,11 +33,11 @@ function renderizar(dados) {
   const visiveis = dados.slice(0, quantidadeVisivel);
   container.innerHTML = visiveis.map(item => {
     const detalhes = item.slug ? `guia/${encodeURIComponent(item.slug)}` : `guia-details.html?slug=${encodeURIComponent(item.id)}`;
-    return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}">${item.recomendado ? '<span class="badge-destaque">Recomendado</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" loading="lazy">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao)}</p><div class="guide-info">${item.endereco ? `<p><small>Endereço</small>${esc(item.endereco)}</p>` : ""}${item.horario ? `<p><small>Horário</small>${esc(item.horario)}</p>` : ""}</div><div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes</a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp">WhatsApp</a>` : ""}</div></div></article>`;
+    return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}"${item.recomendado ? ' data-guide-featured="true"' : ""}>${item.recomendado ? '<span class="badge-destaque">Destaque</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" loading="lazy">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao)}</p><div class="guide-info">${item.endereco ? `<p><small>Endereço</small>${esc(item.endereco)}</p>` : ""}${item.horario ? `<p><small>Horário</small>${esc(item.horario)}</p>` : ""}</div><div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes</a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp">WhatsApp</a>` : ""}</div></div></article>`;
   }).join("");
   const restantes = Math.max(0, dados.length - visiveis.length);
   loadMore.hidden = restantes === 0;
-  loadMore.textContent = restantes ? `Ver mais estabelecimentos (${restantes})` : "Ver mais estabelecimentos";
+  loadMore.textContent = restantes ? `Carregando mais estabelecimentos (${restantes})` : "Todos os estabelecimentos foram exibidos";
   container.querySelectorAll(".card-img-top").forEach(img => img.addEventListener("error", () => { img.parentElement.innerHTML = placeholder; }, { once: true }));
   document.dispatchEvent(new CustomEvent("guia:renderizado"));
 }
@@ -59,11 +59,25 @@ function renderizarFiltros(categorias) {
   });
 }
 
-loadMore.addEventListener("click", () => {
+function carregarMais(scroll = false) {
+  if (loadMore.hidden) return;
   quantidadeVisivel += PAGE_SIZE;
   renderizar(itensFiltrados);
-  requestAnimationFrame(() => container.children[Math.max(0, quantidadeVisivel - PAGE_SIZE)]?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
-});
+  if (scroll) requestAnimationFrame(() => container.children[Math.max(0, quantidadeVisivel - PAGE_SIZE)]?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+}
+
+loadMore.addEventListener("click", () => carregarMais(true));
+
+if ("IntersectionObserver" in window) {
+  document.body.classList.add("guia-auto-load");
+  const observer = new IntersectionObserver(entries => {
+    if (!entries.some(entry => entry.isIntersecting) || carregandoAutomatico || loadMore.hidden) return;
+    carregandoAutomatico = true;
+    carregarMais(false);
+    requestAnimationFrame(() => { carregandoAutomatico = false; });
+  }, { rootMargin: "420px 0px" });
+  observer.observe(loadMore);
+}
 
 async function carregar() {
   if (!publicSupabaseConfigured()) {
