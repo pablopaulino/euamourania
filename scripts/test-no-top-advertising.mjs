@@ -15,7 +15,7 @@ for (const position of disabled) {
 }
 
 must(source.includes('insertZone("home_hero_conteudo"'), "Publicidade entre hero e conteúdo foi removida por engano.");
-must(source.includes('insertBetweenCards("noticias_entre_listagem"'), "Publicidade entre listagens de notícias foi removida por engano.");
+must(source.includes('insertBetweenCards("noticias_entre_listagem"') || source.includes('insertRepeatedBetweenCards("noticias_entre_listagem"'), "Publicidade entre listagens de notícias foi removida por engano.");
 must(source.includes('insertZone("guia_rodape"'), "Publicidade de rodapé do guia foi removida por engano.");
 
 console.log("Publicidade validada: banners de topo desativados e demais posições preservadas.");

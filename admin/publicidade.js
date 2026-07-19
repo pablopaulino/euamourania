@@ -1,5 +1,6 @@
 import { exigirAdministrador, sair } from "./auth.js";
 import { listarCampanhas, buscarCampanha, salvarCampanha, excluirCampanha, uploadMidia, obterResumoPublicidade, obterMetricasDiarias } from "../assets/js/services/publicidadeService.js";
+import { openLibraryPicker, processAndUpload } from "./media-upload.js";
 
 const $ = s => document.querySelector(s);
 const state = { page: 1, perPage: 10, total: 0, timer: null, summaries: new Map(), currentConfig: {} };
@@ -130,6 +131,48 @@ function enhanceCreativeForm() {
   imageField.insertAdjacentHTML("afterend",`<div class="ads-field"><label for="formato">Formato do anúncio</label><select id="formato" name="formato">${Object.entries(formats).map(([value,[label]])=>`<option value="${value}">${label}</option>`).join("")}</select><small id="format-help">Adapta-se à posição escolhida.</small></div><div class="ads-field format-size-guide" id="format-size-guide" aria-live="polite"></div><div class="ads-field"><label for="imagem_mobile_url">Imagem para celular</label><div class="upload-row"><input id="imagem_mobile_url" name="imagem_mobile_url" type="text" inputmode="url" placeholder="Opcional · URL da versão mobile"><input id="mobile-image-upload" type="file" accept="image/*" title="Enviar imagem mobile"></div><small class="upload-state" id="mobile-image-state">Se não houver versão mobile, a imagem principal será adaptada.</small></div><div class="ads-field"><label for="titulo_publico">Título público</label><input id="titulo_publico" name="titulo_publico" maxlength="100" placeholder="Usado principalmente no formato nativo"></div><div class="ads-field"><label for="texto_publico">Texto público</label><textarea id="texto_publico" name="texto_publico" rows="3" maxlength="240" placeholder="Descrição curta e objetiva do anúncio"></textarea></div><div class="ads-field"><label for="rotacao_segundos">Tempo de exibição</label><input id="rotacao_segundos" name="rotacao_segundos" type="number" min="5" max="30" value="8"><small>Segundos desta campanha antes da próxima. Padrão: 8 segundos.</small></div><div class="ads-field full creative-preview-field"><div class="creative-preview-head"><div><label>Prévia real do anúncio</label><small>Confira formato, imagem, logo, texto e botão antes de publicar.</small></div><div class="preview-device-switch" role="group" aria-label="Dispositivo da prévia"><button type="button" class="active" data-preview-device="desktop" aria-pressed="true">Desktop</button><button type="button" data-preview-device="mobile" aria-pressed="false">Celular</button></div></div><div id="campaign-preview" class="campaign-preview" data-device="desktop"></div></div>`);
   const dashboard=$("#dashboard-view");
   if(dashboard&&!$("#placement-inventory"))dashboard.insertAdjacentHTML("beforeend",'<article class="ads-card placement-card"><div class="inventory-heading"><div><h3>Inventário de posições</h3><p>Veja onde existem campanhas configuradas no portal.</p></div><span>Formatos responsivos</span></div><div id="placement-inventory" class="placement-inventory"><div class="skeleton"></div></div></article>');
+  enhanceAdImageLibrary();
+}
+
+function enhanceAdImageLibrary() {
+  [
+    ["logo_empresa_url", "publicidade/logos", "square", "Escolher logo da biblioteca"],
+    ["imagem_url", "publicidade/campanhas", "card", "Escolher imagem da biblioteca"],
+    ["imagem_mobile_url", "publicidade/mobile", "card", "Escolher imagem mobile da biblioteca"]
+  ].forEach(([inputId, folder, preset, label]) => {
+    const input = $("#" + inputId);
+    if (!input || input.dataset.adsLibraryEnhanced) return;
+    input.dataset.adsLibraryEnhanced = "true";
+    const row = input.closest(".upload-row") || input;
+    const tools = document.createElement("div");
+    tools.className = "ads-library-tools";
+    tools.innerHTML = `<button type="button" class="admin-button secondary" data-ad-library="${inputId}">${label}</button><small>Use uma imagem já enviada, ou edite outro formato pela biblioteca.</small>`;
+    row.insertAdjacentElement("afterend", tools);
+    tools.querySelector("[data-ad-library]").addEventListener("click", async () => {
+      const button = tools.querySelector("[data-ad-library]");
+      const stateEl = input.closest(".ads-field")?.querySelector(".upload-state") || tools.querySelector("small");
+      button.disabled = true;
+      stateEl.textContent = "Abrindo biblioteca…";
+      try {
+        await openLibraryPicker({
+          folder,
+          preset,
+          onSelect: url => {
+            input.value = url;
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+            updateCreativePreview();
+          }
+        });
+        stateEl.textContent = input.value ? "Imagem da biblioteca selecionada." : "Seleção cancelada.";
+      } catch (error) {
+        stateEl.textContent = errorMessage(error);
+        toast(errorMessage(error), "error");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
 }
 
 function updateCreativePreview() {
@@ -268,7 +311,20 @@ async function handleSave(event) {
 
 async function upload(input,target,stateEl) {
   const file=input.files?.[0]; if(!file)return; stateEl.textContent="Enviando arquivo…"; input.disabled=true;
-  try { target.value=await uploadMidia(file,file.type.startsWith("video/")?"videos":"imagens"); stateEl.textContent="Arquivo enviado com sucesso."; toast("Mídia enviada.");updateCreativePreview(); }
+  try {
+    if(file.type.startsWith("video/")){
+      target.value=await uploadMidia(file,"videos");
+    } else {
+      const folder = target.id === "logo_empresa_url" ? "publicidade/logos" : target.id === "imagem_mobile_url" ? "publicidade/mobile" : "publicidade/campanhas";
+      const preset = target.id === "logo_empresa_url" ? "square" : "card";
+      const result = await processAndUpload(file, folder, preset);
+      if(!result){stateEl.textContent="Envio cancelado.";return}
+      target.value=result.url;
+    }
+    stateEl.textContent="Arquivo enviado com sucesso na biblioteca.";
+    toast("Mídia enviada.");
+    updateCreativePreview();
+  }
   catch(error){stateEl.textContent=errorMessage(error);toast(errorMessage(error),"error");}
   finally{input.disabled=false;input.value="";}
 }

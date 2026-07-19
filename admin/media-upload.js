@@ -42,6 +42,7 @@ function canvasBlob(canvas,type="image/webp",quality=.86){
 }
 
 function openImageEditor(file,initialPreset="wide",keepOriginal=true){
+ ensureStyles();
  return new Promise((resolve,reject)=>{
   const objectUrl=URL.createObjectURL(file);
   const image=new Image();
@@ -168,7 +169,7 @@ function openImageEditor(file,initialPreset="wide",keepOriginal=true){
  });
 }
 
-async function processAndUpload(file,folder,preset,{keepOriginal=true}={}){
+export async function processAndUpload(file,folder,preset,{keepOriginal=true}={}){
  const edited=await openImageEditor(file,preset,keepOriginal);
  if(!edited)return null;
  if(edited.original){
@@ -190,7 +191,8 @@ async function fileFromUrl(item){
  return new File([blob],name,{type:blob.type||item.mime_type||"image/jpeg",lastModified:Date.now()});
 }
 
-async function openLibraryPicker({folder,preset,onSelect}){
+export async function openLibraryPicker({folder,preset,onSelect}){
+ ensureStyles();
  const rows=await listarMidiasDisponiveis();
  return new Promise(resolve=>{
   const previousActive=document.activeElement;

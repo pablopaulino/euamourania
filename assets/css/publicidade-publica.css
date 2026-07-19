@@ -7,10 +7,10 @@
 .ad-zone-inline .ad-rotator{--ad-zone-width:840px}
 .ad-slide[hidden]{display:none!important}
 .ad-slide.active{animation:ad-slide-in .28s ease}
-.banner-item{--ad-radius:24px;--ad-media-height:auto;position:relative;display:block;width:min(100%,var(--ad-max-width,940px));margin-inline:auto;overflow:hidden;color:inherit;background:#fff;border:1px solid rgba(7,59,76,.08);border-radius:var(--ad-radius);box-shadow:0 14px 36px rgba(7,59,76,.1);text-decoration:none;isolation:isolate;transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+.banner-item{--ad-radius:24px;--ad-media-height:auto;position:relative;display:block;width:min(100%,var(--ad-max-width,940px));margin-inline:auto;overflow:hidden;color:inherit;background:linear-gradient(135deg,#fff 0%,#fffdf7 100%);border:1px solid rgba(247,201,72,.36);border-radius:var(--ad-radius);box-shadow:0 16px 42px rgba(7,59,76,.09);text-decoration:none;isolation:isolate;transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
 .banner-item.has-panel{display:grid;grid-template-rows:minmax(0,var(--ad-media-height)) auto;height:auto!important}
 .banner-item:hover{transform:translateY(-2px);box-shadow:0 20px 48px rgba(7,59,76,.18);filter:saturate(1.04)}
-.ad-sponsored{position:absolute;top:12px;left:12px;z-index:6;display:inline-flex;align-items:center;min-height:25px;padding:.25rem .62rem;color:#fff;background:rgba(3,31,41,.72);border:1px solid rgba(255,255,255,.18);border-radius:999px;font-size:.56rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(9px)}
+.ad-sponsored{position:absolute;top:12px;right:12px;left:auto;z-index:6;display:inline-flex;align-items:center;min-height:24px;padding:.22rem .58rem;color:#073b4c;background:rgba(255,246,200,.92);border:1px solid rgba(247,201,72,.58);border-radius:999px;font-size:.52rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(9px)}
 .ad-campaign-picture{position:relative;z-index:1;display:block;width:100%;height:100%}
 .banner-item.has-panel>.ad-campaign-picture{height:var(--ad-media-height)}
 .banner-item .ad-campaign-picture img{display:block;width:100%;height:100%;max-height:none;object-fit:cover;background:#eef5f6}
@@ -24,7 +24,7 @@
 .ad-format-quadrado{--ad-max-width:460px;aspect-ratio:1}
 .ad-format-vertical{--ad-max-width:320px;aspect-ratio:1/1.75}
 .ad-format-horizontal .ad-campaign-picture img,.ad-layout-horizontal .ad-campaign-picture img,.ad-format-super_banner .ad-campaign-picture img,.ad-layout-super_banner .ad-campaign-picture img{object-fit:cover}
-.ad-campaign-panel{position:relative;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:clamp(.75rem,1.8vw,1.25rem);min-height:72px;padding:clamp(.72rem,1.55vw,1rem) clamp(.85rem,2vw,1.2rem);background:linear-gradient(135deg,#fff,#f7fbfc);border-top:1px solid rgba(7,59,76,.08)}
+.ad-campaign-panel{position:relative;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:clamp(.75rem,1.8vw,1.25rem);min-height:72px;padding:clamp(.72rem,1.55vw,1rem) clamp(.85rem,2vw,1.2rem);background:radial-gradient(circle at 100% 0%,rgba(247,201,72,.16),transparent 7rem),linear-gradient(135deg,#fff,#fbfeff);border-top:1px solid rgba(7,59,76,.07)}
 .ad-campaign-panel::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#ffd54a,#7cc948,#075c77);opacity:.9}
 .ad-campaign-copy{position:static;z-index:auto;display:flex;align-items:flex-start;gap:.18rem;min-width:0;max-width:52ch;padding:0;color:var(--ink);background:transparent;flex:1;flex-direction:column;text-shadow:none}
 .ad-campaign-copy::before{display:none}
@@ -53,12 +53,12 @@
 .ad-zone-inline .ad-rotator-controls{margin-bottom:.25rem}
 .ad-zone-listing{grid-column:1/-1;margin:clamp(.8rem,2vw,1.2rem) 0;padding:0;background:transparent;contain-intrinsic-size:auto}
 .ad-zone-listing .ad-rotator{width:100%;max-width:none;margin:0}
-.ad-zone-listing .banner-item{display:grid;grid-template-columns:minmax(220px,.42fr) minmax(0,.58fr);min-height:160px;overflow:hidden;border:1px solid rgba(7,59,76,.1);border-radius:24px;background:#fff;box-shadow:0 16px 40px rgba(7,59,76,.09)}
+.ad-zone-listing .banner-item{display:grid;grid-template-columns:minmax(220px,.36fr) minmax(0,.64fr);min-height:156px;overflow:hidden;border:1px solid rgba(247,201,72,.48);border-radius:24px;background:linear-gradient(135deg,#fff 0%,#fffdf6 100%);box-shadow:0 14px 34px rgba(7,59,76,.075)}
 .ad-zone-listing .banner-item:hover{transform:translateY(-2px);box-shadow:0 20px 48px rgba(7,59,76,.14)}
 .ad-zone-listing .ad-sponsored{position:absolute;top:12px;right:12px;left:auto;z-index:7;color:#073b4c;background:#ffd54a;border-color:rgba(255,255,255,.45)}
 .ad-zone-listing .ad-campaign-picture{height:100%;min-height:160px}
 .ad-zone-listing .ad-campaign-picture img{height:100%;object-fit:cover}
-.ad-zone-listing .ad-campaign-panel{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:160px;padding:1rem 1.05rem 1rem 1.15rem;background:linear-gradient(135deg,#fff,#f7fbfc);border:0}
+.ad-zone-listing .ad-campaign-panel{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:156px;padding:1.12rem 1.05rem .88rem 1.15rem;background:radial-gradient(circle at 100% 0%,rgba(247,201,72,.17),transparent 6rem),linear-gradient(135deg,#fff,#fffdf8);border:0}
 .ad-zone-listing .ad-campaign-panel::before{inset:0 auto 0 0;width:4px;height:auto;background:linear-gradient(180deg,#ffd54a,#7cc948,#075c77)}
 .ad-zone-listing .ad-campaign-logo{height:44px!important;max-width:120px!important;box-shadow:none;background:transparent}
 .ad-zone-listing .ad-campaign-copy strong{font-size:clamp(1rem,1.7vw,1.28rem);line-height:1.12}
@@ -141,7 +141,7 @@
   .ad-campaign-copy>span:not(.ad-campaign-button){display:none}
   .ad-campaign-logo{height:42px!important;max-width:132px!important;padding:2px;border-radius:9px}
   .ad-campaign-button{min-height:34px;padding:.45rem .75rem;font-size:.7rem}
-  .ad-sponsored{top:8px;left:8px;font-size:.52rem}
+  .ad-sponsored{top:8px;right:8px;left:auto;font-size:.48rem}
   .ad-rotator-controls>button{width:38px;height:38px}
   .ad-popup{padding:12px}.ad-popup-card{border-radius:15px}
   [data-banner="noticia_meio"].ad-zone-inline{margin:1.05rem 0;padding:.78rem 0;contain-intrinsic-size:0}
@@ -193,15 +193,15 @@
   [data-banner="noticias_entre_listagem"] .ad-campaign-copy>span:not(.ad-campaign-button){display:none}
   [data-banner="noticias_entre_listagem"] .ad-campaign-button{min-height:31px;padding:.4rem .58rem;font-size:.65rem}
   .ad-zone-listing{margin:.72rem 0;padding:0}
-  .ad-zone-listing .banner-item.has-panel{display:grid;grid-template-columns:112px minmax(0,1fr);grid-template-rows:auto;min-height:112px;border-radius:22px;box-shadow:0 14px 34px rgba(7,59,76,.085)}
-  .ad-zone-listing .ad-sponsored{top:auto;right:auto;bottom:.58rem;left:.58rem;padding:.2rem .46rem;color:#073b4c;background:#ffd54a;border:1px solid rgba(255,255,255,.7);font-size:.46rem;box-shadow:0 6px 14px rgba(7,59,76,.12)}
-  .ad-zone-listing .ad-campaign-picture{grid-column:1;grid-row:1;height:112px!important;min-height:112px!important;max-height:112px!important}
+  .ad-zone-listing .banner-item.has-panel{display:grid;grid-template-columns:30% minmax(0,70%);grid-template-rows:auto;min-height:116px;border:1px solid rgba(247,201,72,.6);border-radius:22px;background:linear-gradient(135deg,#fff 0%,#fffdf7 100%);box-shadow:none}
+  .ad-zone-listing .ad-sponsored{top:.48rem;right:.64rem;bottom:auto;left:auto;min-height:18px;padding:.12rem .38rem;color:#073b4c;background:#fff6c8;border:1px solid rgba(247,201,72,.55);font-size:.41rem;box-shadow:none}
+  .ad-zone-listing .ad-campaign-picture{grid-column:1;grid-row:1;height:116px!important;min-height:116px!important;max-height:116px!important}
   .ad-zone-listing .ad-campaign-picture img{width:100%;height:100%!important;object-fit:cover}
-  .ad-zone-listing .ad-campaign-panel{grid-column:2;grid-row:1;display:grid;grid-template-columns:minmax(0,1fr);align-content:center;gap:.38rem;min-height:112px;padding:.72rem .75rem;background:#fff;border:0}
+  .ad-zone-listing .ad-campaign-panel{grid-column:2;grid-row:1;display:grid;grid-template-columns:minmax(0,1fr);align-content:end;gap:.4rem;min-height:116px;padding:1.34rem .75rem .56rem;background:radial-gradient(circle at 100% 0%,rgba(247,201,72,.16),transparent 3.5rem),linear-gradient(135deg,#fff,#fffdf8);border:0}
   .ad-zone-listing .ad-campaign-panel::before{width:3px;height:auto}
   .ad-zone-listing .ad-campaign-copy strong{display:-webkit-box;overflow:hidden;font-size:.94rem;line-height:1.12;-webkit-line-clamp:2;-webkit-box-orient:vertical}
   .ad-zone-listing .ad-campaign-copy>span:not(.ad-campaign-button){display:none}
-  .ad-zone-listing .ad-campaign-button{width:max-content;min-height:33px;padding:.45rem .68rem;color:#fff;background:linear-gradient(135deg,#075c77,#073b4c);font-size:.68rem;box-shadow:0 10px 20px rgba(7,59,76,.16)}
+  .ad-zone-listing .ad-campaign-button{width:max-content;min-height:32px;padding:.42rem .68rem;color:#fff;background:linear-gradient(135deg,#075c77,#073b4c);font-size:.66rem;box-shadow:0 10px 20px rgba(7,59,76,.16)}
   .ad-zone-listing .ad-rotator-controls{display:none!important}
   #guia-container .ad-zone-listing,
   .news-card-grid .ad-zone-listing{margin:.72rem 0;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;filter:none!important;contain-intrinsic-size:auto!important}
@@ -216,7 +216,7 @@
   #guia-container .ad-zone-listing .ad-campaign-picture img,
   .news-card-grid .ad-zone-listing .ad-campaign-picture img{width:100%!important;height:100%!important;object-fit:cover!important}
   #guia-container .ad-zone-listing .ad-campaign-panel,
-  .news-card-grid .ad-zone-listing .ad-campaign-panel{position:relative;grid-column:2!important;grid-row:1!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-content:center!important;gap:.44rem!important;min-height:116px!important;padding:1.42rem .82rem .56rem!important;background:radial-gradient(circle at 100% 0%,rgba(247,201,72,.18),transparent 3.5rem),linear-gradient(135deg,#fff,#fffdf7)!important;border:0!important}
+  .news-card-grid .ad-zone-listing .ad-campaign-panel{position:relative;grid-column:2!important;grid-row:1!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-content:end!important;gap:.44rem!important;min-height:116px!important;padding:1.42rem .82rem .56rem!important;background:radial-gradient(circle at 100% 0%,rgba(247,201,72,.18),transparent 3.5rem),linear-gradient(135deg,#fff,#fffdf7)!important;border:0!important}
   #guia-container .ad-zone-listing .ad-campaign-panel::before,
   .news-card-grid .ad-zone-listing .ad-campaign-panel::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;height:auto;background:linear-gradient(180deg,#ffd54a,#7cc948,#075c77)}
   #guia-container .ad-zone-listing .ad-sponsored,
