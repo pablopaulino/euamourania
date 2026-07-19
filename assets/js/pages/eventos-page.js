@@ -1,4 +1,4 @@
-﻿import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
+import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, char => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
@@ -29,7 +29,7 @@ async function safeRows(table, params, options) {
 function agendaCard(evento) {
   const quando = dateParts(evento.data_inicio);
   const imagem = safeImage(evento.imagem_url);
-  const url = `/eventos/agenda/${encodeURIComponent(evento.slug)}`;
+  const url = `/eventos/detalhes.html?slug=${encodeURIComponent(evento.slug)}`;
   return `<article class="event-card" data-event-id="${esc(evento.id)}">
     ${imagem ? `<a href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.titulo)}" loading="lazy"></a>` : '<div class="media-placeholder">Eu Amo Urânia</div>'}
     <div class="event-card-body">

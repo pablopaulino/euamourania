@@ -365,7 +365,7 @@ function render() {
     insertInsideArticle();
     insertZone("noticia_final", ".related-news");
   }
-  if (path === "/guia" || path.endsWith("guia.html")) {
+  if (path.endsWith("guia.html")) {
     insertBetweenCards("guia_entre_estabelecimentos", "#guia-container", ".card-guia", 5);
     insertZone("guia_rodape", ".site-footer");
   }
@@ -373,11 +373,11 @@ function render() {
     insertFirstAvailable("guia_entre_estabelecimentos", [".guide-related-sections", ".guide-business-actions", ".tourism-detail-layout", "main"], "afterend", true);
     insertZone("guia_rodape", ".site-footer");
   }
-  if (path === "/turismo" || path.endsWith("turismo.html")) {
+  if (path.endsWith("turismo.html")) {
     insertBetweenCards("turismo_entre_cartoes", "#turismo-container", ".card-guia", 2);
     insertZone("turismo_rodape", ".site-footer");
   }
-  if (path.includes("turismo-details") || path.startsWith("/turismo/")) {
+  if (path.includes("turismo-details")) {
     insertFirstAvailable("turismo_entre_cartoes", [".tourism-related-sections", ".tourism-detail-layout", ".tourism-detail-content", "main"], "afterend", true);
     insertZone("turismo_rodape", ".site-footer");
   }
@@ -386,7 +386,7 @@ function render() {
     insertFirstAvailable("eventos_entre_eventos", [".evento-edicoes", ".event-editions", ".event-detail-content", ".event-main-content", "main"], "afterend", true);
     insertZone("eventos_rodape", ".site-footer");
   }
-  if (path.includes("/links") || path.includes("/urania") || path.includes("/colabore") || path.includes("/categorias") || path === "/quem-somos" || path.endsWith("quem-somos.html")) {
+  if (path.includes("/links") || path.includes("/urania") || path.includes("/colabore") || path.includes("/categorias") || path.endsWith("quem-somos.html")) {
     insertFirstAvailable("home_entre_secoes", [".newsletter-section", ".urania-cta", ".links-footer-actions", ".editorial-newsletter", ".site-footer"], "beforebegin");
   }
   insertGlobalZone();
@@ -407,11 +407,11 @@ function renderAdSense() {
     insertAdSenseInsideArticle();
     insertAdSenseZone("noticia_final", adsense.slots.finalRodape, ".related-news");
   }
-  if (path === "/guia" || path.endsWith("guia.html")) {
+  if (path.endsWith("guia.html")) {
     insertAdSenseBetweenCards("guia_entre_estabelecimentos", adsense.slots.listagens, "#guia-container", ".card-guia", 5);
     insertAdSenseZone("guia_rodape", adsense.slots.finalRodape, ".site-footer");
   }
-  if (path === "/turismo" || path.endsWith("turismo.html")) {
+  if (path.endsWith("turismo.html")) {
     insertAdSenseBetweenCards("turismo_entre_cartoes", adsense.slots.listagens, "#turismo-container", ".card-guia", 2);
     insertAdSenseZone("turismo_rodape", adsense.slots.finalRodape, ".site-footer");
   }

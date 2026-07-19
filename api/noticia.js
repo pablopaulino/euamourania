@@ -60,18 +60,18 @@ async function getConfig() {
 
 function renderHeader({ siteName, logo, current }) {
   const nav = [
-    ["Início", "/", "inicio"],
-    ["Guia", "/guia", "guia"],
-    ["Turismo", "/turismo", "turismo"],
+    ["Início", "/index.html", "inicio"],
+    ["Guia", "/guia.html", "guia"],
+    ["Turismo", "/turismo.html", "turismo"],
     ["Notícias", "/news/", "noticias"],
-    ["Quem somos", "/quem-somos", "quem-somos"]
+    ["Quem somos", "/quem-somos.html", "quem-somos"]
   ].map(([label, href, key]) => `<li><a href="${href}"${current === key ? ' aria-current="page"' : ""}>${label}</a></li>`).join("");
 
-  return `<header class="site-header"><div class="container header-content"><a class="brand" href="/"><img src="${esc(logo)}" alt="${esc(siteName)}" width="190" height="56"></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal"><span class="menu-icon" aria-hidden="true"></span><span>Menu</span></button><nav class="main-nav" id="menu-principal" aria-label="Navegação principal"><ul>${nav}</ul></nav></div></header>`;
+  return `<header class="site-header"><div class="container header-content"><a class="brand" href="/index.html"><img src="${esc(logo)}" alt="${esc(siteName)}" width="190" height="56"></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal"><span class="menu-icon" aria-hidden="true"></span><span>Menu</span></button><nav class="main-nav" id="menu-principal" aria-label="Navegação principal"><ul>${nav}</ul></nav></div></header>`;
 }
 
 function renderFooter({ siteName, logo }) {
-  return `<footer class="site-footer"><div class="container footer-grid"><div><img src="${esc(logo)}" alt="${esc(siteName)}" class="footer-logo" width="170" height="50"><p>Informação, turismo e comunidade.</p></div><nav><a href="mailto:euamourania@gmail.com">Contato</a><a href="/termos-de-servico">Termos</a><a href="/politica-de-privacidade">Privacidade</a></nav></div><div class="container footer-bottom"><p>&copy; <span id="year"></span> ${esc(siteName)}.</p></div></footer>`;
+  return `<footer class="site-footer"><div class="container footer-grid"><div><img src="${esc(logo)}" alt="${esc(siteName)}" class="footer-logo" width="170" height="50"><p>Informação, turismo e comunidade.</p></div><nav><a href="mailto:euamourania@gmail.com">Contato</a><a href="/termos-de-servico.html">Termos</a><a href="/politica-de-privacidade.html">Privacidade</a></nav></div><div class="container footer-bottom"><p>&copy; <span id="year"></span> ${esc(siteName)}.</p></div></footer>`;
 }
 
 async function renderGuia(req, res, slug) {
@@ -116,14 +116,14 @@ async function renderGuia(req, res, slug) {
         "@id": `${canonical}#breadcrumb`,
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Início", item: `${domain}/` },
-          { "@type": "ListItem", position: 2, name: "Guia", item: `${domain}/guia` },
+          { "@type": "ListItem", position: 2, name: "Guia", item: `${domain}/guia.html` },
           { "@type": "ListItem", position: 3, name: item.nome, item: canonical }
         ]
       }
     ]
   }).replace(/</g, "\\u003c");
   const initialGuide = JSON.stringify(item).replace(/</g, "\\u003c");
-  const serverContent = `<article class="guide-business" data-guide-id="${esc(item.id)}"><a class="guide-business-back" href="/guia"><span aria-hidden="true">←</span> Voltar ao Guia</a><section class="guide-business-hero"><div class="guide-business-media"><img src="${esc(image)}" alt="${esc(item.nome)}" decoding="async" fetchpriority="high"></div><div class="guide-business-intro"><div class="guide-business-badges"><span>${esc(item.categoria_nome || "Comércio local")}</span>${item.recomendado ? "<strong>★ Recomendado</strong>" : ""}</div><p class="eyebrow">Guia comercial de Urânia</p><h1>${esc(item.nome)}</h1><p class="guide-business-summary">${esc(item.descricao || description)}</p></div></section></article>`;
+  const serverContent = `<article class="guide-business" data-guide-id="${esc(item.id)}"><a class="guide-business-back" href="/guia.html"><span aria-hidden="true">←</span> Voltar ao Guia</a><section class="guide-business-hero"><div class="guide-business-media"><img src="${esc(image)}" alt="${esc(item.nome)}" decoding="async" fetchpriority="high"></div><div class="guide-business-intro"><div class="guide-business-badges"><span>${esc(item.categoria_nome || "Comércio local")}</span>${item.recomendado ? "<strong>★ Recomendado</strong>" : ""}</div><p class="eyebrow">Guia comercial de Urânia</p><h1>${esc(item.nome)}</h1><p class="guide-business-summary">${esc(item.descricao || description)}</p></div></section></article>`;
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
@@ -190,14 +190,14 @@ async function renderTurismo(req, res, slug) {
         "@id": `${canonical}#breadcrumb`,
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Início", item: `${domain}/` },
-          { "@type": "ListItem", position: 2, name: "Turismo", item: `${domain}/turismo` },
+          { "@type": "ListItem", position: 2, name: "Turismo", item: `${domain}/turismo.html` },
           { "@type": "ListItem", position: 3, name: item.nome, item: canonical }
         ]
       }
     ]
   }).replace(/</g, "\\u003c");
   const initialTourism = JSON.stringify(item).replace(/</g, "\\u003c");
-  const serverContent = `<article class="tourism-detail" data-tourism-id="${esc(item.id)}" data-server-rendered="true"><a class="tourism-detail-back" href="/turismo"><span aria-hidden="true">←</span> Voltar aos lugares</a><section class="tourism-detail-hero"><figure><img src="${esc(image)}" alt="${esc(item.nome)}" decoding="async" fetchpriority="high"></figure><header class="tourism-detail-header"><p class="eyebrow">Experiência em Urânia</p><h1>${esc(item.nome)}</h1>${description ? `<p class="tourism-detail-summary">${esc(description)}</p>` : ""}<span class="tourism-detail-label">Turismo local</span></header></section><div class="tourism-detail-layout"><section class="tourism-detail-copy" aria-labelledby="tourism-about-title"><p class="eyebrow">Sobre a experiência</p><h2 id="tourism-about-title">Conheça este lugar</h2><div class="article-copy">${articleText ? `<p>${esc(articleText)}</p>` : ""}</div></section><aside class="tourism-planner" aria-labelledby="tourism-planner-title"><p class="eyebrow">Informações úteis</p><h2 id="tourism-planner-title">Planeje sua visita</h2><div class="tourism-detail-facts">${item.endereco ? `<div><p><small>Endereço</small>${esc(item.endereco)}</p></div>` : ""}${item.horario ? `<div><p><small>Horário</small>${esc(item.horario)}</p></div>` : ""}</div></aside></div></article>`;
+  const serverContent = `<article class="tourism-detail" data-tourism-id="${esc(item.id)}" data-server-rendered="true"><a class="tourism-detail-back" href="/turismo.html"><span aria-hidden="true">←</span> Voltar aos lugares</a><section class="tourism-detail-hero"><figure><img src="${esc(image)}" alt="${esc(item.nome)}" decoding="async" fetchpriority="high"></figure><header class="tourism-detail-header"><p class="eyebrow">Experiência em Urânia</p><h1>${esc(item.nome)}</h1>${description ? `<p class="tourism-detail-summary">${esc(description)}</p>` : ""}<span class="tourism-detail-label">Turismo local</span></header></section><div class="tourism-detail-layout"><section class="tourism-detail-copy" aria-labelledby="tourism-about-title"><p class="eyebrow">Sobre a experiência</p><h2 id="tourism-about-title">Conheça este lugar</h2><div class="article-copy">${articleText ? `<p>${esc(articleText)}</p>` : ""}</div></section><aside class="tourism-planner" aria-labelledby="tourism-planner-title"><p class="eyebrow">Informações úteis</p><h2 id="tourism-planner-title">Planeje sua visita</h2><div class="tourism-detail-facts">${item.endereco ? `<div><p><small>Endereço</small>${esc(item.endereco)}</p></div>` : ""}${item.horario ? `<div><p><small>Horário</small>${esc(item.horario)}</p></div>` : ""}</div></aside></div></article>`;
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
@@ -245,7 +245,7 @@ async function renderNoticia(req, res, slug) {
         author: {
           "@type": "Organization",
           name: authorName,
-          url: `${domain}/quem-somos`
+          url: `${domain}/quem-somos.html`
         },
         publisher: {
           "@type": "Organization",

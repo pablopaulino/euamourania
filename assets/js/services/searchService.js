@@ -1,4 +1,4 @@
-﻿import { fetchPublicRows } from "./publicDataService.js";
+import { fetchPublicRows } from "./publicDataService.js";
 import { EDITORIAL_POLICY_PAGES } from "../editorialPolicies.js";
 
 let indexPromise;
@@ -51,7 +51,7 @@ function makeItem(type, row) {
       label: "Evento",
       title: row.titulo,
       description: row.descricao,
-      url: `/eventos/agenda/${encodeURIComponent(row.slug)}`,
+      url: `/eventos/detalhes.html?slug=${encodeURIComponent(row.slug)}`,
       category: "Agenda",
       meta: row.local,
       date: row.data_inicio,
@@ -140,7 +140,7 @@ function staticPages() {
       id: "pagina-quem-somos",
       title: "Quem somos",
       description: "Conheça o propósito do Eu Amo Urânia e como o portal valoriza a cidade.",
-      url: "/quem-somos",
+      url: "/quem-somos.html",
       category: "Institucional",
       meta: "Eu Amo Urânia",
       actionLabel: "Abrir página",

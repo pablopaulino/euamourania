@@ -1,4 +1,4 @@
-﻿import { fetchPublicRows } from "../services/publicDataService.js";
+import { fetchPublicRows } from "../services/publicDataService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, char => ({
   "&": "&amp;",
@@ -93,7 +93,7 @@ function render(items = []) {
           <h2 id="home-guide-title">Empresas e serviços de Urânia</h2>
           <p>Conheça comércios, profissionais e lugares cadastrados no Guia do Eu Amo Urânia.</p>
         </div>
-        <a class="home-guide-link" href="/guia">Ver guia completo →</a>
+        <a class="home-guide-link" href="/guia.html">Ver guia completo →</a>
       </div>
       <div class="home-guide-grid">${visible.map(card).join("")}</div>
     </div>
