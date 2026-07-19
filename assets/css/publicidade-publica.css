@@ -142,6 +142,60 @@
   .ad-campaign-logo{height:42px!important;max-width:132px!important;padding:2px;border-radius:9px}
   .ad-campaign-button{min-height:34px;padding:.45rem .75rem;font-size:.7rem}
   .ad-sponsored{top:8px;right:8px;left:auto;font-size:.48rem}
+  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .banner-item.has-panel{
+    display:grid!important;
+    grid-template-columns:42% minmax(0,58%)!important;
+    grid-template-rows:auto!important;
+    min-height:148px!important;
+    height:auto!important;
+    border-radius:22px;
+    box-shadow:0 16px 36px rgba(7,59,76,.09);
+  }
+  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .banner-item.has-panel>.ad-campaign-picture{
+    grid-column:1;
+    grid-row:1;
+    height:148px!important;
+    min-height:148px!important;
+    max-height:148px!important;
+  }
+  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .banner-item.has-panel>.ad-campaign-picture img{
+    height:100%!important;
+    object-fit:cover!important;
+  }
+  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-panel{
+    grid-column:2;
+    grid-row:1;
+    display:grid;
+    align-content:center;
+    gap:.5rem;
+    min-height:148px;
+    padding:1.55rem .85rem .72rem;
+    border-top:0;
+    border-left:1px solid rgba(7,59,76,.07);
+  }
+  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-panel::before{
+    inset:0 auto 0 0;
+    width:3px;
+    height:auto;
+  }
+  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-logo{display:none!important}
+  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-copy strong{
+    display:-webkit-box;
+    overflow:hidden;
+    font-size:.98rem;
+    line-height:1.1;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+  }
+  .banner-zone:not(.ad-zone-inline):not(.ad-zone-listing) .ad-campaign-button{
+    width:max-content;
+    min-height:33px;
+    padding:.44rem .7rem;
+    color:#fff;
+    background:linear-gradient(135deg,#075c77,#073b4c);
+    border-color:rgba(255,213,74,.7);
+    font-size:.66rem;
+  }
   .ad-rotator-controls>button{width:38px;height:38px}
   .ad-popup{padding:12px}.ad-popup-card{border-radius:15px}
   [data-banner="noticia_meio"].ad-zone-inline{margin:1.05rem 0;padding:.78rem 0;contain-intrinsic-size:0}
