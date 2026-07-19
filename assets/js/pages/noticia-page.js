@@ -1,4 +1,4 @@
-import { definirMeta, formatarData, gerarSlug, textoPuro } from "../utils.js";
+﻿import { definirMeta, formatarData, gerarSlug, textoPuro } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 import { sanitizeArticleHtml } from "../security/sanitize-html.js";
 
@@ -144,7 +144,7 @@ function renderNews(news) {
         image: metaImage ? [metaImage] : undefined,
         datePublished: news.publicado_em,
         dateModified: news.atualizado_em || news.publicado_em,
-        author: { "@type": "Organization", name: news.autor || "Redação Eu Amo Urânia", url: "https://euamourania.com.br/quem-somos.html" },
+        author: { "@type": "Organization", name: news.autor || "Redação Eu Amo Urânia", url: "https://euamourania.com.br/quem-somos" },
         publisher: { "@type": "Organization", name: "Eu Amo Urânia", url: "https://euamourania.com.br", logo: { "@type": "ImageObject", url: "https://euamourania.com.br/assets/Design%20sem%20nome%20(9).png" } },
         mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
         url: canonical,

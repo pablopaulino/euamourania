@@ -1,4 +1,4 @@
-import { searchPortal, searchTypeCounts } from "../services/searchService.js";
+﻿import { searchPortal, searchTypeCounts } from "../services/searchService.js";
 
 const form = document.getElementById("portal-search-form");
 const input = document.getElementById("portal-search-input");
@@ -73,7 +73,7 @@ async function runSearch(query, { updateUrl = true } = {}) {
     loadMore.hidden = true;
     return;
   }
-  if (updateUrl) history.replaceState({}, "", `/buscar.html?q=${encodeURIComponent(currentQuery)}`);
+  if (updateUrl) history.replaceState({}, "", `/buscar?q=${encodeURIComponent(currentQuery)}`);
   document.title = `${currentQuery} — Busca | Eu Amo Urânia`;
   count.textContent = "Buscando em todo o portal…";
   resultsContainer.setAttribute("aria-busy", "true");

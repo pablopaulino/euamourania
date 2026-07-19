@@ -1,4 +1,4 @@
-import { definirMeta, textoPuro } from "../utils.js";
+﻿import { definirMeta, textoPuro } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 import { sanitizeArticleHtml } from "../security/sanitize-html.js";
 
@@ -121,7 +121,7 @@ async function carregar() {
     const mapQuery = [item.nome, item.endereco, "Urânia SP"].filter(Boolean).join(" ");
     const relacionamentos = await relatedBlocks(item);
     container.innerHTML = `<article class="tourism-detail" data-tourism-id="${escapeHtml(item.id)}">
-      <a class="tourism-detail-back" href="/turismo.html"><span aria-hidden="true">←</span> Voltar aos lugares</a>
+      <a class="tourism-detail-back" href="/turismo"><span aria-hidden="true">←</span> Voltar aos lugares</a>
       <section class="tourism-detail-hero">
         <figure><img src="${imagem}" alt="${escapeHtml(item.nome)}" decoding="async" fetchpriority="high"></figure>
         <header class="tourism-detail-header"><p class="eyebrow">Experiência em Urânia</p><h1>${escapeHtml(item.nome)}</h1>${item.descricao ? `<p class="tourism-detail-summary">${escapeHtml(item.descricao)}</p>` : ""}<span class="tourism-detail-label">Turismo local</span></header>
@@ -136,7 +136,7 @@ async function carregar() {
           <div class="tourism-detail-actions">
             ${mapUrl ? `<a class="tourism-action primary" target="_blank" rel="noopener" href="${mapUrl}" data-map-query="${escapeHtml(mapQuery)}" data-map-fallback="${mapUrl}">${icons.map}<span>Abrir no mapa</span></a>` : ""}
             ${item.whatsapp ? `<a class="tourism-action whatsapp" target="_blank" rel="noopener" href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}">${icons.whatsapp}<span>Falar pelo WhatsApp</span></a>` : ""}
-            <a class="tourism-action secondary" href="/turismo.html"><span aria-hidden="true">←</span><span>Ver outros lugares</span></a>
+            <a class="tourism-action secondary" href="/turismo"><span aria-hidden="true">←</span><span>Ver outros lugares</span></a>
           </div>
         </aside>
       </div>

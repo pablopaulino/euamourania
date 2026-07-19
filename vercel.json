@@ -30,8 +30,43 @@
       "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
       "permanent": true
     },
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    {
+      "source": "/categorias/index.html",
+      "has": [
+        { "type": "query", "key": "categoria", "value": "(?<categoria>[a-z0-9-]+)" }
+      ],
+      "destination": "/:categoria",
+      "permanent": true
+    },
+    { "source": "/categorias/index.html", "destination": "/news/", "permanent": true },
+    { "source": "/colabore/index.html", "destination": "/colabore", "permanent": true },
+    { "source": "/eventos/index.html", "destination": "/eventos", "permanent": true },
+    { "source": "/links/index.html", "destination": "/links", "permanent": true },
+    { "source": "/melhores-de-urania/index.html", "destination": "/melhores-de-urania/", "permanent": true },
+    { "source": "/news/index.html", "destination": "/news/", "permanent": true },
+    { "source": "/news/correcoes-transparencia-contato/index.html", "destination": "/news/correcoes-transparencia-contato/", "permanent": true },
+    { "source": "/news/politica-editorial/index.html", "destination": "/news/politica-editorial/", "permanent": true },
+    { "source": "/news/sobre-publicacoes/index.html", "destination": "/news/sobre-publicacoes/", "permanent": true },
+    { "source": "/urania/index.html", "destination": "/urania/", "permanent": true },
+    { "source": "/guia.html", "destination": "/guia", "permanent": true },
+    { "source": "/turismo.html", "destination": "/turismo", "permanent": true },
+    { "source": "/buscar.html", "destination": "/buscar", "permanent": true },
+    { "source": "/descadastrar.html", "destination": "/descadastrar", "permanent": true },
+    { "source": "/quem-somos.html", "destination": "/quem-somos", "permanent": true },
+    { "source": "/termos-de-servico.html", "destination": "/termos-de-servico", "permanent": true },
+    { "source": "/politica-de-privacidade.html", "destination": "/politica-de-privacidade", "permanent": true },
     { "source": "/urania.html", "destination": "/urania/", "permanent": true },
     { "source": "/links/", "destination": "/links", "permanent": true },
+    {
+      "source": "/guia-details.html",
+      "has": [
+        { "type": "query", "key": "slug", "value": "(?<slug>[a-z0-9-]+)" }
+      ],
+      "destination": "/guia/:slug",
+      "permanent": true
+    },
+    { "source": "/guia-details.html", "destination": "/guia", "permanent": true },
     {
       "source": "/news-detalhes.html",
       "has": [
@@ -58,12 +93,30 @@
       "destination": "/turismo/:slug",
       "permanent": true
     },
-    { "source": "/turismo-details.html", "destination": "/turismo.html", "permanent": true },
+    { "source": "/turismo-details.html", "destination": "/turismo", "permanent": true },
+    {
+      "source": "/eventos/detalhes.html",
+      "has": [
+        { "type": "query", "key": "slug", "value": "(?<slug>[a-z0-9-]+)" }
+      ],
+      "destination": "/eventos/agenda/:slug",
+      "permanent": true
+    },
+    { "source": "/eventos/detalhes.html", "destination": "/eventos", "permanent": true },
     { "source": "/categorias/:categoria", "destination": "/:categoria", "permanent": true },
     { "source": "/categorias/:categoria/", "destination": "/:categoria/", "permanent": true }
   ],
   "rewrites": [
     { "source": "/", "destination": "/api/home" },
+    { "source": "/guia", "destination": "/guia.html" },
+    { "source": "/turismo", "destination": "/turismo.html" },
+    { "source": "/buscar", "destination": "/buscar.html" },
+    { "source": "/colabore", "destination": "/colabore/index.html" },
+    { "source": "/eventos", "destination": "/eventos/index.html" },
+    { "source": "/descadastrar", "destination": "/descadastrar.html" },
+    { "source": "/quem-somos", "destination": "/quem-somos.html" },
+    { "source": "/termos-de-servico", "destination": "/termos-de-servico.html" },
+    { "source": "/politica-de-privacidade", "destination": "/politica-de-privacidade.html" },
     { "source": "/melhores-de-urania/:ano/regulamento", "destination": "/melhores-de-urania/regulamento.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano/regulamento/", "destination": "/melhores-de-urania/regulamento.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano/metodologia", "destination": "/melhores-de-urania/metodologia.html?ano=:ano" },
@@ -74,6 +127,8 @@
     { "source": "/melhores-de-urania/:ano/resultados/", "destination": "/melhores-de-urania/resultados.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano", "destination": "/melhores-de-urania/edicao.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano/", "destination": "/melhores-de-urania/edicao.html?ano=:ano" },
+    { "source": "/eventos/agenda/:slug", "destination": "/eventos/detalhes.html?slug=:slug" },
+    { "source": "/eventos/agenda/:slug/", "destination": "/eventos/detalhes.html?slug=:slug" },
     { "source": "/eventos/:slug/:ano", "destination": "/eventos/edicao.html?slug=:slug&ano=:ano" },
     { "source": "/eventos/:slug/:ano/", "destination": "/eventos/edicao.html?slug=:slug&ano=:ano" },
     { "source": "/eventos/:slug", "destination": "/eventos/evento.html?slug=:slug" },
@@ -90,11 +145,11 @@
     { "source": "/news-sitemap.xml", "destination": "/api/sitemaps?type=news" },
     { "source": "/rss.xml", "destination": "/api/rss" },
     {
-      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|melhores-de-urania$|quem-somos$|termos-de-servico$|politica-de-privacidade$)[a-z0-9-]+)",
+      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|colabore$|melhores-de-urania$|buscar$|descadastrar$|quem-somos$|termos-de-servico$|politica-de-privacidade$)[a-z0-9-]+)",
       "destination": "/categorias/index.html?categoria=:categoria"
     },
     {
-      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|melhores-de-urania$|quem-somos$|termos-de-servico$|politica-de-privacidade$)[a-z0-9-]+)/",
+      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|colabore$|melhores-de-urania$|buscar$|descadastrar$|quem-somos$|termos-de-servico$|politica-de-privacidade$)[a-z0-9-]+)/",
       "destination": "/categorias/index.html?categoria=:categoria"
     }
   ],

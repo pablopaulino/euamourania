@@ -1,4 +1,4 @@
-import { definirMeta, textoPuro } from "../utils.js";
+﻿import { definirMeta, textoPuro } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 
 const container = document.getElementById("guia-details");
@@ -63,7 +63,7 @@ function tourismCard(item) {
 
 function eventCard(item) {
   const image = safeImage(item.imagem_url);
-  return `<a class="guide-related-card compact" href="/eventos/detalhes.html?slug=${encodeURIComponent(item.slug)}">
+  return `<a class="guide-related-card compact" href="/eventos/agenda/${encodeURIComponent(item.slug)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.titulo)}" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Evento</div>`}
     <div><small>${item.data_inicio ? escapeHtml(dateLabel(item.data_inicio)) : "Evento"}</small><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(truncate(item.descricao || item.local))}</p><span>Ver evento →</span></div>
   </a>`;
@@ -158,7 +158,7 @@ async function carregar() {
     const mapaQuery = [item.nome, item.endereco, "Urânia SP"].filter(Boolean).join(" ");
     const relacionamentos = await relatedBlocks(item);
     container.innerHTML = `<article class="guide-business" data-guide-id="${escapeHtml(item.id)}">
-      <a class="guide-business-back" href="/guia.html"><span aria-hidden="true">←</span> Voltar ao Guia</a>
+      <a class="guide-business-back" href="/guia"><span aria-hidden="true">←</span> Voltar ao Guia</a>
       <section class="guide-business-hero">
         <div class="guide-business-media"><img src="${imagem}" alt="${escapeHtml(item.nome)}" decoding="async" fetchpriority="high"></div>
         <div class="guide-business-intro">

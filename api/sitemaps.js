@@ -119,12 +119,12 @@ module.exports = async (req, res) => {
       "/news/politica-editorial/",
       "/news/correcoes-transparencia-contato/",
       "/colabore/",
-      "/guia.html",
-      "/turismo.html",
+      "/guia",
+      "/turismo",
       "/eventos/",
       "/melhores-de-urania/",
       "/links/",
-      "/quem-somos.html"
+      "/quem-somos"
     ];
     const categoriasNoticias = [...new Map(noticias
       .filter(item => item.categoria_nome && slugify(item.categoria_nome))
@@ -177,7 +177,7 @@ module.exports = async (req, res) => {
         image: imageTag(item)
       })),
       ...eventos.map(item => ({
-        loc: `${DOMAIN}/eventos/detalhes.html?slug=${item.slug}`,
+        loc: `${DOMAIN}/eventos/agenda/${item.slug}`,
         lastmod: item.atualizado_em
       })),
       ...eventPrincipals.map(item => ({

@@ -72,7 +72,7 @@ module.exports = async (req, res) => {
         "about": { "@id": `${domain}/urania/#place` },
         "potentialAction": {
           "@type": "SearchAction",
-          "target": `${domain}/buscar.html?q={search_term_string}`,
+          "target": `${domain}/buscar?q={search_term_string}`,
           "query-input": "required name=search_term_string"
         },
         "inLanguage": "pt-BR"
