@@ -98,7 +98,7 @@ async function detailView(){
  if(!slug)return;
  const isEvent=location.pathname.includes("/eventos/");
  const isTourism=location.pathname.endsWith("/turismo-details.html")||location.pathname.startsWith("/turismo/");
- const isGuide=location.pathname.endsWith("/guia-details.html")||location.pathname.startsWith("/guia/");
+ const isGuide=(location.pathname.endsWith("/guia-details.html")||location.pathname.startsWith("/guia/"))&&!location.pathname.startsWith("/guia/categoria/");
  if(!isEvent&&!isTourism&&!isGuide)return;
  const table=isEvent?"eventos":isGuide?"guia_comercial":"turismo",type=isEvent?"evento":isGuide?"guia":"turismo";
  const [data]=await fetchPublicRows(table,{select:"id",slug:`eq.${decodeURIComponent(slug)}`,status:"eq.publicado",limit:"1"});

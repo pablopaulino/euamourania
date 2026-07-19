@@ -13,6 +13,14 @@ const esc = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
 }[char]));
 
 const plain = (value = "") => String(value).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+const slugify = value => String(value || "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase()
+  .trim()
+  .replace(/[^a-z0-9\s-]/g, "")
+  .replace(/\s+/g, "-")
+  .replace(/-+/g, "-");
 
 const validDomain = value => {
   try {
@@ -128,6 +136,119 @@ async function renderGuia(req, res, slug) {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
   return res.status(200).send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${esc(canonical)}"><meta property="og:type" content="business.business"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:image" content="${esc(image)}"><meta property="og:image:secure_url" content="${esc(image)}"><meta property="og:image:alt" content="${esc(item.nome)}"><meta property="og:url" content="${esc(canonical)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(image)}"><meta name="twitter:image:alt" content="${esc(item.nome)}"><meta name="theme-color" content="#0b4f6c"><script id="guide-structured-data" type="application/ld+json">${structured}</script><script id="initial-guide-data" type="application/json">${initialGuide}</script><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/inner-pages.css"><link rel="stylesheet" href="/assets/css/turismo-details-page.css"><link rel="stylesheet" href="/assets/css/guia-details-page.css"><link rel="icon" href="${esc(favicon)}" sizes="any"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="preload" as="image" href="${esc(image)}" fetchpriority="high"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></head><body class="inner-page tourism-detail-page guide-detail-page"><a class="skip-link" href="#guia-details">Pular para o conteúdo</a>${renderHeader({ siteName, logo, current: "guia" })}<main id="guia-details" class="tourism-detail-main" aria-live="polite">${serverContent}</main>${renderFooter({ siteName, logo })}<script src="/script.js"></script><script type="module" src="/assets/js/pages/guia-details-page.js"></script></body></html>`);
+}
+
+async function renderGuiaCategoria(req, res, slug) {
+  const [categoriesResponse, guideResponse, config] = await Promise.all([
+    fetch(
+      `${SUPABASE_URL}/rest/v1/categorias?tipo=eq.guia&status=eq.ativo&select=id,nome,slug,ordem&order=ordem.asc,nome.asc`,
+      { headers: { apikey: SUPABASE_KEY } }
+    ),
+    fetch(
+      `${SUPABASE_URL}/rest/v1/guia_comercial?status=eq.publicado&select=id,nome,slug,categoria_id,categoria_nome,descricao,imagem_url,whatsapp,endereco,horario,recomendado,atualizado_em,seo_descricao,visualizacoes&order=recomendado.desc,nome.asc&limit=200`,
+      { headers: { apikey: SUPABASE_KEY } }
+    ),
+    getConfig()
+  ]);
+
+  const categories = await categoriesResponse.json().catch(() => []);
+  const guide = await guideResponse.json().catch(() => []);
+  if (!categoriesResponse.ok || !guideResponse.ok) return res.status(404).send("Categoria não encontrada");
+
+  const category = categories.find(item => item.slug === slug)
+    || categories.find(item => slugify(item.nome) === slug)
+    || guide.find(item => slugify(item.categoria_nome) === slug)?.categoria_nome && {
+      nome: guide.find(item => slugify(item.categoria_nome) === slug)?.categoria_nome,
+      slug
+    };
+  if (!category) return res.status(404).send("Categoria não encontrada");
+
+  const categoryName = category.nome;
+  const items = guide.filter(item =>
+    (category.id && item.categoria_id === category.id)
+    || slugify(item.categoria_nome) === slugify(categoryName)
+    || slugify(item.categoria_nome) === slug
+  );
+  if (!items.length) return res.status(404).send("Categoria sem empresas publicadas");
+
+  const domain = validDomain(config.dominio_principal || DEFAULT_DOMAIN);
+  const siteName = config.nome_site || "Eu Amo Urânia";
+  const logo = absolute(config.seo_logo || config.logo_principal, domain);
+  const favicon = absolute(DEFAULT_FAVICON, domain);
+  const canonical = `${domain}/guia/categoria/${encodeURIComponent(slug)}`;
+  const title = `${categoryName} em Urânia | Guia Eu Amo Urânia`;
+  const topDescription = items.find(item => item.descricao)?.descricao || "";
+  const description = `Encontre ${categoryName.toLowerCase()} em Urânia no Guia Eu Amo Urânia. Veja empresas, contatos, endereços e informações úteis da cidade.`.slice(0, 160);
+  const image = absolute(items.find(item => item.imagem_url)?.imagem_url || config.imagem_padrao_guia || config.imagem_compartilhamento, domain);
+  const updatedAt = items.map(item => item.atualizado_em).filter(Boolean).sort().at(-1);
+  const categoryLinks = categories
+    .filter(item => item.slug)
+    .map(item => `<a href="/guia/categoria/${esc(item.slug)}"${item.slug === slug ? ' aria-current="page"' : ""}>${esc(item.nome)}</a>`)
+    .join("");
+  const card = item => {
+    const itemUrl = `/guia/${encodeURIComponent(item.slug || item.id)}`;
+    const itemImage = item.imagem_url ? absolute(item.imagem_url, domain) : "";
+    return `<article class="guide-category-card" data-guide-id="${esc(item.id)}">
+      <a class="guide-category-media" href="${esc(itemUrl)}" aria-label="Ver detalhes de ${esc(item.nome)}">
+        ${itemImage ? `<img src="${esc(itemImage)}" alt="${esc(item.nome)}" loading="lazy" decoding="async">` : `<div class="guide-category-placeholder">${esc(siteName)}</div>`}
+        ${item.recomendado ? '<span class="guide-category-badge">Recomendado</span>' : ""}
+      </a>
+      <div class="guide-category-card-body">
+        <p class="guide-category-label">${esc(item.categoria_nome || categoryName)}</p>
+        <h2><a href="${esc(itemUrl)}">${esc(item.nome)}</a></h2>
+        ${item.descricao ? `<p>${esc(item.descricao)}</p>` : ""}
+        <div class="guide-category-facts">
+          ${item.endereco ? `<span>${esc(item.endereco)}</span>` : ""}
+          ${item.horario ? `<span>${esc(item.horario)}</span>` : ""}
+        </div>
+        <div class="guide-category-actions">
+          <a class="guide-category-primary" href="${esc(itemUrl)}">Ver detalhes</a>
+          ${item.whatsapp ? `<a class="guide-category-secondary" href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener">WhatsApp</a>` : ""}
+        </div>
+      </div>
+    </article>`;
+  };
+  const structured = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": `${canonical}#webpage`,
+        url: canonical,
+        name: title,
+        description,
+        isPartOf: { "@id": `${domain}/#website` },
+        about: { "@type": "Thing", name: categoryName },
+        primaryImageOfPage: { "@type": "ImageObject", url: image },
+        inLanguage: "pt-BR"
+      },
+      {
+        "@type": "ItemList",
+        "@id": `${canonical}#itemlist`,
+        name: `${categoryName} em Urânia`,
+        numberOfItems: items.length,
+        itemListElement: items.slice(0, 30).map((item, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          url: `${domain}/guia/${item.slug || item.id}`,
+          name: item.nome
+        }))
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${canonical}#breadcrumb`,
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Início", item: `${domain}/` },
+          { "@type": "ListItem", position: 2, name: "Guia", item: `${domain}/guia.html` },
+          { "@type": "ListItem", position: 3, name: categoryName, item: canonical }
+        ]
+      }
+    ]
+  }).replace(/</g, "\\u003c");
+
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
+  return res.status(200).send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${esc(canonical)}"><meta property="og:type" content="website"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:image" content="${esc(image)}"><meta property="og:image:secure_url" content="${esc(image)}"><meta property="og:image:alt" content="${esc(categoryName)} em Urânia"><meta property="og:url" content="${esc(canonical)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(image)}"><meta name="twitter:image:alt" content="${esc(categoryName)} em Urânia"><meta name="theme-color" content="#0b4f6c"><script type="application/ld+json">${structured}</script><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/inner-pages.css"><link rel="icon" href="${esc(favicon)}" sizes="any"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="preload" as="image" href="${esc(image)}" fetchpriority="high"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></head><body class="inner-page guide-category-page"><a class="skip-link" href="#conteudo">Pular para o conteúdo</a>${renderHeader({ siteName, logo, current: "guia" })}<main id="conteudo"><section class="guide-category-hero"><div class="container guide-category-hero-grid"><div><nav class="guide-category-breadcrumb" aria-label="Caminho"><a href="/index.html">Início</a><span>/</span><a href="/guia.html">Guia</a><span>/</span><strong>${esc(categoryName)}</strong></nav><p class="eyebrow">Guia por categoria</p><h1>${esc(categoryName)} em Urânia</h1><p>${esc(topDescription || description)}</p><div class="guide-category-stats"><span><strong>${items.length}</strong> ${items.length === 1 ? "empresa encontrada" : "empresas encontradas"}</span>${updatedAt ? `<span>Atualizado em ${esc(formatDate(updatedAt))}</span>` : ""}</div></div><aside class="guide-category-card-mini"><span>Compre local</span><strong>Encontre empresas de Urânia em poucos cliques.</strong><a href="/guia.html">Ver Guia completo</a></aside></div></section><section class="guide-category-nav"><div class="container"><a href="/guia.html">Todas</a>${categoryLinks}</div></section><section class="guide-category-content"><div class="container guide-category-content-head"><div><p class="eyebrow">Empresas publicadas</p><h2>${esc(categoryName)}</h2></div><form class="guide-category-search" role="search"><label class="sr-only" for="guide-category-search">Buscar nesta categoria</label><input id="guide-category-search" type="search" placeholder="Buscar em ${esc(categoryName)}..." autocomplete="off"></form></div><div class="container guide-category-grid" id="guide-category-grid">${items.map(card).join("")}</div><p class="container guide-category-empty" id="guide-category-empty" hidden>Nenhuma empresa encontrada com esse termo.</p></section><section class="container guide-category-cta"><div><p class="eyebrow">Faltou alguma empresa?</p><h2>Ajude o Guia a ficar mais completo</h2><p>Se você conhece um comércio ou serviço de Urânia que deveria aparecer aqui, fale com a equipe do Eu Amo Urânia.</p></div><a class="button button-primary" href="https://wa.me/5517976005583" target="_blank" rel="noopener">Enviar sugestão</a></section></main>${renderFooter({ siteName, logo })}<script src="/script.js"></script><script type="module" src="/assets/js/pages/guia-categoria-page.js"></script></body></html>`);
 }
 
 async function renderTurismo(req, res, slug) {
@@ -286,6 +407,7 @@ module.exports = async (req, res) => {
   }
 
   try {
+    if (req.query.tipo === "guia-categoria") return renderGuiaCategoria(req, res, slug);
     if (req.query.tipo === "guia") return renderGuia(req, res, slug);
     if (req.query.tipo === "turismo") return renderTurismo(req, res, slug);
     return renderNoticia(req, res, slug);

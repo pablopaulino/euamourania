@@ -94,8 +94,14 @@ module.exports = async (req, res) => {
       );
     }
 
-    const [guia, turismo, eventos, eventPrincipals, eventEditions, melhores, melhoresCategorias] = await Promise.all([
-      rows("guia_comercial", "slug,atualizado_em,imagem_url", "atualizado_em.desc"),
+    const [guia, guiaCategorias, turismo, eventos, eventPrincipals, eventEditions, melhores, melhoresCategorias] = await Promise.all([
+      rows("guia_comercial", "slug,atualizado_em,imagem_url,categoria_id,categoria_nome", "atualizado_em.desc"),
+      optionalRows("categorias", {
+        select: "id,nome,slug,criado_em",
+        tipo: "eq.guia",
+        status: "eq.ativo",
+        order: "ordem.asc,nome.asc"
+      }),
       rows("turismo", "slug,atualizado_em,imagem_url", "atualizado_em.desc"),
       rows("eventos", "slug,atualizado_em", "atualizado_em.desc"),
       optionalRows("eventos_principais", {
@@ -134,6 +140,18 @@ module.exports = async (req, res) => {
       const image = item.seo_imagem || item.imagem_url;
       return image ? `<image:image><image:loc>${xml(new URL(image, `${DOMAIN}/`).href)}</image:loc></image:image>` : "";
     };
+    const guiaCategoriasPublicas = [
+      ...guiaCategorias
+        .filter(item => item.slug && guia.some(empresa => empresa.categoria_id === item.id || slugify(empresa.categoria_nome) === item.slug))
+        .map(item => ({
+          slug: item.slug,
+          lastmod: guia.filter(empresa => empresa.categoria_id === item.id || slugify(empresa.categoria_nome) === item.slug).map(empresa => empresa.atualizado_em).filter(Boolean).sort().at(-1) || item.criado_em
+        })),
+      ...[...new Map(guia
+        .filter(item => item.categoria_nome && slugify(item.categoria_nome) && !guiaCategorias.some(categoria => categoria.slug === slugify(item.categoria_nome)))
+        .map(item => [slugify(item.categoria_nome), { slug: slugify(item.categoria_nome), lastmod: item.atualizado_em }])
+      ).values()]
+    ];
     const melhoresUrls = melhores.flatMap(item => {
       const base = [{
         loc: `${DOMAIN}/melhores-de-urania/${item.ano}/`,
@@ -170,6 +188,10 @@ module.exports = async (req, res) => {
         loc: `${DOMAIN}/guia/${item.slug}`,
         lastmod: item.atualizado_em,
         image: imageTag(item)
+      })),
+      ...guiaCategoriasPublicas.map(item => ({
+        loc: `${DOMAIN}/guia/categoria/${item.slug}`,
+        lastmod: item.lastmod
       })),
       ...turismo.map(item => ({
         loc: `${DOMAIN}/turismo/${item.slug}`,
