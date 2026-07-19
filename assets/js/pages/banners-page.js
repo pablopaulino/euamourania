@@ -332,11 +332,12 @@ function insertBetweenCards(position, containerSelector, cardSelector, afterInde
 function insertRepeatedBetweenCards(position, containerSelector, cardSelector, interval) {
   const container = document.querySelector(containerSelector);
   if (!container) return;
-  container.querySelectorAll(`[data-banner="${position}"][data-inline-list-ad="true"]`).forEach(zone => zone.remove());
   const cards = [...container.querySelectorAll(cardSelector)];
   const items = candidates(position);
   if (!cards.length || !items.length) return;
   for (let index = interval - 1; index < cards.length - 1; index += interval) {
+    const next = cards[index].nextElementSibling;
+    if (next?.matches(`[data-banner="${position}"][data-inline-list-ad="true"]`)) continue;
     const html = zoneMarkup(position, items, true);
     if (!html) return;
     cards[index].insertAdjacentHTML("afterend", html.replace("<aside ", '<aside data-inline-list-ad="true" '));

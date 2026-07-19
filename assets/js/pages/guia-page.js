@@ -12,7 +12,7 @@ const esc = (v = "") => String(v).replace(/[&<>'"]/g, c => ({
   "'": "&#39;",
   '"': "&quot;"
 }[c]));
-const safeImage = v => /^https?:\/\//i.test(v || "") || /^assets\//.test(v || "") ? esc(v) : "";
+const safeImage = v => /^https?:\/\//i.test(v || "") || /^\/?assets\//.test(v || "") ? esc(v) : "";
 const placeholder = '<div class="media-placeholder"><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia"></div>';
 const normalize = v => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const PAGE_SIZE = 6;
@@ -44,6 +44,23 @@ function mobileTags(item) {
   return tags.length ? `<div class="guide-mobile-tags">${tags.slice(0, 3).map(tag => `<span>${esc(tag)}</span>`).join("")}</div>` : "";
 }
 
+function cardMarkup(item) {
+  const detalhes = item.slug ? `guia/${encodeURIComponent(item.slug)}` : `guia-details.html?slug=${encodeURIComponent(item.id)}`;
+  return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}"${item.recomendado ? ' data-guide-featured="true"' : ""}>${item.recomendado ? '<span class="badge-destaque">Recomendado</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" loading="lazy" decoding="async">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao)}</p>${mobileTags(item)}<div class="guide-info">${item.endereco ? `<p><small>Endereço</small>${esc(item.endereco)}</p>` : ""}${item.horario ? `<p><small>Horário</small>${esc(item.horario)}</p>` : ""}</div><div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes</a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp">WhatsApp</a>` : ""}</div></div></article>`;
+}
+
+function prepararImagens(root = container) {
+  root.querySelectorAll(".card-img-top").forEach(img => img.addEventListener("error", () => { img.parentElement.innerHTML = placeholder; }, { once: true }));
+}
+
+function atualizarControles(dados, visiveis) {
+  const restantes = Math.max(0, dados.length - visiveis.length);
+  loadMore.hidden = restantes === 0;
+  loadMore.textContent = restantes ? `Carregando mais estabelecimentos (${restantes})` : "Todos os estabelecimentos foram exibidos";
+  atualizarStatusDeCarga(restantes);
+  document.dispatchEvent(new CustomEvent("guia:renderizado"));
+}
+
 function renderizar(dados) {
   itensFiltrados = dados;
   if (!dados.length) {
@@ -56,16 +73,9 @@ function renderizar(dados) {
   }
   status.hidden = true;
   const visiveis = dados.slice(0, quantidadeVisivel);
-  container.innerHTML = visiveis.map(item => {
-    const detalhes = item.slug ? `guia/${encodeURIComponent(item.slug)}` : `guia-details.html?slug=${encodeURIComponent(item.id)}`;
-    return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}"${item.recomendado ? ' data-guide-featured="true"' : ""}>${item.recomendado ? '<span class="badge-destaque">Recomendado</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" loading="lazy">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao)}</p>${mobileTags(item)}<div class="guide-info">${item.endereco ? `<p><small>Endereço</small>${esc(item.endereco)}</p>` : ""}${item.horario ? `<p><small>Horário</small>${esc(item.horario)}</p>` : ""}</div><div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes</a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp">WhatsApp</a>` : ""}</div></div></article>`;
-  }).join("");
-  const restantes = Math.max(0, dados.length - visiveis.length);
-  loadMore.hidden = restantes === 0;
-  loadMore.textContent = restantes ? `Carregando mais estabelecimentos (${restantes})` : "Todos os estabelecimentos foram exibidos";
-  atualizarStatusDeCarga(restantes);
-  container.querySelectorAll(".card-img-top").forEach(img => img.addEventListener("error", () => { img.parentElement.innerHTML = placeholder; }, { once: true }));
-  document.dispatchEvent(new CustomEvent("guia:renderizado"));
+  container.innerHTML = visiveis.map(cardMarkup).join("");
+  prepararImagens();
+  atualizarControles(dados, visiveis);
 }
 
 function renderizarFiltros(categorias) {
@@ -90,9 +100,13 @@ function carregarMais(scroll = false) {
   carregandoAutomatico = true;
   document.body.classList.add("is-loading-more");
   atualizarStatusDeCarga(Math.max(0, itensFiltrados.length - quantidadeVisivel));
+  const inicio = quantidadeVisivel;
   quantidadeVisivel += PAGE_SIZE;
   requestAnimationFrame(() => {
-    renderizar(itensFiltrados);
+    const novos = itensFiltrados.slice(inicio, quantidadeVisivel);
+    container.insertAdjacentHTML("beforeend", novos.map(cardMarkup).join(""));
+    prepararImagens();
+    atualizarControles(itensFiltrados, itensFiltrados.slice(0, quantidadeVisivel));
     document.body.classList.remove("is-loading-more");
     carregandoAutomatico = false;
     atualizarStatusDeCarga(Math.max(0, itensFiltrados.length - quantidadeVisivel));

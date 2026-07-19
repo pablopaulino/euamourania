@@ -82,6 +82,13 @@
 [data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy>span:not(.ad-campaign-button){font-size:.74rem}
 [data-banner="guia_entre_estabelecimentos"] .ad-campaign-logo{height:36px!important;max-width:98px!important}
 [data-banner="guia_entre_estabelecimentos"] .ad-campaign-button{min-height:33px;padding:.46rem .72rem;font-size:.68rem}
+[data-banner="noticias_entre_listagem"].ad-zone-inline{margin:.75rem 0 1rem}
+[data-banner="noticias_entre_listagem"] .ad-layout-retangulo.has-panel>.ad-campaign-picture,
+[data-banner="noticias_entre_listagem"] .ad-format-retangulo.has-panel>.ad-campaign-picture,
+[data-banner="noticias_entre_listagem"] .ad-layout-horizontal.has-panel>.ad-campaign-picture,
+[data-banner="noticias_entre_listagem"] .ad-format-horizontal.has-panel>.ad-campaign-picture,
+[data-banner="noticias_entre_listagem"] .ad-layout-super_banner.has-panel>.ad-campaign-picture,
+[data-banner="noticias_entre_listagem"] .ad-format-super_banner.has-panel>.ad-campaign-picture{aspect-ratio:16/6;max-height:210px}
 .adsense-zone{transition:opacity .2s ease}
 .adsense-unit{width:min(100%,970px);min-width:0;margin-inline:auto;text-align:center}
 .adsense-label{display:block;margin-bottom:.35rem;color:#6d7f85;font-size:.58rem;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
@@ -146,17 +153,32 @@
   [data-banner="noticia_meio"] .ad-rotator-dots button.active{width:18px}
   [data-banner="guia_entre_estabelecimentos"].ad-zone-inline{margin:.62rem 0}
   [data-banner="guia_entre_estabelecimentos"] .banner-item{--ad-radius:18px}
+  [data-banner="guia_entre_estabelecimentos"] .banner-item.has-panel{display:grid;grid-template-columns:92px minmax(0,1fr);grid-template-rows:auto;min-height:92px}
   [data-banner="guia_entre_estabelecimentos"] .ad-layout-retangulo.has-panel>.ad-campaign-picture,
   [data-banner="guia_entre_estabelecimentos"] .ad-format-retangulo.has-panel>.ad-campaign-picture,
   [data-banner="guia_entre_estabelecimentos"] .ad-layout-horizontal.has-panel>.ad-campaign-picture,
   [data-banner="guia_entre_estabelecimentos"] .ad-format-horizontal.has-panel>.ad-campaign-picture,
   [data-banner="guia_entre_estabelecimentos"] .ad-layout-super_banner.has-panel>.ad-campaign-picture,
-  [data-banner="guia_entre_estabelecimentos"] .ad-format-super_banner.has-panel>.ad-campaign-picture{height:clamp(118px,31vw,150px)!important;max-height:150px!important;aspect-ratio:auto}
-  [data-banner="guia_entre_estabelecimentos"] .ad-campaign-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:.5rem;min-height:44px;padding:.48rem .56rem}
+  [data-banner="guia_entre_estabelecimentos"] .ad-format-super_banner.has-panel>.ad-campaign-picture{height:92px!important;max-height:92px!important;aspect-ratio:auto}
+  [data-banner="guia_entre_estabelecimentos"] .ad-campaign-panel{display:grid;grid-template-columns:minmax(0,1fr);align-items:center;gap:.28rem;min-height:92px;padding:.5rem .6rem}
   [data-banner="guia_entre_estabelecimentos"] .ad-campaign-logo{display:none!important}
   [data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy strong{display:-webkit-box;overflow:hidden;font-size:.84rem;line-height:1.1;-webkit-box-orient:vertical;-webkit-line-clamp:1}
   [data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy>span:not(.ad-campaign-button){display:none}
-  [data-banner="guia_entre_estabelecimentos"] .ad-campaign-button{min-height:31px;padding:.4rem .58rem;font-size:.65rem}
+  [data-banner="guia_entre_estabelecimentos"] .ad-campaign-button{width:max-content;min-height:28px;padding:.34rem .54rem;font-size:.62rem}
+  [data-banner="guia_entre_estabelecimentos"] .ad-sponsored{top:6px;left:6px;padding:.16rem .42rem;font-size:.45rem}
+  [data-banner="guia_entre_estabelecimentos"] .ad-rotator-controls{display:none}
+  [data-banner="noticias_entre_listagem"].ad-zone-inline{margin:.7rem 0}
+  [data-banner="noticias_entre_listagem"] .ad-layout-retangulo.has-panel>.ad-campaign-picture,
+  [data-banner="noticias_entre_listagem"] .ad-format-retangulo.has-panel>.ad-campaign-picture,
+  [data-banner="noticias_entre_listagem"] .ad-layout-horizontal.has-panel>.ad-campaign-picture,
+  [data-banner="noticias_entre_listagem"] .ad-format-horizontal.has-panel>.ad-campaign-picture,
+  [data-banner="noticias_entre_listagem"] .ad-layout-super_banner.has-panel>.ad-campaign-picture,
+  [data-banner="noticias_entre_listagem"] .ad-format-super_banner.has-panel>.ad-campaign-picture{height:clamp(120px,32vw,155px)!important;max-height:155px!important;aspect-ratio:auto}
+  [data-banner="noticias_entre_listagem"] .ad-campaign-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:.5rem;min-height:44px;padding:.5rem .6rem}
+  [data-banner="noticias_entre_listagem"] .ad-campaign-logo{display:none!important}
+  [data-banner="noticias_entre_listagem"] .ad-campaign-copy strong{display:-webkit-box;overflow:hidden;font-size:.86rem;line-height:1.12;-webkit-box-orient:vertical;-webkit-line-clamp:1}
+  [data-banner="noticias_entre_listagem"] .ad-campaign-copy>span:not(.ad-campaign-button){display:none}
+  [data-banner="noticias_entre_listagem"] .ad-campaign-button{min-height:31px;padding:.4rem .58rem;font-size:.65rem}
 }
 
 @media(max-width:380px){

@@ -179,15 +179,19 @@ function newsCard(item) {
   </article>`;
 }
 
-function renderFeed() {
-  const items = filteredNews();
-  const visible = items.slice(0, visibleCount);
+function updateFeedControls(items, visible) {
   resultsCount.textContent = items.length === 1 ? "1 notícia encontrada" : `${items.length} notícias encontradas`;
-  container.innerHTML = visible.length ? `<div class="news-card-grid">${visible.map(newsCard).join("")}</div>` : '<div class="empty-state news-empty"><strong>Nenhuma notícia encontrada.</strong><p>Tente outro termo ou escolha uma categoria diferente.</p></div>';
   loadMore.hidden = visible.length >= items.length;
   updateLoadStatus(items.length, visible.length);
   clearFilters.hidden = !selectedCategory && !search.value.trim();
   document.dispatchEvent(new CustomEvent("noticias:renderizado"));
+}
+
+function renderFeed() {
+  const items = filteredNews();
+  const visible = items.slice(0, visibleCount);
+  container.innerHTML = visible.length ? `<div class="news-card-grid">${visible.map(newsCard).join("")}</div>` : '<div class="empty-state news-empty"><strong>Nenhuma notícia encontrada.</strong><p>Tente outro termo ou escolha uma categoria diferente.</p></div>';
+  updateFeedControls(items, visible);
 }
 
 function loadNextNews(scroll = false) {
@@ -196,9 +200,17 @@ function loadNextNews(scroll = false) {
   isLoadingMore = true;
   document.body.classList.add("news-auto-load", "is-loading-more");
   updateLoadStatus(filteredNews().length, visibleCount);
+  const items = filteredNews();
   visibleCount += PAGE_SIZE;
   requestAnimationFrame(() => {
-    renderFeed();
+    const grid = container.querySelector(".news-card-grid");
+    const nextItems = items.slice(previousCount, visibleCount);
+    if (grid && nextItems.length) {
+      grid.insertAdjacentHTML("beforeend", nextItems.map(newsCard).join(""));
+      updateFeedControls(items, items.slice(0, visibleCount));
+    } else {
+      renderFeed();
+    }
     document.body.classList.remove("is-loading-more");
     isLoadingMore = false;
     updateLoadStatus(filteredNews().length, visibleCount);
