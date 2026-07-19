@@ -32,6 +32,7 @@ const format = campaign => ["automatico", "super_banner", "horizontal", "retangu
 const positions = campaign => (campaign.campanha_posicoes || []).map(item => item.posicao);
 const rotationSeconds = campaign => Math.max(5, Math.min(30, Number(config(campaign).rotacao_segundos) || 8));
 const priorityWeight = campaign => 1 + Math.log2(1 + Math.max(0, Number(campaign.prioridade) || 0));
+const listingPositions = new Set(["noticias_entre_listagem", "guia_entre_estabelecimentos", "turismo_entre_cartoes", "eventos_entre_eventos"]);
 
 function isCampaignActive(campaign, requirePosition = true) {
   const now = Date.now();
@@ -239,11 +240,11 @@ function zoneMarkup(position, items, inline = false) {
     return content ? `<div class="ad-slide ${index === 0 ? "active" : ""}" data-ad-slide="${index}" ${index === 0 ? "" : "hidden"}>${content}</div>` : "";
   }).filter(Boolean);
   if (!slides.length) return "";
-  const controls = slides.length > 1
+  const controls = slides.length > 1 && !listingPositions.has(position)
     ? `<div class="ad-rotator-controls"><button type="button" data-ad-step="-1" aria-label="Anúncio anterior">‹</button><div class="ad-rotator-dots">${slides.map((_, index) => `<button type="button" data-ad-index="${index}" class="${index === 0 ? "active" : ""}" aria-label="Ver anúncio ${index + 1}"></button>`).join("")}</div><button type="button" data-ad-step="1" aria-label="Próximo anúncio">›</button></div>`
     : "";
   const rotator = `<div class="ad-rotator" data-ad-current="0">${slides.join("")}${controls}</div>`;
-  return `<aside class="banner-zone ad-zone ${inline ? "ad-zone-inline" : ""}" data-banner="${position}" aria-label="Publicidade">${inline ? rotator : `<div class="container banner-list">${rotator}</div>`}</aside>`;
+  return `<aside class="banner-zone ad-zone ${inline ? "ad-zone-inline" : ""}${listingPositions.has(position) ? " ad-zone-listing" : ""}" data-banner="${position}" aria-label="Publicidade">${inline ? rotator : `<div class="container banner-list">${rotator}</div>`}</aside>`;
 }
 
 function observeImpression(node, position) {
