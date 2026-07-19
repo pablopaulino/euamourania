@@ -20,6 +20,14 @@ let itensFiltrados = [];
 let quantidadeVisivel = PAGE_SIZE;
 let carregandoAutomatico = false;
 
+function mobileTags(item) {
+  const tags = [];
+  if (item.whatsapp) tags.push("WhatsApp");
+  if (item.endereco) tags.push("Endereço");
+  if (item.horario) tags.push("Horário");
+  return tags.length ? `<div class="guide-mobile-tags">${tags.slice(0, 3).map(tag => `<span>${esc(tag)}</span>`).join("")}</div>` : "";
+}
+
 function renderizar(dados) {
   itensFiltrados = dados;
   if (!dados.length) {
@@ -33,7 +41,7 @@ function renderizar(dados) {
   const visiveis = dados.slice(0, quantidadeVisivel);
   container.innerHTML = visiveis.map(item => {
     const detalhes = item.slug ? `guia/${encodeURIComponent(item.slug)}` : `guia-details.html?slug=${encodeURIComponent(item.id)}`;
-    return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}"${item.recomendado ? ' data-guide-featured="true"' : ""}>${item.recomendado ? '<span class="badge-destaque">Destaque</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" loading="lazy">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao)}</p><div class="guide-info">${item.endereco ? `<p><small>Endereço</small>${esc(item.endereco)}</p>` : ""}${item.horario ? `<p><small>Horário</small>${esc(item.horario)}</p>` : ""}</div><div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes</a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp">WhatsApp</a>` : ""}</div></div></article>`;
+    return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}"${item.recomendado ? ' data-guide-featured="true"' : ""}>${item.recomendado ? '<span class="badge-destaque">Recomendado</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" loading="lazy">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao)}</p>${mobileTags(item)}<div class="guide-info">${item.endereco ? `<p><small>Endereço</small>${esc(item.endereco)}</p>` : ""}${item.horario ? `<p><small>Horário</small>${esc(item.horario)}</p>` : ""}</div><div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes</a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp">WhatsApp</a>` : ""}</div></div></article>`;
   }).join("");
   const restantes = Math.max(0, dados.length - visiveis.length);
   loadMore.hidden = restantes === 0;
