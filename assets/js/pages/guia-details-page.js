@@ -57,7 +57,7 @@ function newsCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="guide-related-card" href="/noticias/${encodeURIComponent(item.slug)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.titulo)}" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Notícia</div>`}
-    <div><small>${escapeHtml(item.categoria_nome || "Notícias")}${item.publicado_em ? ` · ${escapeHtml(dateLabel(item.publicado_em))}` : ""}</small><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(truncate(item.resumo || item.conteudo_html))}</p><span>Ler notícia →</span></div>
+    <div><small>${escapeHtml(item.categoria_nome || "Notícias")}${item.publicado_em ? ` · ${escapeHtml(dateLabel(item.publicado_em))}` : ""}</small><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(truncate(item.resumo || item.conteudo_html))}</p><span>Ler notícia</span></div>
   </a>`;
 }
 
@@ -65,7 +65,7 @@ function tourismCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="guide-related-card compact" href="/turismo/${encodeURIComponent(item.slug)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Turismo</div>`}
-    <div><small>Turismo em Urânia</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao))}</p><span>Conhecer lugar →</span></div>
+    <div><small>Turismo em Urânia</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao))}</p><span>Conhecer lugar</span></div>
   </a>`;
 }
 
@@ -73,7 +73,7 @@ function eventCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="guide-related-card compact" href="/eventos/detalhes.html?slug=${encodeURIComponent(item.slug)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.titulo)}" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Evento</div>`}
-    <div><small>${item.data_inicio ? escapeHtml(dateLabel(item.data_inicio)) : "Evento"}</small><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(truncate(item.descricao || item.local))}</p><span>Ver evento →</span></div>
+    <div><small>${item.data_inicio ? escapeHtml(dateLabel(item.data_inicio)) : "Evento"}</small><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(truncate(item.descricao || item.local))}</p><span>Ver evento</span></div>
   </a>`;
 }
 
@@ -81,7 +81,7 @@ function companyCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="guide-related-card compact" href="/guia/${encodeURIComponent(item.slug || item.id)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Guia</div>`}
-    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco))}</p><span>Ver empresa →</span></div>
+    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco))}</p><span>Ver empresa</span></div>
   </a>`;
 }
 
