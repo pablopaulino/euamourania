@@ -329,6 +329,22 @@ function insertBetweenCards(position, containerSelector, cardSelector, afterInde
   insertZone(position, cards[Math.min(afterIndex, cards.length - 1)], "afterend", true);
 }
 
+function insertRepeatedBetweenCards(position, containerSelector, cardSelector, interval) {
+  const container = document.querySelector(containerSelector);
+  if (!container) return;
+  container.querySelectorAll(`[data-banner="${position}"][data-inline-list-ad="true"]`).forEach(zone => zone.remove());
+  const cards = [...container.querySelectorAll(cardSelector)];
+  const items = candidates(position);
+  if (!cards.length || !items.length) return;
+  for (let index = interval - 1; index < cards.length - 1; index += interval) {
+    const html = zoneMarkup(position, items, true);
+    if (!html) return;
+    cards[index].insertAdjacentHTML("afterend", html.replace("<aside ", '<aside data-inline-list-ad="true" '));
+    const zone = cards[index].nextElementSibling?.matches(`[data-banner="${position}"]`) ? cards[index].nextElementSibling : null;
+    if (zone) setupRotator(zone, items);
+  }
+}
+
 function insertInsideArticle() {
   const position = "noticia_meio";
   if (document.querySelector(`[data-banner="${position}"]`)) return;
@@ -359,14 +375,14 @@ function render() {
     insertZone("home_rodape", ".site-footer");
   }
   if (/\/news\/?(?:index\.html)?$/.test(path) || path.endsWith("news.html")) {
-    insertBetweenCards("noticias_entre_listagem", "#news-container", ".news-item", 3);
+    insertRepeatedBetweenCards("noticias_entre_listagem", "#news-container", ".news-item", 6);
   }
   if (path.includes("news-details") || path.includes("news-detalhes") || path.startsWith("/noticias/")) {
     insertInsideArticle();
     insertZone("noticia_final", ".related-news");
   }
   if (path.endsWith("guia.html")) {
-    insertBetweenCards("guia_entre_estabelecimentos", "#guia-container", ".card-guia", 5);
+    insertRepeatedBetweenCards("guia_entre_estabelecimentos", "#guia-container", ".card-guia", 6);
     insertZone("guia_rodape", ".site-footer");
   }
   if (path.includes("guia-details") || path.startsWith("/guia/")) {
@@ -391,6 +407,9 @@ function render() {
   }
   insertGlobalZone();
 }
+
+document.addEventListener("guia:renderizado", () => insertRepeatedBetweenCards("guia_entre_estabelecimentos", "#guia-container", ".card-guia", 6));
+document.addEventListener("noticias:renderizado", () => insertRepeatedBetweenCards("noticias_entre_listagem", "#news-container", ".news-item", 6));
 
 function renderAdSense() {
   if (!hasAdConsent()) return;

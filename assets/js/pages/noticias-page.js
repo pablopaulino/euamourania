@@ -11,11 +11,17 @@ const resultsCount = document.getElementById("news-results-count");
 const loadMore = document.getElementById("news-load-more");
 const clearFilters = document.getElementById("news-clear-filters");
 const PAGE_SIZE = 10;
+const loadStatus = document.createElement("p");
 
 let feed = [];
 let allNews = [];
 let selectedCategory = "";
 let visibleCount = PAGE_SIZE;
+let isLoadingMore = false;
+
+loadStatus.className = "load-more-status news-load-status";
+loadStatus.setAttribute("aria-live", "polite");
+loadMore?.insertAdjacentElement("afterend", loadStatus);
 
 const esc = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({
   "&": "&amp;",
@@ -148,6 +154,17 @@ function filteredNews() {
   });
 }
 
+function updateLoadStatus(total = 0, visible = 0) {
+  const remaining = Math.max(0, total - visible);
+  loadStatus.textContent = isLoadingMore
+    ? "Carregando mais notícias..."
+    : remaining
+      ? "Continue rolando para ver mais notícias."
+      : total > PAGE_SIZE
+        ? "Você chegou ao fim das notícias."
+        : "";
+}
+
 function newsCard(item) {
   const text = summary(item);
   const url = newsUrl(item.slug);
@@ -168,7 +185,25 @@ function renderFeed() {
   resultsCount.textContent = items.length === 1 ? "1 notícia encontrada" : `${items.length} notícias encontradas`;
   container.innerHTML = visible.length ? `<div class="news-card-grid">${visible.map(newsCard).join("")}</div>` : '<div class="empty-state news-empty"><strong>Nenhuma notícia encontrada.</strong><p>Tente outro termo ou escolha uma categoria diferente.</p></div>';
   loadMore.hidden = visible.length >= items.length;
+  updateLoadStatus(items.length, visible.length);
   clearFilters.hidden = !selectedCategory && !search.value.trim();
+  document.dispatchEvent(new CustomEvent("noticias:renderizado"));
+}
+
+function loadNextNews(scroll = false) {
+  if (loadMore.hidden || isLoadingMore) return;
+  const previousCount = visibleCount;
+  isLoadingMore = true;
+  document.body.classList.add("news-auto-load", "is-loading-more");
+  updateLoadStatus(filteredNews().length, visibleCount);
+  visibleCount += PAGE_SIZE;
+  requestAnimationFrame(() => {
+    renderFeed();
+    document.body.classList.remove("is-loading-more");
+    isLoadingMore = false;
+    updateLoadStatus(filteredNews().length, visibleCount);
+    if (scroll) container.querySelectorAll(".news-item")[Math.max(0, previousCount)]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
 }
 
 function renderPolicyLinks() {
@@ -204,7 +239,17 @@ filters.addEventListener("click", (event) => {
 
 search.addEventListener("input", () => { visibleCount = PAGE_SIZE; renderFeed(); });
 searchForm.addEventListener("submit", (event) => { event.preventDefault(); renderFeed(); });
-loadMore.addEventListener("click", () => { visibleCount += PAGE_SIZE; renderFeed(); });
+loadMore.addEventListener("click", () => loadNextNews(true));
+
+if ("IntersectionObserver" in window) {
+  document.body.classList.add("news-auto-load");
+  const observer = new IntersectionObserver(entries => {
+    if (!entries.some(entry => entry.isIntersecting) || isLoadingMore || loadMore.hidden) return;
+    loadNextNews(false);
+  }, { rootMargin: "460px 0px" });
+  observer.observe(loadMore);
+}
+
 document.addEventListener("click", (event) => {
   if (!event.target.closest("#news-clear-filters")) return;
   selectedCategory = "";

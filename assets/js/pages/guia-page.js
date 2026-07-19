@@ -4,6 +4,7 @@ const container = document.getElementById("guia-container");
 const status = document.getElementById("guia-status");
 const filters = document.getElementById("guia-filtros");
 const loadMore = document.getElementById("guia-ver-mais");
+const loadStatus = document.createElement("p");
 const esc = (v = "") => String(v).replace(/[&<>'"]/g, c => ({
   "&": "&amp;",
   "<": "&lt;",
@@ -20,6 +21,21 @@ let itensFiltrados = [];
 let quantidadeVisivel = PAGE_SIZE;
 let carregandoAutomatico = false;
 
+loadStatus.className = "load-more-status guia-load-status";
+loadStatus.setAttribute("aria-live", "polite");
+loadMore?.closest(".guia-load-more-wrap")?.append(loadStatus);
+
+function atualizarStatusDeCarga(restantes = 0) {
+  if (!loadStatus) return;
+  loadStatus.textContent = carregandoAutomatico
+    ? "Carregando mais empresas..."
+    : restantes
+      ? "Continue rolando para ver mais empresas."
+      : itensFiltrados.length > PAGE_SIZE
+        ? "Você chegou ao fim do Guia."
+        : "";
+}
+
 function mobileTags(item) {
   const tags = [];
   if (item.whatsapp) tags.push("WhatsApp");
@@ -35,6 +51,7 @@ function renderizar(dados) {
     status.hidden = false;
     status.textContent = "Nenhum item cadastrado no guia.";
     loadMore.hidden = true;
+    loadStatus.textContent = "";
     return;
   }
   status.hidden = true;
@@ -46,6 +63,7 @@ function renderizar(dados) {
   const restantes = Math.max(0, dados.length - visiveis.length);
   loadMore.hidden = restantes === 0;
   loadMore.textContent = restantes ? `Carregando mais estabelecimentos (${restantes})` : "Todos os estabelecimentos foram exibidos";
+  atualizarStatusDeCarga(restantes);
   container.querySelectorAll(".card-img-top").forEach(img => img.addEventListener("error", () => { img.parentElement.innerHTML = placeholder; }, { once: true }));
   document.dispatchEvent(new CustomEvent("guia:renderizado"));
 }
@@ -68,10 +86,18 @@ function renderizarFiltros(categorias) {
 }
 
 function carregarMais(scroll = false) {
-  if (loadMore.hidden) return;
+  if (loadMore.hidden || carregandoAutomatico) return;
+  carregandoAutomatico = true;
+  document.body.classList.add("is-loading-more");
+  atualizarStatusDeCarga(Math.max(0, itensFiltrados.length - quantidadeVisivel));
   quantidadeVisivel += PAGE_SIZE;
-  renderizar(itensFiltrados);
-  if (scroll) requestAnimationFrame(() => container.children[Math.max(0, quantidadeVisivel - PAGE_SIZE)]?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+  requestAnimationFrame(() => {
+    renderizar(itensFiltrados);
+    document.body.classList.remove("is-loading-more");
+    carregandoAutomatico = false;
+    atualizarStatusDeCarga(Math.max(0, itensFiltrados.length - quantidadeVisivel));
+    if (scroll) container.children[Math.max(0, quantidadeVisivel - PAGE_SIZE)]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
 }
 
 loadMore.addEventListener("click", () => carregarMais(true));
@@ -80,9 +106,7 @@ if ("IntersectionObserver" in window) {
   document.body.classList.add("guia-auto-load");
   const observer = new IntersectionObserver(entries => {
     if (!entries.some(entry => entry.isIntersecting) || carregandoAutomatico || loadMore.hidden) return;
-    carregandoAutomatico = true;
     carregarMais(false);
-    requestAnimationFrame(() => { carregandoAutomatico = false; });
   }, { rootMargin: "420px 0px" });
   observer.observe(loadMore);
 }

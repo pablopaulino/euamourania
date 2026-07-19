@@ -69,6 +69,19 @@
 [data-banner="noticia_meio"] .ad-campaign-logo{height:38px!important;max-width:96px!important;box-shadow:none;background:#fff}
 [data-banner="noticia_meio"] .ad-campaign-button{min-height:34px;padding:.48rem .78rem;font-size:.7rem}
 [data-banner="noticia_meio"] .ad-rotator-controls{margin-top:.5rem}
+[data-banner="guia_entre_estabelecimentos"].ad-zone-inline{margin:.55rem 0 .7rem}
+[data-banner="guia_entre_estabelecimentos"] .banner-item{--ad-radius:22px;box-shadow:0 12px 30px rgba(7,59,76,.08)}
+[data-banner="guia_entre_estabelecimentos"] .ad-layout-retangulo.has-panel>.ad-campaign-picture,
+[data-banner="guia_entre_estabelecimentos"] .ad-format-retangulo.has-panel>.ad-campaign-picture,
+[data-banner="guia_entre_estabelecimentos"] .ad-layout-horizontal.has-panel>.ad-campaign-picture,
+[data-banner="guia_entre_estabelecimentos"] .ad-format-horizontal.has-panel>.ad-campaign-picture,
+[data-banner="guia_entre_estabelecimentos"] .ad-layout-super_banner.has-panel>.ad-campaign-picture,
+[data-banner="guia_entre_estabelecimentos"] .ad-format-super_banner.has-panel>.ad-campaign-picture{aspect-ratio:16/6;max-height:190px}
+[data-banner="guia_entre_estabelecimentos"] .ad-campaign-panel{min-height:58px;padding:.62rem .82rem}
+[data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy strong{font-size:clamp(.9rem,1.4vw,1.05rem)}
+[data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy>span:not(.ad-campaign-button){font-size:.74rem}
+[data-banner="guia_entre_estabelecimentos"] .ad-campaign-logo{height:36px!important;max-width:98px!important}
+[data-banner="guia_entre_estabelecimentos"] .ad-campaign-button{min-height:33px;padding:.46rem .72rem;font-size:.68rem}
 .adsense-zone{transition:opacity .2s ease}
 .adsense-unit{width:min(100%,970px);min-width:0;margin-inline:auto;text-align:center}
 .adsense-label{display:block;margin-bottom:.35rem;color:#6d7f85;font-size:.58rem;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
@@ -131,6 +144,19 @@
   [data-banner="noticia_meio"] .ad-rotator-controls>button{width:30px;height:30px;font-size:1rem}
   [data-banner="noticia_meio"] .ad-rotator-dots button{width:6px;height:6px}
   [data-banner="noticia_meio"] .ad-rotator-dots button.active{width:18px}
+  [data-banner="guia_entre_estabelecimentos"].ad-zone-inline{margin:.62rem 0}
+  [data-banner="guia_entre_estabelecimentos"] .banner-item{--ad-radius:18px}
+  [data-banner="guia_entre_estabelecimentos"] .ad-layout-retangulo.has-panel>.ad-campaign-picture,
+  [data-banner="guia_entre_estabelecimentos"] .ad-format-retangulo.has-panel>.ad-campaign-picture,
+  [data-banner="guia_entre_estabelecimentos"] .ad-layout-horizontal.has-panel>.ad-campaign-picture,
+  [data-banner="guia_entre_estabelecimentos"] .ad-format-horizontal.has-panel>.ad-campaign-picture,
+  [data-banner="guia_entre_estabelecimentos"] .ad-layout-super_banner.has-panel>.ad-campaign-picture,
+  [data-banner="guia_entre_estabelecimentos"] .ad-format-super_banner.has-panel>.ad-campaign-picture{height:clamp(118px,31vw,150px)!important;max-height:150px!important;aspect-ratio:auto}
+  [data-banner="guia_entre_estabelecimentos"] .ad-campaign-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:.5rem;min-height:44px;padding:.48rem .56rem}
+  [data-banner="guia_entre_estabelecimentos"] .ad-campaign-logo{display:none!important}
+  [data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy strong{display:-webkit-box;overflow:hidden;font-size:.84rem;line-height:1.1;-webkit-box-orient:vertical;-webkit-line-clamp:1}
+  [data-banner="guia_entre_estabelecimentos"] .ad-campaign-copy>span:not(.ad-campaign-button){display:none}
+  [data-banner="guia_entre_estabelecimentos"] .ad-campaign-button{min-height:31px;padding:.4rem .58rem;font-size:.65rem}
 }
 
 @media(max-width:380px){

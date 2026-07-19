@@ -96,6 +96,21 @@
   opacity: 0;
   pointer-events: none;
 }
+.load-more-status { width: 100%; margin: .9rem auto 0; color: #6f858d; font-size: .82rem; font-weight: 650; text-align: center; }
+.load-more-status:empty { display: none; }
+.is-loading-more .load-more-status::before {
+  content: "";
+  display: inline-block;
+  width: .72rem;
+  height: .72rem;
+  margin-right: .45rem;
+  vertical-align: -.08rem;
+  border: 2px solid rgba(11,79,108,.16);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: loadMoreSpin .75s linear infinite;
+}
+@keyframes loadMoreSpin { to { transform: rotate(360deg); } }
 .news-empty { grid-column: 1 / -1; }
 .news-empty strong { display: block; color: var(--navy); }
 .news-empty p { margin-bottom: 0; }
