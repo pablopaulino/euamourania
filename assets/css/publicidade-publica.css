@@ -204,21 +204,23 @@
   .ad-zone-listing .ad-campaign-button{width:max-content;min-height:33px;padding:.45rem .68rem;color:#fff;background:linear-gradient(135deg,#075c77,#073b4c);font-size:.68rem;box-shadow:0 10px 20px rgba(7,59,76,.16)}
   .ad-zone-listing .ad-rotator-controls{display:none!important}
   #guia-container .ad-zone-listing,
-  .news-card-grid .ad-zone-listing{margin:.72rem 0;padding:0;background:transparent!important;box-shadow:none!important}
+  .news-card-grid .ad-zone-listing{margin:.72rem 0;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;filter:none!important;contain-intrinsic-size:auto!important}
   #guia-container .ad-zone-listing .ad-rotator,
-  .news-card-grid .ad-zone-listing .ad-rotator{width:100%;margin:0;background:transparent!important;box-shadow:none!important}
+  .news-card-grid .ad-zone-listing .ad-rotator{width:100%;margin:0;background:transparent!important;border:0!important;box-shadow:none!important;filter:none!important}
+  #guia-container .ad-zone-listing .ad-slide,
+  .news-card-grid .ad-zone-listing .ad-slide{background:transparent!important;border:0!important;box-shadow:none!important;filter:none!important}
   #guia-container .ad-zone-listing .banner-item,
-  .news-card-grid .ad-zone-listing .banner-item{display:grid!important;grid-template-columns:138px minmax(0,1fr)!important;grid-template-rows:auto!important;min-height:118px!important;overflow:hidden;border:1px solid rgba(247,201,72,.62)!important;border-radius:24px!important;background:linear-gradient(135deg,#fff 0%,#fffdf5 100%)!important;box-shadow:0 16px 38px rgba(151,111,0,.13),0 5px 14px rgba(7,59,76,.045)!important}
+  .news-card-grid .ad-zone-listing .banner-item{display:grid!important;grid-template-columns:30% minmax(0,70%)!important;grid-template-rows:auto!important;min-height:116px!important;overflow:hidden;border:1px solid rgba(247,201,72,.68)!important;border-radius:24px!important;background:linear-gradient(135deg,#fff 0%,#fffdf5 100%)!important;box-shadow:none!important;filter:none!important}
   #guia-container .ad-zone-listing .ad-campaign-picture,
-  .news-card-grid .ad-zone-listing .ad-campaign-picture{grid-column:1!important;grid-row:1!important;width:138px!important;height:118px!important;min-height:118px!important;max-height:118px!important}
+  .news-card-grid .ad-zone-listing .ad-campaign-picture{grid-column:1!important;grid-row:1!important;width:100%!important;height:116px!important;min-height:116px!important;max-height:116px!important}
   #guia-container .ad-zone-listing .ad-campaign-picture img,
   .news-card-grid .ad-zone-listing .ad-campaign-picture img{width:100%!important;height:100%!important;object-fit:cover!important}
   #guia-container .ad-zone-listing .ad-campaign-panel,
-  .news-card-grid .ad-zone-listing .ad-campaign-panel{position:relative;grid-column:2!important;grid-row:1!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-content:center!important;gap:.44rem!important;min-height:118px!important;padding:1.3rem .82rem .82rem!important;background:radial-gradient(circle at 100% 0%,rgba(247,201,72,.18),transparent 3.5rem),linear-gradient(135deg,#fff,#fffdf7)!important;border:0!important}
+  .news-card-grid .ad-zone-listing .ad-campaign-panel{position:relative;grid-column:2!important;grid-row:1!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-content:center!important;gap:.44rem!important;min-height:116px!important;padding:1.18rem .82rem .78rem!important;background:radial-gradient(circle at 100% 0%,rgba(247,201,72,.18),transparent 3.5rem),linear-gradient(135deg,#fff,#fffdf7)!important;border:0!important}
   #guia-container .ad-zone-listing .ad-campaign-panel::before,
   .news-card-grid .ad-zone-listing .ad-campaign-panel::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;height:auto;background:linear-gradient(180deg,#ffd54a,#7cc948,#075c77)}
   #guia-container .ad-zone-listing .ad-sponsored,
-  .news-card-grid .ad-zone-listing .ad-sponsored{top:.52rem!important;right:.7rem!important;bottom:auto!important;left:auto!important;padding:.16rem .46rem!important;color:#073b4c!important;background:#fff6c8!important;border:1px solid rgba(247,201,72,.55)!important;border-radius:999px!important;font-size:.46rem!important;box-shadow:none!important}
+  .news-card-grid .ad-zone-listing .ad-sponsored{top:.48rem!important;right:.64rem!important;bottom:auto!important;left:auto!important;min-height:18px!important;padding:.12rem .38rem!important;color:#073b4c!important;background:#fff6c8!important;border:1px solid rgba(247,201,72,.55)!important;border-radius:999px!important;font-size:.41rem!important;letter-spacing:.07em!important;box-shadow:none!important}
   #guia-container .ad-zone-listing .ad-campaign-copy,
   .news-card-grid .ad-zone-listing .ad-campaign-copy{min-width:0;gap:0}
   #guia-container .ad-zone-listing .ad-campaign-copy strong,
@@ -237,11 +239,11 @@
   [data-banner="noticia_meio"] .ad-campaign-panel{grid-template-columns:1fr}
   [data-banner="noticia_meio"] .ad-campaign-button{grid-column:1/-1;width:100%}
   #guia-container .ad-zone-listing .banner-item,
-  .news-card-grid .ad-zone-listing .banner-item{grid-template-columns:116px minmax(0,1fr)!important;min-height:108px!important}
+  .news-card-grid .ad-zone-listing .banner-item{grid-template-columns:30% minmax(0,70%)!important;min-height:106px!important}
   #guia-container .ad-zone-listing .ad-campaign-picture,
-  .news-card-grid .ad-zone-listing .ad-campaign-picture{width:116px!important;height:108px!important;min-height:108px!important;max-height:108px!important}
+  .news-card-grid .ad-zone-listing .ad-campaign-picture{width:100%!important;height:106px!important;min-height:106px!important;max-height:106px!important}
   #guia-container .ad-zone-listing .ad-campaign-panel,
-  .news-card-grid .ad-zone-listing .ad-campaign-panel{min-height:108px!important;padding:1.2rem .68rem .68rem!important}
+  .news-card-grid .ad-zone-listing .ad-campaign-panel{min-height:106px!important;padding:1.12rem .64rem .64rem!important}
   #guia-container .ad-zone-listing .ad-campaign-copy strong,
   .news-card-grid .ad-zone-listing .ad-campaign-copy strong{font-size:.84rem!important}
   #guia-container .ad-zone-listing .ad-campaign-button,
