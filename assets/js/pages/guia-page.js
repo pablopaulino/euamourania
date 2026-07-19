@@ -19,7 +19,6 @@ const PAGE_SIZE = 6;
 let itens = [];
 let itensFiltrados = [];
 let quantidadeVisivel = PAGE_SIZE;
-const categoriaSlugPorNome = new Map();
 
 function renderizar(dados) {
   itensFiltrados = dados;
@@ -34,8 +33,7 @@ function renderizar(dados) {
   const visiveis = dados.slice(0, quantidadeVisivel);
   container.innerHTML = visiveis.map(item => {
     const detalhes = item.slug ? `guia/${encodeURIComponent(item.slug)}` : `guia-details.html?slug=${encodeURIComponent(item.id)}`;
-    const categoriaSlug = categoriaSlugPorNome.get(item.categoria_nome) || slugify(item.categoria_nome);
-    return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}">${item.recomendado ? '<span class="badge-destaque">Recomendado</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" loading="lazy">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category"><a href="/guia/categoria/${esc(categoriaSlug)}">${esc(item.categoria_nome)}</a></p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao)}</p><div class="guide-info">${item.endereco ? `<p><small>Endereço</small>${esc(item.endereco)}</p>` : ""}${item.horario ? `<p><small>Horário</small>${esc(item.horario)}</p>` : ""}</div><div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes</a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp">WhatsApp</a>` : ""}</div></div></article>`;
+    return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}">${item.recomendado ? '<span class="badge-destaque">Recomendado</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" loading="lazy">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao)}</p><div class="guide-info">${item.endereco ? `<p><small>Endereço</small>${esc(item.endereco)}</p>` : ""}${item.horario ? `<p><small>Horário</small>${esc(item.horario)}</p>` : ""}</div><div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes</a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp">WhatsApp</a>` : ""}</div></div></article>`;
   }).join("");
   const restantes = Math.max(0, dados.length - visiveis.length);
   loadMore.hidden = restantes === 0;
@@ -46,19 +44,14 @@ function renderizar(dados) {
 
 function renderizarFiltros(categorias) {
   const cadastradas = categorias.map(item => item.nome);
-  categorias.forEach(item => categoriaSlugPorNome.set(item.nome, item.slug || slugify(item.nome)));
   const extras = [...new Set(itens.map(item => item.categoria_nome).filter(Boolean))]
     .filter(nome => !cadastradas.includes(nome))
     .sort((a, b) => a.localeCompare(b, "pt-BR"));
-  const meta = new Map(categorias.map(item => [item.nome, { nome: item.nome, slug: item.slug || slugify(item.nome) }]));
-  extras.forEach(nome => meta.set(nome, { nome, slug: slugify(nome) }));
-  const nomes = [...cadastradas, ...extras].map(nome => meta.get(nome));
-  filters.innerHTML = `<button class="btn-filtro ativo" type="button" data-category="">Todos</button>${nomes.map(item => `<a class="btn-filtro" href="/guia/categoria/${esc(item.slug)}" data-category="${esc(item.nome)}">${esc(item.nome)}</a>`).join("")}`;
+  const nomes = [...cadastradas, ...extras];
+  filters.innerHTML = `<button class="btn-filtro ativo" type="button" data-category="">Todos</button>${nomes.map(nome => `<button class="btn-filtro" type="button" data-category="${esc(nome)}">${esc(nome)}</button>`).join("")}`;
   filters.addEventListener("click", event => {
     const button = event.target.closest("[data-category]");
     if (!button) return;
-    if (button.tagName === "A" && (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)) return;
-    event.preventDefault();
     filters.querySelectorAll(".btn-filtro").forEach(item => item.classList.toggle("ativo", item === button));
     const categoria = button.dataset.category;
     quantidadeVisivel = PAGE_SIZE;

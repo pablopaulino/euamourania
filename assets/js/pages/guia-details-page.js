@@ -10,6 +10,14 @@ const safeUrl = value => /^https?:\/\//i.test(value || "") ? escapeHtml(value) :
 const safeImage = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? escapeHtml(value) : "";
 const fallbackImage = "/assets/1505 - Urania - Logo Horizontal - 1.png";
 const today = () => new Date().toISOString();
+const slugify = value => String(value || "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase()
+  .trim()
+  .replace(/[^a-z0-9\s-]/g, "")
+  .replace(/\s+/g, "-")
+  .replace(/-+/g, "-");
 const icons = {
   pin:'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
   clock:'<svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
@@ -163,7 +171,7 @@ async function carregar() {
         <div class="guide-business-media"><img src="${imagem}" alt="${escapeHtml(item.nome)}" decoding="async" fetchpriority="high"></div>
         <div class="guide-business-intro">
           <div class="guide-business-badges">
-            <span>${escapeHtml(item.categoria_nome || "Comércio local")}</span>
+            ${item.categoria_nome ? `<a href="/guia/categoria/${escapeHtml(slugify(item.categoria_nome))}">${escapeHtml(item.categoria_nome)}</a>` : "<span>Comércio local</span>"}
             ${item.recomendado ? `<strong>${icons.star} Recomendado</strong>` : ""}
           </div>
           <p class="eyebrow">Guia comercial de Urânia</p>
@@ -188,7 +196,7 @@ async function carregar() {
           <div class="guide-contact-list">
             ${item.endereco ? `<div>${icons.pin}<p><small>Endereço</small>${escapeHtml(item.endereco)}</p></div>` : ""}
             ${item.horario ? `<div>${icons.clock}<p><small>Horário</small>${escapeHtml(item.horario)}</p></div>` : ""}
-            ${item.categoria_nome ? `<div>${icons.star}<p><small>Categoria</small>${escapeHtml(item.categoria_nome)}</p></div>` : ""}
+            ${item.categoria_nome ? `<div>${icons.star}<p><small>Categoria</small><a class="guide-category-inline" href="/guia/categoria/${escapeHtml(slugify(item.categoria_nome))}">${escapeHtml(item.categoria_nome)}</a></p></div>` : ""}
           </div>
           <div class="guide-contact-actions">
             ${whatsapp ? `<a class="guide-business-action whatsapp" target="_blank" rel="noopener" href="${whatsapp}">${icons.whatsapp}<span>WhatsApp</span></a>` : ""}

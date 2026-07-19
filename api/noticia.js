@@ -131,7 +131,8 @@ async function renderGuia(req, res, slug) {
     ]
   }).replace(/</g, "\\u003c");
   const initialGuide = JSON.stringify(item).replace(/</g, "\\u003c");
-  const serverContent = `<article class="guide-business" data-guide-id="${esc(item.id)}"><a class="guide-business-back" href="/guia.html"><span aria-hidden="true">←</span> Voltar ao Guia</a><section class="guide-business-hero"><div class="guide-business-media"><img src="${esc(image)}" alt="${esc(item.nome)}" decoding="async" fetchpriority="high"></div><div class="guide-business-intro"><div class="guide-business-badges"><span>${esc(item.categoria_nome || "Comércio local")}</span>${item.recomendado ? "<strong>★ Recomendado</strong>" : ""}</div><p class="eyebrow">Guia comercial de Urânia</p><h1>${esc(item.nome)}</h1><p class="guide-business-summary">${esc(item.descricao || description)}</p></div></section></article>`;
+  const categoryBadge = item.categoria_nome ? `<a href="/guia/categoria/${esc(slugify(item.categoria_nome))}">${esc(item.categoria_nome)}</a>` : "<span>Comércio local</span>";
+  const serverContent = `<article class="guide-business" data-guide-id="${esc(item.id)}"><a class="guide-business-back" href="/guia.html"><span aria-hidden="true">←</span> Voltar ao Guia</a><section class="guide-business-hero"><div class="guide-business-media"><img src="${esc(image)}" alt="${esc(item.nome)}" decoding="async" fetchpriority="high"></div><div class="guide-business-intro"><div class="guide-business-badges">${categoryBadge}${item.recomendado ? "<strong>★ Recomendado</strong>" : ""}</div><p class="eyebrow">Guia comercial de Urânia</p><h1>${esc(item.nome)}</h1><p class="guide-business-summary">${esc(item.descricao || description)}</p></div></section></article>`;
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
