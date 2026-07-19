@@ -1,39 +1,73 @@
-# Upload de imagens no CMS
+# Upload e biblioteca de mídia
 
-O painel aceita imagens enviadas diretamente do computador sem depender de links externos.
+A biblioteca de mídia permite subir, escolher, reutilizar e recortar imagens usadas pelo CMS.
 
-## Configuração
+## Onde deve aparecer
 
-Execute `supabase/migrations/20260701_cms_media_upload.sql` no SQL Editor. A migração cria o bucket público `cms-media`, limita cada arquivo a 8 MB e aceita JPG, PNG, WebP, GIF e AVIF.
+Todo campo de imagem editável deve permitir:
 
-As políticas do Storage usam as mesmas permissões do CMS. Cada usuário só pode enviar arquivos para os módulos nos quais pode criar ou editar conteúdo. Nenhuma chave secreta é usada no navegador.
+- digitar URL;
+- usar caminho interno válido;
+- selecionar da biblioteca;
+- fazer upload;
+- editar/recortar quando aplicável.
 
-## Como usar
+Áreas principais:
 
-1. Abra o formulário de notícia, empresa, ponto turístico, evento ou newsletter.
-2. No campo de imagem, clique em **Enviar imagem**.
-3. Escolha o arquivo e aguarde a confirmação.
-4. Escolha o formato, ajuste zoom, rotação e enquadramento arrastando a imagem.
-5. A versão otimizada em WebP, a URL pública e a prévia serão criadas automaticamente.
-6. Salve o conteúdo normalmente.
+- notícias;
+- Guia comercial;
+- Turismo;
+- Eventos;
+- Publicidade;
+- Links, quando houver imagem;
+- página Urânia;
+- configurações públicas editáveis.
 
-No editor de notícia, turismo e newsletter, **Inserir imagem no texto** envia o arquivo e adiciona a imagem na posição atual do editor.
+## O que não precisa ser editável
 
-O campo de URL permanece disponível para imagens já hospedadas em outro serviço.
+Assets estruturais do sistema não devem ser editados casualmente no painel:
 
-## Reutilizar uma imagem
+- favicon;
+- logo principal fixa;
+- logo branca fixa;
+- ícones internos;
+- imagens técnicas de fallback que não aparecem como conteúdo editorial.
 
-Em qualquer campo de imagem, use **Escolher da biblioteca** para pesquisar e selecionar um arquivo que já foi enviado. A imagem pode ser usada diretamente ou aberta em **Editar / outro formato** para gerar um novo recorte.
+## Imagens padrão
 
-Depois de enviar uma imagem nova, **Criar outro formato** reabre o mesmo arquivo original sem exigir uma nova seleção. Cada recorte é salvo como uma versão independente; assim, uma versão pode ser usada como imagem principal e outra como imagem de compartilhamento.
+Imagens padrão existem para evitar link quebrado.
 
-## Originais e limpeza segura
+Devem ser usadas quando:
 
-Quando **Guardar o arquivo original por 7 dias** estiver marcado, o CMS preserva o arquivo recebido e publica a versão editada. O original não pode ser removido pela limpeza antes desse prazo.
+- notícia não tem imagem;
+- empresa não tem imagem;
+- evento não tem imagem;
+- turismo não tem imagem;
+- compartilhamento precisa de fallback.
 
-O Super Admin encontra **Mídia** no menu do painel. Essa biblioteca informa quais imagens estão em uso e permite limpar somente arquivos que:
+A imagem padrão global de compartilhamento deve ser a arte oficial configurada para o portal. Turismo pode manter imagem específica quando necessário.
 
-- não aparecem em notícias, guia, turismo, eventos, newsletters, publicidade ou configurações;
-- foram enviados há mais de sete dias.
+## Imagens em uso
 
-Imagens em uso nunca são disponibilizadas para exclusão. Ao excluir uma notícia, seus arquivos ficam protegidos por sete dias e depois podem ser removidos pela limpeza, desde que não tenham sido reutilizados.
+A biblioteca deve identificar imagem usada em:
+
+- notícias;
+- empresas;
+- turismo;
+- eventos simples;
+- eventos principais;
+- edições;
+- publicidade;
+- configurações;
+- Urânia.
+
+Imagem em uso não deve ser removida sem aviso claro.
+
+## Recomendações de formato
+
+- Notícias: horizontal, boa resolução.
+- Guia: imagem quadrada ou levemente retangular, com boa leitura no card.
+- Turismo: horizontal, com foco no local.
+- Eventos: cartaz ou banner.
+- Publicidade: seguir proporção indicada no painel.
+- Compartilhamento: imagem ampla, legível em redes sociais.

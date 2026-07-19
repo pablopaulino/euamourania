@@ -1,51 +1,86 @@
 # Eu Amo Urânia
 
-Portal local e CMS do Eu Amo Urânia, publicado na Vercel e integrado ao Supabase. Mantém uma experiência pública responsiva e oferece administração de notícias, guia comercial, turismo, eventos, links, categorias, publicidade, comunicação/newsletter, configurações e métricas.
+Portal local e CMS do **Eu Amo Urânia**, criado para reunir notícias, guia comercial, turismo, eventos, links, comunicação, publicidade, audiência, colaboradores e o módulo **Melhores de Urânia**.
 
-## Arquitetura
+O projeto usa uma base simples no front-end público, com HTML, CSS e JavaScript, e uma estrutura profissional de dados e administração com Supabase, Vercel e integrações externas.
 
-- HTML, CSS e JavaScript modular no frontend.
-- Supabase Postgres, Auth, Storage, RPC e RLS.
-- Funções serverless da Vercel para operações seguras, Open Graph e sitemaps.
-- Brevo para envio de newsletters, sem expor a API Key.
-- GitHub Actions para validação e smoke test.
+## Documentação oficial
 
-## Configuração rápida
+A documentação principal foi reorganizada em:
 
-1. Em um projeto novo, execute `supabase/schema.sql`; em ambiente existente, aplique `supabase/migrations` na ordem.
-2. Preencha somente Project URL e Publishable Key em `assets/js/supabase-config.js`.
-3. Configure as variáveis server-side na Vercel conforme `DOCS/VARIAVEIS-DE-AMBIENTE.md`.
-4. Crie o usuário no Supabase Auth e autorize-o em `usuarios_admin`.
-5. Publique pela `main` e valide `https://euamourania.com.br/admin/`.
+- [Documentação completa do sistema](DOCS/SISTEMA-COMPLETO.md)
+- [Índice da documentação](DOCS/README.md)
+- [Arquitetura](DOCS/ARQUITETURA.md)
+- [Banco de dados e Supabase](DOCS/BANCO-E-SUPABASE.md)
+- [CMS e módulos administrativos](DOCS/CMS-E-MODULOS.md)
+- [Variáveis de ambiente](DOCS/VARIAVEIS-DE-AMBIENTE.md)
+- [Deploy, Vercel e APIs](DOCS/VERCEL-APIS-DEPLOY.md)
+- [Segurança](DOCS/SEGURANCA.md)
+- [Testes e checklist](DOCS/TESTES-E-CHECKLIST.md)
 
-Nunca coloque Secret/Service Role ou `BREVO_API_KEY` no frontend ou no repositório.
+## Stack principal
 
-## Desenvolvimento e validação
+- Front-end público: HTML, CSS e JavaScript modular.
+- CMS administrativo: páginas em `/admin`, Supabase Auth, RBAC e RLS.
+- Banco de dados: Supabase Postgres.
+- Storage: Supabase Storage para biblioteca de mídia.
+- Backend seguro: Vercel Serverless Functions em `/api`.
+- Deploy: Vercel, com GitHub como origem.
+- E-mail: Brevo.
+- Analytics: eventos internos no Supabase, com suporte a GA4 e Search Console.
+- Proteção de votação: Cloudflare Turnstile e segredo de voto.
 
-Requer Node.js 20 ou superior.
+## Como rodar localmente
+
+Requisitos:
+
+- Node.js 20 ou superior.
+- Projeto Supabase configurado.
+- Variáveis públicas no front-end e variáveis sensíveis no Vercel.
+
+Comandos principais:
 
 ```bash
+npm run validate
 npm test
-npm run smoke
+npm run serve
 ```
 
-`npm test` verifica sintaxe, referências HTML, arquivos essenciais e padrões de segredo. `npm run smoke` testa as rotas essenciais do ambiente publicado e a proteção da API de newsletter.
+## Configuração essencial
 
-## Operação
+1. Execute o `supabase/schema.sql`.
+2. Execute as migrações em `supabase/migrations/`, na ordem cronológica.
+3. Configure `assets/js/supabase-config.js` com:
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY` ou publishable key pública.
+4. Configure as variáveis sensíveis no Vercel.
+5. Crie o usuário administrador no Supabase Auth.
+6. Registre esse usuário em `usuarios_admin` como `super_admin`.
+7. Faça o deploy pela branch `main`.
 
-- Notícias usam URLs amigáveis em `/noticias/slug-da-materia` e metadados dinâmicos.
-- Conteúdo público vem do Supabase; JSON legado serve somente para migração/arquivo e não para exibição.
-- O painel exige Supabase Auth e autorização em `usuarios_admin`.
-- Publicidade respeita status, período, prioridade e posição.
-- Comunicação gerencia assinantes, campanhas, teste, envio, métricas e descadastro.
+Nunca coloque `SUPABASE_SERVICE_ROLE_KEY`, `BREVO_API_KEY`, credenciais Google ou segredos de votação no código público.
 
-## Documentação
+## URLs principais
 
-Comece por [`DOCS/README.md`](DOCS/README.md). Há guias de arquitetura, banco/RLS, deploy, variáveis, segurança, CMS, SEO/performance/acessibilidade, operação/backup, manuais, testes, troubleshooting e roadmap.
+- Site público: `https://euamourania.com.br`
+- Painel administrativo: `https://euamourania.com.br/admin`
+- Notícias: `/news/` e `/noticias/:slug`
+- Guia: `/guia.html`, `/guia/:slug` e páginas por categoria do guia
+- Turismo: `/turismo.html` e `/turismo/:slug`
+- Eventos: `/eventos/`, `/eventos/:slug` e `/eventos/:slug/:ano`
+- Melhores de Urânia: `/melhores-de-urania/`
+- Links: `/links`
+- Urânia: `/urania/`
+- Colabore: `/colabore/`
 
-## Produção
+## Observações importantes
 
-- Site: https://euamourania.com.br
-- Administração: https://euamourania.com.br/admin/
+- O site público não deve depender de JSON para conteúdo dinâmico principal.
+- Os arquivos JSON antigos são legado ou base de importação.
+- A ordenação pública de notícias deve respeitar a data de publicação, não `updated_at`.
+- Conteúdos em rascunho, arquivados ou agendados para o futuro não devem aparecer publicamente.
+- O painel pode exibir dados internos de atualização, mas isso não deve interferir na experiência pública.
 
-Antes de cada merge: CI verde, Preview verificado, nenhum segredo no diff e checklist de `DOCS/TESTES-E-CHECKLIST.md` concluído.
+## Manutenção
+
+Ao criar ou alterar módulo, tabela, API, variável de ambiente, regra de permissão, rota pública ou rotina de deploy, atualize a documentação correspondente em `DOCS/`.

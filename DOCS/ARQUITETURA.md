@@ -1,21 +1,92 @@
 # Arquitetura
 
-## Visão geral
+O Eu Amo Urânia é um portal público com CMS próprio, usando front-end estático/dinâmico, Supabase como backend principal e Vercel para APIs seguras, rewrites e deploy.
 
-O portal é uma aplicação HTML/CSS/JavaScript sem framework, distribuída pela Vercel. O navegador consulta o Supabase usando a chave publicável; RLS decide o que cada visitante ou administrador pode acessar. Funções em `api/` entregam SEO dinâmico, sitemaps e integração segura com Brevo.
+## Camadas
 
-## Fluxos
+```mermaid
+flowchart TD
+  public["Site público"] --> js["JavaScript público"]
+  admin["Painel /admin"] --> adminjs["JavaScript administrativo"]
+  js --> supa["Supabase REST/Auth/Storage"]
+  adminjs --> supa
+  js --> api["Vercel Functions /api"]
+  adminjs --> api
+  api --> external["Brevo, Google, Turnstile, Expo"]
+```
 
-- Público: HTML → módulos de `assets/js/pages/` → serviços Supabase.
-- Administração: Supabase Auth → `usuarios_admin` → telas em `admin/` → RLS.
-- Notícia amigável: `/noticias/:slug` → `api/noticia.js` → HTML com Open Graph → módulo público.
-- Newsletter: formulário → RPC Supabase; painel → função Vercel → Brevo.
-- Publicidade: campanhas/posições → renderização pública → RPC de métricas.
+## Site público
 
-## Decisões e limites
+Responsável por:
 
-A arquitetura atual é econômica e adequada ao porte municipal. O custo é a existência de módulos grandes e composição por scripts de aprimoramento. Antes de crescimento significativo, priorizar módulos menores, ambiente local reproduzível e testes end-to-end.
+- Home;
+- notícias e páginas individuais;
+- editorias;
+- Guia e empresas individuais;
+- Turismo e atrações individuais;
+- eventos simples, eventos principais e edições;
+- Melhores de Urânia;
+- Links;
+- Urânia;
+- Colabore;
+- páginas institucionais;
+- SEO, sitemaps, Open Graph e dados estruturados.
 
-## Como expandir
+O site consome dados do Supabase com chave pública. Dados sensíveis e ações protegidas passam por APIs da Vercel ou RPCs protegidas.
 
-Novos módulos devem seguir: tabela + RLS + serviço + tela administrativa + módulo público opcional + teste + documentação. Segredos pertencem exclusivamente às variáveis da Vercel.
+## CMS administrativo
+
+O painel em `/admin` gerencia:
+
+- conteúdo;
+- usuários;
+- permissões;
+- mídia;
+- publicidade;
+- comunicação;
+- audiência;
+- configurações;
+- premiações;
+- eventos.
+
+O painel usa Supabase Auth e permissões por função. Não basta esconder botões: ações relevantes precisam ser protegidas por RLS, RPCs e APIs.
+
+## Banco e dados
+
+O Supabase concentra:
+
+- tabelas editoriais;
+- tabelas comerciais;
+- tabelas de turismo;
+- eventos;
+- publicidade;
+- newsletter;
+- audiência;
+- usuários administrativos;
+- mídia;
+- configurações;
+- auditoria;
+- Melhores de Urânia.
+
+## APIs serverless
+
+As funções em `/api` são usadas para:
+
+- gerar HTML dinâmico com metadados;
+- enviar e-mails;
+- registrar aberturas e cliques;
+- consultar integrações Google;
+- processar votos e indicações;
+- enviar notificações;
+- gerar sitemaps e feeds;
+- proteger chaves secretas.
+
+## Princípios da arquitetura
+
+- Conteúdo público vem do Supabase, não de JSON.
+- Segredos nunca ficam no navegador.
+- SEO precisa ser resolvido também para crawlers.
+- O painel deve ser modular e consistente.
+- Métricas internas devem ter fonte clara.
+- Rewrites e redirects devem preservar URLs antigas.
+- Toda feature nova deve ter documentação e teste.

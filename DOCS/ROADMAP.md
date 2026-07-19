@@ -1,31 +1,132 @@
 # Roadmap
 
-## Crítico
+Este roadmap organiza melhorias futuras por prioridade.
 
-- Monitoramento de erros e alertas de APIs.
-- Teste E2E de login, publicação e rotas públicas.
-- Rotina comprovada de backup/restauração.
-- Sanitização centralizada do HTML editorial.
+## Prioridade alta
 
-## Importante
+### Melhorar governança editorial
 
-- Refatorar os grandes scripts do admin em componentes/serviços.
-- Migrações versionadas automaticamente entre ambientes.
-- Revisões, histórico editorial, agendamento e fluxo de aprovação.
-- Biblioteca de mídia com compressão, alt e direitos de uso.
-- Busca editorial e pública.
+Benefício: mais controle e segurança antes da publicação.
 
-## Desejável
+Possíveis entregas:
 
-- MFA administrativo, CSP com nonce/hash e rate limit central.
-- Analytics com consentimento, Search Console e painel de Core Web Vitals.
-- RSS, web push opcional e integração de mapas.
+- histórico de versões de matérias;
+- comparação entre versões;
+- comentários internos;
+- checklist editorial antes de publicar.
 
-## Futuro
+Impacto: alto.  
+Dificuldade: média.
 
-- Área do anunciante, limites de campanha e faturamento.
-- Resumo semanal automatizado e segmentação de newsletter.
-- IA assistiva para resumo, tags, SEO e revisão, sempre com aprovação humana.
-- PWA/offline apenas após validar demanda.
+### Fortalecer segurança administrativa
 
-Toda iniciativa deve ter métrica, responsável, migração, rollback, testes e documentação antes de entrar em produção.
+Benefício: reduzir risco de acesso indevido.
+
+Possíveis entregas:
+
+- MFA obrigatório;
+- rate limit centralizado;
+- logs de acesso;
+- alertas de ações críticas.
+
+Impacto: alto.  
+Dificuldade: média.
+
+### Consolidar métricas
+
+Benefício: dashboards mais confiáveis.
+
+Possíveis entregas:
+
+- origem clara por métrica;
+- cache controlado;
+- painel de falhas de APIs;
+- Core Web Vitals.
+
+Impacto: alto.  
+Dificuldade: média.
+
+## Prioridade média
+
+### Melhorar automações editoriais
+
+Benefício: economizar tempo.
+
+Possíveis entregas:
+
+- sugestões de título SEO;
+- checklist automático;
+- resumo para redes sociais;
+- alerta de notícia sem imagem.
+
+Impacto: médio.  
+Dificuldade: média.
+
+### Expandir Guia comercial
+
+Benefício: aumentar valor para empresas.
+
+Possíveis entregas:
+
+- planos comerciais;
+- páginas premium;
+- galeria por empresa;
+- avaliações controladas;
+- mapa interativo.
+
+Impacto: alto.  
+Dificuldade: média/alta.
+
+### Evoluir Eventos
+
+Benefício: transformar eventos em páginas duradouras e indexáveis.
+
+Possíveis entregas:
+
+- linha do tempo por edição;
+- galeria histórica;
+- patrocinadores;
+- cobertura vinculada a notícias.
+
+Impacto: médio.  
+Dificuldade: média.
+
+## Prioridade baixa
+
+### App e notificações avançadas
+
+Benefício: retenção de público.
+
+Possíveis entregas:
+
+- preferências por assunto;
+- notificações segmentadas;
+- campanha por interesse.
+
+Impacto: médio.  
+Dificuldade: média.
+
+### IA assistiva no CMS
+
+Benefício: acelerar produção sem substituir revisão humana.
+
+Possíveis entregas:
+
+- sugestão de resumo;
+- revisão gramatical;
+- descrição de imagem;
+- ideias de pauta.
+
+Impacto: médio.  
+Dificuldade: média.
+
+## Ideias futuras
+
+- página “Mais lidas” completa;
+- mapa interativo de empresas e turismo;
+- guia de serviços públicos;
+- calendário cultural;
+- central de denúncias com triagem;
+- portal para anunciantes;
+- painel de colaboradores;
+- assinatura de alertas por WhatsApp.

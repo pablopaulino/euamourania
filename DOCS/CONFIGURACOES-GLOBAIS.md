@@ -1,44 +1,50 @@
-# Configurações globais do site
+# Configurações globais
 
-Acesse **CMS > Configurações**. Somente Super Admin ou usuário com permissão extra `configuracoes:editar` pode salvar.
+As configurações globais permitem editar informações públicas importantes sem mexer no código.
 
-## Mapeamento
+## O que deve ser editável
 
-- **Geral:** nome, slogan, descrição institucional, endereço, horário, rodapé e copyright.
-- **Contatos e redes:** e-mail, WhatsApp, canal, Instagram, Facebook, YouTube e TikTok.
-- **Imagens globais:** logos, favicon, compartilhamento, placeholders de notícia/guia/turismo/evento e logo do schema.
-- **Home · Hero:** imagem, texto alternativo, chamadas, título, texto, botões e tópicos.
-- **Home · Cards e turismo:** títulos, cards, imagens do Borboletário, textos e links.
-- **Home · Essência/WhatsApp/newsletter:** todos os textos e chamada do canal.
-- **Quem somos:** hero, história, textos, valores, CTA, botão e link.
-- **Navegação e páginas legais:** menu, rodapé, termos e privacidade.
-- **SEO:** title/description padrão, imagem social, palavras-chave, autor, publicador, logo e domínio.
+- nome do site;
+- descrição do site;
+- e-mail de contato;
+- WhatsApp;
+- Instagram;
+- Facebook;
+- YouTube;
+- imagem padrão de compartilhamento;
+- texto do rodapé;
+- textos institucionais específicos;
+- conteúdo da página Urânia;
+- imagens públicas específicas que aparecem como conteúdo.
 
-## Campos JSON
+## O que não deve ser edição comum
 
-`menu_itens`, `rodape_links`, `home_cards`, `home_topicos` e `quem_valores` usam JSON. O painel valida a sintaxe antes de salvar. Menus aceitam `titulo`, `url`, `ativo` e `nova_aba`. A ordem do array é a ordem pública.
+- favicon;
+- logo principal estrutural;
+- logo branca estrutural;
+- ícones internos;
+- caminhos técnicos;
+- cores estruturais do sistema;
+- blocos JSON complexos que podem quebrar layout;
+- assets internos usados como fallback técnico.
 
-## Imagens
+## Imagem padrão de compartilhamento
 
-Os campos aceitam URL HTTPS ou caminho público iniciado por `/assets/`. Arquivos locais atuais permanecem como fallback para que uma configuração vazia ou falha de rede não quebre o layout. Eles não são obrigatórios: ao cadastrar uma URL, todas as páginas passam a usá-la.
+Usada quando a página não possui imagem própria.
 
-Fallbacks locais remanescentes:
+Regras:
 
-- logo horizontal;
-- favicon/placeholder institucional;
-- fotos atuais do hero e Borboletário;
-- ícone externo do WhatsApp.
+- deve ser pública;
+- deve ter boa resolução;
+- deve representar a marca;
+- não deve ser ícone pequeno;
+- páginas de notícia, empresa, turismo e evento devem preferir sua própria imagem.
 
-Todos, exceto o ícone vetorial do WhatsApp, têm substituição no painel. O ícone não contém identidade ou conteúdo editorial.
+## Salvamento
 
-## SEO e compartilhamento
+Se uma configuração não salva:
 
-A home é entregue por `/api/home`, que injeta title, description, canonical, Open Graph e Twitter Card diretamente no HTML para robôs do WhatsApp/Facebook. O navegador aplica também as configurações globais às páginas estáticas. Notícias continuam usando metadados próprios e seus fallbacks existentes.
-
-## Segurança e HTML
-
-Termos e Política aceitam HTML institucional. No site, tags executáveis, atributos `on*` e URLs `javascript:` são removidos. Nunca coloque scripts, chaves, tokens ou códigos de integração em `configuracoes_site`.
-
-## Teste recomendado
-
-Altere uma informação por vez e abra janela anônima: logo, hero, WhatsApp, Instagram, texto da home, rodapé, imagem social, canal, Quem Somos e SEO. Para validar compartilhamento, use a URL da home após o cache de até cinco minutos.
+- verificar permissão do usuário;
+- verificar RLS;
+- conferir se o campo aceita caminho interno, URL ou imagem da biblioteca;
+- conferir console do navegador.

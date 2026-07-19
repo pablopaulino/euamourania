@@ -1,29 +1,88 @@
 # Estrutura e componentes
 
-## Raiz pública
+## Raiz do projeto
 
-As páginas HTML da raiz e das pastas `news`, `links`, `eventos` e `admin` são pontos de entrada. `styles.css` mantém a identidade pública; `assets/css` contém estilos especializados.
+Arquivos principais:
 
-## JavaScript público
+- `index.html`: home pública.
+- `guia.html`: Guia comercial.
+- `guia-details.html`: página individual de empresa.
+- `turismo.html`: Turismo.
+- `turismo-details.html`: página individual de atração.
+- `news-details.html`: página individual de notícia.
+- `buscar.html`: busca global.
+- `quem-somos.html`: institucional.
+- `termos-de-servico.html`: termos.
+- `politica-de-privacidade.html`: privacidade.
+- `descadastrar.html`: descadastro da newsletter.
+- `vercel.json`: rotas, rewrites, redirects, headers e cron.
+- `package.json`: scripts de validação e testes.
 
-- `script.js`: navegação e inicialização global.
-- `assets/js/supabase-config.js`: cliente público do Supabase; contém somente URL e Publishable Key.
-- `assets/js/services/*`: acesso a dados por domínio.
-- `assets/js/pages/*`: renderização de páginas.
-- `assets/js/publicidade.js`, `analytics.js` e `newsletter-public.js`: recursos transversais.
+## Pastas públicas
 
-## Administração
+- `news/`: página principal de notícias.
+- `categorias/`: páginas públicas de editorias.
+- `colabore/`: cadastro voluntário.
+- `eventos/`: eventos públicos.
+- `links/`: página de links.
+- `melhores-de-urania/`: módulo público da premiação.
+- `urania/`: página sobre a cidade.
+- `assets/`: CSS, JS, imagens e componentes públicos.
 
-`admin/admin.js` controla autenticação e operações principais. `admin/cms-v2.js`, `publicidade.js`, `comunicacao.js` e folhas de estilo complementares implementam os módulos avançados preservando o mesmo shell visual.
+## Painel administrativo
 
-## Backend Vercel
+Pasta:
 
-`api/*` executa operações que exigem segredo ou resposta dinâmica, especialmente newsletter/Brevo, Open Graph e sitemaps. Segredos nunca pertencem ao navegador.
+- `admin/`
 
-## Banco
+Contém páginas, scripts e estilos do CMS.
 
-`supabase/schema.sql` instala um ambiente novo; `supabase/migrations` evolui ambientes existentes. Toda mudança de schema deve receber migração própria, reversível quando possível e registrada na documentação.
+Áreas importantes:
+
+- notícias;
+- formulários;
+- Guia;
+- Turismo;
+- Eventos;
+- Publicidade;
+- Comunicação;
+- Mídia;
+- Usuários;
+- Configurações;
+- Melhores de Urânia.
+
+## APIs
+
+Pasta:
+
+- `api/`
+
+Usada para funções serverless protegidas ou para servir HTML/metadados dinâmicos.
+
+## Supabase
+
+Pasta:
+
+- `supabase/`
+
+Subpastas:
+
+- `migrations/`: alterações do banco;
+- `rollbacks/`: reversões quando existem;
+- `schema.sql`: base inicial;
+- documentos auxiliares.
+
+## Scripts
+
+Pasta:
+
+- `scripts/`
+
+Contém testes e validadores automatizados.
 
 ## Convenções
 
-Use nomes em português nos domínios, slugs minúsculos, módulos ES no navegador, validação no cliente e no banco, consultas em `services`, renderização em `pages` e estilos públicos separados dos administrativos.
+- Reutilizar componentes e serviços existentes.
+- Não duplicar lógica de busca, SEO ou Supabase.
+- Preservar URLs antigas com redirects quando mudar rota.
+- Toda página pública nova deve considerar sitemap, canonical e Open Graph.
