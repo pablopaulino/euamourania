@@ -216,7 +216,7 @@
   #guia-container .ad-zone-listing .ad-campaign-picture img,
   .news-card-grid .ad-zone-listing .ad-campaign-picture img{width:100%!important;height:100%!important;object-fit:cover!important}
   #guia-container .ad-zone-listing .ad-campaign-panel,
-  .news-card-grid .ad-zone-listing .ad-campaign-panel{position:relative;grid-column:2!important;grid-row:1!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-content:center!important;gap:.44rem!important;min-height:116px!important;padding:1.18rem .82rem .78rem!important;background:radial-gradient(circle at 100% 0%,rgba(247,201,72,.18),transparent 3.5rem),linear-gradient(135deg,#fff,#fffdf7)!important;border:0!important}
+  .news-card-grid .ad-zone-listing .ad-campaign-panel{position:relative;grid-column:2!important;grid-row:1!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-content:center!important;gap:.44rem!important;min-height:116px!important;padding:1.42rem .82rem .56rem!important;background:radial-gradient(circle at 100% 0%,rgba(247,201,72,.18),transparent 3.5rem),linear-gradient(135deg,#fff,#fffdf7)!important;border:0!important}
   #guia-container .ad-zone-listing .ad-campaign-panel::before,
   .news-card-grid .ad-zone-listing .ad-campaign-panel::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;height:auto;background:linear-gradient(180deg,#ffd54a,#7cc948,#075c77)}
   #guia-container .ad-zone-listing .ad-sponsored,
@@ -243,7 +243,7 @@
   #guia-container .ad-zone-listing .ad-campaign-picture,
   .news-card-grid .ad-zone-listing .ad-campaign-picture{width:100%!important;height:106px!important;min-height:106px!important;max-height:106px!important}
   #guia-container .ad-zone-listing .ad-campaign-panel,
-  .news-card-grid .ad-zone-listing .ad-campaign-panel{min-height:106px!important;padding:1.12rem .64rem .64rem!important}
+  .news-card-grid .ad-zone-listing .ad-campaign-panel{min-height:106px!important;padding:1.3rem .64rem .46rem!important}
   #guia-container .ad-zone-listing .ad-campaign-copy strong,
   .news-card-grid .ad-zone-listing .ad-campaign-copy strong{font-size:.84rem!important}
   #guia-container .ad-zone-listing .ad-campaign-button,
