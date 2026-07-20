@@ -19,7 +19,8 @@ const icons = {
   pin:'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
   clock:'<svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   map:'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg>',
-  whatsapp:'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.4-4A8 8 0 1 1 20 11.5Z"/><path d="M9 8.5c.5 2.5 2 4 4.5 5"/></svg>'
+  whatsapp:'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.4-4A8 8 0 1 1 20 11.5Z"/><path d="M9 8.5c.5 2.5 2 4 4.5 5"/></svg>',
+  share:'<svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.4M8.7 13.3l6.6 4.4"/></svg>'
 };
 
 const truncate = (value = "", size = 105) => {
@@ -136,6 +137,7 @@ async function carregar() {
           <div class="tourism-detail-actions">
             ${mapUrl ? `<a class="tourism-action primary" target="_blank" rel="noopener" href="${mapUrl}" data-map-query="${escapeHtml(mapQuery)}" data-map-fallback="${mapUrl}">${icons.map}<span>Abrir no mapa</span></a>` : ""}
             ${item.whatsapp ? `<a class="tourism-action whatsapp" target="_blank" rel="noopener" href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}">${icons.whatsapp}<span>Falar pelo WhatsApp</span></a>` : ""}
+            <button class="tourism-action share" type="button" data-share-tourism data-share-title="${escapeHtml(item.nome)}" data-share-text="${escapeHtml(item.descricao || `Conheça ${item.nome} em Urânia.`)}">${icons.share}<span>Compartilhar lugar</span></button>
             <a class="tourism-action secondary" href="/turismo.html"><span aria-hidden="true">←</span><span>Ver outros lugares</span></a>
           </div>
         </aside>
@@ -149,3 +151,35 @@ async function carregar() {
   }
 }
 carregar();
+
+container.addEventListener("click", async event => {
+  const button = event.target.closest("[data-share-tourism]");
+  if (!button) return;
+
+  const label = button.querySelector("span");
+  const originalText = label?.textContent || "Compartilhar lugar";
+  const shareData = {
+    title: `${button.dataset.shareTitle || "Turismo"} | Eu Amo Urânia`,
+    text: button.dataset.shareText || "Conheça este lugar em Urânia.",
+    url: window.location.href
+  };
+
+  try {
+    if (navigator.share) {
+      await navigator.share(shareData);
+      return;
+    }
+
+    await navigator.clipboard.writeText(shareData.url);
+    if (label) {
+      label.textContent = "Link copiado";
+      setTimeout(() => {
+        label.textContent = originalText;
+      }, 1800);
+    }
+  } catch (error) {
+    if (error?.name !== "AbortError") {
+      console.error("Não foi possível compartilhar o local:", error);
+    }
+  }
+});

@@ -27,12 +27,14 @@
 .tourism-detail-facts p{margin:0;color:#405761;font-size:.82rem;line-height:1.5}
 .tourism-detail-facts small{display:block;margin-bottom:.12rem;color:#71838b;font-size:.65rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
 .tourism-detail-actions{display:grid;gap:.6rem;margin-top:1rem}
-.tourism-action{display:flex;align-items:center;justify-content:center;gap:.6rem;min-height:47px;padding:.7rem 1rem;border:1px solid transparent;border-radius:12px;font-size:.84rem;font-weight:800;text-align:center;text-decoration:none;transition:.18s ease}
+.tourism-action{display:flex;align-items:center;justify-content:center;gap:.6rem;min-height:47px;padding:.7rem 1rem;border:1px solid transparent;border-radius:12px;font-family:inherit;font-size:.84rem;font-weight:800;text-align:center;text-decoration:none;cursor:pointer;transition:.18s ease}
 .tourism-action:hover{transform:translateY(-2px)}
 .tourism-action.primary{color:#fff;background:var(--blue)}
 .tourism-action.primary:hover{background:var(--navy)}
 .tourism-action.whatsapp{color:#116d39;background:#e7f7ed;border-color:#bfe5cd}
 .tourism-action.whatsapp:hover{color:#fff;background:#168c46;border-color:#168c46}
+.tourism-action.share{color:var(--navy);background:linear-gradient(135deg,#fff9df,#eef8fa);border-color:#eadb9a}
+.tourism-action.share:hover{background:linear-gradient(135deg,#fff2bd,#e1f4f8);border-color:var(--yellow)}
 .tourism-action.secondary{color:var(--blue);background:#fff;border-color:#c9d8dc}
 .tourism-action.secondary:hover{background:var(--pale)}
 .tourism-related-area{display:grid;gap:1.05rem;margin-top:1.55rem}
