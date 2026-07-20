@@ -2,6 +2,7 @@ import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDat
 
 const container = document.getElementById("links-list");
 const status = document.getElementById("links-status");
+const LINKS_CACHE_KEY = "euamourania:links-page:v2";
 
 const NEWS_GROUP_LINK = {
   id: "whatsapp-grupo-noticias",
@@ -18,6 +19,23 @@ const NEWS_PAGE_LINK = {
   url: "/news/",
   iconType: "news"
 };
+
+const FALLBACK_LINKS = [
+  {
+    id: "site-principal",
+    titulo: "Nosso site",
+    url: "/",
+    iconType: "site"
+  },
+  NEWS_PAGE_LINK,
+  NEWS_GROUP_LINK,
+  {
+    id: "falar-com-equipe",
+    titulo: "Falar com a Equipe",
+    url: "https://wa.me/5517976005583",
+    iconType: "whatsapp"
+  }
+];
 
 const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
   "&": "&amp;",
@@ -78,8 +96,8 @@ function linkAttributes(url = "") {
 
 function sameDestination(a = "", b = "") {
   try {
-    const left = new URL(a);
-    const right = new URL(b);
+    const left = new URL(a, window.location.origin);
+    const right = new URL(b, window.location.origin);
     return left.hostname === right.hostname && left.pathname === right.pathname;
   } catch {
     return a === b;
@@ -122,28 +140,61 @@ function withNewsGroup(links) {
   return ordered;
 }
 
+function readLinksCache() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(LINKS_CACHE_KEY) || "null");
+    return Array.isArray(cached?.links) ? cached.links : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLinksCache(links) {
+  try {
+    localStorage.setItem(LINKS_CACHE_KEY, JSON.stringify({ links, savedAt: Date.now() }));
+  } catch {}
+}
+
+function renderLinks(links, { fromCache = false } = {}) {
+  const renderedLinks = links.length ? withNewsGroup(links) : FALLBACK_LINKS;
+  container.innerHTML = renderedLinks.map(renderLink).join("");
+  status.hidden = true;
+  container.dataset.loaded = fromCache ? "cache" : "fresh";
+}
+
+function setLoadingMessage(message) {
+  if (!container?.children?.length) {
+    status.hidden = false;
+    status.textContent = message;
+  }
+}
+
 async function carregarLinks() {
+  const cachedLinks = readLinksCache();
+  renderLinks(cachedLinks || FALLBACK_LINKS, { fromCache: Boolean(cachedLinks) });
+
   if (!publicSupabaseConfigured()) {
-    status.textContent = "Configure o Supabase para carregar os links.";
+    setLoadingMessage("Configure o Supabase para carregar os links.");
     return;
   }
-
-  status.textContent = "Carregando canais…";
 
   try {
     const links = await fetchPublicRows("links", {
       select: "id,titulo,url,icone,ordem",
       status: "eq.ativo",
       order: "ordem.asc"
+    }, {
+      ttl: 600000,
+      timeout: 3500
     });
 
-    const renderedLinks = links.length ? withNewsGroup(links) : [NEWS_PAGE_LINK, NEWS_GROUP_LINK];
-
-    status.hidden = true;
-    container.innerHTML = renderedLinks.map(renderLink).join("");
+    saveLinksCache(links);
+    renderLinks(links);
   } catch (error) {
-    console.error(error);
-    status.textContent = "Não foi possível carregar os links.";
+    console.error("Erro ao atualizar links públicos:", error);
+    if (!container?.children?.length) {
+      renderLinks(FALLBACK_LINKS);
+    }
   }
 }
 
