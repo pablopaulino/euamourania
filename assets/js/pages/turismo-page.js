@@ -6,6 +6,9 @@ const search = document.getElementById("turismo-busca");
 const total = document.getElementById("turismo-total");
 const results = document.getElementById("turismo-results");
 const empty = document.getElementById("turismo-empty");
+const PAGE_SIZE = 4;
+const loadStatus = document.createElement("p");
+const loadMore = document.createElement("button");
 const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[char]));
 const safeImage = value => {
   const raw = String(value || "").trim();
@@ -19,6 +22,28 @@ const icons = {
   clock:'<svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
 };
 let allItems = [];
+let visibleCount = PAGE_SIZE;
+let filteredItems = [];
+let isLoadingMore = false;
+
+loadMore.id = "turismo-ver-mais";
+loadMore.className = "news-load-more tourism-load-more";
+loadMore.type = "button";
+loadMore.textContent = "Ver mais lugares";
+loadMore.hidden = true;
+loadStatus.className = "load-more-status tourism-load-status";
+loadStatus.setAttribute("aria-live", "polite");
+container?.insertAdjacentElement("afterend", loadMore);
+loadMore.insertAdjacentElement("afterend", loadStatus);
+
+function updateLoadState(visibleLength) {
+  loadMore.hidden = visibleLength >= filteredItems.length;
+  loadStatus.textContent = !filteredItems.length
+    ? ""
+    : loadMore.hidden
+      ? "Você chegou ao fim da lista."
+      : "";
+}
 
 function tourismCard(item,index) {
   const url = `/turismo/${encodeURIComponent(item.slug)}`;
@@ -48,14 +73,51 @@ function tourismCard(item,index) {
 
 function renderTourism() {
   const term = normalize(search?.value);
-  const visible = allItems.filter(item => !term || normalize(`${item.nome} ${item.descricao} ${item.endereco} ${item.horario} ${item.categoria_nome || item.categoria || ""}`).includes(term));
+  filteredItems = allItems.filter(item => !term || normalize(`${item.nome} ${item.descricao} ${item.endereco} ${item.horario} ${item.categoria_nome || item.categoria || ""}`).includes(term));
+  const visible = filteredItems.slice(0, visibleCount);
   container.innerHTML = visible.map(tourismCard).join("");
-  empty.hidden = Boolean(visible.length);
-  results.textContent = term ? `${visible.length} ${visible.length === 1 ? "lugar encontrado" : "lugares encontrados"} para sua busca.` : "";
+  empty.hidden = Boolean(filteredItems.length);
+  results.textContent = term ? `${filteredItems.length} ${filteredItems.length === 1 ? "lugar encontrado" : "lugares encontrados"} para sua busca.` : "";
+  updateLoadState(visible.length);
   document.dispatchEvent(new CustomEvent("turismo:renderizado"));
 }
 
-search?.addEventListener("input",renderTourism);
+function loadNextTourism(scroll = false) {
+  if (loadMore.hidden || isLoadingMore) return;
+  isLoadingMore = true;
+  document.body.classList.add("tourism-auto-load", "is-loading-more");
+  loadStatus.textContent = "Carregando mais lugares...";
+  window.setTimeout(() => {
+    const previousCount = visibleCount;
+    visibleCount = Math.min(visibleCount + PAGE_SIZE, filteredItems.length);
+    const nextItems = filteredItems.slice(previousCount, visibleCount);
+    if (nextItems.length) {
+      container.insertAdjacentHTML("beforeend", nextItems.map((item, index) => tourismCard(item, previousCount + index)).join(""));
+    }
+    updateLoadState(visibleCount);
+    document.dispatchEvent(new CustomEvent("turismo:renderizado"));
+    document.body.classList.remove("is-loading-more");
+    isLoadingMore = false;
+    if (scroll) {
+      container.querySelector(".tourism-card:last-of-type")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, 140);
+}
+
+search?.addEventListener("input", () => {
+  visibleCount = PAGE_SIZE;
+  renderTourism();
+});
+loadMore.addEventListener("click", () => loadNextTourism(true));
+
+if ("IntersectionObserver" in window) {
+  document.body.classList.add("tourism-auto-load");
+  const observer = new IntersectionObserver(entries => {
+    if (!entries.some(entry => entry.isIntersecting) || isLoadingMore || loadMore.hidden) return;
+    loadNextTourism(false);
+  }, { rootMargin: "260px 0px" });
+  observer.observe(loadMore);
+}
 
 async function carregarTurismo() {
   if (!publicSupabaseConfigured()) { status.textContent = "Configure o Supabase para carregar os pontos turísticos."; return; }
@@ -68,6 +130,7 @@ async function carregarTurismo() {
     if (!itens.length) { status.textContent = "Nenhum ponto turístico publicado."; return; }
     allItems = itens;
     total.textContent = String(itens.length);
+    visibleCount = PAGE_SIZE;
     status.hidden = true;
     renderTourism();
   } catch (error) {

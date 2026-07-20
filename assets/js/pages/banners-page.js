@@ -330,13 +330,14 @@ function insertBetweenCards(position, containerSelector, cardSelector, afterInde
   insertZone(position, cards[Math.min(afterIndex, cards.length - 1)], "afterend", true);
 }
 
-function insertRepeatedBetweenCards(position, containerSelector, cardSelector, interval) {
+function insertRepeatedBetweenCards(position, containerSelector, cardSelector, interval, allowAfterLast = false) {
   const container = document.querySelector(containerSelector);
   if (!container) return;
   const cards = [...container.querySelectorAll(cardSelector)];
   const items = candidates(position);
   if (!cards.length || !items.length) return;
-  for (let index = interval - 1; index < cards.length - 1; index += interval) {
+  const lastIndex = allowAfterLast ? cards.length : cards.length - 1;
+  for (let index = interval - 1; index < lastIndex; index += interval) {
     const next = cards[index].nextElementSibling;
     if (next?.matches(`[data-banner="${position}"][data-inline-list-ad="true"]`)) continue;
     const html = zoneMarkup(position, items, true);
@@ -392,7 +393,7 @@ function render() {
     insertZone("guia_rodape", ".site-footer");
   }
   if (path.endsWith("turismo.html")) {
-    insertBetweenCards("turismo_entre_cartoes", "#turismo-container", ".card-guia", 2);
+    insertRepeatedBetweenCards("turismo_entre_cartoes", "#turismo-container", ".card-guia", 4, true);
     insertZone("turismo_rodape", ".site-footer");
   }
   if (path.includes("turismo-details")) {
@@ -412,6 +413,7 @@ function render() {
 
 document.addEventListener("guia:renderizado", () => insertRepeatedBetweenCards("guia_entre_estabelecimentos", "#guia-container", ".card-guia", 6));
 document.addEventListener("noticias:renderizado", () => insertRepeatedBetweenCards("noticias_entre_listagem", "#news-container", ".news-item", 6));
+document.addEventListener("turismo:renderizado", () => insertRepeatedBetweenCards("turismo_entre_cartoes", "#turismo-container", ".card-guia", 4, true));
 
 function renderAdSense() {
   if (!hasAdConsent()) return;
@@ -433,7 +435,7 @@ function renderAdSense() {
     insertAdSenseZone("guia_rodape", adsense.slots.finalRodape, ".site-footer");
   }
   if (path.endsWith("turismo.html")) {
-    insertAdSenseBetweenCards("turismo_entre_cartoes", adsense.slots.listagens, "#turismo-container", ".card-guia", 2);
+    insertAdSenseBetweenCards("turismo_entre_cartoes", adsense.slots.listagens, "#turismo-container", ".card-guia", 3);
     insertAdSenseZone("turismo_rodape", adsense.slots.finalRodape, ".site-footer");
   }
   if (path.includes("/eventos")) {
