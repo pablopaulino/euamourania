@@ -790,6 +790,10 @@ body:has(#guia-container) .inner-content {
   text-transform: uppercase;
 }
 
+.guide-mobile-tags {
+  display: none;
+}
+
 .guide-info {
   display: grid;
   gap: .55rem;
@@ -1542,6 +1546,27 @@ body:has(#guia-container) .inner-content {
 
   .featured-news-card {
     flex-basis: min(100%, 340px) !important;
+  }
+
+  .guide-mobile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .42rem;
+    margin-top: .65rem;
+  }
+
+  .guide-mobile-tags span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: .28rem .62rem;
+    color: #49616b;
+    background: #eef7f9;
+    border: 1px solid #d8e9ee;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 800;
+    line-height: 1;
   }
 }
 
