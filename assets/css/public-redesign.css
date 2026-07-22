@@ -819,6 +819,54 @@ body:has(#guia-container) .inner-content {
   text-transform: uppercase;
 }
 
+.guide-join-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-top: clamp(1.8rem, 4vw, 3rem);
+  padding: clamp(1.15rem, 3vw, 1.75rem);
+  background:
+    radial-gradient(circle at 94% 14%, rgba(247, 201, 72, .28), transparent 10rem),
+    linear-gradient(135deg, #073b4c, #0b4f6c);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 26px;
+  box-shadow: 0 22px 52px rgba(7, 59, 76, .16);
+}
+
+.guide-join-cta .eyebrow {
+  margin-bottom: .35rem;
+  color: var(--yellow);
+}
+
+.guide-join-cta h2 {
+  max-width: 720px;
+  margin: 0 0 .4rem;
+  color: #fff;
+  font-size: clamp(1.35rem, 2.7vw, 2rem);
+  line-height: 1.08;
+  letter-spacing: -.04em;
+}
+
+.guide-join-cta p:not(.eyebrow) {
+  max-width: 680px;
+  margin: 0;
+  color: rgba(255, 255, 255, .82);
+  line-height: 1.55;
+}
+
+.guide-join-button {
+  flex: 0 0 auto;
+  color: var(--navy);
+  background: var(--yellow);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .15);
+}
+
+.guide-join-button:hover {
+  color: var(--navy);
+  background: #ffe486;
+}
+
 .card-text,
 .card-address,
 .news-item-summary,
@@ -1574,6 +1622,18 @@ body:has(#guia-container) .inner-content {
     font-size: .72rem;
     font-weight: 800;
     line-height: 1;
+  }
+
+  .guide-join-cta {
+    align-items: stretch;
+    flex-direction: column;
+    margin-top: 1.35rem;
+    padding: 1.1rem;
+    border-radius: 22px;
+  }
+
+  .guide-join-button {
+    width: 100%;
   }
 }
 
