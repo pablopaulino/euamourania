@@ -86,6 +86,11 @@ export function sanitizeHtml(value = "", options = {}) {
       if (!allowed) node.remove();
       else node.loading = "lazy";
     }
+
+    if (node.tagName === "VIDEO" || node.tagName === "SOURCE") {
+      const src = node.getAttribute("src") || "";
+      if (src && !isSafeUrl(src)) node.remove();
+    }
   });
 
   return root.innerHTML;
@@ -93,8 +98,8 @@ export function sanitizeHtml(value = "", options = {}) {
 
 export function sanitizeArticleHtml(value = "") {
   return sanitizeHtml(value, {
-    allowedTags: [...DEFAULT_ALLOWED_TAGS, "IFRAME"],
-    allowedAttrs: [...DEFAULT_ALLOWED_ATTRS, "allow", "allowfullscreen", "frameborder"],
+    allowedTags: [...DEFAULT_ALLOWED_TAGS, "IFRAME", "VIDEO", "SOURCE"],
+    allowedAttrs: [...DEFAULT_ALLOWED_ATTRS, "allow", "allowfullscreen", "controls", "frameborder", "playsinline", "poster", "preload", "type"],
     allowedIframeSources: [/^https:\/\/(www\.)?(youtube(-nocookie)?\.com|player\.vimeo\.com)\//i],
   });
 }

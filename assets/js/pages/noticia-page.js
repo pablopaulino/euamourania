@@ -31,6 +31,47 @@ function insertSuggestionBox(html) {
   return `${html.slice(0, insertAt)}${box}${html.slice(insertAt)}`;
 }
 
+function normalizeArticleVideos() {
+  const articleCopy = container.querySelector(".article-copy");
+  if (!articleCopy) return;
+  articleCopy.querySelectorAll("iframe, video").forEach((media, index) => {
+    if (media.closest(".article-video-frame")) return;
+
+    if (media.tagName === "IFRAME") {
+      media.loading = "lazy";
+      media.allowFullscreen = true;
+      media.referrerPolicy = "strict-origin-when-cross-origin";
+      media.title = media.title || `Vídeo da matéria ${index + 1}`;
+      media.allow = media.allow || "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      try {
+        const src = new URL(media.getAttribute("src") || "", location.origin);
+        if (/youtube(-nocookie)?\.com$/i.test(src.hostname) || /youtu\.be$/i.test(src.hostname)) {
+          src.searchParams.set("rel", "0");
+          src.searchParams.set("modestbranding", "1");
+          src.searchParams.set("playsinline", "1");
+          media.src = src.href;
+        }
+      } catch {
+        // Mantém o embed original quando a URL não puder ser normalizada.
+      }
+    }
+
+    if (media.tagName === "VIDEO") {
+      media.controls = true;
+      media.playsInline = true;
+      media.preload = media.getAttribute("preload") || "metadata";
+    }
+
+    const wrapper = document.createElement("figure");
+    wrapper.className = "article-video-frame";
+    const caption = document.createElement("figcaption");
+    caption.innerHTML = '<span>Vídeo</span><strong>Eu Amo Urânia</strong>';
+    media.parentNode.insertBefore(wrapper, media);
+    wrapper.append(media);
+    wrapper.append(caption);
+  });
+}
+
 let readingProgressBound = false;
 
 function setupReadingProgress() {
@@ -172,6 +213,7 @@ function renderNews(news) {
   const categoryAnchor = `<a href="${urlCategoria(categoryLabel)}">${esc(categoryLabel)}</a>`;
   const shareBlock = `<div class="share-buttons" aria-label="Compartilhar notícia"><div class="share-heading"><span>Compartilhe</span><p>Envie esta notícia para quem também precisa saber.</p></div><a class="btn-share btn-share-whatsapp" target="_blank" rel="noopener" aria-label="Compartilhar no WhatsApp" href="https://api.whatsapp.com/send?text=${encodeURIComponent(`${news.titulo} - ${canonical}`)}">${icons.whatsapp}<span>WhatsApp</span></a><a class="btn-share btn-share-facebook" target="_blank" rel="noopener" aria-label="Compartilhar no Facebook" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}">${icons.facebook}<span>Facebook</span></a><button class="btn-share btn-share-copy" id="copy-link" type="button" aria-label="Compartilhar notícia">${icons.copy}<span>Compartilhar</span></button></div>`;
   container.innerHTML = `<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div><article class="news-detail-container"><nav class="article-breadcrumb" aria-label="Navegação da notícia"><a href="/news/">Notícias</a><span aria-hidden="true">/</span>${categoryAnchor}</nav><header class="article-header"><p class="eyebrow">${categoryAnchor}</p><h1>${esc(news.titulo)}</h1>${news.subtitulo ? `<p class="article-subtitle">${esc(news.subtitulo)}</p>` : ""}<p class="meta article-meta"><span>Por ${esc(news.autor || "Eu Amo Urânia")}</span><time datetime="${esc(news.publicado_em)}">${esc(formatarData(news.publicado_em))}</time><span>${readingMinutes} min de leitura</span></p>${shareBlock}</header>${safeImage(news.imagem_url) ? `<figure class="article-figure"><img src="${safeImage(news.imagem_url)}" alt="${esc(news.legenda_imagem || news.titulo)}" class="main-image" decoding="async" fetchpriority="high">${news.legenda_imagem ? `<figcaption>${esc(news.legenda_imagem)}</figcaption>` : ""}</figure>` : ""}<div class="article-copy">${contentWithSuggestion}</div><section class="related-news" id="related-news" aria-label="Notícias relacionadas"><p class="related-loading">Carregando mais notícias…</p></section></article>`;
+  normalizeArticleVideos();
   document.getElementById("copy-link").addEventListener("click", async event => {
     const buttonLabel = event.currentTarget.querySelector("span");
     if (navigator.share && matchMedia("(max-width: 650px)").matches) {
