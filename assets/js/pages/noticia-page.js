@@ -98,9 +98,53 @@ function createYoutubeFacade(media, index) {
   return button;
 }
 
+function isNativeVideoUrl(value = "") {
+  const url = String(value || "").trim();
+  if (!/^https?:\/\//i.test(url)) return false;
+  if (/\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(url)) return true;
+  return /^https:\/\/res\.cloudinary\.com\/[^/]+\/video\/upload\//i.test(url);
+}
+
+function cloudinaryVideoPoster(value = "") {
+  const url = String(value || "").trim();
+  if (!/^https:\/\/res\.cloudinary\.com\/[^/]+\/video\/upload\//i.test(url)) return "";
+  return url
+    .replace(/\/video\/upload\//i, "/video/upload/so_0,f_jpg/")
+    .replace(/\.(mp4|webm|ogg|mov|m4v)(?=($|[?#]))/i, ".jpg");
+}
+
+function createNativeVideo(src = "", title = "Vídeo da matéria") {
+  const video = document.createElement("video");
+  video.src = src;
+  video.controls = true;
+  video.playsInline = true;
+  video.preload = "metadata";
+  video.title = title;
+  video.setAttribute("controlslist", "nodownload noplaybackrate");
+  video.disablePictureInPicture = true;
+  const poster = cloudinaryVideoPoster(src);
+  if (poster) video.poster = poster;
+  return video;
+}
+
+function convertVideoLinks(articleCopy) {
+  articleCopy.querySelectorAll("a[href]").forEach((link) => {
+    const href = link.getAttribute("href") || "";
+    if (!isNativeVideoUrl(href) || link.closest(".article-video-frame")) return;
+    const title = link.textContent?.trim() && link.textContent.trim() !== href ? link.textContent.trim() : "Vídeo da matéria";
+    link.replaceWith(createNativeVideo(href, title));
+  });
+  articleCopy.querySelectorAll("p").forEach((paragraph) => {
+    const text = paragraph.textContent?.trim() || "";
+    if (!isNativeVideoUrl(text) || paragraph.children.length) return;
+    paragraph.replaceWith(createNativeVideo(text, "Vídeo da matéria"));
+  });
+}
+
 function normalizeArticleVideos() {
   const articleCopy = container.querySelector(".article-copy");
   if (!articleCopy) return;
+  convertVideoLinks(articleCopy);
   articleCopy.querySelectorAll("iframe, video").forEach((media, index) => {
     if (media.closest(".article-video-frame")) return;
     let displayMedia = media;
