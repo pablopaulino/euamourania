@@ -157,6 +157,14 @@ const groups = [
     ],
   ],
   [
+    "Aplicativo Viva Urânia",
+    "Links oficiais usados pelo aplicativo para compartilhar e receber avaliações nas lojas.",
+    [
+      ["link_google_play", "Link do app na Google Play", "url"],
+      ["link_app_store", "Link do app na App Store", "url"],
+    ],
+  ],
+  [
     "Políticas editoriais",
     "Páginas públicas da área de notícias sobre publicações, correções, transparência e contato editorial.",
     EDITORIAL_POLICY_PAGES.flatMap((page) => [
