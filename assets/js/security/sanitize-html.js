@@ -42,6 +42,13 @@ function isSafeUrl(value = "", { image = false } = {}) {
   return /^(https?:|mailto:|tel:|\/|#)/i.test(url);
 }
 
+function isNativeVideoUrl(value = "") {
+  const url = String(value || "").trim();
+  if (!/^https?:\/\//i.test(url)) return false;
+  if (/\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(url)) return true;
+  return /^https:\/\/res\.cloudinary\.com\/[^/]+\/video\/upload\//i.test(url);
+}
+
 export function sanitizeHtml(value = "", options = {}) {
   const allowedTags = new Set(options.allowedTags || DEFAULT_ALLOWED_TAGS);
   const allowedAttrs = new Set(options.allowedAttrs || DEFAULT_ALLOWED_ATTRS);
@@ -83,8 +90,19 @@ export function sanitizeHtml(value = "", options = {}) {
     if (node.tagName === "IFRAME") {
       const src = node.getAttribute("src") || "";
       const allowed = allowedIframeSources.some((pattern) => pattern.test(src));
-      if (!allowed) node.remove();
-      else node.loading = "lazy";
+      if (!allowed) {
+        if (isNativeVideoUrl(src)) {
+          const video = parsed.createElement("video");
+          video.setAttribute("src", src);
+          video.setAttribute("controls", "");
+          video.setAttribute("playsinline", "");
+          video.setAttribute("preload", "metadata");
+          if (node.getAttribute("title")) video.setAttribute("title", node.getAttribute("title"));
+          node.replaceWith(video);
+        } else {
+          node.remove();
+        }
+      } else node.loading = "lazy";
     }
 
     if (node.tagName === "VIDEO" || node.tagName === "SOURCE") {
