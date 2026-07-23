@@ -141,6 +141,19 @@ function convertVideoLinks(articleCopy) {
   });
 }
 
+function extractVideoCaption(media, fallback = "Eu Amo Urânia") {
+  const explicit = media.getAttribute("title") || media.getAttribute("aria-label")?.replace(/^Reproduzir\s+/i, "");
+  const next = media.nextElementSibling;
+  if (next?.tagName === "P") {
+    const text = next.textContent?.trim() || "";
+    if (text && !isNativeVideoUrl(text) && text.length <= 220) {
+      next.remove();
+      return text;
+    }
+  }
+  return explicit || fallback;
+}
+
 function normalizeArticleVideos() {
   const articleCopy = container.querySelector(".article-copy");
   if (!articleCopy) return;
@@ -171,7 +184,7 @@ function normalizeArticleVideos() {
     const wrapper = document.createElement("figure");
     wrapper.className = "article-video-frame";
     const caption = document.createElement("figcaption");
-    caption.innerHTML = `<span>Vídeo</span><strong>${esc(displayMedia === media ? media.title || "Eu Amo Urânia" : media.getAttribute?.("aria-label")?.replace(/^Reproduzir\s+/i, "") || "Eu Amo Urânia")}</strong>`;
+    caption.innerHTML = `<span>Vídeo</span><strong>${esc(extractVideoCaption(media))}</strong>`;
     media.parentNode.insertBefore(wrapper, media);
     if (displayMedia !== media) media.remove();
     wrapper.append(displayMedia);
