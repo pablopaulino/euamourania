@@ -31,28 +31,78 @@ function insertSuggestionBox(html) {
   return `${html.slice(0, insertAt)}${box}${html.slice(insertAt)}`;
 }
 
+function youtubeVideoId(value = "") {
+  try {
+    const url = new URL(value, location.origin);
+    if (/youtu\.be$/i.test(url.hostname)) return url.pathname.split("/").filter(Boolean)[0] || "";
+    if (/youtube(-nocookie)?\.com$/i.test(url.hostname)) {
+      if (url.pathname.includes("/embed/")) return url.pathname.split("/embed/")[1]?.split(/[/?#]/)[0] || "";
+      if (url.pathname.includes("/shorts/")) return url.pathname.split("/shorts/")[1]?.split(/[/?#]/)[0] || "";
+      return url.searchParams.get("v") || "";
+    }
+  } catch {
+    return "";
+  }
+  return "";
+}
+
+function youtubeEmbedUrl(value = "") {
+  const id = youtubeVideoId(value);
+  if (!id) return "";
+  const src = new URL(`https://www.youtube-nocookie.com/embed/${id}`);
+  src.searchParams.set("autoplay", "1");
+  src.searchParams.set("controls", "0");
+  src.searchParams.set("disablekb", "1");
+  src.searchParams.set("fs", "0");
+  src.searchParams.set("iv_load_policy", "3");
+  src.searchParams.set("modestbranding", "1");
+  src.searchParams.set("playsinline", "1");
+  src.searchParams.set("rel", "0");
+  return src.href;
+}
+
+function createYoutubeFacade(media, index) {
+  const originalSrc = media.getAttribute("src") || "";
+  const id = youtubeVideoId(originalSrc);
+  if (!id) return null;
+  const title = media.getAttribute("title") || `Vídeo da matéria ${index + 1}`;
+  const poster = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "article-video-facade";
+  button.style.setProperty("--video-poster", `url("${poster}")`);
+  button.setAttribute("aria-label", `Reproduzir ${title}`);
+  button.innerHTML = `<span class="article-video-facade-brand">Eu Amo Urânia</span><span class="article-video-facade-play" aria-hidden="true"></span><span class="article-video-facade-title">${esc(title)}</span>`;
+  button.addEventListener("click", () => {
+    const iframe = document.createElement("iframe");
+    iframe.src = youtubeEmbedUrl(originalSrc);
+    iframe.title = title;
+    iframe.loading = "lazy";
+    iframe.allowFullscreen = false;
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+    iframe.allow = "autoplay; encrypted-media; picture-in-picture";
+    button.replaceWith(iframe);
+  }, { once: true });
+  return button;
+}
+
 function normalizeArticleVideos() {
   const articleCopy = container.querySelector(".article-copy");
   if (!articleCopy) return;
   articleCopy.querySelectorAll("iframe, video").forEach((media, index) => {
     if (media.closest(".article-video-frame")) return;
+    let displayMedia = media;
 
     if (media.tagName === "IFRAME") {
-      media.loading = "lazy";
-      media.allowFullscreen = true;
-      media.referrerPolicy = "strict-origin-when-cross-origin";
-      media.title = media.title || `Vídeo da matéria ${index + 1}`;
-      media.allow = media.allow || "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-      try {
-        const src = new URL(media.getAttribute("src") || "", location.origin);
-        if (/youtube(-nocookie)?\.com$/i.test(src.hostname) || /youtu\.be$/i.test(src.hostname)) {
-          src.searchParams.set("rel", "0");
-          src.searchParams.set("modestbranding", "1");
-          src.searchParams.set("playsinline", "1");
-          media.src = src.href;
-        }
-      } catch {
-        // Mantém o embed original quando a URL não puder ser normalizada.
+      const facade = createYoutubeFacade(media, index);
+      if (facade) {
+        displayMedia = facade;
+      } else {
+        media.loading = "lazy";
+        media.allowFullscreen = true;
+        media.referrerPolicy = "strict-origin-when-cross-origin";
+        media.title = media.title || `Vídeo da matéria ${index + 1}`;
+        media.allow = media.allow || "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
       }
     }
 
@@ -67,7 +117,8 @@ function normalizeArticleVideos() {
     const caption = document.createElement("figcaption");
     caption.innerHTML = '<span>Vídeo</span><strong>Eu Amo Urânia</strong>';
     media.parentNode.insertBefore(wrapper, media);
-    wrapper.append(media);
+    if (displayMedia !== media) media.remove();
+    wrapper.append(displayMedia);
     wrapper.append(caption);
   });
 }
