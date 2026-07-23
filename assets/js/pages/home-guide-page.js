@@ -39,25 +39,21 @@ function addStyle() {
     .home-guide-card small{display:block;margin-bottom:.18rem;overflow:hidden;color:var(--blue);font-size:.64rem;font-weight:900;letter-spacing:.07em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
     .home-guide-card h3{display:-webkit-box;overflow:hidden;margin:0;color:var(--navy);font-size:1.06rem;line-height:1.12;-webkit-line-clamp:2;-webkit-box-orient:vertical}
     .home-guide-card p{display:-webkit-box;overflow:hidden;margin:.24rem 0 0;color:#647780;font-size:.86rem;line-height:1.35;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-    .home-guide-arrow{display:grid;width:30px;height:30px;place-items:center;justify-self:end;border-radius:999px;font-weight:900}
-    .home-guide-arrow{color:var(--navy);background:#eef8fa;border:1px solid rgba(11,79,108,.08)}
-    .home-guide-badge{color:#5d4500;background:var(--yellow);box-shadow:0 8px 18px rgba(247,201,72,.22)}
-    .home-guide-badge::before{content:"★";font-size:.68rem;line-height:1}
-    .home-guide-badge{align-self:start;justify-self:end;padding:.34rem .58rem;border-radius:999px;font-size:.68rem;font-weight:900;letter-spacing:.02em;white-space:nowrap}
-    .home-guide-badge::before{content:none}
+    .home-guide-badge{align-self:start;justify-self:end;padding:.34rem .58rem;color:#5d4500;background:var(--yellow);border-radius:999px;box-shadow:0 8px 18px rgba(247,201,72,.22);font-size:.68rem;font-weight:900;letter-spacing:.02em;white-space:nowrap}
     .home-guide-badge:empty::after{content:"Destaque"}
     .home-collab-strip{padding:clamp(1.4rem,4vw,2.35rem) 0;background:linear-gradient(180deg,#fff,#f7fbfb)}
     .home-collab-box{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1rem;align-items:center;padding:1.1rem 1.25rem;border:1px solid rgba(220,232,236,.95);border-radius:24px;background:#fff;box-shadow:0 14px 36px rgba(7,59,76,.06)}
     .home-collab-box h3{margin:0 0 .25rem;color:var(--navy);font-size:1.25rem;letter-spacing:-.03em}
     .home-collab-box p{margin:0;color:#536b75;line-height:1.5}
     .home-collab-box .button{border:0;text-decoration:none;white-space:nowrap}
-    @media(max-width:720px){.home-guide{padding:2.25rem 0}.home-guide-head{display:grid;margin-bottom:1rem}.home-guide-head h2{font-size:1.9rem}.home-guide-link{justify-self:start}.home-guide-grid{grid-template-columns:1fr;gap:.72rem}.home-guide-card{grid-template-columns:76px minmax(0,1fr) auto;min-height:102px;padding:.68rem;border-radius:18px}.home-guide-media{width:76px;height:76px;border-radius:16px}.home-guide-card h3{font-size:1rem}.home-guide-card p{font-size:.82rem}.home-guide-badge{padding:.3rem .5rem;font-size:.62rem}.home-guide-arrow{width:28px;height:28px}.home-collab-box{grid-template-columns:1fr;padding:.95rem;border-radius:20px}.home-collab-box .button{width:100%;justify-content:center}}
+    @media(max-width:720px){.home-guide{padding:2.25rem 0}.home-guide-head{display:grid;margin-bottom:1rem}.home-guide-head h2{font-size:1.9rem}.home-guide-link{justify-self:start}.home-guide-grid{grid-template-columns:1fr;gap:.72rem}.home-guide-card{grid-template-columns:76px minmax(0,1fr) auto;min-height:102px;padding:.68rem;border-radius:18px}.home-guide-media{width:76px;height:76px;border-radius:16px}.home-guide-card h3{font-size:1rem}.home-guide-card p{font-size:.82rem}.home-guide-badge{padding:.3rem .5rem;font-size:.62rem}.home-collab-box{grid-template-columns:1fr;padding:.95rem;border-radius:20px}.home-collab-box .button{width:100%;justify-content:center}}
   `;
   document.head.append(style);
 }
 
 function card(item) {
   const image = safeImage(item.imagem_url);
+  const badge = item.recomendado ? '<span class="home-guide-badge" aria-label="Destaque"></span>' : "";
   return `<a class="home-guide-card${item.recomendado ? " is-featured" : ""}" href="${guideUrl(item.slug)}">
     <span class="home-guide-media">${image ? `<img src="${esc(image)}" alt="${esc(item.nome)}" loading="lazy" decoding="async">` : "Eu Amo Urânia"}</span>
     <span>
@@ -65,7 +61,7 @@ function card(item) {
       <h3>${esc(item.nome)}</h3>
       ${item.descricao ? `<p>${esc(item.descricao)}</p>` : ""}
     </span>
-    ${item.recomendado ? '<span class="home-guide-badge" aria-label="Destaque"></span>' : '<span class="home-guide-arrow" aria-hidden="true">→</span>'}
+    ${badge}
   </a>`;
 }
 
