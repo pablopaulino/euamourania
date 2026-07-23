@@ -72,7 +72,19 @@ function createYoutubeFacade(media, index) {
   button.className = "article-video-facade";
   button.style.setProperty("--video-poster", `url("${poster}")`);
   button.setAttribute("aria-label", `Reproduzir ${title}`);
-  button.innerHTML = `<span class="article-video-facade-brand">Eu Amo Urânia</span><span class="article-video-facade-play" aria-hidden="true"></span><span class="article-video-facade-title">${esc(title)}</span>`;
+  button.innerHTML = `
+    <span class="article-video-top">
+      <span class="article-video-mute" aria-hidden="true">⌁</span>
+      <span class="article-video-brand">Eu Amo Urânia</span>
+      <span class="article-video-share" aria-hidden="true">↗</span>
+    </span>
+    <span class="article-video-facade-play" aria-hidden="true"></span>
+    <span class="article-video-controls" aria-hidden="true">
+      <span class="article-video-pause">Ⅱ</span>
+      <span class="article-video-time">0:00</span>
+      <span class="article-video-progress"><span></span></span>
+      <span class="article-video-expand">⛶</span>
+    </span>`;
   button.addEventListener("click", () => {
     const iframe = document.createElement("iframe");
     iframe.src = youtubeEmbedUrl(originalSrc);
@@ -115,7 +127,7 @@ function normalizeArticleVideos() {
     const wrapper = document.createElement("figure");
     wrapper.className = "article-video-frame";
     const caption = document.createElement("figcaption");
-    caption.innerHTML = '<span>Vídeo</span><strong>Eu Amo Urânia</strong>';
+    caption.innerHTML = `<span>Vídeo</span><strong>${esc(displayMedia === media ? media.title || "Eu Amo Urânia" : media.getAttribute?.("aria-label")?.replace(/^Reproduzir\s+/i, "") || "Eu Amo Urânia")}</strong>`;
     media.parentNode.insertBefore(wrapper, media);
     if (displayMedia !== media) media.remove();
     wrapper.append(displayMedia);
