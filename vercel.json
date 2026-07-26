@@ -68,17 +68,7 @@
     },
     { "source": "/turismo-details.html", "destination": "/turismo.html", "permanent": true },
     { "source": "/categorias/:categoria", "destination": "/news/:categoria", "permanent": true },
-    { "source": "/categorias/:categoria/", "destination": "/news/:categoria", "permanent": true },
-    {
-      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|melhores-de-urania$|quem-somos$|termos-de-servico$|politica-de-privacidade$|colabore$)[a-z0-9-]+)",
-      "destination": "/news/:categoria",
-      "permanent": true
-    },
-    {
-      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|melhores-de-urania$|quem-somos$|termos-de-servico$|politica-de-privacidade$|colabore$)[a-z0-9-]+)/",
-      "destination": "/news/:categoria",
-      "permanent": true
-    }
+    { "source": "/categorias/:categoria/", "destination": "/news/:categoria", "permanent": true }
   ],
   "rewrites": [
     { "source": "/", "destination": "/api/home" },
