@@ -71,7 +71,7 @@ function tourismCard(item) {
 
 function eventCard(item) {
   const image = safeImage(item.imagem_url);
-  return `<a class="guide-related-card compact" href="/eventos/detalhes.html?slug=${encodeURIComponent(item.slug)}">
+  return `<a class="guide-related-card compact" href="/eventos/agenda/${encodeURIComponent(item.slug)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.titulo)}" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Evento</div>`}
     <div><small>${item.data_inicio ? escapeHtml(dateLabel(item.data_inicio)) : "Evento"}</small><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(truncate(item.descricao || item.local))}</p><span>Ver evento</span></div>
   </a>`;

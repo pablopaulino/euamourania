@@ -51,7 +51,7 @@ function makeItem(type, row) {
       label: "Evento",
       title: row.titulo,
       description: row.descricao,
-      url: `/eventos/detalhes.html?slug=${encodeURIComponent(row.slug)}`,
+      url: `/eventos/agenda/${encodeURIComponent(row.slug)}`,
       category: "Agenda",
       meta: row.local,
       date: row.data_inicio,

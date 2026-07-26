@@ -102,7 +102,7 @@ function expandRecurringEvents(events, now = new Date()) {
 function agendaCard(evento) {
   const quando = dateParts(evento.data_inicio);
   const imagem = safeImage(evento.imagem_url);
-  const url = `/eventos/detalhes.html?slug=${encodeURIComponent(evento.slug)}`;
+  const url = `/eventos/agenda/${encodeURIComponent(evento.slug)}`;
   return `<article class="event-card event-card-simple" data-event-id="${esc(evento.original_id || evento.id)}">
     ${imagem ? `<a class="event-card-media" href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.titulo)}" loading="lazy"></a>` : '<a class="event-card-media media-placeholder" href="' + url + '">Eu Amo Urânia</a>'}
     <div class="event-card-body">

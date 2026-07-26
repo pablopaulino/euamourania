@@ -199,7 +199,7 @@ module.exports = async (req, res) => {
         image: imageTag(item)
       })),
       ...eventos.map(item => ({
-        loc: `${DOMAIN}/eventos/detalhes.html?slug=${item.slug}`,
+        loc: `${DOMAIN}/eventos/agenda/${item.slug}`,
         lastmod: item.atualizado_em
       })),
       ...eventPrincipals.map(item => ({

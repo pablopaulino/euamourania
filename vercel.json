@@ -58,6 +58,14 @@
       "destination": "/turismo/:slug",
       "permanent": true
     },
+    {
+      "source": "/eventos/detalhes.html",
+      "has": [
+        { "type": "query", "key": "slug", "value": "(?<slug>[a-z0-9-]+)" }
+      ],
+      "destination": "/eventos/agenda/:slug",
+      "permanent": true
+    },
     { "source": "/turismo-details.html", "destination": "/turismo.html", "permanent": true },
     { "source": "/categorias/:categoria", "destination": "/:categoria", "permanent": true },
     { "source": "/categorias/:categoria/", "destination": "/:categoria/", "permanent": true }
@@ -74,6 +82,8 @@
     { "source": "/melhores-de-urania/:ano/resultados/", "destination": "/melhores-de-urania/resultados.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano", "destination": "/melhores-de-urania/edicao.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano/", "destination": "/melhores-de-urania/edicao.html?ano=:ano" },
+    { "source": "/eventos/agenda/:slug", "destination": "/eventos/detalhes.html?slug=:slug" },
+    { "source": "/eventos/agenda/:slug/", "destination": "/eventos/detalhes.html?slug=:slug" },
     { "source": "/eventos/:slug/:ano", "destination": "/eventos/edicao.html?slug=:slug&ano=:ano" },
     { "source": "/eventos/:slug/:ano/", "destination": "/eventos/edicao.html?slug=:slug&ano=:ano" },
     { "source": "/eventos/:slug", "destination": "/eventos/evento.html?slug=:slug" },
