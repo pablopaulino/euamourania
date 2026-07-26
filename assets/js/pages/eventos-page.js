@@ -3,12 +3,14 @@ import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDat
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, char => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
 }[char]));
+
 const safeImage = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? value : "";
 const strip = value => String(value || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 const clamp = (value, length = 150) => {
   const text = strip(value);
   return text.length > length ? `${text.slice(0, length).trim()}…` : text;
 };
+
 const dateParts = value => {
   if (!value) return { data: "Data a confirmar", hora: "" };
   const date = new Date(value);
@@ -26,18 +28,92 @@ async function safeRows(table, params, options) {
   }
 }
 
+async function fetchSimpleEvents() {
+  try {
+    return await fetchPublicRows("eventos", {
+      select: "id,titulo,slug,descricao,imagem_url,data_inicio,data_fim,local,destaque,recorrencia_tipo,recorrencia_ate",
+      status: "eq.publicado",
+      order: "data_inicio.asc"
+    });
+  } catch (error) {
+    console.warn("Eventos: campos de recorrência ainda não disponíveis, usando agenda simples.", error);
+    return safeRows("eventos", {
+      select: "id,titulo,slug,descricao,imagem_url,data_inicio,data_fim,local,destaque",
+      status: "eq.publicado",
+      order: "data_inicio.asc"
+    });
+  }
+}
+
+function addRecurrenceDate(date, type) {
+  const next = new Date(date);
+  if (type === "semanal") next.setDate(next.getDate() + 7);
+  else if (type === "mensal") next.setMonth(next.getMonth() + 1);
+  else if (type === "anual") next.setFullYear(next.getFullYear() + 1);
+  return next;
+}
+
+function recurrenceLabel(type) {
+  return ({ semanal: "Semanal", mensal: "Mensal", anual: "Anual" })[type] || "";
+}
+
+function expandRecurringEvents(events, now = new Date()) {
+  const horizon = new Date(now);
+  horizon.setMonth(horizon.getMonth() + 12);
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+
+  return events.flatMap(evento => {
+    const type = evento.recorrencia_tipo;
+    const originalStart = evento.data_inicio ? new Date(evento.data_inicio) : null;
+    if (!originalStart || Number.isNaN(originalStart.getTime())) return [evento];
+
+    const originalEnd = evento.data_fim ? new Date(evento.data_fim) : null;
+    const duration = originalEnd && !Number.isNaN(originalEnd.getTime()) ? originalEnd.getTime() - originalStart.getTime() : null;
+
+    if (!["semanal", "mensal", "anual"].includes(type)) return [evento];
+
+    const recurrenceEnd = evento.recorrencia_ate ? new Date(evento.recorrencia_ate) : horizon;
+    const limit = recurrenceEnd < horizon ? recurrenceEnd : horizon;
+    const occurrences = [];
+    let current = new Date(originalStart);
+    let guard = 0;
+
+    while (current <= limit && guard < 80) {
+      if (current >= startOfToday) {
+        const end = duration ? new Date(current.getTime() + duration) : null;
+        occurrences.push({
+          ...evento,
+          id: `${evento.id}-${current.toISOString()}`,
+          original_id: evento.id,
+          data_inicio: current.toISOString(),
+          data_fim: end ? end.toISOString() : evento.data_fim,
+          recorrencia_label: recurrenceLabel(type)
+        });
+      }
+      current = addRecurrenceDate(current, type);
+      guard += 1;
+    }
+
+    return occurrences.length ? occurrences : [evento];
+  }).sort((a, b) => new Date(a.data_inicio || 0) - new Date(b.data_inicio || 0));
+}
+
 function agendaCard(evento) {
   const quando = dateParts(evento.data_inicio);
   const imagem = safeImage(evento.imagem_url);
   const url = `/eventos/detalhes.html?slug=${encodeURIComponent(evento.slug)}`;
-  return `<article class="event-card" data-event-id="${esc(evento.id)}">
-    ${imagem ? `<a href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.titulo)}" loading="lazy"></a>` : '<div class="media-placeholder">Eu Amo Urânia</div>'}
+  return `<article class="event-card event-card-simple" data-event-id="${esc(evento.original_id || evento.id)}">
+    ${imagem ? `<a class="event-card-media" href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.titulo)}" loading="lazy"></a>` : '<a class="event-card-media media-placeholder" href="' + url + '">Eu Amo Urânia</a>'}
     <div class="event-card-body">
-      <p class="event-date">${esc(quando.data)}${quando.hora ? ` · ${esc(quando.hora)}` : ""}</p>
+      <div class="event-card-meta">
+        <span class="event-date">${esc(quando.data)}${quando.hora ? ` · ${esc(quando.hora)}` : ""}</span>
+        ${evento.recorrencia_label ? `<span class="event-recurring">${esc(evento.recorrencia_label)}</span>` : ""}
+      </div>
       <h3><a href="${url}">${esc(evento.titulo)}</a></h3>
       ${evento.local ? `<p class="event-local"><strong>Local:</strong> ${esc(evento.local)}</p>` : ""}
-      <p>${esc(clamp(evento.descricao))}</p>
-      <a class="button button-primary" href="${url}">Saiba mais</a>
+      <p class="event-description">${esc(clamp(evento.descricao, 130))}</p>
+      <a class="event-cta" href="${url}">Saiba mais <span aria-hidden="true">→</span></a>
     </div>
   </article>`;
 }
@@ -47,7 +123,7 @@ function acervoCard(evento, edicoes = []) {
   const url = `/eventos/${encodeURIComponent(evento.slug)}`;
   const proxima = edicoes.find(item => ["anunciado", "confirmado", "acontecendo"].includes(item.status));
   return `<article class="event-archive-card" data-event-principal-id="${esc(evento.id)}">
-    ${imagem ? `<a href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.nome)}" loading="lazy"></a>` : '<a class="event-archive-placeholder" href="${url}">Eu Amo Urânia</a>'}
+    ${imagem ? `<a href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.nome)}" loading="lazy"></a>` : '<a class="event-archive-placeholder" href="' + url + '">Eu Amo Urânia</a>'}
     <div class="event-archive-body">
       <p class="eyebrow">${esc(evento.categoria || "Evento de Urânia")}</p>
       <h3><a href="${url}">${esc(evento.nome)}</a></h3>
@@ -92,11 +168,11 @@ async function init() {
   if (!publicSupabaseConfigured()) return;
   const now = new Date();
   const [eventos, principais, edicoes] = await Promise.all([
-    safeRows("eventos", { select: "id,titulo,slug,descricao,imagem_url,data_inicio,data_fim,local,destaque", status: "eq.publicado", order: "data_inicio.asc" }),
+    fetchSimpleEvents(),
     safeRows("eventos_principais", { select: "*", ativo: "eq.true", order: "destaque.desc,atualizado_em.desc" }),
     safeRows("eventos_edicoes", { select: "*", order: "ano.desc,data_inicio.desc" })
   ]);
-  const ativos = eventos.filter(e => !e.data_fim || new Date(e.data_fim) >= now);
+  const ativos = expandRecurringEvents(eventos, now).filter(e => !e.data_fim || new Date(e.data_fim) >= now);
   const edicoesPorEvento = new Map();
   edicoes.forEach(edicao => edicoesPorEvento.set(edicao.evento_id, [...(edicoesPorEvento.get(edicao.evento_id) || []), edicao]));
 
