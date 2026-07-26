@@ -52,7 +52,7 @@ function leadCard(item) {
   const text = summary(item);
   return `<article class="news-cover-lead">
     <a class="news-cover-media" href="${url}" aria-label="${esc(item.titulo)}">
-      <img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" fetchpriority="high" decoding="async">
+      <img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" width="960" height="540" fetchpriority="high" decoding="async">
     </a>
     <div class="news-cover-copy">
       <p class="news-cover-meta"><span>Manchete local</span>${categoryLink(item.categoria_nome)}</p>
@@ -70,7 +70,7 @@ function compactCard(item, label = "Última") {
   const url = newsUrl(item.slug);
   return `<article class="news-compact-card">
     <a class="news-compact-media" href="${url}" aria-label="${esc(item.titulo)}">
-      <img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="eager" decoding="async">
+      <img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" width="360" height="240" loading="lazy" decoding="async">
     </a>
     <div>
       <p>${esc(label)}</p>
@@ -169,7 +169,7 @@ function newsCard(item) {
   const text = summary(item);
   const url = newsUrl(item.slug);
   return `<article class="news-item">
-    <a class="news-item-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async"></a>
+    <a class="news-item-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" width="640" height="360" loading="lazy" decoding="async"></a>
     <div class="content">
       <p class="news-item-meta"><span>${categoryLink(item.categoria_nome)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p>
       <h3><a href="${url}">${esc(item.titulo)}</a></h3>

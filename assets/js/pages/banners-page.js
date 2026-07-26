@@ -97,7 +97,7 @@ function media(campaign, position = "", popup = false) {
   }
   if (!image) return "";
   const eager = topPositions.has(position);
-  return `<picture class="ad-campaign-picture">${mobile ? `<source media="(max-width:650px)" srcset="${mobile}">` : ""}<img src="${image}" alt="${esc(config(campaign).texto_alternativo || campaign.empresa_anunciante || "Publicidade")}" ${eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async"></picture>`;
+  return `<picture class="ad-campaign-picture">${mobile ? `<source media="(max-width:650px)" srcset="${mobile}">` : ""}<img src="${image}" alt="${esc(config(campaign).texto_alternativo || campaign.empresa_anunciante || "Publicidade")}" width="1200" height="420" ${eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async"></picture>`;
 }
 
 function creative(campaign, position) {
@@ -109,7 +109,7 @@ function creative(campaign, position) {
   const title = settings.titulo_publico || (layout === "nativo" ? campaign.empresa_anunciante : "");
   const description = settings.texto_publico || "";
   const logo = safe(campaign.logo_empresa_url)
-    ? `<img class="ad-campaign-logo" src="${safe(campaign.logo_empresa_url)}" alt="${esc(campaign.empresa_anunciante)}" loading="lazy" decoding="async">`
+    ? `<img class="ad-campaign-logo" src="${safe(campaign.logo_empresa_url)}" alt="${esc(campaign.empresa_anunciante)}" width="160" height="80" loading="lazy" decoding="async">`
     : "";
   const buttonText = campaign.texto_botao || (campaign.link_destino ? "Veja agora" : "");
   const callToAction = buttonText
@@ -125,7 +125,7 @@ function creative(campaign, position) {
     ? `<span class="ad-campaign-panel">${logo}${copy || campaignName}${callToAction}</span>`
     : "";
   const nativePlaceholder = !content && layout === "nativo"
-    ? `<span class="ad-native-placeholder">${safe(campaign.logo_empresa_url) ? `<img class="ad-native-logo" src="${safe(campaign.logo_empresa_url)}" alt="${esc(campaign.empresa_anunciante)}" loading="lazy" decoding="async">` : `<strong>${esc(campaign.empresa_anunciante || "Publicidade")}</strong>`}</span>`
+    ? `<span class="ad-native-placeholder">${safe(campaign.logo_empresa_url) ? `<img class="ad-native-logo" src="${safe(campaign.logo_empresa_url)}" alt="${esc(campaign.empresa_anunciante)}" width="180" height="100" loading="lazy" decoding="async">` : `<strong>${esc(campaign.empresa_anunciante || "Publicidade")}</strong>`}</span>`
     : "";
   const body = `<span class="ad-sponsored">Publicidade</span>${content || nativePlaceholder}${panel}`;
   const classes = `banner-item ad-campaign ad-format-${selectedFormat} ad-layout-${layout}${content ? "" : " no-media"}${panel ? " has-panel" : ""}${settings.imagem_mobile_url ? " has-mobile" : ""}`;

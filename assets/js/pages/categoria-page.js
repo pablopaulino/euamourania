@@ -35,7 +35,7 @@ function imageMarkup(item, className = "category-card-media", priority = false) 
   if (!image) {
     return `<a class="${className} category-card-placeholder" href="${newsUrl(item.slug)}" aria-label="${esc(item.titulo)}"><span>Eu Amo Urânia</span></a>`;
   }
-  return `<a class="${className}" href="${newsUrl(item.slug)}" aria-label="${esc(item.titulo)}"><img src="${image}" alt="${esc(item.titulo)}" ${priority ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"></a>`;
+  return `<a class="${className}" href="${newsUrl(item.slug)}" aria-label="${esc(item.titulo)}"><img src="${image}" alt="${esc(item.titulo)}" width="720" height="405" ${priority ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"></a>`;
 }
 
 function metaLine(item) {

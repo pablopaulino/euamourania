@@ -103,7 +103,7 @@ function agendaCard(evento) {
   const imagem = safeImage(evento.imagem_url);
   const url = `/eventos/agenda/${encodeURIComponent(evento.slug)}`;
   return `<article class="event-card event-card-simple" data-event-id="${esc(evento.original_id || evento.id)}">
-    ${imagem ? `<a class="event-card-media" href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.titulo)}" loading="lazy"></a>` : '<a class="event-card-media media-placeholder" href="' + url + '">Eu Amo Urânia</a>'}
+    ${imagem ? `<a class="event-card-media" href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.titulo)}" width="640" height="360" loading="lazy" decoding="async"></a>` : '<a class="event-card-media media-placeholder" href="' + url + '">Eu Amo Urânia</a>'}
     <div class="event-card-body">
       <div class="event-card-meta">
         <span class="event-date">${esc(quando.data)}${quando.hora ? ` · ${esc(quando.hora)}` : ""}</span>
@@ -122,7 +122,7 @@ function acervoCard(evento, edicoes = []) {
   const url = `/eventos/${encodeURIComponent(evento.slug)}`;
   const proxima = edicoes.find(item => ["anunciado", "confirmado", "acontecendo"].includes(item.status));
   return `<article class="event-archive-card" data-event-principal-id="${esc(evento.id)}">
-    ${imagem ? `<a href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.nome)}" loading="lazy"></a>` : '<a class="event-archive-placeholder" href="' + url + '">Eu Amo Urânia</a>'}
+    ${imagem ? `<a href="${url}"><img src="${esc(imagem)}" alt="${esc(evento.nome)}" width="640" height="360" loading="lazy" decoding="async"></a>` : '<a class="event-archive-placeholder" href="' + url + '">Eu Amo Urânia</a>'}
     <div class="event-archive-body">
       <p class="eyebrow">${esc(evento.categoria || "Evento de Urânia")}</p>
       <h3><a href="${url}">${esc(evento.nome)}</a></h3>

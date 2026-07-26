@@ -34,7 +34,7 @@ function sponsors(items) {
     <div class="event-section-title"><p class="eyebrow">Apoio</p><h2>Patrocinadores e parceiros</h2></div>
     <div class="event-sponsors">${list.map(item => {
       const logo = safeImage(item.logo || item.imagem || item.url);
-      return `<article>${logo ? `<img src="${esc(logo)}" alt="${esc(item.nome || "Patrocinador")}" loading="lazy">` : ""}<strong>${esc(item.nome || item)}</strong></article>`;
+      return `<article>${logo ? `<img src="${esc(logo)}" alt="${esc(item.nome || "Patrocinador")}" width="180" height="100" loading="lazy" decoding="async">` : ""}<strong>${esc(item.nome || item)}</strong></article>`;
     }).join("")}</div>
   </section>`;
 }
@@ -114,7 +114,7 @@ async function init() {
               ${edicao.mapa_url ? `<a class="button button-primary" target="_blank" rel="noopener" href="${esc(edicao.mapa_url)}">Abrir mapa</a>` : ""}
             </div>
           </div>
-          ${image ? `<img src="${esc(image)}" alt="${esc(edicao.titulo)}" decoding="async" fetchpriority="high">` : '<div class="event-hero-placeholder">Eu Amo Urânia</div>'}
+          ${image ? `<img src="${esc(image)}" alt="${esc(edicao.titulo)}" width="1200" height="675" decoding="async" fetchpriority="high">` : '<div class="event-hero-placeholder">Eu Amo Urânia</div>'}
         </div>
       </section>
 
@@ -128,7 +128,7 @@ async function init() {
 
         ${edicao.programacao_html ? `<section class="event-section"><div class="event-section-title"><p class="eyebrow">Programação</p><h2>O que acontece nesta edição</h2></div><div class="event-copy">${edicao.programacao_html}</div></section>` : ""}
         ${edicao.atracoes_html ? `<section class="event-section"><div class="event-section-title"><p class="eyebrow">Atrações</p><h2>Destaques confirmados</h2></div><div class="event-copy">${edicao.atracoes_html}</div></section>` : ""}
-        ${edicao.cartaz_url ? `<section class="event-section"><div class="event-section-title"><p class="eyebrow">Cartaz oficial</p><h2>Divulgação da edição</h2></div><img class="event-poster" src="${esc(edicao.cartaz_url)}" alt="Cartaz oficial de ${esc(edicao.titulo)}" loading="lazy"></section>` : ""}
+        ${edicao.cartaz_url ? `<section class="event-section"><div class="event-section-title"><p class="eyebrow">Cartaz oficial</p><h2>Divulgação da edição</h2></div><img class="event-poster" src="${esc(edicao.cartaz_url)}" alt="Cartaz oficial de ${esc(edicao.titulo)}" width="900" height="1273" loading="lazy" decoding="async"></section>` : ""}
         ${gallery(edicao.galeria, "Galeria da edição")}
         ${htmlList(edicao.videos, "Vídeos")}
         ${sponsors(edicao.patrocinadores)}

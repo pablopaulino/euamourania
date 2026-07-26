@@ -90,7 +90,7 @@ async function init() {
               <a class="button button-secondary" href="#edicoes">Ver edições</a>
             </div>
           </div>
-          ${heroImage ? `<img src="${esc(heroImage)}" alt="${esc(evento.nome)}" decoding="async" fetchpriority="high">` : '<div class="event-hero-placeholder">Eu Amo Urânia</div>'}
+          ${heroImage ? `<img src="${esc(heroImage)}" alt="${esc(evento.nome)}" width="1200" height="675" decoding="async" fetchpriority="high">` : '<div class="event-hero-placeholder">Eu Amo Urânia</div>'}
         </div>
       </section>
 

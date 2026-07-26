@@ -13,7 +13,7 @@ const esc = (v = "") => String(v).replace(/[&<>'"]/g, c => ({
   '"': "&quot;"
 }[c]));
 const safeImage = v => /^https?:\/\//i.test(v || "") || /^\/?assets\//.test(v || "") ? esc(v) : "";
-const placeholder = '<div class="media-placeholder"><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia"></div>';
+const placeholder = '<div class="media-placeholder"><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56" loading="lazy" decoding="async"></div>';
 const normalize = v => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const PAGE_SIZE = 6;
 let itens = [];
@@ -46,7 +46,7 @@ function mobileTags(item) {
 
 function cardMarkup(item) {
   const detalhes = item.slug ? `guia/${encodeURIComponent(item.slug)}` : `guia-details.html?slug=${encodeURIComponent(item.id)}`;
-  return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}"${item.recomendado ? ' data-guide-featured="true"' : ""}>${item.recomendado ? '<span class="badge-destaque">Recomendado</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" loading="lazy" decoding="async">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao)}</p>${mobileTags(item)}<div class="guide-info">${item.endereco ? `<p><small>Endereço</small>${esc(item.endereco)}</p>` : ""}${item.horario ? `<p><small>Horário</small>${esc(item.horario)}</p>` : ""}</div><div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes</a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp">WhatsApp</a>` : ""}</div></div></article>`;
+  return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}"${item.recomendado ? ' data-guide-featured="true"' : ""}>${item.recomendado ? '<span class="badge-destaque">Recomendado</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" width="420" height="420" loading="lazy" decoding="async">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao)}</p>${mobileTags(item)}<div class="guide-info">${item.endereco ? `<p><small>Endereço</small>${esc(item.endereco)}</p>` : ""}${item.horario ? `<p><small>Horário</small>${esc(item.horario)}</p>` : ""}</div><div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes</a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp">WhatsApp</a>` : ""}</div></div></article>`;
 }
 
 function prepararImagens(root = container) {

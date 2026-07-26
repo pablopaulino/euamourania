@@ -55,7 +55,7 @@ function card(item) {
   const image = safeImage(item.imagem_url);
   const badge = item.recomendado ? '<span class="home-guide-badge" aria-label="Destaque"></span>' : "";
   return `<a class="home-guide-card${item.recomendado ? " is-featured" : ""}" href="${guideUrl(item.slug)}">
-    <span class="home-guide-media">${image ? `<img src="${esc(image)}" alt="${esc(item.nome)}" loading="lazy" decoding="async">` : "Eu Amo Urânia"}</span>
+    <span class="home-guide-media">${image ? `<img src="${esc(image)}" alt="${esc(item.nome)}" width="120" height="120" loading="lazy" decoding="async">` : "Eu Amo Urânia"}</span>
     <span>
       <small>${esc(item.categoria_nome || "Guia")}</small>
       <h3>${esc(item.nome)}</h3>
@@ -115,7 +115,7 @@ async function init() {
   addStyle();
   await waitForAnchor();
   const items = await fetchPublicRows("guia_comercial", {
-    select: "id,nome,slug,categoria_nome,imagem_url,descricao,recomendado",
+    select: "id,nome,slug,categoria_nome,descricao,imagem_url,recomendado",
     status: "eq.publicado",
     order: "recomendado.desc,nome.asc",
     limit: "6"

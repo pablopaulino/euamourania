@@ -65,7 +65,7 @@ function render(evento) {
     <a class="simple-event-back" href="/eventos/">← Voltar para eventos</a>
     <section class="simple-event-hero">
       <div class="simple-event-media">
-        ${image ? `<img src="${esc(image)}" alt="${esc(evento.titulo)}" decoding="async" fetchpriority="high">` : `<div class="simple-event-placeholder">Eu Amo Urânia</div>`}
+        ${image ? `<img src="${esc(image)}" alt="${esc(evento.titulo)}" width="1200" height="675" decoding="async" fetchpriority="high">` : `<div class="simple-event-placeholder">Eu Amo Urânia</div>`}
       </div>
       <div class="simple-event-intro">
         <p class="eyebrow">Agenda de Urânia</p>

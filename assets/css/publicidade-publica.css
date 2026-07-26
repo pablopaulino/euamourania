@@ -644,3 +644,99 @@
     width:max-content!important;
   }
 }
+
+/* Core Web Vitals: reserva espaço previsível para publicidade dinâmica */
+.ad-zone-inline,
+.ad-zone-listing,
+.adsense-zone {
+  contain: layout paint;
+}
+
+.ad-zone-inline .ad-rotator,
+.ad-zone-listing .ad-rotator {
+  min-height: 156px;
+}
+
+.ad-zone-listing .ad-slide {
+  min-height: 156px;
+}
+
+.adsense-unit {
+  min-height: 250px;
+  display: grid;
+  align-content: center;
+}
+
+[data-banner="noticia_meio"].ad-zone-inline {
+  contain-intrinsic-size: 350px!important;
+}
+
+[data-banner="noticia_meio"] .ad-rotator,
+[data-banner="noticia_meio"] .ad-slide {
+  min-height: clamp(260px, 40vw, 350px);
+}
+
+[data-banner="noticias_entre_listagem"] .ad-rotator,
+[data-banner="noticias_entre_listagem"] .ad-slide,
+[data-banner="guia_entre_estabelecimentos"] .ad-rotator,
+[data-banner="guia_entre_estabelecimentos"] .ad-slide,
+[data-banner="turismo_entre_cartoes"] .ad-rotator,
+[data-banner="turismo_entre_cartoes"] .ad-slide,
+[data-banner="eventos_entre_eventos"] .ad-rotator,
+[data-banner="eventos_entre_eventos"] .ad-slide {
+  min-height: 132px;
+}
+
+@media(max-width:650px){
+  .banner-zone {
+    contain-intrinsic-size: 180px;
+  }
+
+  .ad-zone-inline .ad-rotator,
+  .ad-zone-listing .ad-rotator,
+  .ad-zone-listing .ad-slide {
+    min-height: 116px;
+  }
+
+  [data-banner="noticia_meio"].ad-zone-inline {
+    contain-intrinsic-size: 300px!important;
+  }
+
+  [data-banner="noticia_meio"] .ad-rotator,
+  [data-banner="noticia_meio"] .ad-slide {
+    min-height: clamp(236px, 64vw, 292px);
+  }
+
+  .adsense-unit {
+    min-height: 220px;
+  }
+
+  [data-banner="noticias_entre_listagem"] .ad-rotator,
+  [data-banner="noticias_entre_listagem"] .ad-slide,
+  [data-banner="guia_entre_estabelecimentos"] .ad-rotator,
+  [data-banner="guia_entre_estabelecimentos"] .ad-slide,
+  [data-banner="turismo_entre_cartoes"] .ad-rotator,
+  [data-banner="turismo_entre_cartoes"] .ad-slide,
+  [data-banner="eventos_entre_eventos"] .ad-rotator,
+  [data-banner="eventos_entre_eventos"] .ad-slide {
+    min-height: 116px;
+  }
+}
+
+@media(max-width:380px){
+  [data-banner="noticia_meio"] .ad-rotator,
+  [data-banner="noticia_meio"] .ad-slide {
+    min-height: 244px;
+  }
+
+  [data-banner="noticias_entre_listagem"] .ad-rotator,
+  [data-banner="noticias_entre_listagem"] .ad-slide,
+  [data-banner="guia_entre_estabelecimentos"] .ad-rotator,
+  [data-banner="guia_entre_estabelecimentos"] .ad-slide,
+  [data-banner="turismo_entre_cartoes"] .ad-rotator,
+  [data-banner="turismo_entre_cartoes"] .ad-slide,
+  [data-banner="eventos_entre_eventos"] .ad-rotator,
+  [data-banner="eventos_entre_eventos"] .ad-slide {
+    min-height: 106px;
+  }
+}

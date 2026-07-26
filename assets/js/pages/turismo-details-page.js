@@ -34,6 +34,10 @@ const truncate = (value = "", size = 105) => {
 };
 
 const firstLine = value => textoPuro(value || "").split(/[,\n]/).map(item => item.trim()).filter(Boolean)[0] || "";
+const shortFact = (value = "", size = 48) => {
+  const text = textoPuro(value || "").replace(/\s+/g, " ").trim();
+  return text.length > size ? `${text.slice(0, size).trim()}…` : text;
+};
 
 const dateLabel = value => {
   try {
@@ -45,10 +49,9 @@ const dateLabel = value => {
 
 function quickFacts(item) {
   const facts = [
-    item.endereco ? { icon: icons.pin, label: firstLine(item.endereco) || "Urânia/SP" } : null,
-    item.horario ? { icon: icons.clock, label: item.horario } : null,
+    item.endereco ? { icon: icons.pin, label: shortFact(firstLine(item.endereco) || "Urânia/SP", 52) } : null,
     item.destaque ? { icon: icons.spark, label: "Destaque local" } : null
-  ].filter(Boolean).slice(0, 4);
+  ].filter(Boolean).slice(0, 2);
 
   return facts.length ? `<div class="tourism-quick-facts" aria-label="Informações rápidas">${facts.map(fact => `<span>${fact.icon}<span>${escapeHtml(fact.label)}</span></span>`).join("")}</div>` : "";
 }
@@ -72,7 +75,7 @@ function gallerySection(item, mainImage) {
       <h2 id="tourism-gallery-title">Registros do local</h2>
     </div>
     <div class="tourism-gallery-grid">
-      ${images.map((image, index) => `<button class="tourism-gallery-item" type="button" data-gallery-index="${index}" aria-label="Ampliar foto ${index + 1} de ${escapeHtml(item.nome)}"><img src="${image}" alt="${escapeHtml(`${item.nome} - foto ${index + 1}`)}" loading="lazy" decoding="async"></button>`).join("")}
+      ${images.map((image, index) => `<button class="tourism-gallery-item" type="button" data-gallery-index="${index}" aria-label="Ampliar foto ${index + 1} de ${escapeHtml(item.nome)}"><img src="${image}" alt="${escapeHtml(`${item.nome} - foto ${index + 1}`)}" width="320" height="220" loading="lazy" decoding="async"></button>`).join("")}
     </div>
   </section>`;
 }
@@ -96,7 +99,7 @@ function relationSection({ eyebrow, title, text, items, className = "" }) {
 function companyCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="tourism-related-card compact" href="/guia/${encodeURIComponent(item.slug || item.id)}">
-    ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Guia</div>`}
+    ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" width="420" height="280" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Guia</div>`}
     <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco, 92))}</p>${item.endereco ? `<em>${icons.pin}${escapeHtml(firstLine(item.endereco))}</em>` : ""}<span>Ver empresa</span></div>
   </a>`;
 }
@@ -104,7 +107,7 @@ function companyCard(item) {
 function tourismCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="tourism-related-card compact" href="/turismo/${encodeURIComponent(item.slug)}">
-    ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Turismo</div>`}
+    ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" width="420" height="280" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Turismo</div>`}
     <div><small>Turismo em Urânia</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao, 92))}</p><span>Conhecer lugar</span></div>
   </a>`;
 }
@@ -112,7 +115,7 @@ function tourismCard(item) {
 function newsCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="tourism-related-card" href="/noticias/${encodeURIComponent(item.slug)}">
-    ${image ? `<img src="${image}" alt="${escapeHtml(item.titulo)}" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Notícia</div>`}
+    ${image ? `<img src="${image}" alt="${escapeHtml(item.titulo)}" width="420" height="280" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Notícia</div>`}
     <div><small>${escapeHtml(item.categoria_nome || "Notícias")}${item.publicado_em ? ` · ${escapeHtml(dateLabel(item.publicado_em))}` : ""}</small><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(truncate(item.resumo || item.conteudo_html, 92))}</p><span>Ler notícia</span></div>
   </a>`;
 }
@@ -185,7 +188,7 @@ async function carregar() {
     container.innerHTML = `<article class="tourism-detail" data-tourism-id="${escapeHtml(item.id)}">
       <a class="tourism-detail-back" href="/turismo.html"><span aria-hidden="true">←</span> Voltar aos lugares</a>
       <section class="tourism-detail-hero">
-        <figure><img src="${imagem}" alt="${escapeHtml(item.nome)}" decoding="async" fetchpriority="high"></figure>
+        <figure><img src="${imagem}" alt="${escapeHtml(item.nome)}" width="1200" height="760" decoding="async" fetchpriority="high"></figure>
         <header class="tourism-detail-header"><p class="eyebrow">Experiência em Urânia</p><h1>${escapeHtml(item.nome)}</h1>${item.descricao ? `<p class="tourism-detail-summary">${escapeHtml(item.descricao)}</p>` : ""}${quickFacts(item)}<span class="tourism-detail-label">Turismo local</span></header>
       </section>
       <div class="tourism-detail-layout">

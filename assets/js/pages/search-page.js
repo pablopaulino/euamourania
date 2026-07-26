@@ -34,7 +34,7 @@ function dateLabel(value) {
 
 function resultCard(item) {
   const meta = [item.category, item.meta, dateLabel(item.date)].filter(Boolean).slice(0, 2).join(" · ");
-  return `<a class="search-result-card search-result-${esc(item.type)}" href="${esc(item.url)}"><span class="search-result-media">${item.image ? `<img src="${esc(item.image)}" alt="${esc(item.title)}" loading="lazy" decoding="async">` : esc(item.typeLabel)}</span><span class="search-result-body"><span class="search-result-kind">${esc(item.typeLabel)}${meta ? ` · ${esc(meta)}` : ""}</span><h2>${esc(item.title)}</h2>${item.description ? `<span class="search-result-description">${esc(item.description)}</span>` : ""}<span class="search-result-action">${esc(item.actionLabel)} <span aria-hidden="true">→</span></span></span></a>`;
+  return `<a class="search-result-card search-result-${esc(item.type)}" href="${esc(item.url)}"><span class="search-result-media">${item.image ? `<img src="${esc(item.image)}" alt="${esc(item.title)}" width="120" height="120" loading="lazy" decoding="async">` : esc(item.typeLabel)}</span><span class="search-result-body"><span class="search-result-kind">${esc(item.typeLabel)}${meta ? ` · ${esc(meta)}` : ""}</span><h2>${esc(item.title)}</h2>${item.description ? `<span class="search-result-description">${esc(item.description)}</span>` : ""}<span class="search-result-action">${esc(item.actionLabel)} <span aria-hidden="true">→</span></span></span></a>`;
 }
 
 function filtered() {

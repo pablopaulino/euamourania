@@ -35,7 +35,7 @@ function leadCard(item) {
   const image = safeImage(item.imagem_url);
   return `<article class="home-news-lead">
     <a class="home-news-lead-media" href="${newsUrl(item.slug)}" aria-label="${esc(item.titulo)}">
-      ${image ? `<img src="${esc(image)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async">` : '<span>Eu Amo Urânia</span>'}
+      ${image ? `<img src="${esc(image)}" alt="${esc(item.titulo)}" width="640" height="360" loading="lazy" decoding="async">` : '<span>Eu Amo Urânia</span>'}
     </a>
     <div class="home-news-lead-copy">
       <span class="home-news-label">Manchete local</span>
@@ -50,7 +50,7 @@ function leadCard(item) {
 function latestCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="home-news-latest-card" href="${newsUrl(item.slug)}">
-    ${image ? `<img src="${esc(image)}" alt="${esc(item.titulo)}" loading="lazy" decoding="async">` : '<span class="home-news-placeholder">Eu Amo Urânia</span>'}
+    ${image ? `<img src="${esc(image)}" alt="${esc(item.titulo)}" width="640" height="360" loading="lazy" decoding="async">` : '<span class="home-news-placeholder">Eu Amo Urânia</span>'}
     <div>
       <small>${esc(item.categoria_nome || "Urânia")} · ${esc(date(item.publicado_em))}</small>
       <strong>${esc(item.titulo)}</strong>

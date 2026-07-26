@@ -52,7 +52,7 @@ function tourismCard(item,index) {
   const mapsUrl = item.endereco ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.endereco)}` : "";
   return `<article class="card-guia tourism-card" data-tourism-id="${escapeHtml(item.id)}"${item.destaque ? ' data-tourism-featured="true"' : ""}>
     <a class="tourism-card-media" href="${url}" aria-label="Conhecer ${escapeHtml(item.nome)}">
-      <img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${escapeHtml(item.nome)}" ${index ? 'loading="lazy"' : 'fetchpriority="high"'} decoding="async">
+      <img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${escapeHtml(item.nome)}" width="640" height="400" ${index ? 'loading="lazy"' : 'fetchpriority="high"'} decoding="async">
       ${item.destaque ? '<span class="badge-destaque">Destaque</span>' : ""}
     </a>
     <div class="tourism-card-body">
@@ -87,7 +87,7 @@ function loadNextTourism(scroll = false) {
   isLoadingMore = true;
   document.body.classList.add("tourism-auto-load", "is-loading-more");
   loadStatus.textContent = "Carregando mais lugares...";
-  window.setTimeout(() => {
+  requestAnimationFrame(() => {
     const previousCount = visibleCount;
     visibleCount = Math.min(visibleCount + PAGE_SIZE, filteredItems.length);
     const nextItems = filteredItems.slice(previousCount, visibleCount);
@@ -101,7 +101,7 @@ function loadNextTourism(scroll = false) {
     if (scroll) {
       container.querySelector(".tourism-card:last-of-type")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
-  }, 140);
+  });
 }
 
 search?.addEventListener("input", () => {
