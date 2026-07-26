@@ -1744,10 +1744,10 @@ body.events-page .inner-content{padding-top:clamp(1rem,2.5vw,1.8rem)}
 body.events-page #eventos-status{margin-top:0;margin-bottom:1rem;color:#60757d;font-weight:800}
 .eventos-landing{display:grid;gap:clamp(1.4rem,3vw,2.2rem)}
 .eventos-featured{padding:0;background:transparent}
-.eventos-section-heading{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,420px);gap:1rem;align-items:end;margin:0 0 1rem}
+.eventos-section-heading{display:block;margin:0 0 1rem}
 .eventos-section-heading .eyebrow{margin:0 0 .35rem;color:#0b4f6c;font-size:.72rem;letter-spacing:.13em}
-.eventos-section-heading h2{margin:0;color:#073b4c;font-size:clamp(1.55rem,3vw,2.35rem);line-height:1;letter-spacing:-.045em}
-.eventos-section-heading p:not(.eyebrow){max-width:420px;margin:0;color:#647981;font-size:.92rem;line-height:1.5}
+.eventos-section-heading h2{margin:0 0 .45rem;color:#073b4c;font-size:clamp(1.55rem,3vw,2.35rem);line-height:1;letter-spacing:-.045em}
+.eventos-section-heading p:not(.eyebrow){max-width:640px;margin:0;color:#647981;font-size:.92rem;line-height:1.5}
 body.events-page .events-grid{gap:1rem}
 body.events-page .event-archive-grid{gap:1rem}
 @media(max-width:760px){body.events-page .eventos-hero{padding:1.65rem 0 1.25rem}body.events-page .eventos-hero h1{font-size:clamp(2rem,10vw,2.85rem)}body.events-page .eventos-hero p:last-child{font-size:.95rem}.eventos-section-heading{grid-template-columns:1fr;gap:.45rem;margin-bottom:.8rem}.eventos-section-heading p:not(.eyebrow){max-width:none;font-size:.88rem}body.events-page .inner-content{padding-top:.9rem}.eventos-landing{gap:1.25rem}}
