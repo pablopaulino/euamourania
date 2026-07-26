@@ -67,8 +67,18 @@
       "permanent": true
     },
     { "source": "/turismo-details.html", "destination": "/turismo.html", "permanent": true },
-    { "source": "/categorias/:categoria", "destination": "/:categoria", "permanent": true },
-    { "source": "/categorias/:categoria/", "destination": "/:categoria/", "permanent": true }
+    { "source": "/categorias/:categoria", "destination": "/news/:categoria", "permanent": true },
+    { "source": "/categorias/:categoria/", "destination": "/news/:categoria", "permanent": true },
+    {
+      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|melhores-de-urania$|quem-somos$|termos-de-servico$|politica-de-privacidade$|colabore$)[a-z0-9-]+)",
+      "destination": "/news/:categoria",
+      "permanent": true
+    },
+    {
+      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|melhores-de-urania$|quem-somos$|termos-de-servico$|politica-de-privacidade$|colabore$)[a-z0-9-]+)/",
+      "destination": "/news/:categoria",
+      "permanent": true
+    }
   ],
   "rewrites": [
     { "source": "/", "destination": "/api/home" },
@@ -92,6 +102,14 @@
     { "source": "/api/newsletter-open", "destination": "/api/newsletter-track?event=open" },
     { "source": "/api/newsletter-click", "destination": "/api/newsletter-track?event=click" },
     { "source": "/noticias/feed.xml", "destination": "/api/rss" },
+    {
+      "source": "/news/:categoria((?!sobre-publicacoes$|politica-editorial$|correcoes-transparencia-contato$|feed\\.xml$)[a-z0-9-]+)",
+      "destination": "/categorias/index.html?categoria=:categoria"
+    },
+    {
+      "source": "/news/:categoria((?!sobre-publicacoes$|politica-editorial$|correcoes-transparencia-contato$|feed\\.xml$)[a-z0-9-]+)/",
+      "destination": "/categorias/index.html?categoria=:categoria"
+    },
     { "source": "/noticias/:slug", "destination": "/api/noticia?slug=:slug" },
     { "source": "/guia/categoria/:slug", "destination": "/api/noticia?tipo=guia-categoria&slug=:slug" },
     { "source": "/guia/categoria/:slug/", "destination": "/api/noticia?tipo=guia-categoria&slug=:slug" },
@@ -100,15 +118,7 @@
     { "source": "/turismo/:slug/", "destination": "/api/noticia?tipo=turismo&slug=:slug" },
     { "source": "/sitemap.xml", "destination": "/api/sitemaps?type=standard" },
     { "source": "/news-sitemap.xml", "destination": "/api/sitemaps?type=news" },
-    { "source": "/rss.xml", "destination": "/api/rss" },
-    {
-      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|melhores-de-urania$|quem-somos$|termos-de-servico$|politica-de-privacidade$)[a-z0-9-]+)",
-      "destination": "/categorias/index.html?categoria=:categoria"
-    },
-    {
-      "source": "/:categoria((?!api$|admin$|assets$|news$|noticias$|guia$|turismo$|eventos$|links$|urania$|melhores-de-urania$|quem-somos$|termos-de-servico$|politica-de-privacidade$)[a-z0-9-]+)/",
-      "destination": "/categorias/index.html?categoria=:categoria"
-    }
+    { "source": "/rss.xml", "destination": "/api/rss" }
   ],
   "headers": [
     {

@@ -35,7 +35,7 @@ const safeImage = (value) => /^https?:\/\//i.test(value || "") || /^\/?assets\//
 const newsUrl = (slug) => `/noticias/${encodeURIComponent(slug)}`;
 const summary = (item) => (item.resumo || "").trim();
 const normalize = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-const categoryUrl = (category) => `/${encodeURIComponent(gerarSlug(category || "urania"))}/`;
+const categoryUrl = (category) => `/news/${encodeURIComponent(gerarSlug(category || "urania"))}/`;
 
 function categoryLink(category, className = "news-category-link") {
   const label = category || "Urânia";

@@ -181,7 +181,7 @@ module.exports = async (req, res) => {
         image: imageTag(noticia)
       })),
       ...categoriasNoticias.map(item => ({
-        loc: `${DOMAIN}/${slugify(item.categoria_nome)}/`,
+        loc: `${DOMAIN}/news/${slugify(item.categoria_nome)}/`,
         lastmod: item.publicado_em
       })),
       ...guia.map(item => ({

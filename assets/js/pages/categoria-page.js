@@ -3,7 +3,7 @@ import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDat
 
 const DOMAIN = "https://euamourania.com.br";
 const DEFAULT_IMAGE = `${DOMAIN}/assets/AD3A1763-min%20(1).jpg`;
-const pathSlug = decodeURIComponent(location.pathname.match(/^\/([^/.]+)\/?$/)?.[1] || "");
+const pathSlug = decodeURIComponent(location.pathname.match(/^\/news\/([^/.]+)\/?$/)?.[1] || location.pathname.match(/^\/([^/.]+)\/?$/)?.[1] || "");
 const params = new URLSearchParams(location.search);
 const currentSlug = pathSlug || params.get("categoria") || "";
 const title = document.getElementById("category-title");
@@ -23,7 +23,7 @@ const esc = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
 }[char]));
 const safeImage = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
 const newsUrl = slug => `/noticias/${encodeURIComponent(slug)}`;
-const categoryUrl = category => `/${encodeURIComponent(gerarSlug(category || "urania"))}/`;
+const categoryUrl = category => `/news/${encodeURIComponent(gerarSlug(category || "urania"))}/`;
 const normalize = value => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const resumo = item => (item.resumo || textoPuro(item.conteudo_html || "")).trim();
 
