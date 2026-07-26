@@ -393,7 +393,7 @@ function render() {
     insertZone("guia_rodape", ".site-footer");
   }
   if (path.endsWith("turismo.html")) {
-    insertRepeatedBetweenCards("turismo_entre_cartoes", "#turismo-container", ".card-guia", 4, true);
+    insertRepeatedBetweenCards("turismo_entre_cartoes", "#turismo-container", ".card-guia", 6, true);
     insertZone("turismo_rodape", ".site-footer");
   }
   if (path.includes("turismo-details")) {
@@ -413,7 +413,7 @@ function render() {
 
 document.addEventListener("guia:renderizado", () => insertRepeatedBetweenCards("guia_entre_estabelecimentos", "#guia-container", ".card-guia", 6));
 document.addEventListener("noticias:renderizado", () => insertRepeatedBetweenCards("noticias_entre_listagem", "#news-container", ".news-item", 6));
-document.addEventListener("turismo:renderizado", () => insertRepeatedBetweenCards("turismo_entre_cartoes", "#turismo-container", ".card-guia", 4, true));
+document.addEventListener("turismo:renderizado", () => insertRepeatedBetweenCards("turismo_entre_cartoes", "#turismo-container", ".card-guia", 6, true));
 
 function renderAdSense() {
   if (!hasAdConsent()) return;
@@ -435,7 +435,7 @@ function renderAdSense() {
     insertAdSenseZone("guia_rodape", adsense.slots.finalRodape, ".site-footer");
   }
   if (path.endsWith("turismo.html")) {
-    insertAdSenseBetweenCards("turismo_entre_cartoes", adsense.slots.listagens, "#turismo-container", ".card-guia", 3);
+    insertAdSenseBetweenCards("turismo_entre_cartoes", adsense.slots.listagens, "#turismo-container", ".card-guia", 6);
     insertAdSenseZone("turismo_rodape", adsense.slots.finalRodape, ".site-footer");
   }
   if (path.includes("/eventos")) {

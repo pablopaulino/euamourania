@@ -6,7 +6,7 @@ const search = document.getElementById("turismo-busca");
 const total = document.getElementById("turismo-total");
 const results = document.getElementById("turismo-results");
 const empty = document.getElementById("turismo-empty");
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 6;
 const loadStatus = document.createElement("p");
 const loadMore = document.createElement("button");
 const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[char]));
