@@ -63,39 +63,38 @@ function expandRecurringEvents(events, now = new Date()) {
   const startOfToday = new Date(now);
   startOfToday.setHours(0, 0, 0, 0);
 
-  return events.flatMap(evento => {
+  return events.map(evento => {
     const type = evento.recorrencia_tipo;
     const originalStart = evento.data_inicio ? new Date(evento.data_inicio) : null;
-    if (!originalStart || Number.isNaN(originalStart.getTime())) return [evento];
+    if (!originalStart || Number.isNaN(originalStart.getTime())) return evento;
 
     const originalEnd = evento.data_fim ? new Date(evento.data_fim) : null;
     const duration = originalEnd && !Number.isNaN(originalEnd.getTime()) ? originalEnd.getTime() - originalStart.getTime() : null;
 
-    if (!["semanal", "mensal", "anual"].includes(type)) return [evento];
+    if (!["semanal", "mensal", "anual"].includes(type)) return evento;
 
     const recurrenceEnd = evento.recorrencia_ate ? new Date(evento.recorrencia_ate) : horizon;
     const limit = recurrenceEnd < horizon ? recurrenceEnd : horizon;
-    const occurrences = [];
     let current = new Date(originalStart);
     let guard = 0;
 
     while (current <= limit && guard < 80) {
       if (current >= startOfToday) {
         const end = duration ? new Date(current.getTime() + duration) : null;
-        occurrences.push({
+        return {
           ...evento,
           id: `${evento.id}-${current.toISOString()}`,
           original_id: evento.id,
           data_inicio: current.toISOString(),
           data_fim: end ? end.toISOString() : evento.data_fim,
           recorrencia_label: recurrenceLabel(type)
-        });
+        };
       }
       current = addRecurrenceDate(current, type);
       guard += 1;
     }
 
-    return occurrences.length ? occurrences : [evento];
+    return evento;
   }).sort((a, b) => new Date(a.data_inicio || 0) - new Date(b.data_inicio || 0));
 }
 
