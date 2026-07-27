@@ -1,4 +1,5 @@
 import { callPublicRpc, fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
+import { responsiveImage } from "../image-tools.js";
 
 const esc = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
@@ -85,8 +86,8 @@ function track(id, type, position = "geral") {
 }
 
 function media(campaign, position = "", popup = false) {
-  const image = safe(campaign.imagem_url);
-  const mobile = safe(config(campaign).imagem_mobile_url);
+  const image = safe(responsiveImage(campaign.imagem_url, { width: 960, height: 360, quality: 72 }));
+  const mobile = safe(responsiveImage(config(campaign).imagem_mobile_url, { width: 640, height: 280, quality: 72 }));
   const video = safe(campaign.video_url);
   const youtubeUrl = youtube(campaign.video_url);
   if ((campaign.tipo === "video" || popup) && youtubeUrl) {
@@ -109,7 +110,7 @@ function creative(campaign, position) {
   const title = settings.titulo_publico || (layout === "nativo" ? campaign.empresa_anunciante : "");
   const description = settings.texto_publico || "";
   const logo = safe(campaign.logo_empresa_url)
-    ? `<img class="ad-campaign-logo" src="${safe(campaign.logo_empresa_url)}" alt="${esc(campaign.empresa_anunciante)}" width="160" height="80" loading="lazy" decoding="async">`
+    ? `<img class="ad-campaign-logo" src="${safe(responsiveImage(campaign.logo_empresa_url, { width: 160, height: 80, resize: "contain", quality: 72 }))}" alt="${esc(campaign.empresa_anunciante)}" width="160" height="80" loading="lazy" decoding="async">`
     : "";
   const buttonText = campaign.texto_botao || (campaign.link_destino ? "Veja agora" : "");
   const callToAction = buttonText
@@ -125,7 +126,7 @@ function creative(campaign, position) {
     ? `<span class="ad-campaign-panel">${logo}${copy || campaignName}${callToAction}</span>`
     : "";
   const nativePlaceholder = !content && layout === "nativo"
-    ? `<span class="ad-native-placeholder">${safe(campaign.logo_empresa_url) ? `<img class="ad-native-logo" src="${safe(campaign.logo_empresa_url)}" alt="${esc(campaign.empresa_anunciante)}" width="180" height="100" loading="lazy" decoding="async">` : `<strong>${esc(campaign.empresa_anunciante || "Publicidade")}</strong>`}</span>`
+    ? `<span class="ad-native-placeholder">${safe(campaign.logo_empresa_url) ? `<img class="ad-native-logo" src="${safe(responsiveImage(campaign.logo_empresa_url, { width: 180, height: 100, resize: "contain", quality: 72 }))}" alt="${esc(campaign.empresa_anunciante)}" width="180" height="100" loading="lazy" decoding="async">` : `<strong>${esc(campaign.empresa_anunciante || "Publicidade")}</strong>`}</span>`
     : "";
   const body = `<span class="ad-sponsored">Publicidade</span>${content || nativePlaceholder}${panel}`;
   const classes = `banner-item ad-campaign ad-format-${selectedFormat} ad-layout-${layout}${content ? "" : " no-media"}${panel ? " has-panel" : ""}${settings.imagem_mobile_url ? " has-mobile" : ""}`;

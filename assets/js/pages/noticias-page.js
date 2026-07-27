@@ -1,5 +1,6 @@
 import { formatarData, gerarSlug, textoPuro } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
+import { responsiveImage } from "../image-tools.js";
 
 const container = document.getElementById("news-container");
 const featured = document.getElementById("news-featured");
@@ -31,7 +32,7 @@ const esc = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({
   '"': "&quot;",
 })[char]);
 
-const safeImage = (value) => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "../assets/Design sem nome (9).png";
+const safeImage = (value, options = {}) => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(responsiveImage(value, options)) : "../assets/Design sem nome (9).png";
 const newsUrl = (slug) => `/noticias/${encodeURIComponent(slug)}`;
 const summary = (item) => (item.resumo || "").trim();
 const normalize = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -52,7 +53,7 @@ function leadCard(item) {
   const text = summary(item);
   return `<article class="news-cover-lead">
     <a class="news-cover-media" href="${url}" aria-label="${esc(item.titulo)}">
-      <img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" width="960" height="540" fetchpriority="high" decoding="async">
+      <img src="${safeImage(item.imagem_url, { width: 960, height: 540, quality: 76 })}" alt="${esc(item.titulo)}" width="960" height="540" fetchpriority="high" decoding="async">
     </a>
     <div class="news-cover-copy">
       <p class="news-cover-meta"><span>Manchete local</span>${categoryLink(item.categoria_nome)}</p>
@@ -70,7 +71,7 @@ function compactCard(item, label = "Última") {
   const url = newsUrl(item.slug);
   return `<article class="news-compact-card">
     <a class="news-compact-media" href="${url}" aria-label="${esc(item.titulo)}">
-      <img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" width="360" height="240" loading="lazy" decoding="async">
+      <img src="${safeImage(item.imagem_url, { width: 360, height: 240, quality: 72 })}" alt="${esc(item.titulo)}" width="360" height="240" loading="lazy" decoding="async">
     </a>
     <div>
       <p>${esc(label)}</p>
@@ -169,7 +170,7 @@ function newsCard(item) {
   const text = summary(item);
   const url = newsUrl(item.slug);
   return `<article class="news-item">
-    <a class="news-item-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url)}" alt="${esc(item.titulo)}" width="640" height="360" loading="lazy" decoding="async"></a>
+    <a class="news-item-media" href="${url}" aria-label="${esc(item.titulo)}"><img src="${safeImage(item.imagem_url, { width: 640, height: 360, quality: 74 })}" alt="${esc(item.titulo)}" width="640" height="360" loading="lazy" decoding="async"></a>
     <div class="content">
       <p class="news-item-meta"><span>${categoryLink(item.categoria_nome)}</span><time datetime="${esc(item.publicado_em)}">${esc(formatarData(item.publicado_em))}</time></p>
       <h3><a href="${url}">${esc(item.titulo)}</a></h3>

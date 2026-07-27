@@ -1,4 +1,5 @@
 import { fetchPublicRows } from "../services/publicDataService.js";
+import { responsiveImage } from "../image-tools.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, char => ({
   "&": "&amp;",
@@ -13,7 +14,7 @@ const guideUrl = slug => `/guia/${encodeURIComponent(slug)}`;
 const safeImage = value => {
   if (!value) return "";
   try {
-    return new URL(value, location.origin).href;
+    return responsiveImage(value, { width: 180, height: 180, quality: 72 });
   } catch {
     return "";
   }

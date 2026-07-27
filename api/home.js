@@ -1,3 +1,6 @@
+const { readFile } = require("node:fs/promises");
+const path = require("node:path");
+
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://omhcpbphvtihqwdkbsbf.supabase.co";
 const KEY = process.env.SUPABASE_PUBLISHABLE_KEY || "sb_publishable_m02B2sC8Ddh4fCtnvsGePg_TqwUanoM";
 
@@ -27,10 +30,7 @@ function replaceStructuredData(html, graph) {
 
 module.exports = async (req, res) => {
   try {
-    const origin = `https://${req.headers.host}`;
-    const page = await fetch(`${origin}/index.html`, { headers: { "x-site-meta": "1" } });
-    const html = await page.text();
-    if (!page.ok) throw new Error("Home estática indisponível");
+    const html = await readFile(path.join(process.cwd(), "index.html"), "utf8");
 
     const response = await fetch(`${SUPABASE_URL}/rest/v1/configuracoes_site?select=chave,valor&chave=in.(seo_titulo_padrao,seo_descricao_padrao,imagem_compartilhamento,dominio_principal,nome_site)`, {
       headers: { apikey: KEY }

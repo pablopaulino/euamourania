@@ -1,4 +1,5 @@
 import { fetchPublicRows } from "../services/publicDataService.js";
+import { responsiveImage } from "../image-tools.js";
 
 const esc = (v = "") => String(v ?? "").replace(/[&<>'"]/g, (c) => ({
   "&": "&amp;",
@@ -9,10 +10,10 @@ const esc = (v = "") => String(v ?? "").replace(/[&<>'"]/g, (c) => ({
 })[c]);
 
 const newsUrl = (slug) => `/noticias/${encodeURIComponent(slug)}`;
-const safeImage = (value = "") => {
+const safeImage = (value = "", options = {}) => {
   if (!value) return "";
   try {
-    return new URL(value, location.origin).href;
+    return responsiveImage(value, options);
   } catch {
     return "";
   }
@@ -32,7 +33,7 @@ const date = (value) => {
 };
 
 function leadCard(item) {
-  const image = safeImage(item.imagem_url);
+  const image = safeImage(item.imagem_url, { width: 640, height: 360, quality: 74 });
   return `<article class="home-news-lead">
     <a class="home-news-lead-media" href="${newsUrl(item.slug)}" aria-label="${esc(item.titulo)}">
       ${image ? `<img src="${esc(image)}" alt="${esc(item.titulo)}" width="640" height="360" loading="lazy" decoding="async">` : '<span>Eu Amo Urânia</span>'}
@@ -48,7 +49,7 @@ function leadCard(item) {
 }
 
 function latestCard(item) {
-  const image = safeImage(item.imagem_url);
+  const image = safeImage(item.imagem_url, { width: 220, height: 160, quality: 70 });
   return `<a class="home-news-latest-card" href="${newsUrl(item.slug)}">
     ${image ? `<img src="${esc(image)}" alt="${esc(item.titulo)}" width="640" height="360" loading="lazy" decoding="async">` : '<span class="home-news-placeholder">Eu Amo Urânia</span>'}
     <div>
