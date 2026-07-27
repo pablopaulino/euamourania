@@ -33,6 +33,33 @@ function formatDate(value) {
   return value ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(new Date(value)) : "A confirmar";
 }
 
+function formatPeriod(start, end) {
+  const formattedStart = formatDate(start);
+  const formattedEnd = formatDate(end);
+  if (!start && !end) return "A confirmar";
+  if (!start) return `At\u00e9 ${formattedEnd}`;
+  if (!end) return `A partir de ${formattedStart}`;
+  return `${formattedStart} a ${formattedEnd}`;
+}
+
+function statusLabel(status = "") {
+  const labels = {
+    planejamento: "Em prepara\u00e7\u00e3o",
+    indicacoes_abertas: "Indica\u00e7\u00f5es abertas",
+    indicacoes_encerradas: "Indica\u00e7\u00f5es encerradas",
+    votacao_aberta: "Vota\u00e7\u00e3o aberta",
+    votacao_encerrada: "Vota\u00e7\u00e3o encerrada",
+    apuracao: "Apura\u00e7\u00e3o",
+    resultado_publicado: "Resultado publicado",
+    arquivada: "Arquivada"
+  };
+  return labels[status] || String(status || "Status a confirmar").replaceAll("_", " ");
+}
+
+function editionTitle(edition) {
+  return Number(edition?.ano) === 2026 ? "Primeira edi\u00e7\u00e3o 2026" : `Edi\u00e7\u00e3o ${edition?.ano || ""}`.trim();
+}
+
 function isVotingOpen(edition) {
   const now = Date.now();
   return edition?.status === "votacao_aberta"
@@ -145,7 +172,7 @@ function setMeta(edition) {
   document.querySelector('meta[property="og:image"]')?.setAttribute("content", new URL(edition.imagem_capa_url || "/assets/AD3A1763-min%20(1).jpg", location.origin).href);
 }
 
-function renderHero(edition, open) {
+function renderHeroOld(edition, open) {
   const copy = document.getElementById("edition-copy");
   const panel = document.getElementById("edition-panel");
   if (copy) {
@@ -164,6 +191,35 @@ function renderHero(edition, open) {
       </div>
       <p><strong>Encerramento:</strong> ${esc(formatDate(edition.votacao_fim || edition.encerramento_em))}</p>
       <p><strong>Pesos:</strong> Site ${Number(edition.peso_site || 0)}% · Instagram ${Number(edition.peso_instagram || 0)}%</p>`;
+  }
+}
+
+function renderHero(edition, open) {
+  const copy = document.getElementById("edition-copy");
+  const panel = document.getElementById("edition-panel");
+  if (copy) {
+    copy.innerHTML = `<span class="awards-public-badge">Uma realiza\u00e7\u00e3o Eu Amo Ur\u00e2nia</span>
+      <h1>${esc(edition.nome)}</h1>
+      <p>${esc(edition.descricao || "Escolha seus favoritos nas categorias da premia\u00e7\u00e3o.")}</p>
+      <div class="hero-actions"><a class="button button-primary" href="#vote-area" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Votar agora" : "Ver indicados"}</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/regulamento/" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/metodologia/" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a></div>`;
+  }
+  if (panel) {
+    const cover = image(edition.imagem_capa_url);
+    const indicationOpen = isIndicationOpen(edition);
+    const phaseClass = open || indicationOpen ? "open" : "closed";
+    panel.innerHTML = `${cover ? `<img src="${cover}" alt="${esc(edition.nome)}">` : ""}
+      <p class="awards-edition-kicker">Edi\u00e7\u00e3o oficial</p>
+      <h2 class="awards-edition-title">${esc(editionTitle(edition))}</h2>
+      <div class="awards-status-line awards-status-line-compact">
+        <span class="awards-chip ${phaseClass}">${esc(statusLabel(edition.status))}</span>
+        <span class="awards-chip">Indica\u00e7\u00f5es: ${esc(formatPeriod(edition.indicacoes_inicio, edition.indicacoes_fim))}</span>
+        <span class="awards-chip">Vota\u00e7\u00e3o: ${esc(formatPeriod(edition.votacao_inicio, edition.votacao_fim))}</span>
+      </div>
+      <p class="awards-edition-note">Acompanhe as fases oficiais da premia\u00e7\u00e3o e participe quando o per\u00edodo estiver aberto.</p>
+      <div class="awards-edition-meta">
+        <span>Site ${Number(edition.peso_site || 0)}%</span>
+        <span>Instagram ${Number(edition.peso_instagram || 0)}%</span>
+      </div>`;
   }
 }
 

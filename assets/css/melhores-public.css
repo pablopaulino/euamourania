@@ -183,6 +183,82 @@
 .awards-social-link:hover{background:#e7f2f5;color:#073b4c}
 .awards-category-nav button{display:grid;gap:.16rem}
 .awards-category-nav button small{color:rgba(7,59,76,.62);font-size:.72rem;font-weight:800}
+
+/* Refinamento da capa da edição: mais compacta e com status editorial claro */
+.awards-public-hero{
+  padding:clamp(2.6rem,5.6vw,4.8rem) 0 clamp(2.2rem,4.8vw,4rem);
+}
+.awards-public-grid{
+  align-items:center;
+}
+.awards-public-panel{
+  align-self:center;
+}
+.awards-public-panel img{
+  margin-bottom:.95rem;
+}
+.awards-public-panel .awards-edition-kicker{
+  margin:0 0 .28rem;
+  color:#0b4f6c;
+  font-size:.72rem;
+  font-weight:950;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+}
+.awards-public-panel .awards-edition-title{
+  margin:0;
+  color:#073b4c;
+  font-size:clamp(1.45rem,2.4vw,2.05rem);
+  line-height:1.04;
+  letter-spacing:-.055em;
+}
+.awards-status-line.awards-status-line-compact{
+  display:flex;
+  gap:.45rem;
+  flex-wrap:wrap;
+  margin:.72rem 0 0;
+}
+.awards-status-line-compact .awards-chip{
+  min-height:1.9rem;
+  width:auto;
+  padding:.36rem .58rem;
+  justify-content:flex-start;
+  font-size:.72rem;
+  line-height:1.15;
+}
+.awards-edition-note{
+  max-width:34rem;
+  margin:.72rem 0 0!important;
+  color:#607782!important;
+  font-size:.9rem;
+  line-height:1.45!important;
+}
+.awards-edition-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.45rem;
+  margin:.78rem 0 0;
+}
+.awards-edition-meta span{
+  display:inline-flex;
+  align-items:center;
+  min-height:1.75rem;
+  padding:.32rem .56rem;
+  border:1px solid rgba(220,232,236,.9);
+  border-radius:999px;
+  color:#607782;
+  background:#fff;
+  font-size:.72rem;
+  font-weight:850;
+}
+@media(max-width:620px){
+  .awards-public-hero{padding:2rem 0 2.25rem}
+  .awards-public-panel .awards-edition-title{font-size:1.45rem}
+  .awards-status-line.awards-status-line-compact{display:flex}
+  .awards-status-line-compact .awards-chip{max-width:100%}
+  .awards-edition-meta{display:grid;grid-template-columns:1fr 1fr}
+  .awards-edition-meta span{justify-content:center}
+}
 @media(max-width:620px){.awards-mini-stats{grid-template-columns:1fr}.awards-mini-stats span{text-align:left}.awards-social-link{width:100%;justify-content:center}}
 
 /* Votação mobile: leitura mais direta e cards confortáveis */
