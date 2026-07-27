@@ -265,7 +265,7 @@ export async function openLibraryPicker({folder,preset,onSelect}){
  });
 }
 
-function attachUrlUpload(input,folder,preset){
+export function attachUrlUpload(input,folder,preset){
  if(!input||enhanced.has(input))return;
  enhanced.add(input);
  const controls=document.createElement("div");

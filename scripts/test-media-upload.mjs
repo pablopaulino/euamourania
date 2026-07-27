@@ -1,7 +1,7 @@
 import{readFile}from"node:fs/promises";
 const root=new URL("../",import.meta.url),read=path=>readFile(new URL(path,root),"utf8");
 const must=(condition,message)=>{if(!condition)throw new Error(message)};
-const[migration,libraryMigration,usageMigration,pickerMigration,service,ui,styles,admin,cms,communication]=await Promise.all([
+const[migration,libraryMigration,usageMigration,pickerMigration,service,ui,styles,admin,cms,communication,awards]=await Promise.all([
  read("supabase/migrations/20260701_cms_media_upload.sql"),
  read("supabase/migrations/20260701_cms_media_library.sql"),
  read("supabase/migrations/20260717_ampliar_uso_biblioteca_midias.sql"),
@@ -11,7 +11,8 @@ const[migration,libraryMigration,usageMigration,pickerMigration,service,ui,style
  read("admin/media-upload.css"),
  read("admin/admin.js"),
  read("admin/cms-v2.js"),
- read("admin/comunicacao.js")
+ read("admin/comunicacao.js"),
+ read("admin/melhores.js")
 ]);
 must(migration.includes("'cms-media','cms-media',true,8388608"),"Bucket público ou limite de 8 MB ausente");
 for(const module of["noticias","guia","turismo","eventos","comunicacao"])must(migration.includes(`when '${module}'`),`Permissão de mídia ausente: ${module}`);
@@ -20,7 +21,8 @@ must(service.includes('storage.from(BUCKET).upload')&&service.includes("crypto.r
 must(service.includes("MAX_SIZE")&&service.includes("EXTENSIONS"),"Validação de tamanho ou formato ausente");
 must(service.includes('from("cms_midias").insert')&&service.includes("excluirMidia"),"Biblioteca ou limpeza de mídia ausente");
 must(service.includes("listarMidiasDisponiveis"),"Seletor não consulta imagens disponíveis");
-for(const folder of["noticias/principais","noticias/compartilhamento","noticias/conteudo","guia","turismo","eventos","comunicacao/newsletters"])must(ui.includes(`"${folder}"`),`Interface sem upload para ${folder}`);
+const mediaUiSource=`${ui}\n${awards}`;
+for(const folder of["noticias/principais","noticias/compartilhamento","noticias/conteudo","guia","turismo","eventos","comunicacao/newsletters","melhores/edicoes","melhores/categorias","melhores/indicados","melhores/comprovantes","melhores/app-vencedores"])must(mediaUiSource.includes(`"${folder}"`),`Interface sem upload para ${folder}`);
 must(ui.includes("insertEmbed")&&ui.includes("Prévia da imagem"),"Upload no editor ou prévia ausente");
 for(const feature of["Ajustar enquadramento","data-crop-zoom","data-rotate","canvasBlob","Guardar o arquivo original por 7 dias"])must(ui.includes(feature),`Editor de imagem incompleto: ${feature}`);
 must(ui.includes("Biblioteca de mídia")&&ui.includes("data-media-clean"),"Limpeza segura não aparece no painel");
@@ -30,7 +32,7 @@ for(const feature of["grid-template-rows:auto auto minmax(0,1fr) auto","overflow
 must(libraryMigration.includes("midia_cms_em_uso")&&libraryMigration.includes("elegivel_limpeza")&&libraryMigration.includes("interval '7 days'"),"Banco não protege mídias usadas ou originais recentes");
 for(const feature of["eventos_principais","eventos_edicoes","galeria_historica::text","patrocinadores::text","configuracao_futura::text","melhores_edicoes","melhores_categorias","melhores_indicados","app_melhores_vencedores"])must(usageMigration.includes(feature),`Uso de mídia não cobre: ${feature}`);
 must(pickerMigration.includes('using(public.is_admin())'),"Biblioteca compartilhada não respeita autenticação administrativa");
-must(admin.includes('import("./media-upload.js")')&&communication.includes('import "./media-upload.js"'),"Módulo de upload não carregado no CMS");
+must(admin.includes('import("./media-upload.js")')&&communication.includes('import "./media-upload.js"')&&awards.includes('import { attachUrlUpload } from "./media-upload.js"'),"Módulo de upload não carregado no CMS");
 must(admin.includes('querySelectorAll(".admin-nav button")')&&cms.includes('querySelectorAll(".admin-nav button")'),"Menu administrativo pode manter duas seções ativas");
 must(admin.includes('inputType=type==="url"?"text":type')&&admin.includes("validSiteReference(value)"),"Formulários do CMS não aceitam caminhos internos de assets");
 must(ui.includes("/^(?:https?:\\/\\/|\\/?assets\\/)"),"Prévia do CMS não aceita imagens internas de assets");

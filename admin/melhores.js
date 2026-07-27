@@ -1,4 +1,5 @@
 import { exigirPermissao, sair } from "./auth.js";
+import { attachUrlUpload } from "./media-upload.js";
 import { gerarSlug } from "../assets/js/utils.js";
 import { getDefaultMetodologia, getDefaultRegulamento } from "../assets/js/melhoresOfficialTexts.js";
 import {
@@ -1097,6 +1098,15 @@ function showForm(title, html, onSubmit, { submitLabel = "Salvar" } = {}) {
   $("#awards-form").addEventListener("submit", onSubmit);
 }
 
+function attachAwardsMedia(fields) {
+  const form = $("#awards-form");
+  if (!form) return;
+  Object.entries(fields).forEach(([name, config]) => {
+    const [folder, preset] = Array.isArray(config) ? config : [config, "card"];
+    attachUrlUpload(form.elements[name], folder, preset);
+  });
+}
+
 function wireSlug(form, sourceName = "nome") {
   const source = form.elements[sourceName];
   const slug = form.elements.slug;
@@ -1179,6 +1189,7 @@ async function editionForm(id) {
     state.edicoes = [];
     await loadEditions();
   });
+  attachAwardsMedia({ imagem_capa_url: ["melhores/edicoes", "wide"] });
   wireSlug($("#awards-form"));
 }
 
@@ -1230,6 +1241,7 @@ async function categoryForm(id) {
     state.categorias = [];
     await loadCategories();
   });
+  attachAwardsMedia({ imagem_url: ["melhores/categorias", "card"] });
   wireSlug($("#awards-form"));
 }
 
@@ -1321,6 +1333,7 @@ async function nomineeForm(id) {
     state.indicados = [];
     await loadNominees();
   });
+  attachAwardsMedia({ imagem_url: ["melhores/indicados", "square"] });
   const form = $("#awards-form");
   wireSlug(form);
   form.elements.edicao_id.addEventListener("change", async () => {
@@ -1375,6 +1388,7 @@ async function instagramForm(id) {
     state.instagram = [];
     await loadInstagram();
   });
+  attachAwardsMedia({ comprovante_url: ["melhores/comprovantes", "original"] });
   const form = $("#awards-form");
   form.elements.edicao_id.addEventListener("change", async () => {
     const cats = await listarCategorias(form.elements.edicao_id.value);
@@ -1495,6 +1509,7 @@ async function appWinnerForm(id, campanhaId) {
     state.appVencedores = [];
     await loadAppDisplay();
   });
+  attachAwardsMedia({ imagem_url: ["melhores/app-vencedores", "square"] });
   const form = $("#awards-form");
   form.elements.guia_comercial_id.addEventListener("change", () => {
     const guide = state.guia.find(g => g.id === form.elements.guia_comercial_id.value);
