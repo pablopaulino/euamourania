@@ -57,7 +57,23 @@ function statusLabel(status = "") {
 }
 
 function editionTitle(edition) {
-  return Number(edition?.ano) === 2026 ? "Primeira edi\u00e7\u00e3o 2026" : `Edi\u00e7\u00e3o ${edition?.ano || ""}`.trim();
+  return `Edi\u00e7\u00e3o ${edition?.ano || ""}`.trim();
+}
+
+function phasePeriodChip(edition, open, indicationOpen) {
+  if (indicationOpen) {
+    return `<span class="awards-chip">Indica\u00e7\u00f5es: ${esc(formatPeriod(edition.indicacoes_inicio, edition.indicacoes_fim))}</span>`;
+  }
+  if (open) {
+    return `<span class="awards-chip">Vota\u00e7\u00e3o: ${esc(formatPeriod(edition.votacao_inicio, edition.votacao_fim))}</span>`;
+  }
+  if (edition.status === "indicacoes_encerradas") {
+    return `<span class="awards-chip">Indica\u00e7\u00f5es encerradas em ${esc(formatDate(edition.indicacoes_fim))}</span>`;
+  }
+  if (edition.status === "votacao_encerrada" || edition.status === "apuracao" || edition.status === "resultado_publicado") {
+    return `<span class="awards-chip">Vota\u00e7\u00e3o encerrada em ${esc(formatDate(edition.votacao_fim))}</span>`;
+  }
+  return `<span class="awards-chip">Pr\u00f3ximas datas em breve</span>`;
 }
 
 function isVotingOpen(edition) {
@@ -212,10 +228,9 @@ function renderHero(edition, open) {
       <h2 class="awards-edition-title">${esc(editionTitle(edition))}</h2>
       <div class="awards-status-line awards-status-line-compact">
         <span class="awards-chip ${phaseClass}">${esc(statusLabel(edition.status))}</span>
-        <span class="awards-chip">Indica\u00e7\u00f5es: ${esc(formatPeriod(edition.indicacoes_inicio, edition.indicacoes_fim))}</span>
-        <span class="awards-chip">Vota\u00e7\u00e3o: ${esc(formatPeriod(edition.votacao_inicio, edition.votacao_fim))}</span>
+        ${phasePeriodChip(edition, open, indicationOpen)}
       </div>
-      <p class="awards-edition-note">Acompanhe as fases oficiais da premia\u00e7\u00e3o e participe quando o per\u00edodo estiver aberto.</p>
+      <p class="awards-edition-note">As informa\u00e7\u00f5es da edi\u00e7\u00e3o acompanham a fase ativa da premia\u00e7\u00e3o.</p>
       <div class="awards-edition-meta">
         <span>Site ${Number(edition.peso_site || 0)}%</span>
         <span>Instagram ${Number(edition.peso_instagram || 0)}%</span>
@@ -224,8 +239,8 @@ function renderHero(edition, open) {
 }
 
 function enrichHeroStats(edition, categories, nominees) {
-  const panel = document.getElementById("edition-panel");
-  if (!panel) return;
+  const copy = document.getElementById("edition-copy");
+  if (!copy) return;
   const stats = document.createElement("div");
   stats.className = "awards-mini-stats";
   stats.innerHTML = `
@@ -233,7 +248,7 @@ function enrichHeroStats(edition, categories, nominees) {
     <span><strong>${categories.length}</strong><small>Categorias</small></span>
     <span><strong>${nominees.length}</strong><small>Indicados</small></span>
   `;
-  panel.append(stats);
+  copy.append(stats);
 }
 
 function nomineeCard(edition, category, nominee, open, votedId) {

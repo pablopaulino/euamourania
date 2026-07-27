@@ -175,10 +175,10 @@
   .awards-category-nav button{min-width:72vw;scroll-snap-align:start}
   .awards-document ul{grid-template-columns:1fr}
 }
-.awards-mini-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem;margin-top:1rem}
-.awards-mini-stats span{display:grid;gap:.15rem;padding:.75rem;border:1px solid rgba(220,232,236,.9);border-radius:18px;background:#f8fbfc;text-align:center}
-.awards-mini-stats strong{color:#073b4c;font-size:1.35rem;line-height:1}
-.awards-mini-stats small{color:#607782;font-weight:800;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}
+.awards-mini-stats{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.15rem}
+.awards-mini-stats span{display:grid;grid-template-columns:auto auto;align-items:baseline;gap:.38rem;padding:.58rem .72rem;border:1px solid rgba(220,232,236,.95);border-radius:999px;background:rgba(255,255,255,.78);box-shadow:0 10px 24px rgba(7,59,76,.055)}
+.awards-mini-stats strong{color:#073b4c;font-size:1.05rem;line-height:1}
+.awards-mini-stats small{color:#607782;font-weight:850;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em}
 .awards-social-link{display:inline-flex;align-items:center;width:max-content;max-width:100%;padding:.38rem .58rem;border-radius:999px;background:#f4f8f9;color:#0b4f6c;font-size:.82rem;font-weight:850;text-decoration:none;white-space:normal;overflow-wrap:anywhere;line-height:1.25}
 .awards-social-link:hover{background:#e7f2f5;color:#073b4c}
 .awards-category-nav button{display:grid;gap:.16rem}
@@ -186,16 +186,17 @@
 
 /* Refinamento da capa da edição: mais compacta e com status editorial claro */
 .awards-public-hero{
-  padding:clamp(2.6rem,5.6vw,4.8rem) 0 clamp(2.2rem,4.8vw,4rem);
+  padding:clamp(1.6rem,4vw,3.2rem) 0 clamp(2rem,4.2vw,3.4rem);
 }
 .awards-public-grid{
   align-items:center;
 }
 .awards-public-panel{
   align-self:center;
+  padding:clamp(.95rem,2vw,1.25rem);
 }
 .awards-public-panel img{
-  margin-bottom:.95rem;
+  margin-bottom:.72rem;
 }
 .awards-public-panel .awards-edition-kicker{
   margin:0 0 .28rem;
@@ -216,7 +217,7 @@
   display:flex;
   gap:.45rem;
   flex-wrap:wrap;
-  margin:.72rem 0 0;
+  margin:.62rem 0 0;
 }
 .awards-status-line-compact .awards-chip{
   min-height:1.9rem;
@@ -228,7 +229,7 @@
 }
 .awards-edition-note{
   max-width:34rem;
-  margin:.72rem 0 0!important;
+  margin:.58rem 0 0!important;
   color:#607782!important;
   font-size:.9rem;
   line-height:1.45!important;
@@ -237,7 +238,7 @@
   display:flex;
   flex-wrap:wrap;
   gap:.45rem;
-  margin:.78rem 0 0;
+  margin:.62rem 0 0;
 }
 .awards-edition-meta span{
   display:inline-flex;
@@ -252,14 +253,14 @@
   font-weight:850;
 }
 @media(max-width:620px){
-  .awards-public-hero{padding:2rem 0 2.25rem}
+  .awards-public-hero{padding:1.45rem 0 2rem}
   .awards-public-panel .awards-edition-title{font-size:1.45rem}
   .awards-status-line.awards-status-line-compact{display:flex}
   .awards-status-line-compact .awards-chip{max-width:100%}
   .awards-edition-meta{display:grid;grid-template-columns:1fr 1fr}
   .awards-edition-meta span{justify-content:center}
 }
-@media(max-width:620px){.awards-mini-stats{grid-template-columns:1fr}.awards-mini-stats span{text-align:left}.awards-social-link{width:100%;justify-content:center}}
+@media(max-width:620px){.awards-mini-stats{display:grid;grid-template-columns:1fr}.awards-mini-stats span{justify-content:start}.awards-social-link{width:100%;justify-content:center}}
 
 /* Votação mobile: leitura mais direta e cards confortáveis */
 @media(max-width:720px){
