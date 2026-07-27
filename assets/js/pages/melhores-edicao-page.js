@@ -214,10 +214,13 @@ function renderHero(edition, open) {
   const copy = document.getElementById("edition-copy");
   const panel = document.getElementById("edition-panel");
   if (copy) {
+    const primaryAction = open
+      ? `<a class="button button-primary" href="#vote-area" data-awards-edition-cta data-edition-id="${edition.id}">Votar agora</a>`
+      : "";
     copy.innerHTML = `<span class="awards-public-badge">Uma realiza\u00e7\u00e3o Eu Amo Ur\u00e2nia</span>
       <h1>${esc(edition.nome)}</h1>
       <p>${esc(edition.descricao || "Escolha seus favoritos nas categorias da premia\u00e7\u00e3o.")}</p>
-      <div class="hero-actions"><a class="button button-primary" href="#vote-area" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Votar agora" : "Ver indicados"}</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/regulamento/" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/metodologia/" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a></div>`;
+      <div class="hero-actions">${primaryAction}<a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/regulamento/" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/metodologia/" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a></div>`;
   }
   if (panel) {
     const cover = image(edition.imagem_capa_url);
@@ -234,6 +237,7 @@ function renderHero(edition, open) {
 }
 
 function enrichHeroStats(edition, categories, nominees) {
+  if (!isVotingOpen(edition)) return;
   const copy = document.getElementById("edition-copy");
   if (!copy) return;
   const stats = document.createElement("div");
@@ -266,6 +270,13 @@ function nomineeCard(edition, category, nominee, open, votedId) {
 function renderVoting(edition, categories, nominees) {
   const area = document.getElementById("vote-area");
   const open = isVotingOpen(edition);
+  const section = area?.closest(".awards-section");
+  if (section && !open) {
+    section.hidden = true;
+    area.innerHTML = "";
+    return;
+  }
+  if (section) section.hidden = false;
   const votes = readVotes(edition.id);
   document.getElementById("vote-status-copy").textContent = open
     ? "Escolha um indicado por categoria. O sistema registra seu voto com validação segura."
@@ -366,6 +377,18 @@ function renderIndications(edition, categories) {
   </form>`;
 }
 
+function orderSectionsForPhase(edition) {
+  const indicationSection = document.getElementById("indication-area")?.closest(".awards-section");
+  const voteSection = document.getElementById("vote-area")?.closest(".awards-section");
+  const hero = document.querySelector(".awards-public-hero");
+  if (!indicationSection || !voteSection || !hero) return;
+  if (isIndicationOpen(edition)) {
+    hero.after(indicationSection);
+    return;
+  }
+  indicationSection.after(voteSection);
+}
+
 async function init() {
   try {
     const year = getYear();
@@ -386,6 +409,7 @@ async function init() {
       listarIndicadosPublicos(edition.id)
     ]);
     enrichHeroStats(edition, categories, nominees);
+    orderSectionsForPhase(edition);
     renderVoting(edition, categories, nominees);
     observeNomineeImpressions();
     renderIndications(edition, categories);
