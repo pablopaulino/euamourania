@@ -16,6 +16,20 @@ function activeEdition(editions) {
   return editions.find(item => ["votacao_aberta", "indicacoes_abertas", "apuracao", "resultado_publicado"].includes(item.status)) || editions[0];
 }
 
+function setImageMeta(edition) {
+  const image = img(edition?.imagem_capa_url);
+  if (!image) return;
+  const absolute = new URL(image, location.origin).href;
+  document.querySelector('meta[property="og:image"]')?.setAttribute("content", absolute);
+  let twitterImage = document.querySelector('meta[name="twitter:image"]');
+  if (!twitterImage) {
+    twitterImage = document.createElement("meta");
+    twitterImage.setAttribute("name", "twitter:image");
+    document.head.append(twitterImage);
+  }
+  twitterImage.setAttribute("content", absolute);
+}
+
 function editionCard(edition) {
   const image = img(edition.imagem_capa_url);
   return `<article class="awards-edition-card">
@@ -106,6 +120,7 @@ async function init() {
       return;
     }
     const active = activeEdition(editions);
+    setImageMeta(active);
     if (hero) {
       const image = img(active.imagem_capa_url);
       hero.innerHTML = `${image ? `<img src="${image}" alt="${esc(active.nome)}">` : ""}

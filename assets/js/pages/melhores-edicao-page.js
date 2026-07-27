@@ -57,7 +57,7 @@ function statusLabel(status = "") {
 }
 
 function editionTitle(edition) {
-  return `Edi\u00e7\u00e3o ${edition?.ano || ""}`.trim();
+  return Number(edition?.ano) === 2026 ? "Primeira edi\u00e7\u00e3o" : `Edi\u00e7\u00e3o ${edition?.ano || ""}`.trim();
 }
 
 function phasePeriodChip(edition, open, indicationOpen) {
@@ -228,13 +228,8 @@ function renderHero(edition, open) {
       <h2 class="awards-edition-title">${esc(editionTitle(edition))}</h2>
       <div class="awards-status-line awards-status-line-compact">
         <span class="awards-chip ${phaseClass}">${esc(statusLabel(edition.status))}</span>
-        ${phasePeriodChip(edition, open, indicationOpen)}
       </div>
-      <p class="awards-edition-note">As informa\u00e7\u00f5es da edi\u00e7\u00e3o acompanham a fase ativa da premia\u00e7\u00e3o.</p>
-      <div class="awards-edition-meta">
-        <span>Site ${Number(edition.peso_site || 0)}%</span>
-        <span>Instagram ${Number(edition.peso_instagram || 0)}%</span>
-      </div>`;
+      <p class="awards-edition-note">Acompanhe a fase ativa da premia\u00e7\u00e3o.</p>`;
   }
 }
 

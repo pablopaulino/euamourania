@@ -254,7 +254,9 @@
 }
 @media(max-width:620px){
   .awards-public-hero{padding:1.45rem 0 2rem}
+  .awards-public-badge{padding:.34rem .56rem;font-size:.58rem;letter-spacing:.1em}
   .awards-public-panel .awards-edition-title{font-size:1.45rem}
+  #active-edition-card{display:none}
   .awards-status-line.awards-status-line-compact{display:flex}
   .awards-status-line-compact .awards-chip{max-width:100%}
   .awards-edition-meta{display:grid;grid-template-columns:1fr 1fr}
