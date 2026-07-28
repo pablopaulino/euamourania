@@ -50,6 +50,23 @@ Object.assign(resources, {
   eventos_edicoes: { label:"Edições de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["slug","Slug da edição","text"],["titulo","Título da edição","text",true],["subtitulo","Subtítulo","text"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","Programação","editor"],["atracoes_html","Atrações","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da edição","url-list"],["videos","Vídeos","line-list"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links úteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da edição","event-edition-status"],["resumo_pos_evento_html","Resumo pós-evento","textarea"],["publico_estimado","Público estimado","number"],["observacoes","Observações","textarea"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]]}
 });
 
+function adicionarCamposDestaqueHome() {
+  const campos = [
+    ["destaque_home", "⭐ Destaque da Home", "boolean"],
+    ["destaque_home_inicio", "Início do destaque", "datetime-local"],
+    ["destaque_home_fim", "Fim do destaque", "datetime-local"]
+  ];
+  for (const tabela of ["noticias", "guia_comercial", "turismo", "eventos"]) {
+    const recurso = resources[tabela];
+    if (!recurso || recurso.fields.some(([nome]) => nome === "destaque_home")) continue;
+    const statusIndex = recurso.fields.findIndex(([nome]) => nome === "status");
+    const insertAt = statusIndex >= 0 ? statusIndex : recurso.fields.length;
+    recurso.fields.splice(insertAt, 0, ...campos);
+  }
+}
+
+adicionarCamposDestaqueHome();
+
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const inputValue = (value, type) => type === "datetime-local" && value ? new Date(value).toISOString().slice(0,16) : value ?? "";
 const validSiteReference = value => !value || /^(?:https?:\/\/|mailto:|tel:|\/(?!\/)|\.{1,2}\/|#)/i.test(value) || (/^[\w.-]+(?:\/[\w\-./%~:+?#[\]@!$&'()*+,;=]*)?$/u.test(value) && !/^javascript:/i.test(value));
