@@ -80,24 +80,20 @@ function votesLabel(row) {
 function winnerCard(row, winsByKey, edition) {
   const data = nomineeData(row);
   const img = data.img || "/assets/compartilhamento-logo.png";
-  const guideAction = data.guideUrl ? `<a class="button button-secondary" href="${esc(data.guideUrl)}">Ver no Guia</a>` : "";
+  const mediaTag = data.guideUrl ? "a" : "div";
+  const mediaHref = data.guideUrl ? ` href="${esc(data.guideUrl)}"` : "";
 
   return `<article class="awards-winner-card">
-    <div class="awards-winner-media">
+    <${mediaTag} class="awards-winner-media"${mediaHref} aria-label="Ver ${esc(data.name)} no Guia">
       <img src="${img}" alt="${esc(data.name)}" loading="lazy" decoding="async" width="640" height="480">
       <span>Vencedor ${esc(String(edition.ano))}</span>
-    </div>
+    </${mediaTag}>
     <div class="awards-winner-body">
       <p class="awards-winner-category">${esc(categoryName(row))}</p>
       <h3>${esc(data.name)}</h3>
-      <p>${esc(data.description)}</p>
       <div class="awards-winner-history">
         <strong>${esc(winnerHistoryLabel(row, winsByKey, edition.ano))}</strong>
         <span>${esc(categoryName(row))}</span>
-      </div>
-      <div class="awards-winner-actions">
-        ${guideAction}
-        <button class="button button-primary" type="button" data-share-winner="${esc(row.id)}">Compartilhar</button>
       </div>
     </div>
   </article>`;
@@ -206,17 +202,6 @@ async function init() {
     }
 
     document.getElementById("results-list").innerHTML = renderResults(results, edition, history);
-    document.querySelectorAll("[data-share-winner]").forEach(button => {
-      button.addEventListener("click", async () => {
-        const row = results.find(item => item.id === button.dataset.shareWinner);
-        const data = row ? nomineeData(row) : {};
-        await sharePage({
-          title: `${data.name || "Vencedor"} venceu no Melhores de Urânia ${edition.ano}`,
-          text: `Confira o Hall dos vencedores do ${edition.nome}.`,
-          url: location.href
-        });
-      });
-    });
   } catch (error) {
     console.error("Resultados Melhores de Urânia:", error);
     document.getElementById("results-list").innerHTML = '<div class="awards-empty">Não foi possível carregar os resultados agora.</div>';
