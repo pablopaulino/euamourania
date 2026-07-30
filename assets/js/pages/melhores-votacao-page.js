@@ -283,6 +283,7 @@ function renderCategory(edition, categories, nominees, slug) {
   const next = index >= 0 && index < progress.votable.length - 1 ? progress.votable[index + 1] : null;
   const categoryVotes = votesFor(progress.votes, category.id);
   const nextHref = next ? votingUrl(edition, next) : `${hubUrl(edition)}?concluido=1`;
+  const categoryShareUrl = `${location.origin}${votingUrl(edition, category)}`;
 
   if (!open) {
     renderHub(edition, categories, nominees);
@@ -301,6 +302,13 @@ function renderCategory(edition, categories, nominees, slug) {
         <p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p>
       </div>
       ${items.length ? `<div class="awards-voting-nominees">${items.map(nominee => nomineeButton(edition, category, nominee, progress.votes)).join("")}</div>` : `<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>`}
+      ${categoryVotes.length ? `<div class="awards-voting-share-panel">
+        <div>
+          <strong>Voto registrado nesta categoria.</strong>
+          <span>Compartilhe esta categoria com quem também pode votar.</span>
+        </div>
+        <button class="button button-secondary" type="button" data-share-category data-share-url="${categoryShareUrl}" data-category-name="${esc(category.nome)}">Compartilhar categoria</button>
+      </div>` : ""}
       <nav class="awards-voting-flow" aria-label="Navegação da votação">
         ${previous ? `<a class="button button-secondary" href="${votingUrl(edition, previous)}">Categoria anterior</a>` : `<a class="button button-secondary" href="${hubUrl(edition)}">Central</a>`}
         <a class="button button-primary ${categoryVotes.length ? "" : "disabled"}" href="${nextHref}" data-next-category>${next ? "Próxima categoria" : "Finalizar participação"}</a>
@@ -388,6 +396,28 @@ async function handleVote(event, edition, categories, nominees) {
   }
 }
 
+async function handleCategoryShare(event, edition) {
+  const button = event.target.closest("[data-share-category]");
+  if (!button) return;
+  const url = button.dataset.shareUrl || location.href;
+  const categoryName = button.dataset.categoryName || "categoria";
+  registrarEventoMelhores("melhores_share_click", {
+    edicaoId: edition.id,
+    destino: url,
+    metadados: { canal: "native_categoria", categoria: categoryName }
+  });
+  if (navigator.share) {
+    await navigator.share({
+      title: `${categoryName} | ${edition.nome}`,
+      text: `Vote na categoria ${categoryName} do Melhores de Urânia.`,
+      url
+    }).catch(() => null);
+    return;
+  }
+  await navigator.clipboard?.writeText(url).catch(() => null);
+  toast("Link da categoria copiado.");
+}
+
 async function init() {
   try {
     const year = getYear();
@@ -410,7 +440,10 @@ async function init() {
     } else {
       renderHub(edition, categories, nominees);
     }
-    root.addEventListener("click", event => handleVote(event, edition, categories, nominees));
+    root.addEventListener("click", event => {
+      handleCategoryShare(event, edition);
+      handleVote(event, edition, categories, nominees);
+    });
   } catch (error) {
     console.error("Central de votação:", error);
     root.innerHTML = `<div class="awards-empty">Não foi possível carregar a votação agora.</div>`;

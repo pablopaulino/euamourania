@@ -365,19 +365,34 @@ function renderVoting(edition, categories, nominees) {
       area.innerHTML = '<div class="awards-empty">Nenhuma categoria pública nesta edição.</div>';
       return;
     }
-    area.innerHTML = `<article class="awards-edition-vote-callout">
+    const callout = `<article class="awards-edition-vote-callout">
       <div>
         <p class="eyebrow">Ambiente de votação</p>
-        <h3>Entre na central oficial da votação</h3>
-        <p>A votação agora tem uma área própria: acompanhe seu progresso, escolha uma categoria por vez e continue de onde parou.</p>
+        <h3>Vote do seu jeito</h3>
+        <p>Use a central para acompanhar o progresso ou vote direto nas categorias abaixo.</p>
       </div>
       <div class="awards-edition-vote-stats">
         <span><strong>${categories.length}</strong><small>categorias</small></span>
         <span><strong>${nominees.length}</strong><small>indicados</small></span>
         <span><strong>${completed}</strong><small>votadas neste aparelho</small></span>
       </div>
-      <a class="button button-primary" href="/melhores-de-urania/${edition.ano}/votacao/" data-awards-edition-cta data-edition-id="${edition.id}">Entrar na votação</a>
+      <a class="button button-primary" href="/melhores-de-urania/${edition.ano}/votacao/" data-awards-edition-cta data-edition-id="${edition.id}">Abrir central</a>
     </article>`;
+    const grouped = new Map(categories.map(category => [category.id, nominees.filter(n => n.categoria_id === category.id)]));
+    area.innerHTML = `${callout}<aside class="awards-category-nav" aria-label="Categorias">${categories.map((category, index) => {
+      const total = grouped.get(category.id)?.length || 0;
+      return `<button type="button" data-scroll-category="${category.id}" class="${index === 0 ? "active" : ""}"><span>${esc(category.nome)}</span><small>${total} indicado${total === 1 ? "" : "s"}</small></button>`;
+    }).join("")}</aside>
+      <div class="awards-nominees">
+        ${categories.map(category => {
+          const items = grouped.get(category.id) || [];
+          return `<section class="awards-nominee-group" id="categoria-${category.id}">
+            <header><h3><a class="awards-link" href="/melhores-de-urania/${edition.ano}/categorias/${encodeURIComponent(category.slug)}/">${esc(category.nome)}</a></h3><p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p></header>
+            ${items.length ? `<div class="awards-nominee-grid">${items.map(nominee => nomineeCard(edition, category, nominee, open, votesFor(votes, category.id))).join("")}</div>` : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>'}
+          </section>`;
+        }).join("")}
+      </div>`;
+    observeNomineeImpressions();
     return;
   }
   const votes = readVotes(edition.id);
