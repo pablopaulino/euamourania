@@ -38,19 +38,116 @@ function setMeta(edition) {
   document.querySelector('link[rel="canonical"]')?.setAttribute("href", `${location.origin}/melhores-de-urania/${edition.ano}/resultados/`);
 }
 
-function resultCard(row) {
+function categoryName(row) {
+  return row?.melhores_categorias?.nome || "Categoria";
+}
+
+function nomineeData(row) {
   const nominee = row.melhores_indicados || {};
-  const img = image(nominee.imagem_url);
-  return `<article class="awards-nominee-card ${row.vencedor ? "awards-voted" : ""}">
-    ${img ? `<img src="${img}" alt="${esc(nominee.nome)}" loading="lazy">` : ""}
-    <div class="awards-card-body">
-      <span class="awards-chip ${row.vencedor ? "open" : ""}">${row.vencedor ? "Vencedor" : "Indicado"} · ${Number(row.colocacao)}º</span>
-      <h3>${esc(nominee.nome || "Indicado")}</h3>
-      <p>${esc(nominee.descricao_curta || row.criterio_aplicado || "Resultado oficial da categoria.")}</p>
-      <p><small>Site: ${Number(row.percentual_site || 0).toFixed(2)}% · Instagram: ${Number(row.percentual_instagram || 0).toFixed(2)}%</small></p>
-      <p><strong>Pontuação final:</strong> ${Number(row.pontuacao_final || 0).toFixed(4)}</p>
+  const guide = nominee.guia_comercial || {};
+  return {
+    nominee,
+    guide,
+    name: nominee.nome || guide.nome || "Indicado",
+    description: nominee.descricao_curta || row.criterio_aplicado || guide.categoria_nome || "Resultado oficial da categoria.",
+    img: image(nominee.imagem_url || guide.imagem_url),
+    guideUrl: guide.slug && guide.status === "publicado" ? `/guia/${encodeURIComponent(guide.slug)}` : ""
+  };
+}
+
+function winnerKey(row) {
+  const nominee = row.melhores_indicados || {};
+  return nominee.guia_comercial_id || row.indicado_id || (nominee.nome || "").toLowerCase().trim();
+}
+
+function winnerHistoryLabel(row, winsByKey, year) {
+  const wins = winsByKey.get(winnerKey(row)) || [];
+  if (wins.length > 1) return `${wins.length} conquistas registradas em ${year}`;
+  return `Primeira conquista registrada em ${year}`;
+}
+
+function winnerCard(row, winsByKey, edition) {
+  const data = nomineeData(row);
+  const img = data.img || "/assets/compartilhamento-logo.png";
+  const guideAction = data.guideUrl ? `<a class="button button-secondary" href="${esc(data.guideUrl)}">Ver no Guia</a>` : "";
+
+  return `<article class="awards-winner-card">
+    <div class="awards-winner-media">
+      <img src="${img}" alt="${esc(data.name)}" loading="lazy" decoding="async" width="640" height="480">
+      <span>Vencedor ${esc(String(edition.ano))}</span>
+    </div>
+    <div class="awards-winner-body">
+      <p class="awards-winner-category">${esc(categoryName(row))}</p>
+      <h3>${esc(data.name)}</h3>
+      <p>${esc(data.description)}</p>
+      <div class="awards-winner-history">
+        <strong>${esc(winnerHistoryLabel(row, winsByKey, edition.ano))}</strong>
+        <span>${esc(categoryName(row))}</span>
+      </div>
+      <div class="awards-winner-actions">
+        ${guideAction}
+        <button class="button button-primary" type="button" data-share-winner="${esc(row.id)}">Compartilhar</button>
+      </div>
     </div>
   </article>`;
+}
+
+function rankingItem(row) {
+  const data = nomineeData(row);
+  return `<li class="awards-ranking-item ${row.vencedor ? "is-winner" : ""}">
+    <span class="awards-ranking-position">${Number(row.colocacao)}º</span>
+    <div>
+      <strong>${esc(data.name)}</strong>
+      <small>${row.vencedor ? "Vencedor" : "Indicado"} · Site ${Number(row.percentual_site || 0).toFixed(1)}% · Instagram ${Number(row.percentual_instagram || 0).toFixed(1)}%</small>
+    </div>
+    <span class="awards-ranking-score">${Number(row.pontuacao_final || 0).toFixed(2)}</span>
+  </li>`;
+}
+
+function rankingSection(rows) {
+  return `<section class="awards-ranking-group">
+    <header>
+      <div>
+        <p class="eyebrow">Categoria</p>
+        <h3>${esc(categoryName(rows[0]))}</h3>
+      </div>
+      <span>${rows.length} indicado${rows.length === 1 ? "" : "s"}</span>
+    </header>
+    <ol class="awards-ranking-list">${rows.map(rankingItem).join("")}</ol>
+  </section>`;
+}
+
+function renderResults(results, edition) {
+  const winners = results.filter(row => row.vencedor);
+  const winsByKey = groupBy(winners, winnerKey);
+  const grouped = groupBy(results, row => row.categoria_id);
+  const publishedAt = results.find(row => row.publicado_em)?.publicado_em || edition.resultado_publicado_em || edition.divulgacao_em;
+
+  return `<section class="awards-results-summary" aria-label="Resumo dos resultados">
+    <div>
+      <p class="eyebrow">Resultado oficial</p>
+      <h2>Hall dos vencedores ${esc(String(edition.ano))}</h2>
+      <p>Um registro histórico das empresas, profissionais e projetos reconhecidos pela comunidade em cada categoria.</p>
+    </div>
+    <dl>
+      <div><dt>Vencedores</dt><dd>${winners.length}</dd></div>
+      <div><dt>Categorias</dt><dd>${grouped.size}</dd></div>
+      <div><dt>Publicado</dt><dd>${esc(formatDate(publishedAt))}</dd></div>
+    </dl>
+  </section>
+  <section class="awards-winners-hall">
+    ${winners.length ? winners.map(row => winnerCard(row, winsByKey, edition)).join("") : '<div class="awards-empty">Nenhum vencedor publicado ainda.</div>'}
+  </section>
+  <section class="awards-results-ranking">
+    <div class="awards-section-head compact">
+      <div>
+        <p class="eyebrow">Apuração</p>
+        <h2>Resultado completo por categoria</h2>
+      </div>
+      <p>Ranking oficial preservado como snapshot histórico da edição.</p>
+    </div>
+    <div class="awards-ranking-grid">${[...grouped.values()].map(rankingSection).join("")}</div>
+  </section>`;
 }
 
 async function init() {
@@ -61,13 +158,16 @@ async function init() {
       document.getElementById("results-list").innerHTML = '<div class="awards-empty">Edição não encontrada ou ainda não publicada.</div>';
       return;
     }
+
     registrarEventoMelhores("melhores_results_view", {
       edicaoId: edition.id,
       metadados: { ano: edition.ano, status: edition.status }
     });
+
     setMeta(edition);
-    document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">Resultado oficial</span><h1>${esc(edition.nome)}</h1><p>${esc(edition.metodologia || edition.descricao || "Confira os vencedores e indicados oficiais.")}</p><div class="hero-actions"><button class="button button-primary" type="button" data-share-results>Compartilhar resultados</button><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/">Ver edição</a></div>`;
-    document.getElementById("results-panel").innerHTML = `<h2>Metodologia</h2><p>${esc(edition.metodologia || "Resultado calculado conforme regulamento e pesos da edição.")}</p><div class="awards-status-line"><span class="awards-chip open">${esc(edition.status.replaceAll("_", " "))}</span><span class="awards-chip">Publicado em ${esc(formatDate(edition.resultado_publicado_em || edition.divulgacao_em))}</span></div>`;
+    document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">Resultado oficial</span><h1>${esc(edition.nome)}</h1><p>${esc(edition.descricao || "Conheça os nomes reconhecidos pela comunidade nesta edição do Melhores de Urânia.")}</p><div class="hero-actions"><button class="button button-primary" type="button" data-share-results>Compartilhar resultados</button><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/">Ver edição</a></div>`;
+    document.getElementById("results-panel").innerHTML = `<h2>Edição ${esc(String(edition.ano))}</h2><p>Resultado oficial publicado e preservado como histórico da premiação.</p><div class="awards-status-line"><span class="awards-chip open">${esc(edition.status.replaceAll("_", " "))}</span><span class="awards-chip">Publicado em ${esc(formatDate(edition.resultado_publicado_em || edition.divulgacao_em))}</span></div>`;
+
     document.querySelector("[data-share-results]")?.addEventListener("click", async () => {
       await sharePage({
         title: `Resultados ${edition.ano} | Melhores de Urânia`,
@@ -80,13 +180,25 @@ async function init() {
         metadados: { canal: "native", origem: "resultados" }
       });
     });
+
     const results = await listarResultadosPublicos(edition.id);
     if (!results.length) {
       document.getElementById("results-list").innerHTML = '<div class="awards-empty">Resultado oficial ainda não publicado para esta edição.</div>';
       return;
     }
-    const grouped = groupBy(results, row => row.categoria_id);
-    document.getElementById("results-list").innerHTML = [...grouped.values()].map(rows => `<section class="awards-nominee-group"><header><h3>${esc(rows[0]?.melhores_categorias?.nome || "Categoria")}</h3><p>Resultado oficial publicado pela organização.</p></header><div class="awards-nominee-grid">${rows.map(resultCard).join("")}</div></section>`).join("");
+
+    document.getElementById("results-list").innerHTML = renderResults(results, edition);
+    document.querySelectorAll("[data-share-winner]").forEach(button => {
+      button.addEventListener("click", async () => {
+        const row = results.find(item => item.id === button.dataset.shareWinner);
+        const data = row ? nomineeData(row) : {};
+        await sharePage({
+          title: `${data.name || "Vencedor"} venceu no Melhores de Urânia ${edition.ano}`,
+          text: `Confira o Hall dos vencedores do ${edition.nome}.`,
+          url: location.href
+        });
+      });
+    });
   } catch (error) {
     console.error("Resultados Melhores de Urânia:", error);
     document.getElementById("results-list").innerHTML = '<div class="awards-empty">Não foi possível carregar os resultados agora.</div>';

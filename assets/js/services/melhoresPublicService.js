@@ -83,7 +83,7 @@ export async function listarIndicadosPorCategoria(edicaoId, categoriaId) {
 
 export async function listarResultadosPublicos(edicaoId) {
   return fetchPublicRows("melhores_resultados", {
-    select: "id,edicao_id,categoria_id,indicado_id,votos_site,percentual_site,votos_instagram,percentual_instagram,pontuacao_final,colocacao,vencedor,selo,empate,criterio_aplicado,metodologia_resumida,publicado_em,melhores_categorias(nome),melhores_indicados(nome,imagem_url,descricao_curta)",
+    select: "id,edicao_id,categoria_id,indicado_id,votos_site,percentual_site,votos_instagram,percentual_instagram,pontuacao_final,colocacao,vencedor,selo,empate,criterio_aplicado,metodologia_resumida,publicado_em,melhores_categorias(nome),melhores_indicados(nome,imagem_url,descricao_curta,guia_comercial_id,guia_comercial(id,nome,slug,imagem_url,categoria_nome,status))",
     edicao_id: `eq.${edicaoId}`,
     publicado: "eq.true",
     order: "categoria_id.asc,colocacao.asc"
