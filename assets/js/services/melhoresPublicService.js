@@ -90,6 +90,15 @@ export async function listarResultadosPublicos(edicaoId) {
   }, { ttl: 120000 });
 }
 
+export async function listarHistoricoVencedoresPublicos() {
+  return fetchPublicRows("melhores_resultados", {
+    select: "id,edicao_id,categoria_id,indicado_id,vencedor,publicado,melhores_edicoes(ano,nome),melhores_categorias(nome),melhores_indicados(nome,guia_comercial_id)",
+    publicado: "eq.true",
+    vencedor: "eq.true",
+    order: "edicao_id.asc,categoria_id.asc"
+  }, { ttl: 300000 });
+}
+
 export async function enviarVotoMelhores(payload) {
   const response = await fetch("/api/melhores-votar", {
     method: "POST",

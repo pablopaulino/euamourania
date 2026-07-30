@@ -2329,6 +2329,22 @@
   font-size:.84rem;
   font-weight:900;
 }
+
+.awards-winners-hall{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));
+}
+.awards-winner-card{
+  grid-template-columns:clamp(150px,14vw,190px) minmax(0,1fr);
+}
+.awards-winner-media{
+  align-self:start;
+  aspect-ratio:1/1;
+}
+.awards-winner-media img{
+  height:auto;
+  min-height:0;
+  aspect-ratio:1/1;
+}
 @media(max-width:820px){
   .awards-results-summary{
     grid-template-columns:1fr;
@@ -2337,11 +2353,11 @@
     grid-template-columns:repeat(3,minmax(0,1fr));
   }
   .awards-winner-card{
-    grid-template-columns:1fr;
+    grid-template-columns:140px minmax(0,1fr);
   }
   .awards-winner-media img{
     min-height:0;
-    aspect-ratio:16/10;
+    aspect-ratio:1/1;
   }
 }
 @media(max-width:560px){
@@ -2355,10 +2371,27 @@
     gap:.9rem;
   }
   .awards-winner-card{
+    grid-template-columns:112px minmax(0,1fr);
     border-radius:24px;
+  }
+  .awards-winner-body{
+    gap:.55rem;
+    padding:.85rem;
+  }
+  .awards-winner-body h3{
+    font-size:1.16rem;
+  }
+  .awards-winner-body>p{
+    -webkit-line-clamp:2;
+    font-size:.9rem;
+  }
+  .awards-winner-history{
+    padding:.58rem .65rem;
   }
   .awards-winner-actions{
     display:grid;
+    grid-column:1/-1;
+    padding:0 .85rem .85rem;
   }
   .awards-winner-actions .button{
     width:100%;

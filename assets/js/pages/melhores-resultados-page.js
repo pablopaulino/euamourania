@@ -1,4 +1,4 @@
-import { obterEdicaoPorAno, listarResultadosPublicos } from "../services/melhoresPublicService.js";
+import { obterEdicaoPorAno, listarResultadosPublicos, listarHistoricoVencedoresPublicos } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
 
@@ -62,8 +62,19 @@ function winnerKey(row) {
 
 function winnerHistoryLabel(row, winsByKey, year) {
   const wins = winsByKey.get(winnerKey(row)) || [];
-  if (wins.length > 1) return `${wins.length} conquistas registradas em ${year}`;
-  return `Primeira conquista registrada em ${year}`;
+  const years = [...new Set(wins.map(win => Number(win?.melhores_edicoes?.ano || year)).filter(Boolean))].sort();
+  if (years.length > 1) return `Vencedor em ${years.length} edições`;
+  if (wins.length > 1) return `${wins.length} conquistas na edição ${year}`;
+  return "Vencedor da primeira edição";
+}
+
+function totalVotes(row) {
+  return Number(row.votos_site || 0) + Number(row.votos_instagram || 0);
+}
+
+function votesLabel(row) {
+  const votes = totalVotes(row);
+  return `${votes} voto${votes === 1 ? "" : "s"}`;
 }
 
 function winnerCard(row, winsByKey, edition) {
@@ -98,9 +109,9 @@ function rankingItem(row) {
     <span class="awards-ranking-position">${Number(row.colocacao)}º</span>
     <div>
       <strong>${esc(data.name)}</strong>
-      <small>${row.vencedor ? "Vencedor" : "Indicado"} · Site ${Number(row.percentual_site || 0).toFixed(1)}% · Instagram ${Number(row.percentual_instagram || 0).toFixed(1)}%</small>
+      <small>${row.vencedor ? "Vencedor" : "Indicado"} no resultado oficial</small>
     </div>
-    <span class="awards-ranking-score">${Number(row.pontuacao_final || 0).toFixed(2)}</span>
+    <span class="awards-ranking-score">${votesLabel(row)}</span>
   </li>`;
 }
 
@@ -117,9 +128,10 @@ function rankingSection(rows) {
   </section>`;
 }
 
-function renderResults(results, edition) {
+function renderResults(results, edition, history = []) {
   const winners = results.filter(row => row.vencedor);
-  const winsByKey = groupBy(winners, winnerKey);
+  const historicalWinners = history.length ? history : winners;
+  const winsByKey = groupBy(historicalWinners, winnerKey);
   const grouped = groupBy(results, row => row.categoria_id);
   const publishedAt = results.find(row => row.publicado_em)?.publicado_em || edition.resultado_publicado_em || edition.divulgacao_em;
 
@@ -181,13 +193,19 @@ async function init() {
       });
     });
 
-    const results = await listarResultadosPublicos(edition.id);
+    const [results, history] = await Promise.all([
+      listarResultadosPublicos(edition.id),
+      listarHistoricoVencedoresPublicos().catch(error => {
+        console.warn("Histórico público de vencedores indisponível:", error);
+        return [];
+      })
+    ]);
     if (!results.length) {
       document.getElementById("results-list").innerHTML = '<div class="awards-empty">Resultado oficial ainda não publicado para esta edição.</div>';
       return;
     }
 
-    document.getElementById("results-list").innerHTML = renderResults(results, edition);
+    document.getElementById("results-list").innerHTML = renderResults(results, edition, history);
     document.querySelectorAll("[data-share-winner]").forEach(button => {
       button.addEventListener("click", async () => {
         const row = results.find(item => item.id === button.dataset.shareWinner);
