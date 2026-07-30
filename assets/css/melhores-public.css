@@ -1739,3 +1739,168 @@
     border-radius:28px;
   }
 }
+
+/* Correção de identidade: o Melhores continua sendo Eu Amo Urânia */
+.awards-public-hero{
+  background:radial-gradient(circle at 20% 20%,rgba(247,201,72,.28),transparent 24rem),linear-gradient(135deg,#eef8fa 0%,#fff 55%,#fff8dd 100%);
+}
+.awards-public-badge{
+  border-color:rgba(247,201,72,.5);
+  background:rgba(247,201,72,.22);
+  color:#073b4c;
+  box-shadow:0 10px 24px rgba(247,201,72,.16);
+}
+.awards-public-copy h1,
+.awards-public-panel h2,
+.awards-section-head h2,
+.awards-card-body h3,
+.awards-edition-card h3,
+.awards-category-card h3,
+.awards-document h2,
+.awards-document h3,
+.awards-edition-vote-callout h3,
+.awards-phase-card h2,
+.awards-hub-card strong{
+  color:#073b4c;
+}
+.awards-public-panel,
+.awards-edition-card,
+.awards-category-card,
+.awards-faq-item{
+  border-color:#dce7ea;
+  background:#fff;
+  box-shadow:0 16px 42px rgba(7,59,76,.08);
+}
+.awards-voting-page{
+  --award-ink:#073b4c;
+  --award-text:#274754;
+  --award-muted:#607782;
+  --award-soft:#f6fbfc;
+  --award-card:#fff;
+  --award-coral:#f5823a;
+  --award-orange:#f7c948;
+  --award-gold:#f7c948;
+  --award-line:rgba(220,232,236,.95);
+  --award-shadow:0 18px 46px rgba(7,59,76,.08);
+  background:linear-gradient(180deg,#f6fbfc 0%,#fff 58%,#fff8dd 100%);
+  color:#274754;
+}
+.awards-voting-page .site-header{
+  border-bottom:1px solid rgba(220,232,236,.9);
+  background:rgba(255,255,255,.92);
+}
+.awards-voting-shell{
+  background:radial-gradient(circle at 12% 8%,rgba(247,201,72,.2),transparent 22rem),linear-gradient(180deg,#f6fbfc,#fff);
+}
+.awards-voting-page .eyebrow,
+.awards-voting-progress .eyebrow,
+.awards-voting-panel .eyebrow{
+  color:#0b4f6c;
+}
+.awards-voting-progress h1,
+.awards-voting-panel-head h2,
+.awards-voting-category strong,
+.awards-voting-nominee-copy h3,
+.awards-voting-complete h1,
+.awards-voting-closed h1{
+  color:#073b4c;
+}
+.awards-voting-progress p,
+.awards-voting-panel-head p,
+.awards-voting-nominee-copy p{
+  color:#607782;
+}
+.awards-progress-card{
+  border-color:rgba(11,79,108,.1);
+  background:linear-gradient(135deg,#073b4c,#0b4f6c 64%,#168aad);
+  box-shadow:0 24px 58px rgba(7,59,76,.18);
+}
+.awards-progress-kicker{
+  color:#f7c948;
+}
+.awards-progress-bar span,
+.awards-voting-strip .awards-progress-bar span{
+  background:linear-gradient(90deg,#f7c948,#ffe58a);
+}
+.awards-continue-button,
+.awards-voting-page .button.button-primary{
+  background:#0b4f6c;
+  color:#fff;
+  box-shadow:0 14px 32px rgba(11,79,108,.18);
+}
+.awards-voting-page .button.button-primary:hover{
+  background:#073b4c;
+}
+.awards-voting-check{
+  border-color:rgba(11,79,108,.14);
+  background:#eef8fa;
+  color:#0b4f6c;
+}
+.awards-voting-category.done .awards-voting-check,
+.awards-complete-icon{
+  background:#f7c948;
+  color:#073b4c;
+}
+.awards-voting-back{
+  color:#0b4f6c;
+}
+.awards-voting-category:hover{
+  background:linear-gradient(90deg,rgba(247,201,72,.14),transparent);
+}
+.awards-voting-nominee.selected{
+  background:linear-gradient(90deg,rgba(247,201,72,.2),rgba(246,251,252,.65));
+}
+.awards-voting-nominee-empty{
+  color:#0b4f6c;
+  background:linear-gradient(135deg,#eaf4f6,#fff7d8);
+}
+.awards-vote-control[disabled]{
+  background:#dff7e9!important;
+  color:#087443!important;
+}
+.awards-voting-flow .button-secondary{
+  border-color:#dce7ea;
+  background:#fff;
+  color:#073b4c;
+}
+.awards-voting-complete .hero-actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:.7rem;
+}
+.awards-faq-item summary{
+  color:#073b4c;
+}
+.awards-faq-item summary::after{
+  background:#eff7f8;
+  color:#0b4f6c;
+}
+.awards-faq-item[open] summary::after{
+  background:#f7c948;
+}
+.awards-edition-hub{
+  align-items:stretch;
+}
+.awards-phase-card,
+.awards-hub-card{
+  min-width:0;
+}
+@media(min-width:981px){
+  .awards-edition-hub{
+    grid-template-columns:minmax(260px,.78fr) minmax(0,1.42fr);
+  }
+  .awards-hub-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:720px){
+  .awards-voting-page{
+    background:linear-gradient(180deg,#f6fbfc 0%,#fff 54%,#fff8dd 100%);
+  }
+  .awards-voting-flow{
+    border-color:#dce7ea;
+    background:rgba(255,255,255,.94);
+    box-shadow:0 16px 38px rgba(7,59,76,.12);
+  }
+}
