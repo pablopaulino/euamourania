@@ -169,12 +169,13 @@ function progressCard(edition, categories, nominees) {
   const ctaLabel = progress.completed.length ? "Continuar de onde parei" : "Começar votação";
   return `
     <article class="awards-voting-progress">
-      <div>
+      <div class="awards-voting-progress-copy">
         <p class="eyebrow">Votação oficial</p>
         <h1>${esc(edition.nome)}</h1>
-        <p>Escolha seus favoritos. Seu progresso fica salvo neste dispositivo enquanto a votação estiver aberta.</p>
+        <p>Uma experiência simples para escolher quem faz Urânia acontecer. Vote categoria por categoria, no seu ritmo.</p>
       </div>
       <div class="awards-progress-card">
+        <span class="awards-progress-kicker">Sua votação</span>
         <div class="awards-progress-numbers">
           <span><strong>${progress.completed.length}</strong><small>votadas</small></span>
           <span><strong>${remaining}</strong><small>restantes</small></span>
@@ -186,6 +187,19 @@ function progressCard(edition, categories, nominees) {
         <a class="button button-primary awards-continue-button" href="${nextLink}" data-awards-vote-continue>${progress.total && progress.percent === 100 ? "Ver conclusão" : ctaLabel}</a>
       </div>
     </article>`;
+}
+
+function progressStrip(edition, categories, nominees) {
+  const progress = progressFor(edition, categories, nominees);
+  return `
+    <div class="awards-voting-strip" aria-label="Progresso da votação">
+      <span>Sua votação</span>
+      <div class="awards-progress-bar" aria-label="${progress.percent}% concluído">
+        <span style="width:${progress.percent}%"></span>
+      </div>
+      <strong>${progress.percent}%</strong>
+      <a href="${hubUrl(edition)}">Categorias</a>
+    </div>`;
 }
 
 function renderHub(edition, categories, nominees) {
@@ -215,10 +229,10 @@ function renderHub(edition, categories, nominees) {
     <section class="awards-voting-panel">
       <div class="awards-voting-panel-head">
         <div>
-          <p class="eyebrow">Escolher categoria</p>
-          <h2>Categorias da votação</h2>
+          <p class="eyebrow">Continue de onde parou</p>
+          <h2>Sua votação</h2>
         </div>
-        <p>Entre em uma categoria, registre seu voto e avance para a próxima.</p>
+        <p>Veja o que já foi escolhido e avance pelas categorias abertas.</p>
       </div>
       <div class="awards-voting-categories">
         ${categories.map(category => {
@@ -244,11 +258,11 @@ function nomineeButton(edition, category, nominee, votes) {
   return `
     <article class="awards-voting-nominee ${voted ? "selected" : ""}">
       ${img ? `<img src="${img}" alt="${esc(nominee.nome)}" loading="lazy">` : `<div class="awards-voting-nominee-empty">Eu Amo Urânia</div>`}
-      <div>
+      <div class="awards-voting-nominee-copy">
         <h3>${esc(nominee.nome)}</h3>
         ${nominee.descricao_curta ? `<p>${esc(nominee.descricao_curta)}</p>` : ""}
       </div>
-      <button class="button button-primary" type="button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" ${voted || reachedLimit ? "disabled" : ""}>
+      <button class="button button-primary awards-vote-control" type="button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" ${voted || reachedLimit ? "disabled" : ""}>
         ${voted ? "Voto registrado" : reachedLimit ? "Limite atingido" : "Votar"}
       </button>
     </article>`;
@@ -276,8 +290,8 @@ function renderCategory(edition, categories, nominees, slug) {
   }
 
   root.innerHTML = `
-    <a class="awards-voting-back" href="${hubUrl(edition)}">← Voltar para a central</a>
-    ${progressCard(edition, categories, nominees)}
+    <a class="awards-voting-back" href="${hubUrl(edition)}">← Central da votação</a>
+    ${progressStrip(edition, categories, nominees)}
     <section class="awards-voting-panel awards-voting-category-panel">
       <div class="awards-voting-panel-head">
         <div>
