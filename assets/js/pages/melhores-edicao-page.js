@@ -60,22 +60,6 @@ function editionTitle(edition) {
   return Number(edition?.ano) === 2026 ? "Primeira edi\u00e7\u00e3o" : `Edi\u00e7\u00e3o ${edition?.ano || ""}`.trim();
 }
 
-function phasePeriodChip(edition, open, indicationOpen) {
-  if (indicationOpen) {
-    return `<span class="awards-chip">Indica\u00e7\u00f5es: ${esc(formatPeriod(edition.indicacoes_inicio, edition.indicacoes_fim))}</span>`;
-  }
-  if (open) {
-    return `<span class="awards-chip">Vota\u00e7\u00e3o: ${esc(formatPeriod(edition.votacao_inicio, edition.votacao_fim))}</span>`;
-  }
-  if (edition.status === "indicacoes_encerradas") {
-    return `<span class="awards-chip">Indica\u00e7\u00f5es encerradas em ${esc(formatDate(edition.indicacoes_fim))}</span>`;
-  }
-  if (edition.status === "votacao_encerrada" || edition.status === "apuracao" || edition.status === "resultado_publicado") {
-    return `<span class="awards-chip">Vota\u00e7\u00e3o encerrada em ${esc(formatDate(edition.votacao_fim))}</span>`;
-  }
-  return `<span class="awards-chip">Pr\u00f3ximas datas em breve</span>`;
-}
-
 function isVotingOpen(edition) {
   const now = Date.now();
   return edition?.status === "votacao_aberta"
@@ -215,7 +199,7 @@ function renderHero(edition, open) {
   const panel = document.getElementById("edition-panel");
   if (copy) {
     const primaryAction = open
-      ? `<a class="button button-primary" href="#vote-area" data-awards-edition-cta data-edition-id="${edition.id}">Votar agora</a>`
+      ? `<a class="button button-primary" href="/melhores-de-urania/${edition.ano}/votacao/" data-awards-edition-cta data-edition-id="${edition.id}">Participar da votação</a>`
       : "";
     copy.innerHTML = `<span class="awards-public-badge">Uma realiza\u00e7\u00e3o Eu Amo Ur\u00e2nia</span>
       <h1>${esc(edition.nome)}</h1>
@@ -277,6 +261,32 @@ function renderVoting(edition, categories, nominees) {
     return;
   }
   if (section) section.hidden = false;
+  {
+    const votes = readVotes(edition.id);
+    const completed = categories.filter(category => votesFor(votes, category.id).length > 0).length;
+    const statusCopy = document.getElementById("vote-status-copy");
+    if (statusCopy) {
+      statusCopy.textContent = "A votação acontece em uma central própria, com progresso por categoria e navegação contínua.";
+    }
+    if (!categories.length) {
+      area.innerHTML = '<div class="awards-empty">Nenhuma categoria pública nesta edição.</div>';
+      return;
+    }
+    area.innerHTML = `<article class="awards-edition-vote-callout">
+      <div>
+        <p class="eyebrow">Ambiente de votação</p>
+        <h3>Entre na central oficial da votação</h3>
+        <p>A votação agora tem uma área própria: acompanhe seu progresso, escolha uma categoria por vez e continue de onde parou.</p>
+      </div>
+      <div class="awards-edition-vote-stats">
+        <span><strong>${categories.length}</strong><small>categorias</small></span>
+        <span><strong>${nominees.length}</strong><small>indicados</small></span>
+        <span><strong>${completed}</strong><small>votadas neste aparelho</small></span>
+      </div>
+      <a class="button button-primary" href="/melhores-de-urania/${edition.ano}/votacao/" data-awards-edition-cta data-edition-id="${edition.id}">Entrar na votação</a>
+    </article>`;
+    return;
+  }
   const votes = readVotes(edition.id);
   document.getElementById("vote-status-copy").textContent = open
     ? "Escolha um indicado por categoria. O sistema registra seu voto com validação segura."
