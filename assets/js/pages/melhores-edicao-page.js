@@ -234,6 +234,98 @@ function enrichHeroStats(edition, categories, nominees) {
   copy.append(stats);
 }
 
+function phaseInfo(edition) {
+  if (isIndicationOpen(edition)) {
+    return {
+      label: "Indicações abertas",
+      title: "Indique quem merece participar",
+      text: `Período: ${formatPeriod(edition.indicacoes_inicio, edition.indicacoes_fim)}.`,
+      href: "#indicacoes",
+      cta: "Enviar indicação"
+    };
+  }
+  if (isVotingOpen(edition)) {
+    return {
+      label: "Votação aberta",
+      title: "Vote nos seus favoritos",
+      text: `Período: ${formatPeriod(edition.votacao_inicio, edition.votacao_fim)}.`,
+      href: `/melhores-de-urania/${edition.ano}/votacao/`,
+      cta: "Participar da votação"
+    };
+  }
+  if (edition.status === "resultado_publicado") {
+    return {
+      label: "Resultado publicado",
+      title: "Confira os vencedores",
+      text: "O resultado oficial desta edição já está disponível.",
+      href: `/melhores-de-urania/${edition.ano}/resultados/`,
+      cta: "Ver resultados"
+    };
+  }
+  return {
+    label: statusLabel(edition.status),
+    title: "Acompanhe a edição",
+    text: "Veja as informações oficiais, regulamento, metodologia e categorias desta edição.",
+    href: `/melhores-de-urania/${edition.ano}/regulamento/`,
+    cta: "Ver regulamento"
+  };
+}
+
+function renderEditionHub(edition, categories, nominees) {
+  const hub = document.getElementById("edition-hub");
+  if (!hub) return;
+  const phase = phaseInfo(edition);
+  const hasResults = edition.status === "resultado_publicado";
+  const links = [
+    {
+      eyebrow: "Cronograma",
+      title: "Fases da edição",
+      text: `Indicações: ${formatPeriod(edition.indicacoes_inicio, edition.indicacoes_fim)}`
+    },
+    {
+      eyebrow: "Categorias",
+      title: `${categories.length} categorias`,
+      text: `${nominees.length} indicado${nominees.length === 1 ? "" : "s"} publicado${nominees.length === 1 ? "" : "s"} até agora.`,
+      href: categories[0] ? `/melhores-de-urania/${edition.ano}/categorias/${encodeURIComponent(categories[0].slug)}/` : ""
+    },
+    {
+      eyebrow: "Regras",
+      title: "Regulamento",
+      text: "Critérios, participação, prazos e regras oficiais da edição.",
+      href: `/melhores-de-urania/${edition.ano}/regulamento/`
+    },
+    {
+      eyebrow: "Apuração",
+      title: "Metodologia",
+      text: "Como os votos e pesos são considerados na premiação.",
+      href: `/melhores-de-urania/${edition.ano}/metodologia/`
+    }
+  ];
+  if (hasResults) {
+    links.unshift({
+      eyebrow: "Oficial",
+      title: "Resultados",
+      text: "Vencedores e colocações oficiais desta edição.",
+      href: `/melhores-de-urania/${edition.ano}/resultados/`
+    });
+  }
+  hub.innerHTML = `
+    <article class="awards-phase-card">
+      <span class="awards-phase-label">${esc(phase.label)}</span>
+      <h2>${esc(phase.title)}</h2>
+      <p>${esc(phase.text)}</p>
+      <a class="button button-primary" href="${phase.href}" data-awards-edition-cta data-edition-id="${edition.id}">${esc(phase.cta)}</a>
+    </article>
+    <div class="awards-hub-grid">
+      ${links.map(item => `
+        <${item.href ? `a href="${item.href}"` : "article"} class="awards-hub-card">
+          <span>${esc(item.eyebrow)}</span>
+          <strong>${esc(item.title)}</strong>
+          <small>${esc(item.text)}</small>
+        </${item.href ? "a" : "article"}>`).join("")}
+    </div>`;
+}
+
 function nomineeCard(edition, category, nominee, open, votedId) {
   const votedList = Array.isArray(votedId) ? votedId : (votedId ? [votedId] : []);
   const voted = votedList.includes(nominee.id);
@@ -419,6 +511,7 @@ async function init() {
       listarIndicadosPublicos(edition.id)
     ]);
     enrichHeroStats(edition, categories, nominees);
+    renderEditionHub(edition, categories, nominees);
     orderSectionsForPhase(edition);
     renderVoting(edition, categories, nominees);
     observeNomineeImpressions();
