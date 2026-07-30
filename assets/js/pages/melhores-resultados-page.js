@@ -80,23 +80,25 @@ function votesLabel(row) {
 function winnerCard(row, winsByKey, edition) {
   const data = nomineeData(row);
   const img = data.img || "/assets/compartilhamento-logo.png";
-  const mediaTag = data.guideUrl ? "a" : "div";
-  const mediaHref = data.guideUrl ? ` href="${esc(data.guideUrl)}"` : "";
+  const cardTag = data.guideUrl ? "a" : "article";
+  const cardHref = data.guideUrl ? ` href="${esc(data.guideUrl)}" aria-label="Ver ${esc(data.name)} no Guia Comercial"` : "";
+  const cardClass = `awards-winner-card${data.guideUrl ? " is-clickable" : ""}`;
+  const historyHint = data.guideUrl ? "Abrir no Guia Comercial" : "Reconhecimento oficial da comunidade";
 
-  return `<article class="awards-winner-card">
-    <${mediaTag} class="awards-winner-media"${mediaHref} aria-label="Ver ${esc(data.name)} no Guia">
+  return `<${cardTag} class="${cardClass}"${cardHref}>
+    <div class="awards-winner-media">
       <img src="${img}" alt="${esc(data.name)}" loading="lazy" decoding="async" width="640" height="480">
-      <span>Vencedor ${esc(String(edition.ano))}</span>
-    </${mediaTag}>
+      <span>Vencedor</span>
+    </div>
     <div class="awards-winner-body">
       <p class="awards-winner-category">${esc(categoryName(row))}</p>
       <h3>${esc(data.name)}</h3>
       <div class="awards-winner-history">
         <strong>${esc(winnerHistoryLabel(row, winsByKey, edition.ano))}</strong>
-        <span>${esc(categoryName(row))}</span>
+        <span>${esc(historyHint)}</span>
       </div>
     </div>
-  </article>`;
+  </${cardTag}>`;
 }
 
 function rankingItem(row) {
