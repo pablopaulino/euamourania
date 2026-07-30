@@ -19,4 +19,3 @@ export async function sharePage({ title = document.title, text = "", url = locat
 export function whatsappShareUrl({ text = "", url = location.href } = {}) {
   return `https://api.whatsapp.com/send?text=${encodeURIComponent(`${text}${text ? " " : ""}${absoluteUrl(url)}`)}`;
 }
-
