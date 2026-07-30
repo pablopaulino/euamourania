@@ -1,6 +1,7 @@
 import { obterEdicaoPorAno, listarCategoriasPublicas, listarIndicadosPublicos, enviarVotoMelhores, enviarIndicacaoMelhores } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { TURNSTILE_SITE_KEY } from "../supabase-config.js";
+import { sharePage } from "../services/shareService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
@@ -204,7 +205,7 @@ function renderHero(edition, open) {
     copy.innerHTML = `<span class="awards-public-badge">Uma realiza\u00e7\u00e3o Eu Amo Ur\u00e2nia</span>
       <h1>${esc(edition.nome)}</h1>
       <p>${esc(edition.descricao || "Escolha seus favoritos nas categorias da premia\u00e7\u00e3o.")}</p>
-      <div class="hero-actions">${primaryAction}<a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/regulamento/" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/metodologia/" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a></div>`;
+      <div class="hero-actions">${primaryAction}<a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/regulamento/" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/metodologia/" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a><button class="button button-secondary" type="button" data-share-edition data-edition-id="${edition.id}">Compartilhar</button></div>`;
   }
   if (panel) {
     const cover = image(edition.imagem_capa_url);
@@ -639,6 +640,21 @@ document.addEventListener("click", event => {
     edicaoId: cta.dataset.editionId || null,
     destino: cta.href,
     metadados: { origem_cta: "hero_edicao" }
+  });
+});
+
+document.addEventListener("click", async event => {
+  const share = event.target.closest("[data-share-edition]");
+  if (!share) return;
+  await sharePage({
+    title: document.title,
+    text: "Acompanhe o Melhores de Urânia.",
+    url: location.href
+  });
+  registrarEventoMelhores("melhores_share_click", {
+    edicaoId: share.dataset.editionId || null,
+    destino: location.href,
+    metadados: { canal: "native", origem: "edicao" }
   });
 });
 

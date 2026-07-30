@@ -73,6 +73,8 @@
   ],
   "rewrites": [
     { "source": "/", "destination": "/api/home" },
+    { "source": "/melhores-de-urania/categorias/:categoria", "destination": "/melhores-de-urania/categoria-permanente.html?categoria=:categoria" },
+    { "source": "/melhores-de-urania/categorias/:categoria/", "destination": "/melhores-de-urania/categoria-permanente.html?categoria=:categoria" },
     { "source": "/melhores-de-urania/:ano/votacao", "destination": "/melhores-de-urania/votacao.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano/votacao/", "destination": "/melhores-de-urania/votacao.html?ano=:ano" },
     { "source": "/melhores-de-urania/:ano/votacao/:categoria", "destination": "/melhores-de-urania/votacao.html?ano=:ano&categoria=:categoria" },

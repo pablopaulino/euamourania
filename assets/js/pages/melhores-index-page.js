@@ -1,5 +1,6 @@
 import { listarEdicoesPublicas } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
+import { sharePage } from "../services/shareService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const img = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
@@ -130,9 +131,21 @@ async function init() {
           <span class="awards-chip ${active.status === "votacao_aberta" ? "open" : ""}">${esc(statusLabel(active.status))}</span>
           <span class="awards-chip">Site ${Number(active.peso_site || 0)}% · Instagram ${Number(active.peso_instagram || 0)}%</span>
         </div>
-        <p style="margin-top:1rem"><a class="button button-primary" href="${editionUrl(active)}" data-awards-cta data-edition-id="${active.id}">Ver edição ${esc(active.ano)}</a></p>`;
+        <p style="margin-top:1rem" class="hero-actions"><a class="button button-primary" href="${editionUrl(active)}" data-awards-cta data-edition-id="${active.id}">Ver edição ${esc(active.ano)}</a><button class="button button-secondary" type="button" data-share-awards-home>Compartilhar</button></p>`;
     }
     if (list) list.innerHTML = editions.map(editionCard).join("");
+    document.querySelector("[data-share-awards-home]")?.addEventListener("click", async () => {
+      await sharePage({
+        title: "Melhores de Urânia | Eu Amo Urânia",
+        text: `Acompanhe o ${active.nome}.`,
+        url: "/melhores-de-urania/"
+      });
+      registrarEventoMelhores("melhores_share_click", {
+        edicaoId: active.id,
+        destino: `${location.origin}/melhores-de-urania/`,
+        metadados: { canal: "native", origem: "home_melhores" }
+      });
+    });
     document.querySelectorAll("[data-awards-cta]").forEach(link => {
       link.addEventListener("click", () => registrarEventoMelhores("melhores_cta_click", {
         edicaoId: link.dataset.editionId || null,

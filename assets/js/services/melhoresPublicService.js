@@ -59,6 +59,17 @@ export async function obterCategoriaPublica(edicaoId, slug) {
   return rows?.[0] || null;
 }
 
+export async function listarCategoriasHistoricasPorSlug(slug) {
+  return fetchPublicRows("melhores_categorias", {
+    select: "id,edicao_id,nome,slug,descricao,imagem_url,icone,ordem,status,visibilidade_publica,atualizado_em,melhores_edicoes!inner(id,nome,ano,slug,descricao,imagem_capa_url,status,atualizado_em)",
+    slug: `eq.${slug}`,
+    status: "eq.ativo",
+    visibilidade_publica: "eq.true",
+    "melhores_edicoes.status": "in.(indicacoes_abertas,votacao_aberta,votacao_encerrada,resultado_publicado)",
+    order: "atualizado_em.desc"
+  }, { ttl: 60000 });
+}
+
 export async function listarIndicadosPorCategoria(edicaoId, categoriaId) {
   return fetchPublicRows("melhores_indicados", {
     select: "id,edicao_id,categoria_id,nome,slug,imagem_url,descricao_curta,instagram,whatsapp,site,endereco,status,ordem,aprovado",

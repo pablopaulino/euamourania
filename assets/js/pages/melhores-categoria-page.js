@@ -1,4 +1,5 @@
 import { obterEdicaoPorAno, obterCategoriaPublica, listarIndicadosPorCategoria } from "../services/melhoresPublicService.js";
+import { sharePage } from "../services/shareService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
@@ -87,6 +88,7 @@ async function init() {
     <div class="hero-actions">
       <a class="button button-primary" href="${votingOpen ? categoryVoteUrl : editionUrl}">${votingOpen ? "Votar nesta categoria" : "Ver edição"}</a>
       <a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/votacao/">Central da votação</a>
+      <button class="button button-secondary" type="button" data-share-category>Compartilhar</button>
     </div>`;
 
   document.getElementById("category-panel").innerHTML = `
@@ -101,6 +103,7 @@ async function init() {
     <div class="awards-category-panel-actions">
       <a class="button button-primary" href="${votingOpen ? categoryVoteUrl : editionUrl}">${votingOpen ? "Votar agora" : "Ver página da edição"}</a>
       <a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/regulamento/">Regulamento</a>
+      <a class="button button-secondary" href="/melhores-de-urania/categorias/${encodeURIComponent(category.slug)}/">Histórico</a>
     </div>`;
 
   nomineesContainer.innerHTML = nominees.length
@@ -113,6 +116,14 @@ async function init() {
       </div>
       <div class="awards-nominee-grid">${nominees.map(nomineeCard).join("")}</div>`
     : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>';
+
+  document.querySelector("[data-share-category]")?.addEventListener("click", async () => {
+    await sharePage({
+      title: `${category.nome} | ${edition.nome}`,
+      text: `Veja a categoria ${category.nome} no ${edition.nome}.`,
+      url: location.href
+    });
+  });
 }
 
 init().catch(error => {
