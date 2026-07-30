@@ -24,7 +24,7 @@ function statusLabel(status = "") {
 function setMeta(category, rows) {
   const edition = rows[0]?.melhores_edicoes || {};
   const title = `${category.nome} | Melhores de Urânia`;
-  const description = (category.descricao || `Histórico da categoria ${category.nome} no Melhores de Urânia.`).slice(0, 155);
+  const description = (category.descricao || `Confira o histórico da categoria ${category.nome} e acompanhe os nomes que ajudam a movimentar Urânia.`).slice(0, 155);
   const canonical = `${location.origin}/melhores-de-urania/categorias/${category.slug}/`;
   document.title = `${title} | Eu Amo Urânia`;
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);
@@ -67,14 +67,14 @@ async function init() {
     document.getElementById("permanent-category-copy").innerHTML = `
       <span class="awards-public-badge">Histórico da categoria</span>
       <h1>${esc(category.nome)}</h1>
-      <p>${esc(category.descricao || "Acompanhe a presença desta categoria nas edições do Melhores de Urânia.")}</p>
+      <p>${esc(category.descricao || "Confira o histórico desta categoria e acompanhe os nomes que ajudam a movimentar Urânia.")}</p>
       <div class="hero-actions">
         <button class="button button-primary" type="button" data-share-category>Compartilhar categoria</button>
         <a class="button button-secondary" href="/melhores-de-urania/">Ver prêmio</a>
       </div>`;
     document.getElementById("permanent-category-panel").innerHTML = `
       <h2>${esc(rows.length)} edição${rows.length === 1 ? "" : "es"}</h2>
-      <p>Histórico público e organizado para acompanhar a evolução da categoria ao longo dos anos.</p>
+      <p>Histórico público e organizado para acompanhar a evolução desta categoria ao longo dos anos.</p>
       <div class="awards-status-line">
         <span class="awards-chip">Mais recente: ${esc(rows[0]?.melhores_edicoes?.ano || "")}</span>
         <span class="awards-chip">Categoria permanente</span>
