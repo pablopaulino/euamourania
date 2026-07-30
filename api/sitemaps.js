@@ -173,6 +173,18 @@ module.exports = async (req, res) => {
       }
       return base;
     });
+    const melhoresCategoriasPermanentes = [...new Map(melhoresCategorias
+      .filter(item => item.slug)
+      .map(item => [item.slug, {
+        slug: item.slug,
+        lastmod: melhoresCategorias
+          .filter(categoria => categoria.slug === item.slug)
+          .map(categoria => categoria.atualizado_em)
+          .filter(Boolean)
+          .sort()
+          .at(-1)
+      }])
+    ).values()];
     const all = [
       ...statics.map(path => ({ loc: DOMAIN + path })),
       ...noticias.map(noticia => ({
@@ -215,6 +227,10 @@ module.exports = async (req, res) => {
       ...melhoresCategorias.map(item => ({
         loc: `${DOMAIN}/melhores-de-urania/${item.melhores_edicoes?.ano}/categorias/${item.slug}/`,
         lastmod: item.atualizado_em
+      })),
+      ...melhoresCategoriasPermanentes.map(item => ({
+        loc: `${DOMAIN}/melhores-de-urania/categorias/${item.slug}/`,
+        lastmod: item.lastmod
       })),
       ...melhoresUrls
     ];
