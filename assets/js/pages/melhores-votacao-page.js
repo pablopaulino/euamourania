@@ -323,8 +323,8 @@ function renderCompletion(edition, categories, nominees) {
     <section class="awards-voting-complete">
       <span class="awards-complete-icon" aria-hidden="true">✓</span>
       <p class="eyebrow">Participação registrada</p>
-      <h1>Obrigado por participar!</h1>
-      <p>Seu progresso mostra ${progress.completed.length} categoria${progress.completed.length === 1 ? "" : "s"} votada${progress.completed.length === 1 ? "" : "s"} nesta edição.</p>
+      <h1>Compartilhe a votação</h1>
+      <p>Seu voto foi registrado. Chame amigos para participar também do Melhores de Urânia.</p>
       <div class="awards-progress-card compact">
         <div class="awards-progress-numbers">
           <span><strong>${progress.completed.length}</strong><small>votadas</small></span>
