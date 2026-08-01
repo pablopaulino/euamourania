@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Envie informações de uma empresa de Urânia para análise do Guia Comercial Eu Amo Urânia.">
+  <meta name="theme-color" content="#0b4f6c">
+  <title>Cadastrar empresa | Eu Amo Urânia</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="inner-pages.css">
+  <link rel="stylesheet" href="assets/css/public-submissions.css">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="inner-page submission-page">
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <header class="site-header">
+    <div class="container header-content">
+      <a class="brand" href="index.html" aria-label="Eu Amo Urânia — início">
+        <img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56">
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal">
+        <span class="menu-icon" aria-hidden="true"></span><span>Menu</span>
+      </button>
+      <nav class="main-nav" id="menu-principal" aria-label="Navegação principal">
+        <ul>
+          <li><a href="index.html">Início</a></li>
+          <li><a href="guia.html">Guia</a></li>
+          <li><a href="turismo.html">Turismo</a></li>
+          <li><a href="news/">Notícias</a></li>
+          <li><a href="quem-somos.html">Quem somos</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="conteudo">
+    <section class="submission-hero">
+      <div class="container submission-hero-grid">
+        <div>
+          <p class="eyebrow">Guia comercial</p>
+          <h1>Envie uma empresa para análise</h1>
+          <p>Indique um estabelecimento, serviço ou profissional de Urânia para avaliação da equipe do Guia Comercial.</p>
+        </div>
+        <aside class="submission-info-card">
+          <span>Importante</span>
+          <ul>
+            <li>O envio não publica automaticamente.</li>
+            <li>Não envie links de fotos ou arquivos.</li>
+            <li>A imagem será escolhida no painel pela equipe.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+    <section class="submission-content">
+      <div class="container submission-layout">
+        <div class="submission-copy">
+          <p class="eyebrow">Revisão editorial</p>
+          <h2>O cadastro entra como pendente antes de aparecer no Guia.</h2>
+          <p>A equipe revisa as informações, corrige o que for necessário, escolhe a imagem oficial usando a biblioteca do CMS e só então publica no site e no aplicativo.</p>
+          <p class="submission-note">Não é necessário enviar imagens. A imagem de apresentação será definida pela equipe durante a análise do cadastro.</p>
+        </div>
+        <form class="submission-form" data-submission-form="business" data-submit-label="Enviar empresa para análise">
+          <h2>Dados da empresa</h2>
+          <p class="submission-form-intro">Preencha os dados principais. A equipe poderá revisar o texto antes da publicação.</p>
+          <input class="submission-honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <fieldset class="submission-fieldset">
+            <legend>Empresa</legend>
+            <div class="submission-grid">
+              <div class="submission-field full"><label for="nome">Nome da empresa</label><input id="nome" name="nome" required maxlength="140"></div>
+              <div class="submission-field"><label for="categoria">Categoria</label><select id="categoria" name="categoria_id" data-category-select><option value="">Selecione uma categoria</option></select></div>
+              <div class="submission-field"><label for="responsavel_nome">Responsável</label><input id="responsavel_nome" name="responsavel_nome" maxlength="140"></div>
+              <div class="submission-field full"><label for="descricao">Descrição</label><textarea id="descricao" name="descricao" required maxlength="3000"></textarea></div>
+              <div class="submission-field full"><label for="endereco">Endereço</label><input id="endereco" name="endereco" maxlength="220"></div>
+              <div class="submission-field full"><label for="horario">Horário de atendimento</label><input id="horario" name="horario" maxlength="220"></div>
+            </div>
+          </fieldset>
+          <fieldset class="submission-fieldset">
+            <legend>Contato público</legend>
+            <div class="submission-grid">
+              <div class="submission-field"><label for="whatsapp">WhatsApp</label><input id="whatsapp" name="whatsapp" inputmode="tel" maxlength="30"></div>
+              <div class="submission-field"><label for="telefone">Telefone</label><input id="telefone" name="telefone" inputmode="tel" maxlength="30"></div>
+              <div class="submission-field"><label for="instagram">Instagram</label><input id="instagram" name="instagram" maxlength="120"></div>
+              <div class="submission-field"><label for="facebook">Facebook</label><input id="facebook" name="facebook" maxlength="180"></div>
+              <div class="submission-field full"><label for="site">Site</label><input id="site" name="site" type="url" maxlength="220" placeholder="https://"></div>
+            </div>
+          </fieldset>
+          <fieldset class="submission-fieldset">
+            <legend>Quem está enviando</legend>
+            <div class="submission-grid">
+              <div class="submission-field"><label for="submitter_name">Seu nome</label><input id="submitter_name" name="submitter_name" required maxlength="120"></div>
+              <div class="submission-field"><label for="submitter_email">Seu e-mail</label><input id="submitter_email" name="submitter_email" type="email" required maxlength="160"></div>
+              <div class="submission-field full"><label for="submitter_phone">Seu telefone/WhatsApp</label><input id="submitter_phone" name="submitter_phone" inputmode="tel" maxlength="30"></div>
+            </div>
+          </fieldset>
+          <label class="submission-check"><input type="checkbox" name="consent" required><span>Declaro que as informações fornecidas são verdadeiras e que estou autorizado a solicitar o cadastro deste estabelecimento.</span></label>
+          <p class="submission-note">O envio não garante publicação. As informações poderão ser revisadas, editadas ou recusadas.</p>
+          <button class="submission-button" type="submit">Enviar empresa para análise</button>
+          <div class="submission-result" data-submission-result aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <script src="script.js" defer></script>
+  <script type="module" src="assets/js/pages/public-submissions.js"></script>
+</body>
+</html>

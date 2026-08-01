@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Envie informações de um evento de Urânia para análise da equipe do Eu Amo Urânia.">
+  <meta name="theme-color" content="#0b4f6c">
+  <title>Cadastrar evento | Eu Amo Urânia</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="inner-pages.css">
+  <link rel="stylesheet" href="assets/css/public-submissions.css">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="inner-page submission-page">
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <header class="site-header">
+    <div class="container header-content">
+      <a class="brand" href="index.html" aria-label="Eu Amo Urânia — início">
+        <img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56">
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal">
+        <span class="menu-icon" aria-hidden="true"></span><span>Menu</span>
+      </button>
+      <nav class="main-nav" id="menu-principal" aria-label="Navegação principal">
+        <ul>
+          <li><a href="index.html">Início</a></li>
+          <li><a href="guia.html">Guia</a></li>
+          <li><a href="turismo.html">Turismo</a></li>
+          <li><a href="news/">Notícias</a></li>
+          <li><a href="quem-somos.html">Quem somos</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="conteudo">
+    <section class="submission-hero">
+      <div class="container submission-hero-grid">
+        <div>
+          <p class="eyebrow">Agenda da cidade</p>
+          <h1>Envie um evento para análise</h1>
+          <p>Use este formulário para sugerir eventos, encontros, campanhas e programações de Urânia. A equipe revisa as informações antes de publicar no portal.</p>
+        </div>
+        <aside class="submission-info-card">
+          <span>Antes de enviar</span>
+          <ul>
+            <li>Preencha somente informações reais.</li>
+            <li>Não é necessário enviar imagens.</li>
+            <li>A publicação depende da revisão da equipe.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+    <section class="submission-content">
+      <div class="container submission-layout">
+        <div class="submission-copy">
+          <p class="eyebrow">Como funciona</p>
+          <h2>Você envia os dados, a equipe revisa e publica.</h2>
+          <p>Após o envio, o cadastro entra como pendente no painel administrativo. Durante a análise, a equipe pode ajustar textos, escolher uma imagem oficial na biblioteca do CMS e aprovar ou recusar a publicação.</p>
+          <p class="submission-note">Não é necessário enviar imagens. A imagem de apresentação será definida pela equipe durante a análise do cadastro.</p>
+        </div>
+        <form class="submission-form" data-submission-form="event" data-submit-label="Enviar evento para análise">
+          <h2>Dados do evento</h2>
+          <p class="submission-form-intro">Campos com informações essenciais ajudam a publicação a sair mais completa.</p>
+          <input class="submission-honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <fieldset class="submission-fieldset">
+            <legend>Evento</legend>
+            <div class="submission-grid">
+              <div class="submission-field full"><label for="titulo">Nome do evento</label><input id="titulo" name="titulo" required maxlength="140"></div>
+              <div class="submission-field full"><label for="descricao">Descrição</label><textarea id="descricao" name="descricao" required maxlength="3000"></textarea></div>
+              <div class="submission-field"><label for="categoria">Categoria</label><select id="categoria" name="categoria_id" data-category-select><option value="">Selecione, se fizer sentido</option></select></div>
+              <div class="submission-field"><label for="organizador">Organizador</label><input id="organizador" name="organizador" maxlength="140"></div>
+              <div class="submission-field"><label for="data_inicio">Data de início</label><input id="data_inicio" name="data_inicio" type="datetime-local" required></div>
+              <div class="submission-field"><label for="data_fim">Data de fim</label><input id="data_fim" name="data_fim" type="datetime-local"></div>
+              <div class="submission-field"><label for="horario">Horário complementar</label><input id="horario" name="horario" maxlength="120" placeholder="Ex.: a partir das 19h"></div>
+              <div class="submission-field"><label for="local">Local</label><input id="local" name="local" maxlength="180"></div>
+              <div class="submission-field full"><label for="endereco">Endereço</label><input id="endereco" name="endereco" maxlength="220"></div>
+            </div>
+          </fieldset>
+          <fieldset class="submission-fieldset">
+            <legend>Contato público</legend>
+            <div class="submission-grid">
+              <div class="submission-field"><label for="whatsapp">WhatsApp</label><input id="whatsapp" name="whatsapp" inputmode="tel" maxlength="30"></div>
+              <div class="submission-field"><label for="telefone">Telefone</label><input id="telefone" name="telefone" inputmode="tel" maxlength="30"></div>
+              <div class="submission-field"><label for="site">Site</label><input id="site" name="site" type="url" maxlength="220" placeholder="https://"></div>
+              <div class="submission-field"><label for="instagram">Instagram</label><input id="instagram" name="instagram" maxlength="120"></div>
+            </div>
+          </fieldset>
+          <fieldset class="submission-fieldset">
+            <legend>Quem está enviando</legend>
+            <div class="submission-grid">
+              <div class="submission-field"><label for="submitter_name">Seu nome</label><input id="submitter_name" name="submitter_name" required maxlength="120"></div>
+              <div class="submission-field"><label for="submitter_email">Seu e-mail</label><input id="submitter_email" name="submitter_email" type="email" required maxlength="160"></div>
+              <div class="submission-field full"><label for="submitter_phone">Seu telefone/WhatsApp</label><input id="submitter_phone" name="submitter_phone" inputmode="tel" maxlength="30"></div>
+            </div>
+          </fieldset>
+          <label class="submission-check"><input type="checkbox" name="consent" required><span>Declaro que as informações fornecidas são verdadeiras e que estou autorizado a solicitar o cadastro deste evento.</span></label>
+          <p class="submission-note">O envio não garante publicação. As informações poderão ser revisadas, editadas ou recusadas.</p>
+          <button class="submission-button" type="submit">Enviar evento para análise</button>
+          <div class="submission-result" data-submission-result aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <script src="script.js" defer></script>
+  <script type="module" src="assets/js/pages/public-submissions.js"></script>
+</body>
+</html>
