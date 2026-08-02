@@ -53,6 +53,7 @@ create table if not exists public.guia_comercial (
   horario text,
   mapa_url text,
   recomendado boolean not null default false,
+  recomendado_editorial boolean not null default false,
   status text not null default 'rascunho' check (status in ('rascunho','publicado','arquivado')),
   criado_em timestamptz not null default now(),
   atualizado_em timestamptz not null default now(),
