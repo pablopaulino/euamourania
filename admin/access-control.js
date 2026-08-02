@@ -7,6 +7,7 @@ const navItems=[
   ["guia_comercial","Guia comercial","guia_comercial"],
   ["turismo","Turismo","turismo"],
   ["links","Links","links"],
+  ["submissoes","Submissões públicas","submissoes"],
   ["eventos","Agenda simples","eventos"],
   ["eventos_principais","Eventos principais","eventos"],
   ["eventos_edicoes","EdiÃ§Ãµes","eventos"],
@@ -28,6 +29,7 @@ function currentAdminKey(){
   if(page==="comunicacao.html")return"comunicacao";
   if(page==="notificacoes-app.html")return"notificacoes";
   if(page==="melhores.html")return"melhores";
+  if(page==="submissoes.html")return"submissoes";
   if(page==="usuarios.html")return"usuarios";
   if(page==="migrar.html")return"importacao";
   const hash=location.hash.slice(1);
@@ -46,6 +48,7 @@ function buttonForNav([key,label,module],isIndex,current){
     else if(key==="comunicacao")attrs.push(`onclick="location.href='comunicacao.html'"`);
     else if(key==="notificacoes")attrs.push(`onclick="location.href='notificacoes-app.html'"`);
     else if(key==="melhores")attrs.push(`onclick="location.href='melhores.html'"`);
+    else if(key==="submissoes")attrs.push(`onclick="location.href='submissoes.html'"`);
     else if(key==="usuarios")attrs.push(`onclick="location.href='usuarios.html'"`);
     else if(key==="importacao")attrs.push(`onclick="location.href='migrar.html'"`);
   }else{
@@ -64,6 +67,7 @@ function buttonForNav([key,label,module],isIndex,current){
       comunicacao:"comunicacao.html",
       notificacoes:"notificacoes-app.html",
       melhores:"melhores.html",
+      submissoes:"submissoes.html",
       categorias:"index.html#categorias",
       audiencia:"index.html#audiencia",
       configuracoes_site:"index.html#configuracoes_site",
@@ -89,6 +93,7 @@ function navModule(button){
   if(target.includes("publicidade.html"))return"publicidade";
   if(target.includes("comunicacao.html"))return"comunicacao";
   if(target.includes("melhores.html"))return"melhores";
+  if(target.includes("submissoes.html"))return"submissoes";
   if(target.includes("usuarios.html"))return"usuarios";
   if(target.includes("migrar.html"))return"importacao";
   const hash=target.match(/#([a-z_]+)/)?.[1];return hash?viewModules[hash]:target.includes("index.html")?"dashboard":null;
