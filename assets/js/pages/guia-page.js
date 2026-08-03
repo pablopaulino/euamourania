@@ -139,7 +139,7 @@ async function carregar() {
       }),
       fetchPublicRows("categorias", {
         select: "nome,slug,ordem",
-        tipo: "eq.guia",
+        tipo:"eq.guia",
         status: "eq.ativo",
         order: "ordem.asc,nome.asc"
       })
