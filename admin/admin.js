@@ -15,8 +15,8 @@ const resources = {
   noticias: { label:"Notícias", title:"titulo", order:"atualizado_em", fields:[
     ["titulo","Título","text",true],["slug","Slug","text",true],["subtitulo","Subtítulo","text"],["resumo","Resumo","textarea"],["categoria_nome","Categoria","text"],["autor","Autor","text"],["imagem_url","URL da imagem","url"],["legenda_imagem","Legenda da imagem","text"],["status","Status","status"],["destaque","Destaque","boolean"],["publicado_em","Publicação","datetime-local"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["seo_imagem","Imagem SEO","url"],["conteudo_html","Conteúdo","editor"]]},
   guia_comercial: { label:"Guia comercial", title:"nome", order:"atualizado_em", fields:[
-    ["nome","Nome","text",true],["slug","Slug","text",true],["categoria_nome","Categoria","text"],["descricao","Descrição","textarea"],["imagem_url","URL da imagem","url"],["whatsapp","WhatsApp","text"],["telefone","Telefone","text"],["instagram","Instagram","url"],["facebook","Facebook","url"],["site","Site","url"],["endereco","Endereço","text"],["horario","Horário","text"],["mapa_url","Mapa","url"],["recomendado","Recomendado","boolean"],["recomendado_editorial","Recomendado pelo Eu Amo Urânia","boolean"],["status","Status","status"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"]]},
-  turismo: { label:"Turismo", title:"nome", order:"atualizado_em", fields:[["nome","Nome","text",true],["slug","Slug","text",true],["descricao","Descrição","textarea"],["conteudo_html","Conteúdo","editor"],["imagem_url","Imagem","url"],["endereco","Endereço","text"],["horario","Horário","text"],["whatsapp","WhatsApp","text"],["mapa_url","Mapa","url"],["latitude","Latitude","number"],["longitude","Longitude","number"],["curadoria_euamourania","Curadoria Eu Amo Urânia","boolean"],["destaque","Destaque","boolean"],["status","Status","status"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"]]},
+    ["nome","Nome","text",true],["slug","Slug","text",true],["categoria_nome","Categoria","text"],["descricao","Descrição","textarea"],["imagem_url","URL da imagem","url"],["whatsapp","WhatsApp","text"],["telefone","Telefone","text"],["instagram","Instagram","url"],["facebook","Facebook","url"],["site","Site","url"],["endereco","Endereço","text"],["horario","Horário do site","text"],["opening_hours","Horários para o aplicativo","weekly-hours"],["opening_hours_note","Observação do horário no app","text"],["mapa_url","Mapa","url"],["recomendado","Recomendado","boolean"],["recomendado_editorial","Recomendado pelo Eu Amo Urânia","boolean"],["status","Status","status"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"]]},
+  turismo: { label:"Turismo", title:"nome", order:"atualizado_em", fields:[["nome","Nome","text",true],["slug","Slug","text",true],["descricao","Descrição","textarea"],["conteudo_html","Conteúdo","editor"],["imagem_url","Imagem","url"],["endereco","Endereço","text"],["horario","Horário do site","text"],["opening_hours","Horários para o aplicativo","weekly-hours"],["opening_hours_note","Observação do horário no app","text"],["whatsapp","WhatsApp","text"],["mapa_url","Mapa","url"],["latitude","Latitude","number"],["longitude","Longitude","number"],["curadoria_euamourania","Curadoria Eu Amo Urânia","boolean"],["destaque","Destaque","boolean"],["status","Status","status"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"]]},
   links: { label:"Links", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","Título","text",true],["url","URL","url",true],["icone","Ícone/emoji","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
   colaboradores_voluntarios: { label:"Colaborações voluntárias", title:"nome", order:"criado_em", fields:[["nome","Nome","text",true],["whatsapp","WhatsApp","text",true],["email","E-mail","email"],["cidade","Cidade","text"],["interesses","Interesses","tags"],["mensagem","Mensagem","textarea"],["status","Status","volunteer-status"],["observacoes_internas","Observações internas","textarea"],["aceite_voluntario","Aceite voluntário","boolean"]]},
   eventos: { label:"Eventos", title:"titulo", order:"atualizado_em", fields:[["titulo","Título","text",true],["slug","Slug","text",true],["descricao","Descrição","textarea"],["imagem_url","Imagem","url"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["local","Local","text"],["endereco","Endereço","text"],["organizador","Organizador","text"],["whatsapp","WhatsApp","text"],["destaque","Destaque","boolean"],["status","Status","status"]]},
@@ -73,6 +73,23 @@ const validSiteReference = value => !value || /^(?:https?:\/\/|mailto:|tel:|\/(?
 const listValue = value => Array.isArray(value) ? value.map(item => item?.url || item?.nome || item?.titulo || item).filter(Boolean).join("\n") : "";
 const parseUrlList = value => String(value || "").split(/\r?\n/).map(item => item.trim()).filter(Boolean).map(url => ({ url }));
 const parseLineList = value => String(value || "").split(/\r?\n/).map(item => item.trim()).filter(Boolean).map(nome => ({ nome }));
+const WEEK_DAYS = [["mon","Segunda-feira"],["tue","Terça-feira"],["wed","Quarta-feira"],["thu","Quinta-feira"],["fri","Sexta-feira"],["sat","Sábado"],["sun","Domingo"]];
+const weeklyHourValue = (value, day, key) => escapeHtml(value && typeof value === "object" && !Array.isArray(value) ? value?.[day]?.[key] || "" : "");
+const weeklyHourChecked = (value, day) => value && typeof value === "object" && !Array.isArray(value) && value?.[day]?.closed ? "checked" : "";
+function weeklyHoursHtml(name,label,value){
+  const data=value&&typeof value==="object"&&!Array.isArray(value)?value:{};
+  return `<fieldset class="full-row weekly-hours" data-weekly-hours="${name}"><legend>${label}</legend><p>Use estes horários no aplicativo. O site continua usando o campo “Horário do site”.</p>${WEEK_DAYS.map(([key,day])=>`<div class="weekly-hours-row"><span>${day}</span><input type="time" name="${name}_${key}_open" value="${weeklyHourValue(data,key,"open")}" aria-label="${day} abre"><input type="time" name="${name}_${key}_close" value="${weeklyHourValue(data,key,"close")}" aria-label="${day} fecha"><label><input type="checkbox" name="${name}_${key}_closed" value="true" ${weeklyHourChecked(data,key)}> Fechado</label></div>`).join("")}</fieldset>`;
+}
+function collectWeeklyHours(form,name){
+  const result={};let hasValue=false;
+  for(const [key] of WEEK_DAYS){
+    const open=String(form.get(`${name}_${key}_open`)||"").trim();
+    const close=String(form.get(`${name}_${key}_close`)||"").trim();
+    const closed=form.get(`${name}_${key}_closed`)==="true";
+    if(open||close||closed){result[key]={open:open||null,close:close||null,closed};hasValue=true;}
+  }
+  return hasValue?result:null;
+}
 
 async function legacyDashboard() {
   title.textContent = "Visão geral";
@@ -546,7 +563,7 @@ async function salvarEvento2Form(event) {
   for(const field of config.fields){
     const [name,label,type]=field;
     if(type==="editor")payload[name]=quill.root.innerHTML;
-    else if(type==="boolean")payload[name]=form.get(name)==="true";
+else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";
     else if(type==="number")payload[name]=form.get(name)===""?null:Number(form.get(name)||0);
     else if(type==="url-list")payload[name]=parseUrlList(form.get(name));
     else if(type==="line-list")payload[name]=parseLineList(form.get(name));
@@ -562,8 +579,9 @@ async function salvarEvento2Form(event) {
 document.addEventListener("submit",salvarEvento2Form,true);
 
 function fieldHtmlCorrigido([name,label,type,required], value) {
-  const req=required?"required":"", full=["textarea","editor","url-list","line-list"].includes(type)?"full-row":"";
+  const req=required?"required":"", full=["textarea","editor","url-list","line-list","weekly-hours"].includes(type)?"full-row":"";
   if(type==="editor") return `<label class="${full}">${label}<div id="editor"></div><input type="hidden" name="${name}"></label>`;
+  if(type==="weekly-hours") return weeklyHoursHtml(name,label,value);
   if(type==="textarea") return `<label class="${full}">${label}<textarea name="${name}" ${req}>${escapeHtml(inputValue(value,type))}</textarea></label>`;
   if(type==="url-list") return `<label class="${full}">${label}<textarea name="${name}" placeholder="Cole uma URL de imagem por linha">${escapeHtml(listValue(value))}</textarea><small>Use uma imagem por linha para montar a galeria.</small></label>`;
   if(type==="line-list") return `<label class="${full}">${label}<textarea name="${name}" placeholder="Digite um item por linha">${escapeHtml(listValue(value))}</textarea><small>Digite um item por linha. Exemplo: nome do patrocinador, link útil ou vídeo.</small></label>`;
