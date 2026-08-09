@@ -78,19 +78,81 @@ const weeklyHourValue = (value, day, key) => escapeHtml(value && typeof value ==
 const weeklyHourChecked = (value, day) => value && typeof value === "object" && !Array.isArray(value) && value?.[day]?.closed ? "checked" : "";
 function weeklyHoursHtml(name,label,value){
   const data=value&&typeof value==="object"&&!Array.isArray(value)?value:{};
-  return `<fieldset class="full-row weekly-hours" data-weekly-hours="${name}"><legend>${label}</legend><p>Use estes horários no aplicativo. O site continua usando o campo “Horário do site”.</p>${WEEK_DAYS.map(([key,day])=>`<div class="weekly-hours-row"><span>${day}</span><input type="time" name="${name}_${key}_open" value="${weeklyHourValue(data,key,"open")}" aria-label="${day} abre"><input type="time" name="${name}_${key}_close" value="${weeklyHourValue(data,key,"close")}" aria-label="${day} fecha"><label><input type="checkbox" name="${name}_${key}_closed" value="true" ${weeklyHourChecked(data,key)}> Fechado</label></div>`).join("")}</fieldset>`;
+  return `<fieldset class="full-row weekly-hours" data-weekly-hours="${name}"><legend>${label}</legend><div class="weekly-hours-head"><p>Use estes horários no aplicativo. O site continua usando o campo “Horário do site”.</p><div class="weekly-hours-actions"><button type="button" data-weekly-copy-weekdays>Seg–sex = segunda</button><button type="button" data-weekly-copy-sat>Sábado = sexta</button><button type="button" data-weekly-copy-sun>Domingo = sábado</button><button type="button" data-weekly-clear>Limpar</button></div></div>${WEEK_DAYS.map(([key,day],index)=>`<details class="weekly-day" data-weekly-day="${key}"><summary><strong>${day}</strong><span data-weekly-summary="${key}">${weeklyHourSummary(data,key)}</span></summary><div class="weekly-day-body"><label>Abre<input type="time" name="${name}_${key}_open" value="${weeklyHourValue(data,key,"open")}" aria-label="${day} abre"></label><label>Fecha<input type="time" name="${name}_${key}_close" value="${weeklyHourValue(data,key,"close")}" aria-label="${day} fecha"></label><label class="weekly-closed"><input type="checkbox" name="${name}_${key}_closed" value="true" ${weeklyHourChecked(data,key)}> Fechado</label>${index?`<button type="button" class="weekly-copy-prev" data-weekly-copy-prev="${key}">Usar dia anterior</button>`:""}</div></details>`).join("")}</fieldset>`;
+}
+function weeklyHourSummary(data,key){
+  const item=data?.[key]||{};
+  if(item.closed)return "Fechado";
+  if(item.open&&item.close)return `${item.open}–${item.close}`;
+  if(item.open)return `Abre ${item.open}`;
+  if(item.close)return `Fecha ${item.close}`;
+  return "Não configurado";
 }
 function collectWeeklyHours(form,name){
   const result={};let hasValue=false;
   for(const [key] of WEEK_DAYS){
     const open=String(form.get(`${name}_${key}_open`)||"").trim();
     const close=String(form.get(`${name}_${key}_close`)||"").trim();
-    const closed=form.get(`${name}_${key}_closed`)==="true";
+    const closed=form.get(`${name}_${key}_closed`) === "true";
     if(open||close||closed){result[key]={open:open||null,close:close||null,closed};hasValue=true;}
   }
   return hasValue?result:null;
 }
-
+function weeklyDayData(root,name,key){
+  const open=root.querySelector(`[name="${name}_${key}_open"]`)?.value||"";
+  const close=root.querySelector(`[name="${name}_${key}_close"]`)?.value||"";
+  const closed=Boolean(root.querySelector(`[name="${name}_${key}_closed"]`)?.checked);
+  return {open,close,closed};
+}
+function setWeeklyDay(root,name,key,data){
+  const open=root.querySelector(`[name="${name}_${key}_open"]`);
+  const close=root.querySelector(`[name="${name}_${key}_close"]`);
+  const closed=root.querySelector(`[name="${name}_${key}_closed"]`);
+  if(open)open.value=data.open||"";
+  if(close)close.value=data.close||"";
+  if(closed)closed.checked=Boolean(data.closed);
+  updateWeeklySummary(root,name,key);
+}
+function updateWeeklySummary(root,name,key){
+  const summary=root.querySelector(`[data-weekly-summary="${key}"]`);
+  if(!summary)return;
+  summary.textContent=weeklyHourSummary({[key]:weeklyDayData(root,name,key)},key);
+}
+function handleWeeklyHoursAction(event){
+  const button=event.target.closest("[data-weekly-copy-weekdays],[data-weekly-copy-sat],[data-weekly-copy-sun],[data-weekly-clear],[data-weekly-copy-prev]");
+  if(!button)return;
+  const root=button.closest(".weekly-hours");
+  if(!root)return;
+  event.preventDefault();
+  const name=root.dataset.weeklyHours;
+  if(button.hasAttribute("data-weekly-clear")){
+    for(const [key] of WEEK_DAYS)setWeeklyDay(root,name,key,{open:"",close:"",closed:false});
+    return;
+  }
+  if(button.hasAttribute("data-weekly-copy-weekdays")){
+    const source=weeklyDayData(root,name,"mon");
+    for(const key of ["tue","wed","thu","fri"])setWeeklyDay(root,name,key,source);
+    return;
+  }
+  if(button.hasAttribute("data-weekly-copy-sat"))return setWeeklyDay(root,name,"sat",weeklyDayData(root,name,"fri"));
+  if(button.hasAttribute("data-weekly-copy-sun"))return setWeeklyDay(root,name,"sun",weeklyDayData(root,name,"sat"));
+  const key=button.dataset.weeklyCopyPrev;
+  const index=WEEK_DAYS.findIndex(([dayKey])=>dayKey===key);
+  if(index>0)setWeeklyDay(root,name,key,weeklyDayData(root,name,WEEK_DAYS[index-1][0]));
+}
+function handleWeeklyHoursChange(event){
+  const root=event.target.closest?.(".weekly-hours");
+  if(!root)return;
+  const name=root.dataset.weeklyHours;
+  const prefix=`${name}_`;
+  const inputName=event.target.name||"";
+  if(!inputName.startsWith(prefix))return;
+  const key=inputName.slice(prefix.length).split("_")[0];
+  updateWeeklySummary(root,name,key);
+}
+document.addEventListener("click",handleWeeklyHoursAction);
+document.addEventListener("input",handleWeeklyHoursChange);
+document.addEventListener("change",handleWeeklyHoursChange);
 async function legacyDashboard() {
   title.textContent = "Visão geral";
   app.innerHTML = '<div class="loading">Carregando indicadores…</div>';
@@ -605,7 +667,7 @@ async function editForm(table,id) {
   await carregarSelectEventosPrincipais();
   const sourceName=config.fields.some(f=>f[0]==="titulo")?"titulo":config.fields.some(f=>f[0]==="nome")?"nome":null;
   if(sourceName&&config.fields.some(f=>f[0]==="slug")){const source=app.querySelector(`[name="${sourceName}"]`),slugInput=app.querySelector('[name="slug"]');source.addEventListener("input",()=>{if(!id||!slugInput.dataset.edited)slugInput.value=gerarSlug(source.value)});slugInput.addEventListener("input",()=>slugInput.dataset.edited="true");}
-  document.getElementById("resource-form").addEventListener("submit",async event=>{event.preventDefault();const message=document.getElementById("form-message");message.textContent="Salvando…";const form=new FormData(event.currentTarget),payload={id};for(const field of config.fields){const [name,label,type]=field;if(type==="editor")payload[name]=quill.root.innerHTML;else if(type==="boolean")payload[name]=form.get(name)==="true";else if(type==="number")payload[name]=form.get(name)===""?null:Number(form.get(name)||0);else if(type==="tags")payload[name]=String(form.get(name)||"").split(",").map(item=>item.trim()).filter(Boolean);else{const value=form.get(name)||null;if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.currentTarget.elements[name]?.focus();return}if(["galeria_historica","galeria","videos","links_uteis","patrocinadores"].includes(name)){try{payload[name]=value?JSON.parse(value):[]}catch{message.textContent=`O campo ${label} precisa ser um JSON válido. Use [] quando não houver itens.`;event.currentTarget.elements[name]?.focus();return}}else payload[name]=value}}if(table==="noticias"&&payload.status==="publicado"&&!payload.publicado_em)payload.publicado_em=new Date().toISOString();try{await salvarRegistro(table,payload);await resourceList(table)}catch(error){message.textContent=error.message;}});
+  document.getElementById("resource-form").addEventListener("submit",async event=>{event.preventDefault();const message=document.getElementById("form-message");message.textContent="Salvando…";const form=new FormData(event.currentTarget),payload={id};for(const field of config.fields){const [name,label,type]=field;if(type==="editor")payload[name]=quill.root.innerHTML;else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";else if(type==="number")payload[name]=form.get(name)===""?null:Number(form.get(name)||0);else if(type==="tags")payload[name]=String(form.get(name)||"").split(",").map(item=>item.trim()).filter(Boolean);else{const value=form.get(name)||null;if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.currentTarget.elements[name]?.focus();return}if(["galeria_historica","galeria","videos","links_uteis","patrocinadores"].includes(name)){try{payload[name]=value?JSON.parse(value):[]}catch{message.textContent=`O campo ${label} precisa ser um JSON válido. Use [] quando não houver itens.`;event.currentTarget.elements[name]?.focus();return}}else payload[name]=value}}if(table==="noticias"&&payload.status==="publicado"&&!payload.publicado_em)payload.publicado_em=new Date().toISOString();try{await salvarRegistro(table,payload);await resourceList(table)}catch(error){message.textContent=error.message;}});
 }
 
 async function handleClick(event) {
