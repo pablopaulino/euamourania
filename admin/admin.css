@@ -166,6 +166,22 @@
 .ops-dashboard .dashboard-list-row{min-height:0;padding:.7rem 0}
 .ops-dashboard .dashboard-list-row strong{font-size:.92rem}
 .ops-dashboard .dashboard-list-row small{font-size:.78rem}
+.ops-dashboard{text-align:left}
+.ops-dashboard .panel,.ops-dashboard article,.ops-dashboard button{text-align:left}
+.ops-hero-copy,.ops-attention .ops-section-header{text-align:left;justify-items:start}
+.ops-health-card{justify-items:center;text-align:center}
+.ops-health-card span,.ops-health-card small{text-align:center}
+.ops-two-columns{align-items:start}
+.ops-section-header{margin-bottom:.75rem}
+.ops-inline-summary{display:flex;flex-wrap:wrap;gap:.45rem;margin:-.15rem 0 .85rem}
+.ops-inline-summary span{display:inline-flex;align-items:center;min-height:30px;padding:.35rem .65rem;border:1px solid rgba(7,59,76,.1);border-radius:999px;background:#f4fafb;color:var(--blue);font-size:.76rem;font-weight:850}
+.ops-subsection{padding:.85rem;border:1px solid rgba(7,59,76,.08);border-radius:16px;background:#fbfdfd}
+.ops-subsection h3{display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem}
+.ops-subsection .dashboard-list-row{padding:.56rem 0}
+.ops-subsection .dashboard-list-row strong{font-size:.9rem}
+.ops-subsection .dashboard-list-row small{font-size:.76rem;line-height:1.35}
+.ops-attention .ops-section-header{justify-content:flex-start}
+.ops-attention .ops-section-header>span{margin-left:auto}
 @media(max-width:1180px){
   .ops-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ops-two-columns{grid-template-columns:1fr}
@@ -177,6 +193,7 @@
   .ops-hero-actions .admin-button{width:100%}
   .ops-section{padding:1rem;border-radius:20px}
   .ops-section-header{display:grid}
+  .ops-attention .ops-section-header>span{margin-left:0;justify-self:start}
   .ops-section-header .admin-button{width:100%}
   .ops-attention-item{align-items:flex-start;flex-direction:column}
   .ops-attention-item strong{white-space:normal}

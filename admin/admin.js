@@ -450,7 +450,7 @@ async function dashboard() {
     ]);
 
     const [recentNews, scheduledNews, pendingApprovals, recentEditions, recentActivities, analyticsEvents, upcomingEvents, endingCampaigns, recentCollaborators, recentMainEvents, recentEventEditions] = await Promise.all([
-      safeList(() => supabase.from("noticias").select("titulo,status,status_editorial,publicado_em,atualizado_em").order("atualizado_em", { ascending: false }).limit(6)),
+      safeList(() => supabase.from("noticias").select("titulo,categoria_nome,autor,status,status_editorial,publicado_em,atualizado_em").order("atualizado_em", { ascending: false }).limit(6)),
       safeList(() => supabase.from("noticias").select("titulo,status,publicado_em").eq("status", "publicado").gt("publicado_em", isoNow).order("publicado_em", { ascending: true }).limit(4)),
       safeList(() => supabase.from("solicitacoes_aprovacao").select("id,status,enviado_em,noticias(titulo,status,status_editorial)").eq("status", "pendente").order("enviado_em", { ascending: false }).limit(5)),
       safeList(() => supabase.from("melhores_edicoes").select("nome,ano,status,atualizado_em").neq("status", "arquivada").order("ano", { ascending: false }).limit(4)),
@@ -505,7 +505,7 @@ async function dashboard() {
       ["Comunicação", `${assinantes} assinantes`, `${colaboradoresNovos} colaborador(es) novo(s)`, "comunicacao"],
       ["Melhores", `${melhoresEdicoes} edição(ões)`, `${melhoresIndicados} indicado(s) ativos`, "melhores"]
     ];
-    const newsRows = recentNews.map(item => ({ title: item.titulo || "Notícia sem título", detail: `${item.status_editorial || item.status || "sem status"} · ${fmtDate(item.publicado_em || item.atualizado_em)}`, badge: item.status || "—", badgeClass: item.status || "" }));
+    const newsRows = recentNews.map(item => ({ title: item.titulo || "Notícia sem título", detail: `${item.categoria_nome || "Sem editoria"} · ${item.autor || "Eu Amo Urânia"} · ${item.publicado_em ? `publicada em ${fmtDate(item.publicado_em)}` : `editada em ${fmtDate(item.atualizado_em)}`}`, badge: item.status_editorial || item.status || "—", badgeClass: item.status || "" }));
     const scheduledRows = scheduledNews.map(item => ({ title: item.titulo || "Notícia agendada", detail: `Publicação prevista para ${fmtDate(item.publicado_em)}`, badge: "agendada", badgeClass: "info" }));
     const approvalRows = pendingApprovals.map(item => ({ title: item.noticias?.titulo || "Notícia em revisão", detail: `Enviada em ${fmtDate(item.enviado_em)}`, badge: item.status || "pendente" }));
     const editionRows = recentEditions.map(item => ({ title: item.nome || `Melhores ${item.ano}`, detail: `${item.ano} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.status || "—" }));
@@ -560,6 +560,12 @@ async function dashboard() {
                 <h2>Operação</h2>
               </div>
             </header>
+            <div class="ops-inline-summary">
+              <span>${fmtNumber(recentNews.length)} notícias recentes</span>
+              <span>${fmtNumber(scheduledRows.length)} agendadas</span>
+              <span>${fmtNumber(eventRows.length)} eventos próximos</span>
+              <span>${fmtNumber(campaignRows.length)} campanhas vencendo</span>
+            </div>
             <div class="ops-stack">
               <div class="ops-subsection"><h3>Notícias recentes</h3><div class="dashboard-list">${listRows(newsRows.slice(0, 4))}</div></div>
               <div class="ops-subsection"><h3>Agendadas</h3><div class="dashboard-list">${listRows(scheduledRows)}</div></div>
@@ -574,6 +580,10 @@ async function dashboard() {
                 <h2>Últimas atividades</h2>
               </div>
             </header>
+            <div class="ops-inline-summary">
+              <span>${fmtNumber(colaboradoresNovos)} novos colaboradores</span>
+              <span>${fmtNumber(recentActivities.length)} ações recentes</span>
+            </div>
             <div class="dashboard-list">${listRows([...collaboratorRows, ...activityRows].slice(0, 8))}</div>
           </div>
         </section>
