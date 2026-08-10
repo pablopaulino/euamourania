@@ -6,11 +6,38 @@ import { gerarSlug } from "../assets/js/utils.js";
 const app = document.getElementById("app-content");
 const title = document.getElementById("page-title");
 const sidebar = document.getElementById("sidebar");
+const shell = document.querySelector(".admin-shell");
+const sidebarToggle = document.getElementById("sidebar-toggle");
+const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+const mobileMenuButton = document.getElementById("mobile-menu");
 let currentView = "dashboard";
 let quill;
 let currentResourceTable = null;
 let currentResourceId = null;
 let painelAccess = null;
+
+const sidebarIconMap = {
+  "Visão geral": "⌂",
+  "Notícias": "N",
+  "Aprovações": "✓",
+  "Guia comercial": "G",
+  "Turismo": "T",
+  "Links": "↗",
+  "Colaborações": "C",
+  "Submissões públicas": "S",
+  "Agenda simples": "A",
+  "Eventos principais": "E",
+  "Edições": "Ed",
+  "Publicidade": "P",
+  "Comunicação": "✉",
+  "Notificações do app": "🔔",
+  "Melhores de Urânia": "M",
+  "Categorias": "#",
+  "Audiência": "↗",
+  "Configurações": "⚙",
+  "Usuários": "U",
+  "Importar JSON": "{}"
+};
 
 const resources = {
   noticias: { label:"Notícias", title:"titulo", order:"atualizado_em", fields:[
@@ -738,13 +765,59 @@ async function handleClick(event) {
   if(button.dataset.delete&&confirm("Excluir este registro? Esta ação não pode ser desfeita.")){await excluirRegistro(button.dataset.delete,button.dataset.id);return resourceList(button.dataset.delete);}
 }
 
+function setupSidebarControls() {
+  const buttons = [...document.querySelectorAll(".admin-nav button")];
+  buttons.forEach(button => {
+    if (button.dataset.navReady) return;
+    const label = button.textContent.trim().replace(/\s+/g, " ");
+    button.dataset.label = label;
+    button.title = label;
+    button.dataset.navReady = "true";
+    button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${escapeHtml(sidebarIconMap[label] || label.charAt(0) || "•")}</span><span class="admin-nav-label">${escapeHtml(label)}</span>`;
+  });
+
+  const savedState = localStorage.getItem("euamourania:admin-sidebar");
+  const applyCollapsed = collapsed => {
+    shell?.classList.toggle("sidebar-collapsed", collapsed);
+    sidebarToggle?.setAttribute("aria-expanded", String(!collapsed));
+    sidebarToggle?.setAttribute("aria-label", collapsed ? "Expandir menu" : "Recolher menu");
+    const icon = sidebarToggle?.querySelector("span");
+    if (icon) icon.textContent = collapsed ? "›" : "‹";
+  };
+
+  applyCollapsed(savedState === "collapsed");
+
+  sidebarToggle?.addEventListener("click", () => {
+    const collapsed = !shell?.classList.contains("sidebar-collapsed");
+    applyCollapsed(collapsed);
+    localStorage.setItem("euamourania:admin-sidebar", collapsed ? "collapsed" : "expanded");
+  });
+
+  mobileMenuButton?.addEventListener("click", () => {
+    sidebar.classList.toggle("open");
+    document.body.classList.toggle("sidebar-drawer-open", sidebar.classList.contains("open"));
+  });
+
+  sidebarBackdrop?.addEventListener("click", () => {
+    sidebar.classList.remove("open");
+    document.body.classList.remove("sidebar-drawer-open");
+  });
+
+  sidebar.addEventListener("click", event => {
+    if (event.target.closest(".admin-nav button") && window.matchMedia("(max-width: 860px)").matches) {
+      sidebar.classList.remove("open");
+      document.body.classList.remove("sidebar-drawer-open");
+    }
+  });
+}
+
 async function init(){
   const access=await exigirAdministrador();if(!access)return;
   painelAccess = access;
   if(!access.configurado){app.innerHTML='<p class="form-message">Configure assets/js/supabase-config.js para ativar o painel.</p>';return;}
   document.getElementById("admin-user").textContent=access.admin.nome||access.user.email;
   document.getElementById("logout").addEventListener("click",sair);
-  document.getElementById("mobile-menu").addEventListener("click",()=>sidebar.classList.toggle("open"));
+  setupSidebarControls();
   document.addEventListener("click",handleClick);
   currentView=location.hash.slice(1)||"dashboard";
   const nav=document.querySelector(`[data-view="${currentView}"]`);if(nav)nav.click();else dashboard();
