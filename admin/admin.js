@@ -10,6 +10,7 @@ let currentView = "dashboard";
 let quill;
 let currentResourceTable = null;
 let currentResourceId = null;
+let painelAccess = null;
 
 const resources = {
   noticias: { label:"Notícias", title:"titulo", order:"atualizado_em", fields:[
@@ -358,13 +359,20 @@ async function dashboardBase() {
 
 async function dashboard() {
   title.textContent = "Visão geral";
-  app.innerHTML = '<div class="loading">Carregando visão geral profissional…</div>';
+  app.innerHTML = '<div class="loading">Carregando central de operação…</div>';
   const supabase = getSupabase();
   const now = new Date();
   const isoNow = now.toISOString();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  const todayStartIso = todayStart.toISOString();
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const nextSevenDays = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const hour = now.getHours();
+  const saudacao = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+  const rawName = painelAccess?.admin?.nome || painelAccess?.user?.user_metadata?.name || painelAccess?.user?.email || "";
+  const firstName = String(rawName).split(/\s|@/).filter(Boolean)[0] || "";
   const fmtDate = value => value ? new Date(value).toLocaleDateString("pt-BR") : "sem data";
   const fmtNumber = value => Number(value || 0).toLocaleString("pt-BR");
   const pct = (part, total) => total ? `${Math.round((Number(part || 0) / Number(total || 1)) * 100)}%` : "0%";
@@ -403,7 +411,8 @@ async function dashboard() {
       noticias, publicadas, rascunhos, agendadas, emRevisao,
       empresas, empresasAtivas, pontos, pontosAtivos, eventos, eventosAtivos, eventosProximos, eventosPrincipais, eventosEdicoes,
       links, campanhas, campanhasAtivas, campanhasVencendo, assinantes, melhoresEdicoes, melhoresIndicados,
-      aprovacoes, colaboradores, colaboradoresNovos, categorias, usuariosAtivos, views7d, views30d, whatsapp7d, external7d
+      aprovacoes, colaboradores, colaboradoresNovos, categorias, usuariosAtivos, viewsHoje, views7d, views30d, whatsapp7d, external7d,
+      eventSubmissionsPending, businessSubmissionsPending
     ] = await Promise.all([
       safeCount("noticias"),
       safeCount("noticias", { status: "publicado" }),
@@ -431,14 +440,18 @@ async function dashboard() {
       safeCount("colaboradores_voluntarios", { status: "novo" }),
       safeCount("categorias", { status: "ativo" }),
       safeCount("usuarios_admin", { ativo: true }),
+      safeCount("analytics_eventos", { criado_em: { op: "gte", value: todayStartIso } }),
       safeCount("analytics_eventos", { criado_em: { op: "gte", value: sevenDaysAgo } }),
       safeCount("analytics_eventos", { criado_em: { op: "gte", value: thirtyDaysAgo } }),
       safeCount("analytics_eventos", { tipo: "whatsapp_click", criado_em: { op: "gte", value: sevenDaysAgo } }),
-      safeCount("analytics_eventos", { tipo: "external_click", criado_em: { op: "gte", value: sevenDaysAgo } })
+      safeCount("analytics_eventos", { tipo: "external_click", criado_em: { op: "gte", value: sevenDaysAgo } }),
+      safeCount("event_submissions", { status: "pending" }),
+      safeCount("business_submissions", { status: "pending" })
     ]);
 
-    const [recentNews, pendingApprovals, recentEditions, recentActivities, analyticsEvents, upcomingEvents, endingCampaigns, recentCollaborators, recentMainEvents, recentEventEditions] = await Promise.all([
+    const [recentNews, scheduledNews, pendingApprovals, recentEditions, recentActivities, analyticsEvents, upcomingEvents, endingCampaigns, recentCollaborators, recentMainEvents, recentEventEditions] = await Promise.all([
       safeList(() => supabase.from("noticias").select("titulo,status,status_editorial,publicado_em,atualizado_em").order("atualizado_em", { ascending: false }).limit(6)),
+      safeList(() => supabase.from("noticias").select("titulo,status,publicado_em").eq("status", "publicado").gt("publicado_em", isoNow).order("publicado_em", { ascending: true }).limit(4)),
       safeList(() => supabase.from("solicitacoes_aprovacao").select("id,status,enviado_em,noticias(titulo,status,status_editorial)").eq("status", "pendente").order("enviado_em", { ascending: false }).limit(5)),
       safeList(() => supabase.from("melhores_edicoes").select("nome,ano,status,atualizado_em").neq("status", "arquivada").order("ano", { ascending: false }).limit(4)),
       safeList(() => supabase.from("cms_atividades").select("titulo,acao,tabela,criado_em").order("criado_em", { ascending: false }).limit(6)),
@@ -457,6 +470,8 @@ async function dashboard() {
     const importantAlerts = [
       aprovacoes ? [`${aprovacoes} notícia(s) aguardando aprovação`, "Abrir aprovações", "aprovacoes", "warning"] : null,
       colaboradoresNovos ? [`${colaboradoresNovos} colaborador(es) voluntário(s) aguardando contato`, "Ver colaborações", "colaboradores_voluntarios", "info"] : null,
+      eventSubmissionsPending ? [`${eventSubmissionsPending} sugestão(ões) de evento aguardando análise`, "Ver agenda", "eventos", "info"] : null,
+      businessSubmissionsPending ? [`${businessSubmissionsPending} cadastro(s) do guia aguardando análise`, "Ver guia", "guia_comercial", "info"] : null,
       emRevisao ? [`${emRevisao} notícia(s) em revisão editorial`, "Ver notícias", "noticias", "info"] : null,
       rascunhos ? [`${rascunhos} rascunho(s) parado(s) no editorial`, "Organizar pauta", "noticias", "warning"] : null,
       agendadas ? [`${agendadas} notícia(s) agendada(s) para o futuro`, "Conferir agenda", "noticias", "info"] : null,
@@ -466,25 +481,32 @@ async function dashboard() {
       eventosPrincipais && !eventosEdicoes ? ["Eventos principais sem edições cadastradas", "Abrir edições", "eventos_edicoes", "warning"] : null,
       melhoresEdicoes ? null : ["Nenhuma edição ativa do Melhores", "Abrir Melhores", "melhores", "warning"]
     ].filter(Boolean);
-    const portalScore = Math.max(0, 100 - (aprovacoes * 8) - (rascunhos * 3) - (campanhasVencendo * 6) - (campanhasAtivas ? 0 : 10));
+    const attentionTotal = importantAlerts.reduce((sum, item) => sum + Math.max(1, Number(String(item[0]).match(/^\d+/)?.[0] || 1)), 0);
+    const portalScore = Math.max(0, 100 - (aprovacoes * 8) - (rascunhos * 3) - (campanhasVencendo * 6) - (colaboradoresNovos * 4) - (eventSubmissionsPending * 3) - (businessSubmissionsPending * 3) - (campanhasAtivas ? 0 : 10));
+    const targetAttrs = target => {
+      if (target === "publicidade") return "onclick=\"location.href='publicidade.html'\"";
+      if (target === "comunicacao") return "onclick=\"location.href='comunicacao.html'\"";
+      if (target === "melhores") return "onclick=\"location.href='melhores.html'\"";
+      if (target === "notificacoes") return "onclick=\"location.href='notificacoes-app.html'\"";
+      if (target === "aprovacoes") return "id=\"dashboard-approvals\"";
+      if (target === "audiencia") return "id=\"dashboard-audience\"";
+      return `data-view="${target}"`;
+    };
     const primaryMetrics = [
-      ["Operação", portalScore, "Saúde do painel", portalScore >= 80 ? "Operação sem alerta crítico" : "Existem pontos pedindo atenção"],
-      ["Audiência", fmtNumber(views7d), "Eventos em 7 dias", `${fmtNumber(uniqueVisitors)} visitante(s) identificáveis`],
-      ["Editorial", fmtNumber(publicadas), "Notícias publicadas", `${rascunhos} rascunho(s) · ${agendadas} agendada(s)`],
-      ["Receita", fmtNumber(campanhasAtivas), "Campanhas ativas", `${campanhasVencendo} vencendo em 7 dias`]
+      ["Hoje", fmtNumber(viewsHoje), "interações registradas", "Fonte: analytics_eventos"],
+      ["7 dias", fmtNumber(views7d), "movimento recente", `${fmtNumber(uniqueVisitors)} visitante(s) identificáveis`],
+      ["Editorial", fmtNumber(publicadas), "notícias publicadas", `${rascunhos} rascunho(s) · ${agendadas} agendada(s)`],
+      ["Atenção", fmtNumber(attentionTotal), "itens acionáveis", importantAlerts.length ? "Veja a fila principal abaixo" : "Rotina sem alerta importante"]
     ];
-    const secondaryMetrics = [
-      ["Guia", empresas, `${empresasAtivas} empresas publicadas`],
-      ["Turismo", pontos, `${pontosAtivos} pontos publicados`],
-      ["Eventos", Number(eventos || 0) + Number(eventosPrincipais || 0), `${eventosAtivos} agenda · ${eventosPrincipais} principais · ${eventosEdicoes} edições`],
-      ["Comunicação", assinantes, "assinantes ativos"],
-      ["Colaborações", colaboradores, `${colaboradoresNovos} novo(s) contato(s)`],
-      ["Melhores", melhoresEdicoes, `${melhoresIndicados} indicados ativos`],
-      ["Links", links, "links ativos"],
-      ["Categorias", categorias, "categorias ativas"],
-      ["Usuários", usuariosAtivos, "administradores ativos"]
+    const ecosystemCards = [
+      ["Portal editorial", `${publicadas} notícias`, `${aprovacoes} aprovação(ões) · ${agendadas} agendada(s)`, "noticias"],
+      ["Viva Urânia", `${empresasAtivas} empresas · ${pontosAtivos} atrativos`, `${eventosAtivos} evento(s) simples publicado(s)`, "guia_comercial"],
+      ["Publicidade", `${campanhasAtivas} campanhas ativas`, `${campanhasVencendo} vencendo em até 7 dias`, "publicidade"],
+      ["Comunicação", `${assinantes} assinantes`, `${colaboradoresNovos} colaborador(es) novo(s)`, "comunicacao"],
+      ["Melhores", `${melhoresEdicoes} edição(ões)`, `${melhoresIndicados} indicado(s) ativos`, "melhores"]
     ];
     const newsRows = recentNews.map(item => ({ title: item.titulo || "Notícia sem título", detail: `${item.status_editorial || item.status || "sem status"} · ${fmtDate(item.publicado_em || item.atualizado_em)}`, badge: item.status || "—", badgeClass: item.status || "" }));
+    const scheduledRows = scheduledNews.map(item => ({ title: item.titulo || "Notícia agendada", detail: `Publicação prevista para ${fmtDate(item.publicado_em)}`, badge: "agendada", badgeClass: "info" }));
     const approvalRows = pendingApprovals.map(item => ({ title: item.noticias?.titulo || "Notícia em revisão", detail: `Enviada em ${fmtDate(item.enviado_em)}`, badge: item.status || "pendente" }));
     const editionRows = recentEditions.map(item => ({ title: item.nome || `Melhores ${item.ano}`, detail: `${item.ano} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.status || "—" }));
     const activityRows = recentActivities.map(item => ({ title: item.titulo || item.tabela || "Atividade", detail: `${item.acao || "ação"} · ${fmtDate(item.criado_em)}`, badge: item.tabela || "" }));
@@ -495,84 +517,111 @@ async function dashboard() {
     const collaboratorRows = recentCollaborators.map(item => ({ title: item.nome || "Colaborador voluntário", detail: `${item.cidade || "Cidade não informada"} · ${(item.interesses || []).slice(0, 3).join(", ") || "sem interesses"} · ${fmtDate(item.criado_em)}`, badge: item.status || "novo", badgeClass: item.status || "" }));
 
     app.innerHTML = `
-      <section class="dashboard-hero panel dashboard-hero-pro">
-        <div>
-          <p class="eyebrow">Painel Eu Amo Urânia</p>
-          <h2>Central profissional de operação</h2>
-          <p>Visão geral com conteúdo, audiência, alertas, publicidade, eventos, comunicação e Melhores de Urânia em tempo real.</p>
-        </div>
-        <div class="dashboard-hero-status">
-          <span>Saúde operacional</span>
-          <strong>${portalScore}%</strong>
-          <small>${importantAlerts.length ? `${importantAlerts.length} ponto(s) pedindo atenção` : "Tudo em ordem"}</small>
-        </div>
-        <div class="dashboard-hero-actions">
-          <button class="admin-button" data-new="noticias">Nova notícia</button>
-          <button class="admin-button secondary" id="dashboard-audience">Ver audiência</button>
-        </div>
-      </section>
-      <div class="dashboard-primary-grid">
-        ${primaryMetrics.map(([kicker, value, label, detail]) => `<article class="dashboard-kpi"><span>${kicker}</span><strong>${value}</strong><h3>${label}</h3><p>${detail}</p></article>`).join("")}
-      </div>
-      <div class="dashboard-layout">
-        <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Alertas importantes</h2><p>O que merece atenção antes de seguir a rotina.</p></div></header>
-          <div class="dashboard-task-list">
-            ${importantAlerts.length ? importantAlerts.map(([text, action, target, tone]) => `<button class="dashboard-task ${tone || ""}" ${target === "publicidade" ? "onclick=\"location.href='publicidade.html'\"" : target === "melhores" ? "onclick=\"location.href='melhores.html'\"" : target === "aprovacoes" ? "id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} →</strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
+      <section class="ops-dashboard">
+        <section class="ops-hero panel">
+          <div class="ops-hero-copy">
+            <p class="eyebrow">Central de operação</p>
+            <h2>${saudacao}${firstName ? `, ${escapeHtml(firstName)}` : ""}.</h2>
+            <p>Um resumo limpo do que precisa de atenção, do que está acontecendo agora e de como o portal está performando.</p>
+            <div class="ops-hero-actions">
+              <button class="admin-button" data-new="noticias">Nova notícia</button>
+              <button class="admin-button secondary" ${targetAttrs("audiencia")}>Ver audiência</button>
+            </div>
+          </div>
+          <div class="ops-health-card" aria-label="Saúde operacional">
+            <span>Saúde da operação</span>
+            <strong>${portalScore}%</strong>
+            <small>${importantAlerts.length ? `${importantAlerts.length} área(s) pedindo atenção` : "Rotina sem alerta importante"}</small>
           </div>
         </section>
-        <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Estrutura do portal</h2><p>Resumo dos módulos ativos no CMS.</p></div></header>
-          <div class="dashboard-mini-grid dashboard-mini-grid-wide">
-            ${secondaryMetrics.map(([label, value, detail]) => `<article class="dashboard-mini-card"><strong>${fmtNumber(value)}</strong><span>${label}</span><small>${detail}</small></article>`).join("")}
+
+        <section class="ops-kpi-grid" aria-label="Indicadores principais">
+          ${primaryMetrics.map(([kicker, value, label, detail]) => `<article class="ops-kpi"><span>${kicker}</span><strong>${value}</strong><h3>${label}</h3><p>${detail}</p></article>`).join("")}
+        </section>
+
+        <section class="ops-section panel ops-attention">
+          <header class="ops-section-header">
+            <div>
+              <p class="eyebrow">Prioridade</p>
+              <h2>Precisa da sua atenção</h2>
+            </div>
+            <span>${fmtNumber(attentionTotal)} item(ns)</span>
+          </header>
+          <div class="ops-attention-list">
+            ${importantAlerts.length ? importantAlerts.map(([text, action, target, tone]) => `<button class="ops-attention-item ${tone || ""}" ${targetAttrs(target)}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} →</strong></button>`).join("") : '<div class="ops-empty">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
           </div>
         </section>
-      </div>
-      <div class="dashboard-layout dashboard-bottom">
-        <section class="panel dashboard-section dashboard-audience-section">
-          <header class="panel-header"><div><h2>Audiência rápida</h2><p>Últimos 7 dias: páginas, origem e dispositivos.</p></div><button class="admin-button secondary" id="dashboard-audience">Detalhes</button></header>
-          <div class="dashboard-audience-grid">
+
+        <section class="ops-two-columns">
+          <div class="ops-section panel">
+            <header class="ops-section-header">
+              <div>
+                <p class="eyebrow">Rotina</p>
+                <h2>Operação</h2>
+              </div>
+            </header>
+            <div class="ops-stack">
+              <div class="ops-subsection"><h3>Notícias recentes</h3><div class="dashboard-list">${listRows(newsRows.slice(0, 4))}</div></div>
+              <div class="ops-subsection"><h3>Agendadas</h3><div class="dashboard-list">${listRows(scheduledRows)}</div></div>
+              <div class="ops-subsection"><h3>Próximos eventos e campanhas</h3><div class="dashboard-list">${listRows([...eventRows, ...campaignRows].slice(0, 6))}</div></div>
+            </div>
+          </div>
+
+          <div class="ops-section panel">
+            <header class="ops-section-header">
+              <div>
+                <p class="eyebrow">Leitura rápida</p>
+                <h2>Últimas atividades</h2>
+              </div>
+            </header>
+            <div class="dashboard-list">${listRows([...collaboratorRows, ...activityRows].slice(0, 8))}</div>
+          </div>
+        </section>
+
+        <section class="ops-section panel">
+          <header class="ops-section-header">
+            <div>
+              <p class="eyebrow">Desempenho</p>
+              <h2>Audiência do portal</h2>
+              <small>Fonte única nesta visão: eventos internos registrados em analytics_eventos.</small>
+            </div>
+            <button class="admin-button secondary" onclick="document.getElementById('dashboard-audience')?.click()">Abrir análise completa</button>
+          </header>
+          <div class="ops-performance-grid">
             <article><strong>${fmtNumber(views30d)}</strong><span>interações em 30 dias</span></article>
-            <article><strong>${fmtNumber(whatsapp7d)}</strong><span>cliques no WhatsApp</span></article>
-            <article><strong>${fmtNumber(external7d)}</strong><span>cliques externos</span></article>
+            <article><strong>${fmtNumber(whatsapp7d)}</strong><span>cliques no WhatsApp em 7 dias</span></article>
+            <article><strong>${fmtNumber(external7d)}</strong><span>cliques externos em 7 dias</span></article>
           </div>
-          <div class="dashboard-rank-columns">
+          <div class="dashboard-rank-columns ops-rank-columns">
             <div><h3>Páginas mais acessadas</h3>${topPages.length ? topPages.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
             <div><h3>Dispositivos</h3>${topDevices.length ? topDevices.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
             <div><h3>Origem</h3>${topOrigins.length ? topOrigins.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
           </div>
         </section>
-        <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Publicidade e eventos</h2><p>Campanhas vencendo e próximos eventos publicados.</p></div></header>
-          <div class="dashboard-list">${listRows([...campaignRows, ...eventRows, ...mainEventRows, ...eventEditionRows].slice(0, 10))}</div>
-        </section>
-      </div>
-      <div class="dashboard-layout dashboard-bottom">
-        <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Últimas notícias</h2><p>Conteúdos editados recentemente.</p></div><button class="admin-button secondary" data-view="noticias">Ver todas</button></header>
-          <div class="dashboard-list">${listRows(newsRows)}</div>
-        </section>
-        <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Aprovações e Melhores</h2><p>Fila editorial e últimas edições do prêmio.</p></div></header>
-          <div class="dashboard-list">${listRows([...approvalRows, ...editionRows].slice(0, 9))}</div>
-        </section>
-      </div>
-      <div class="dashboard-layout dashboard-bottom">
-        <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Colaborações e atividades</h2><p>Novos voluntários e rastro recente das ações feitas no CMS.</p></div><button class="admin-button secondary" data-view="colaboradores_voluntarios">Ver colaborações</button></header>
-          <div class="dashboard-list">${listRows([...collaboratorRows, ...activityRows].slice(0, 8))}</div>
-        </section>
-        <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Ações rápidas</h2><p>Caminhos mais usados na rotina do portal.</p></div></header>
-          <div class="dashboard-quick-actions compact">
-            <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>Notícias</strong><small>Criar, revisar e publicar</small></button>
-            <button class="metric-card" onclick="location.href='publicidade.html'"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
-            <button class="metric-card" onclick="location.href='melhores.html'"><span>Prêmio</span><strong>Melhores</strong><small>Votação e apuração</small></button>
-            <button class="metric-card" onclick="location.href='comunicacao.html'"><span>Comunicação</span><strong>Newsletter</strong><small>Assinantes e campanhas</small></button>
-            <button class="metric-card" data-view="colaboradores_voluntarios"><span>Comunidade</span><strong>Colaborações</strong><small>Voluntários, pautas e contatos</small></button>
+
+        <section class="ops-section panel">
+          <header class="ops-section-header">
+            <div>
+              <p class="eyebrow">Ecossistema</p>
+              <h2>Portal, app e módulos conectados</h2>
+            </div>
+          </header>
+          <div class="ops-ecosystem-grid">
+            ${ecosystemCards.map(([label, value, detail, target]) => `<button class="ops-ecosystem-card" ${targetAttrs(target)}><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(detail)}</small></button>`).join("")}
           </div>
         </section>
-      </div>`;
+
+        <section class="ops-two-columns">
+          <div class="ops-section panel">
+            <header class="ops-section-header"><div><p class="eyebrow">Prêmio</p><h2>Melhores de Urânia</h2></div><button class="admin-button secondary" onclick="location.href='melhores.html'">Abrir módulo</button></header>
+            <div class="dashboard-list">${listRows(editionRows)}</div>
+          </div>
+          <div class="ops-section panel">
+            <header class="ops-section-header"><div><p class="eyebrow">Acervo</p><h2>Eventos principais</h2></div><button class="admin-button secondary" data-view="eventos_principais">Ver eventos</button></header>
+            <div class="dashboard-list">${listRows([...mainEventRows, ...eventEditionRows].slice(0, 7))}</div>
+          </div>
+        </section>
+      </section>`;
   } catch (error) {
     app.innerHTML = `<p class="form-message">${escapeHtml(error.message)}</p>`;
   }
@@ -681,6 +730,7 @@ async function handleClick(event) {
 
 async function init(){
   const access=await exigirAdministrador();if(!access)return;
+  painelAccess = access;
   if(!access.configurado){app.innerHTML='<p class="form-message">Configure assets/js/supabase-config.js para ativar o painel.</p>';return;}
   document.getElementById("admin-user").textContent=access.admin.nome||access.user.email;
   document.getElementById("logout").addEventListener("click",sair);
