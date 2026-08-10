@@ -3,6 +3,7 @@ const sidebarIconSvgShared = paths => `<svg viewBox="0 0 24 24" fill="none" stro
 const sharedSidebarIcons = {
   dashboard: sidebarIconSvgShared(`<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-5h5v5"/>`),
   news: sidebarIconSvgShared(`<path d="M4 5.5h11.5a2.5 2.5 0 0 1 2.5 2.5v10.5H6.5A2.5 2.5 0 0 1 4 16V5.5Z"/><path d="M18 8h2v8.5a2 2 0 0 1-2 2"/><path d="M7.5 9h6"/><path d="M7.5 12h6"/><path d="M7.5 15h4"/>`),
+  approval: sidebarIconSvgShared(`<path d="M20 7 10 17l-5-5"/><path d="M4 5.5h9"/><path d="M4 18.5h12"/>`),
   guide: sidebarIconSvgShared(`<path d="M4 10h16"/><path d="M5 10l1-5h12l1 5"/><path d="M6 10v9h12v-9"/><path d="M9 19v-5h6v5"/>`),
   tourism: sidebarIconSvgShared(`<path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/>`),
   links: sidebarIconSvgShared(`<path d="M10 13a5 5 0 0 0 7.1 0l1.4-1.4a5 5 0 0 0-7.1-7.1L10.6 5"/><path d="M14 11a5 5 0 0 0-7.1 0l-1.4 1.4a5 5 0 0 0 7.1 7.1l.8-.8"/>`),
@@ -17,29 +18,61 @@ const sharedSidebarIcons = {
   upload: sidebarIconSvgShared(`<path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5Z"/><path d="M12 12v5"/><path d="m9.5 14.5 2.5-2.5 2.5 2.5"/>`)
 };
 
-function sidebarIconKey(button, label) {
-  const source = `${label} ${button.getAttribute("onclick") || ""} ${button.dataset.view || ""}`.toLowerCase();
-  if (source.includes("notic") || source.includes("notÃ")) return "news";
-  if (source.includes("guia")) return "guide";
-  if (source.includes("turismo")) return "tourism";
-  if (source.includes("links")) return "links";
-  if (source.includes("evento") || source.includes("agenda")) return "events";
-  if (source.includes("publicidade")) return "ads";
-  if (source.includes("comunic")) return "mail";
-  if (source.includes("notific")) return "bell";
-  if (source.includes("melhores")) return "award";
-  if (source.includes("categoria")) return "tag";
-  if (source.includes("config")) return "settings";
-  if (source.includes("usuario") || source.includes("usuÃ")) return "users";
-  if (source.includes("migrar") || source.includes("importar")) return "upload";
-  if (source.includes("colabora") || source.includes("submiss")) return "users";
-  return "dashboard";
+const fullSidebarMenu = [
+  { label: "Visão geral", href: "index.html", icon: "dashboard" },
+  { label: "Notícias", href: "index.html#noticias", icon: "news" },
+  { label: "Aprovações", href: "index.html#aprovacoes", icon: "approval" },
+  { label: "Colaborações", href: "index.html#colaboradores_voluntarios", icon: "users" },
+  { label: "Guia comercial", href: "index.html#guia_comercial", icon: "guide" },
+  { label: "Turismo", href: "index.html#turismo", icon: "tourism" },
+  { label: "Links", href: "index.html#links", icon: "links" },
+  { label: "Submissões públicas", href: "submissoes.html", icon: "users" },
+  { label: "Agenda simples", href: "index.html#eventos", icon: "events" },
+  { label: "Eventos principais", href: "index.html#eventos_principais", icon: "events" },
+  { label: "Edições", href: "index.html#eventos_edicoes", icon: "news" },
+  { label: "Publicidade", href: "publicidade.html", icon: "ads" },
+  { label: "Comunicação", href: "comunicacao.html", icon: "mail" },
+  { label: "Notificações do app", href: "notificacoes-app.html", icon: "bell" },
+  { label: "Melhores de Urânia", href: "melhores.html", icon: "award" },
+  { label: "Categorias", href: "index.html#categorias", icon: "tag" },
+  { label: "Audiência", href: "index.html#insights", icon: "dashboard" },
+  { label: "Configurações", href: "index.html#configuracoes_site", icon: "settings" },
+  { label: "Usuários", href: "usuarios.html", icon: "users" },
+  { label: "Importar JSON", href: "migrar.html", icon: "upload" }
+];
+
+function currentSidebarTarget() {
+  const file = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  return file === "index.html" ? `index.html${location.hash || ""}` : file;
+}
+
+function isCurrentSidebarItem(item) {
+  const current = currentSidebarTarget();
+  const itemHref = item.href.toLowerCase();
+  return current === itemHref || (!current.includes("#") && itemHref === current);
+}
+
+function normalizeSidebarMenu(sidebar) {
+  const nav = sidebar.querySelector(".admin-nav");
+  if (!nav || nav.dataset.fullMenuReady === "true") return;
+  nav.dataset.fullMenuReady = "true";
+  nav.innerHTML = fullSidebarMenu.map(item => `
+    <button type="button" data-href="${item.href}" data-icon-key="${item.icon}" class="${isCurrentSidebarItem(item) ? "active" : ""}">
+      ${item.label}
+    </button>
+  `).join("");
+  nav.addEventListener("click", event => {
+    const button = event.target.closest("button[data-href]");
+    if (!button) return;
+    location.href = button.dataset.href;
+  });
 }
 
 function ensureSidebarShell() {
   const sidebar = document.getElementById("sidebar");
   const shell = document.querySelector(".admin-shell");
   if (!sidebar || !shell) return;
+  normalizeSidebarMenu(sidebar);
 
   let head = sidebar.querySelector(".admin-sidebar-head");
   const logo = sidebar.querySelector(".admin-logo");
@@ -67,12 +100,10 @@ function ensureSidebarShell() {
   const buttons = [...sidebar.querySelectorAll(".admin-nav button")];
   buttons.forEach(button => {
     const label = (button.dataset.label || button.textContent || "").trim().replace(/\s+/g, " ");
+    const iconKey = button.dataset.iconKey || "dashboard";
     button.dataset.label = label;
     button.title = label;
-    if (!button.querySelector(".admin-nav-icon")) {
-      const icon = sharedSidebarIcons[sidebarIconKey(button, label)] || sharedSidebarIcons.dashboard;
-      button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${icon}</span><span class="admin-nav-label">${label}</span>`;
-    }
+    button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${sharedSidebarIcons[iconKey] || sharedSidebarIcons.dashboard}</span><span class="admin-nav-label">${label}</span>`;
   });
 
   const applyCollapsed = collapsed => {

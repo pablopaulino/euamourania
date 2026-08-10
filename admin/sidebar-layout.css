@@ -104,16 +104,11 @@
     gap: .26rem !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(7,59,76,.22) transparent;
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
   }
 
-  .admin-nav::-webkit-scrollbar { width: 6px; }
-  .admin-nav::-webkit-scrollbar-track { background: transparent; }
-  .admin-nav::-webkit-scrollbar-thumb {
-    background: rgba(7,59,76,.22);
-    border-radius: 999px;
-  }
+  .admin-nav::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
   .admin-nav button {
     position: relative;
@@ -228,7 +223,7 @@
   .admin-shell.sidebar-collapsed .admin-nav {
     padding: .65rem .5rem !important;
     gap: .32rem !important;
-    overflow-x: visible !important;
+    overflow-x: hidden !important;
   }
 
   .admin-shell.sidebar-collapsed .admin-nav button {
@@ -380,7 +375,10 @@
     gap: .35rem !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
+    scrollbar-width: none;
   }
+
+  .admin-nav::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
   .admin-nav button {
     color: var(--navy) !important;
