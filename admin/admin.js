@@ -39,6 +39,30 @@ const sidebarIconMap = {
   "Importar JSON": "{}"
 };
 
+const sidebarIconSvg = paths => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false">${paths}</svg>`;
+const sidebarIconSvgMap = {
+  "Visão geral": sidebarIconSvg(`<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-5h5v5"/>`),
+  "Notícias": sidebarIconSvg(`<path d="M4 5.5h11.5a2.5 2.5 0 0 1 2.5 2.5v10.5H6.5A2.5 2.5 0 0 1 4 16V5.5Z"/><path d="M18 8h2v8.5a2 2 0 0 1-2 2"/><path d="M7.5 9h6"/><path d="M7.5 12h6"/><path d="M7.5 15h4"/>`),
+  "Aprovações": sidebarIconSvg(`<path d="M20 7 10 17l-5-5"/><path d="M4 5.5h9"/><path d="M4 18.5h12"/>`),
+  "Guia comercial": sidebarIconSvg(`<path d="M4 10h16"/><path d="M5 10l1-5h12l1 5"/><path d="M6 10v9h12v-9"/><path d="M9 19v-5h6v5"/>`),
+  "Turismo": sidebarIconSvg(`<path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/>`),
+  "Links": sidebarIconSvg(`<path d="M10 13a5 5 0 0 0 7.1 0l1.4-1.4a5 5 0 0 0-7.1-7.1L10.6 5"/><path d="M14 11a5 5 0 0 0-7.1 0l-1.4 1.4a5 5 0 0 0 7.1 7.1l.8-.8"/>`),
+  "Colaborações": sidebarIconSvg(`<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M20.5 8v6"/><path d="M17.5 11h6"/>`),
+  "Submissões públicas": sidebarIconSvg(`<path d="M4 4h16v12H5.5L4 19.5V4Z"/><path d="M8 8h8"/><path d="M8 11.5h5"/>`),
+  "Agenda simples": sidebarIconSvg(`<path d="M7 3v4"/><path d="M17 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/>`),
+  "Eventos principais": sidebarIconSvg(`<path d="M7 3v4"/><path d="M17 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="m12 13 1.1 2.2 2.4.35-1.75 1.7.42 2.4L12 18.5l-2.17 1.15.42-2.4-1.75-1.7 2.4-.35L12 13Z"/>`),
+  "Edições": sidebarIconSvg(`<path d="M7 7h13v13H7z"/><path d="M4 4h13v13"/><path d="M10 11h7"/><path d="M10 15h5"/>`),
+  "Publicidade": sidebarIconSvg(`<path d="m4 14 4-2 9-5v10l-9-5-4-2v4Z"/><path d="M8 14v5"/><path d="M18 9.5c1 .8 1.5 1.7 1.5 2.5s-.5 1.7-1.5 2.5"/>`),
+  "Comunicação": sidebarIconSvg(`<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/>`),
+  "Notificações do app": sidebarIconSvg(`<path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>`),
+  "Melhores de Urânia": sidebarIconSvg(`<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M5 6H3v2a4 4 0 0 0 4 4"/><path d="M19 6h2v2a4 4 0 0 1-4 4"/>`),
+  "Categorias": sidebarIconSvg(`<path d="M20.5 10.5 13.5 3.5H6l-2.5 2.5v7.5l7 7a2 2 0 0 0 2.8 0l7.2-7.2a2 2 0 0 0 0-2.8Z"/><circle cx="8.5" cy="8.5" r="1"/>`),
+  "Audiência": sidebarIconSvg(`<path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-3"/>`),
+  "Configurações": sidebarIconSvg(`<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.9l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.9-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.9.34l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.9 1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.9l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.9.34h.02A1.7 1.7 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.02a1.7 1.7 0 0 0 1.9-.34l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.9v.02A1.7 1.7 0 0 0 20.91 10H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/>`),
+  "Usuários": sidebarIconSvg(`<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M17 11l2 2 4-4"/>`),
+  "Importar JSON": sidebarIconSvg(`<path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5Z"/><path d="M12 12v5"/><path d="m9.5 14.5 2.5-2.5 2.5 2.5"/>`)
+};
+
 const resources = {
   noticias: { label:"Notícias", title:"titulo", order:"atualizado_em", fields:[
     ["titulo","Título","text",true],["slug","Slug","text",true],["subtitulo","Subtítulo","text"],["resumo","Resumo","textarea"],["categoria_nome","Categoria","text"],["autor","Autor","text"],["imagem_url","URL da imagem","url"],["legenda_imagem","Legenda da imagem","text"],["status","Status","status"],["destaque","Destaque","boolean"],["publicado_em","Publicação","datetime-local"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["seo_imagem","Imagem SEO","url"],["conteudo_html","Conteúdo","editor"]]},
@@ -758,7 +782,7 @@ async function editForm(table,id) {
 
 async function handleClick(event) {
   const button=event.target.closest("button");if(!button)return;
-  if(button.dataset.view){currentView=button.dataset.view;location.hash=currentView;document.querySelectorAll(".admin-nav button").forEach(b=>b.classList.toggle("active",b===button));sidebar.classList.remove("open");return currentView==="dashboard"?dashboard():resourceList(currentView);}
+  if(button.dataset.view){currentView=button.dataset.view;location.hash=currentView;document.querySelectorAll(".admin-nav button").forEach(b=>b.classList.toggle("active",b===button));sidebar.classList.remove("open");document.body.classList.remove("sidebar-drawer-open");return currentView==="dashboard"?dashboard():resourceList(currentView);}
   if(button.dataset.new)return editForm(button.dataset.new);
   if(button.dataset.edit)return editForm(button.dataset.edit,button.dataset.id);
   if(button.dataset.cancel)return resourceList(button.dataset.cancel);
@@ -773,7 +797,7 @@ function setupSidebarControls() {
     button.dataset.label = label;
     button.title = label;
     button.dataset.navReady = "true";
-    button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${escapeHtml(sidebarIconMap[label] || label.charAt(0) || "•")}</span><span class="admin-nav-label">${escapeHtml(label)}</span>`;
+    button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${sidebarIconSvgMap[label] || sidebarIconSvgMap["Visão geral"]}</span><span class="admin-nav-label">${escapeHtml(label)}</span>`;
   });
 
   const savedState = localStorage.getItem("euamourania:admin-sidebar");
