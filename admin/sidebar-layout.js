@@ -60,21 +60,21 @@ function normalizeSidebarMenu(sidebar) {
 
   sidebarIsRendering = true;
   nav.dataset.fullMenuReady = "true";
+  nav.dataset.fixed = "1";
   nav.innerHTML = fullSidebarMenu.map(item => {
     const attrs = [
-      `type="button"`,
+      `href="${item.href}"`,
       `data-href="${item.href}"`,
       `data-icon-key="${item.icon}"`,
-      `data-module="${item.module}"`,
-      `onclick="location.href='${item.href}'"`
+      `data-module="${item.module}"`
     ];
     if (item.view) attrs.push(`data-view="${item.view}"`);
     if (item.id) attrs.push(`id="${item.id}"`);
     if (isCurrentSidebarItem(item)) attrs.push(`class="active"`);
     return `
-    <button ${attrs.join(" ")}>
+    <a ${attrs.join(" ")}>
       ${item.label}
-    </button>
+    </a>
   `;
   }).join("");
   sidebarIsRendering = false;
@@ -82,7 +82,7 @@ function normalizeSidebarMenu(sidebar) {
   if (!nav.dataset.sidebarClickReady) {
     nav.dataset.sidebarClickReady = "true";
     nav.addEventListener("click", event => {
-      const button = event.target.closest("button[data-href]");
+      const button = event.target.closest("[data-href]");
       if (!button) return;
       location.href = button.dataset.href;
     });
@@ -90,7 +90,7 @@ function normalizeSidebarMenu(sidebar) {
 }
 
 function decorateSidebarButtons(sidebar) {
-  const buttons = [...sidebar.querySelectorAll(".admin-nav button")];
+  const buttons = [...sidebar.querySelectorAll(".admin-nav button, .admin-nav a")];
   buttons.forEach(button => {
     const rawLabel = button.dataset.label || button.textContent || "";
     const label = rawLabel.trim().replace(/\s+/g, " ");
@@ -188,7 +188,7 @@ function ensureSidebarShell() {
     document.body.classList.remove("sidebar-drawer-open");
   });
   sidebar.addEventListener("click", event => {
-    if (window.innerWidth <= 860 && event.target.closest(".admin-nav button")) {
+    if (window.innerWidth <= 860 && event.target.closest(".admin-nav button, .admin-nav a")) {
       sidebar.classList.remove("open");
       document.body.classList.remove("sidebar-drawer-open");
     }

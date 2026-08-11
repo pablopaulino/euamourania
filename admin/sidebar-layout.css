@@ -110,7 +110,7 @@
 
   .admin-nav::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
-  .admin-nav button {
+  .admin-nav :is(button, a) {
     position: relative;
     display: flex !important;
     align-items: center;
@@ -129,8 +129,8 @@
     transform: none !important;
   }
 
-  .admin-nav button:hover,
-  .admin-nav button.active {
+  .admin-nav :is(button, a):hover,
+  .admin-nav :is(button, a).active {
     color: var(--navy) !important;
     background: #ffe58a !important;
     font-weight: 850;
@@ -157,8 +157,8 @@
     height: 18px;
   }
 
-  .admin-nav button:hover .admin-nav-icon,
-  .admin-nav button.active .admin-nav-icon {
+  .admin-nav :is(button, a):hover .admin-nav-icon,
+  .admin-nav :is(button, a).active .admin-nav-icon {
     background: rgba(7,59,76,.08) !important;
     border-color: rgba(7,59,76,.1);
   }
@@ -226,7 +226,7 @@
     overflow-x: hidden !important;
   }
 
-  .admin-shell.sidebar-collapsed .admin-nav button {
+  .admin-shell.sidebar-collapsed .admin-nav :is(button, a) {
     justify-content: center;
     min-height: 44px;
     padding: .45rem !important;
@@ -253,8 +253,8 @@
     background: rgba(7,59,76,.07) !important;
   }
 
-  .admin-shell.sidebar-collapsed .admin-nav button:hover::after,
-  .admin-shell.sidebar-collapsed .admin-nav button:focus-visible::after {
+  .admin-shell.sidebar-collapsed .admin-nav :is(button, a):hover::after,
+  .admin-shell.sidebar-collapsed .admin-nav :is(button, a):focus-visible::after {
     content: attr(data-label);
     position: absolute;
     left: calc(100% + 12px);
@@ -274,8 +274,8 @@
     pointer-events: none;
   }
 
-  .admin-shell.sidebar-collapsed .admin-nav button:hover::before,
-  .admin-shell.sidebar-collapsed .admin-nav button:focus-visible::before {
+  .admin-shell.sidebar-collapsed .admin-nav :is(button, a):hover::before,
+  .admin-shell.sidebar-collapsed .admin-nav :is(button, a):focus-visible::before {
     content: "";
     position: absolute;
     left: calc(100% + 5px);
@@ -380,7 +380,7 @@
 
   .admin-nav::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
-  .admin-nav button {
+  .admin-nav :is(button, a) {
     color: var(--navy) !important;
     background: transparent !important;
     border: 0 !important;
@@ -388,8 +388,8 @@
     transform: none !important;
   }
 
-  .admin-nav button:hover,
-  .admin-nav button.active {
+  .admin-nav :is(button, a):hover,
+  .admin-nav :is(button, a).active {
     color: var(--navy) !important;
     background: #ffe58a !important;
   }

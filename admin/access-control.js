@@ -140,7 +140,7 @@ export function aplicarControleAcesso(access,can){
   const requested=viewModules[location.hash.slice(1)];
   if(requested&&!allowed(requested)){history.replaceState(null,"",`${location.pathname}#dashboard`)}
   const apply=()=>{
-    document.querySelectorAll(".admin-nav button").forEach(button=>{const module=navModule(button);if(module)button.hidden=!allowed(module)});
+    document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button=>{const module=navModule(button);if(module)button.hidden=!allowed(module)});
     const path=location.pathname;
     if(path.endsWith("/admin/index.html")||path.endsWith("/admin/")||path.endsWith("/admin"))document.querySelectorAll("button").forEach(button=>{const action=mainAction(button);if(action&&!allowed(...action))button.hidden=true});
     if(path.endsWith("publicidade.html")){
@@ -159,5 +159,5 @@ export function aplicarControleAcesso(access,can){
   };
   apply();
   new MutationObserver(apply).observe(document.body,{childList:true,subtree:true});
-  document.addEventListener("click",event=>{const button=event.target.closest("button");if(!button)return;const module=button.closest(".admin-nav")?navModule(button):null,action=pageAction(button);if((module&&!allowed(module))||(action&&!allowed(...action))){event.preventDefault();event.stopImmediatePropagation()}},true);
+  document.addEventListener("click",event=>{const button=event.target.closest("button,.admin-nav a");if(!button)return;const module=button.closest(".admin-nav")?navModule(button):null,action=button.matches("button")?pageAction(button):null;if((module&&!allowed(module))||(action&&!allowed(...action))){event.preventDefault();event.stopImmediatePropagation()}},true);
 }
