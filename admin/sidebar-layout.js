@@ -54,6 +54,12 @@ function isCurrentSidebarItem(item) {
   return current === itemHref || (!current.includes("#") && itemHref === current);
 }
 
+function isCurrentSidebarHref(href) {
+  const current = currentSidebarTarget();
+  const target = String(href || "").toLowerCase();
+  return current === target || (!current.includes("#") && target === current);
+}
+
 function normalizeSidebarMenu(sidebar) {
   const nav = sidebar.querySelector(".admin-nav");
   if (!nav || nav.dataset.fullMenuReady === "true" || sidebarIsRendering) return;
@@ -84,7 +90,13 @@ function normalizeSidebarMenu(sidebar) {
     nav.addEventListener("click", event => {
       const button = event.target.closest("[data-href]");
       if (!button) return;
-      location.href = button.dataset.href;
+      if (isCurrentSidebarHref(button.dataset.href)) {
+        event.preventDefault();
+        return;
+      }
+      if (button.tagName !== "A") {
+        location.href = button.dataset.href;
+      }
     });
   }
 }

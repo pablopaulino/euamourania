@@ -124,9 +124,21 @@
     border: 0 !important;
     border-radius: 12px !important;
     box-shadow: none !important;
+    font: inherit !important;
+    font-weight: 750 !important;
+    text-decoration: none !important;
     text-align: left;
+    cursor: pointer;
     overflow: hidden;
     transform: none !important;
+  }
+
+  .admin-nav a,
+  .admin-nav a:visited,
+  .admin-nav a:hover,
+  .admin-nav a:focus {
+    color: inherit !important;
+    text-decoration: none !important;
   }
 
   .admin-nav :is(button, a):hover,
