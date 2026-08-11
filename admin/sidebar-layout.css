@@ -132,7 +132,7 @@
   .admin-nav button:hover,
   .admin-nav button.active {
     color: var(--navy) !important;
-    background: var(--yellow) !important;
+    background: #ffe58a !important;
     font-weight: 850;
   }
 
@@ -391,7 +391,7 @@
   .admin-nav button:hover,
   .admin-nav button.active {
     color: var(--navy) !important;
-    background: var(--yellow) !important;
+    background: #ffe58a !important;
   }
 
   .admin-sidebar-footer {

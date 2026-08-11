@@ -152,3 +152,8 @@ function ensureSidebarShell() {
 }
 
 ensureSidebarShell();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", ensureSidebarShell, { once: true });
+} else {
+  requestAnimationFrame(ensureSidebarShell);
+}
