@@ -18,8 +18,8 @@ const navItems=[
   ["categorias","Categorias","categorias"],
   ["audiencia","Audiência","insights"],
   ["configuracoes_site","Configurações","configuracoes"],
-  ["usuarios","Usuários","usuarios"],
-  ["importacao","Importar JSON","importacao"]
+  ["usuarios","Usuários administrativos","usuarios"],
+  ["importacao","Migrar conteúdo antigo","importacao"]
 ];
 const eventosEdicoesNav = navItems.find(item => item[0] === "eventos_edicoes");
 if (eventosEdicoesNav) eventosEdicoesNav[1] = "Edições";

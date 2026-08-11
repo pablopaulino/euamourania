@@ -21,26 +21,26 @@ const sharedSidebarIcons = {
 let sidebarIsRendering = false;
 
 const fullSidebarMenu = [
-  { label: "Visão geral", href: "index.html", icon: "dashboard" },
-  { label: "Notícias", href: "index.html#noticias", icon: "news" },
-  { label: "Aprovações", href: "index.html#aprovacoes", icon: "approval" },
-  { label: "Colaborações", href: "index.html#colaboradores_voluntarios", icon: "users" },
-  { label: "Guia comercial", href: "index.html#guia_comercial", icon: "guide" },
-  { label: "Turismo", href: "index.html#turismo", icon: "tourism" },
-  { label: "Links", href: "index.html#links", icon: "links" },
-  { label: "Submissões públicas", href: "submissoes.html", icon: "users" },
-  { label: "Agenda simples", href: "index.html#eventos", icon: "events" },
-  { label: "Eventos principais", href: "index.html#eventos_principais", icon: "events" },
-  { label: "Edições", href: "index.html#eventos_edicoes", icon: "news" },
-  { label: "Publicidade", href: "publicidade.html", icon: "ads" },
-  { label: "Comunicação", href: "comunicacao.html", icon: "mail" },
-  { label: "Notificações do Viva Urânia", href: "notificacoes-app.html", icon: "bell" },
-  { label: "Melhores de Urânia", href: "melhores.html", icon: "award" },
-  { label: "Categorias", href: "index.html#categorias", icon: "tag" },
-  { label: "Audiência", href: "index.html#insights", icon: "dashboard" },
-  { label: "Configurações", href: "index.html#configuracoes_site", icon: "settings" },
-  { label: "Usuários administrativos", href: "usuarios.html", icon: "users" },
-  { label: "Migrar conteúdo antigo", href: "migrar.html", icon: "upload" }
+  { label: "Visão geral", href: "index.html", icon: "dashboard", module: "dashboard", view: "dashboard" },
+  { label: "Notícias", href: "index.html#noticias", icon: "news", module: "noticias", view: "noticias" },
+  { label: "Aprovações", href: "index.html#aprovacoes", icon: "approval", module: "noticias", id: "editorial-approvals-nav" },
+  { label: "Colaborações", href: "index.html#colaboradores_voluntarios", icon: "users", module: "colaboradores", view: "colaboradores_voluntarios" },
+  { label: "Guia comercial", href: "index.html#guia_comercial", icon: "guide", module: "guia_comercial", view: "guia_comercial" },
+  { label: "Turismo", href: "index.html#turismo", icon: "tourism", module: "turismo", view: "turismo" },
+  { label: "Links", href: "index.html#links", icon: "links", module: "links", view: "links" },
+  { label: "Submissões públicas", href: "submissoes.html", icon: "users", module: "submissoes" },
+  { label: "Agenda simples", href: "index.html#eventos", icon: "events", module: "eventos", view: "eventos" },
+  { label: "Eventos principais", href: "index.html#eventos_principais", icon: "events", module: "eventos", view: "eventos_principais" },
+  { label: "Edições", href: "index.html#eventos_edicoes", icon: "news", module: "eventos", view: "eventos_edicoes" },
+  { label: "Publicidade", href: "publicidade.html", icon: "ads", module: "publicidade" },
+  { label: "Comunicação", href: "comunicacao.html", icon: "mail", module: "comunicacao" },
+  { label: "Notificações do Viva Urânia", href: "notificacoes-app.html", icon: "bell", module: "notificacoes" },
+  { label: "Melhores de Urânia", href: "melhores.html", icon: "award", module: "melhores" },
+  { label: "Categorias", href: "index.html#categorias", icon: "tag", module: "categorias", view: "categorias" },
+  { label: "Audiência", href: "index.html#insights", icon: "dashboard", module: "insights", id: "audience-nav" },
+  { label: "Configurações", href: "index.html#configuracoes_site", icon: "settings", module: "configuracoes", view: "configuracoes_site" },
+  { label: "Usuários administrativos", href: "usuarios.html", icon: "users", module: "usuarios" },
+  { label: "Migrar conteúdo antigo", href: "migrar.html", icon: "upload", module: "importacao" }
 ];
 
 function currentSidebarTarget() {
@@ -60,11 +60,23 @@ function normalizeSidebarMenu(sidebar) {
 
   sidebarIsRendering = true;
   nav.dataset.fullMenuReady = "true";
-  nav.innerHTML = fullSidebarMenu.map(item => `
-    <button type="button" data-href="${item.href}" data-icon-key="${item.icon}" class="${isCurrentSidebarItem(item) ? "active" : ""}">
+  nav.innerHTML = fullSidebarMenu.map(item => {
+    const attrs = [
+      `type="button"`,
+      `data-href="${item.href}"`,
+      `data-icon-key="${item.icon}"`,
+      `data-module="${item.module}"`,
+      `onclick="location.href='${item.href}'"`
+    ];
+    if (item.view) attrs.push(`data-view="${item.view}"`);
+    if (item.id) attrs.push(`id="${item.id}"`);
+    if (isCurrentSidebarItem(item)) attrs.push(`class="active"`);
+    return `
+    <button ${attrs.join(" ")}>
       ${item.label}
     </button>
-  `).join("");
+  `;
+  }).join("");
   sidebarIsRendering = false;
 
   if (!nav.dataset.sidebarClickReady) {
