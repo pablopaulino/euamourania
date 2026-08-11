@@ -18,6 +18,8 @@ const sharedSidebarIcons = {
   upload: sidebarIconSvgShared(`<path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5Z"/><path d="M12 12v5"/><path d="m9.5 14.5 2.5-2.5 2.5 2.5"/>`)
 };
 
+let sidebarIsRendering = false;
+
 const fullSidebarMenu = [
   { label: "Visão geral", href: "index.html", icon: "dashboard" },
   { label: "Notícias", href: "index.html#noticias", icon: "news" },
@@ -32,13 +34,13 @@ const fullSidebarMenu = [
   { label: "Edições", href: "index.html#eventos_edicoes", icon: "news" },
   { label: "Publicidade", href: "publicidade.html", icon: "ads" },
   { label: "Comunicação", href: "comunicacao.html", icon: "mail" },
-  { label: "Notificações do app", href: "notificacoes-app.html", icon: "bell" },
+  { label: "Notificações do Viva Urânia", href: "notificacoes-app.html", icon: "bell" },
   { label: "Melhores de Urânia", href: "melhores.html", icon: "award" },
   { label: "Categorias", href: "index.html#categorias", icon: "tag" },
   { label: "Audiência", href: "index.html#insights", icon: "dashboard" },
   { label: "Configurações", href: "index.html#configuracoes_site", icon: "settings" },
-  { label: "Usuários", href: "usuarios.html", icon: "users" },
-  { label: "Importar JSON", href: "migrar.html", icon: "upload" }
+  { label: "Usuários administrativos", href: "usuarios.html", icon: "users" },
+  { label: "Migrar conteúdo antigo", href: "migrar.html", icon: "upload" }
 ];
 
 function currentSidebarTarget() {
@@ -54,24 +56,60 @@ function isCurrentSidebarItem(item) {
 
 function normalizeSidebarMenu(sidebar) {
   const nav = sidebar.querySelector(".admin-nav");
-  if (!nav || nav.dataset.fullMenuReady === "true") return;
+  if (!nav || nav.dataset.fullMenuReady === "true" || sidebarIsRendering) return;
+
+  sidebarIsRendering = true;
   nav.dataset.fullMenuReady = "true";
   nav.innerHTML = fullSidebarMenu.map(item => `
     <button type="button" data-href="${item.href}" data-icon-key="${item.icon}" class="${isCurrentSidebarItem(item) ? "active" : ""}">
       ${item.label}
     </button>
   `).join("");
-  nav.addEventListener("click", event => {
-    const button = event.target.closest("button[data-href]");
-    if (!button) return;
-    location.href = button.dataset.href;
+  sidebarIsRendering = false;
+
+  if (!nav.dataset.sidebarClickReady) {
+    nav.dataset.sidebarClickReady = "true";
+    nav.addEventListener("click", event => {
+      const button = event.target.closest("button[data-href]");
+      if (!button) return;
+      location.href = button.dataset.href;
+    });
+  }
+}
+
+function decorateSidebarButtons(sidebar) {
+  const buttons = [...sidebar.querySelectorAll(".admin-nav button")];
+  buttons.forEach(button => {
+    const rawLabel = button.dataset.label || button.textContent || "";
+    const label = rawLabel.trim().replace(/\s+/g, " ");
+    const iconKey = button.dataset.iconKey || "dashboard";
+    button.dataset.label = label;
+    button.title = label;
+    button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${sharedSidebarIcons[iconKey] || sharedSidebarIcons.dashboard}</span><span class="admin-nav-label">${label}</span>`;
   });
+}
+
+function watchSidebarMenu(sidebar) {
+  const nav = sidebar.querySelector(".admin-nav");
+  if (!nav || nav.dataset.sidebarObserverReady) return;
+
+  nav.dataset.sidebarObserverReady = "true";
+  const observer = new MutationObserver(() => {
+    if (sidebarIsRendering) return;
+    window.requestAnimationFrame(() => {
+      nav.dataset.fullMenuReady = "";
+      normalizeSidebarMenu(sidebar);
+      decorateSidebarButtons(sidebar);
+    });
+  });
+  observer.observe(nav, { childList: true });
 }
 
 function ensureSidebarShell() {
   const sidebar = document.getElementById("sidebar");
   const shell = document.querySelector(".admin-shell");
   if (!sidebar || !shell) return;
+
   normalizeSidebarMenu(sidebar);
 
   let head = sidebar.querySelector(".admin-sidebar-head");
@@ -97,14 +135,8 @@ function ensureSidebarShell() {
     head.appendChild(toggle);
   }
 
-  const buttons = [...sidebar.querySelectorAll(".admin-nav button")];
-  buttons.forEach(button => {
-    const label = (button.dataset.label || button.textContent || "").trim().replace(/\s+/g, " ");
-    const iconKey = button.dataset.iconKey || "dashboard";
-    button.dataset.label = label;
-    button.title = label;
-    button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${sharedSidebarIcons[iconKey] || sharedSidebarIcons.dashboard}</span><span class="admin-nav-label">${label}</span>`;
-  });
+  decorateSidebarButtons(sidebar);
+  watchSidebarMenu(sidebar);
 
   const applyCollapsed = collapsed => {
     shell.classList.toggle("sidebar-collapsed", collapsed);

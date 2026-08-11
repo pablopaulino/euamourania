@@ -3,28 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>SubmissÃµes pÃºblicas | Painel Eu Amo UrÃ¢nia</title>
+    <title>Submissões públicas | Painel Eu Amo Urânia</title>
     <link rel="stylesheet" href="admin.css" />
     <link rel="stylesheet" href="cms-redesign.css" />
     <link rel="stylesheet" href="submissoes.css" />
-    <link rel="stylesheet" href="sidebar-layout.css?v=20260810-menu-fixo" />
+    <link rel="stylesheet" href="sidebar-layout.css?v=20260810-menu-unico-icons" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
-  </head>
+  <script src="sidebar-layout.js?v=20260810-menu-unico-icons" defer></script>
+</head>
   <body>
     <div class="admin-shell">
       <aside class="admin-sidebar" id="sidebar">
         <img
           src="../assets/1505 - Urania - Logo Horizontal - 1.png"
-          alt="Eu Amo UrÃ¢nia"
+          alt="Eu Amo Urânia"
           class="admin-logo"
         />
-        <nav class="admin-nav" aria-label="SeÃ§Ãµes do painel">
+        <nav class="admin-nav" aria-label="Seções do painel">
           <button type="button" onclick="location.href='index.html'">Voltar ao painel</button>
-          <button type="button" class="active">SubmissÃµes pÃºblicas</button>
+          <button type="button" class="active">Submissões públicas</button>
         </nav>
         <div class="admin-sidebar-footer">
           <p id="admin-user"></p>
@@ -37,17 +38,17 @@
             <button id="mobile-menu" class="admin-button secondary mobile-menu">
               Menu
             </button>
-            <h1>SubmissÃµes pÃºblicas</h1>
+            <h1>Submissões públicas</h1>
             <p class="admin-page-hint">
-              Revise empresas e eventos enviados pelo pÃºblico. Imagens sÃ£o escolhidas apenas pela equipe no painel.
+              Revise empresas e eventos enviados pelo público. Imagens são escolhidas apenas pela equipe no painel.
             </p>
           </div>
           <a class="admin-button secondary" href="../index.html" target="_blank" rel="noopener">Ver site â†—</a>
         </header>
-        <section id="submissions-app" class="submissions-shell loading">Carregando submissÃµesâ€¦</section>
+        <section id="submissions-app" class="submissions-shell loading">Carregando submissões…</section>
       </main>
     </div>
-    <script type="module" src="sidebar-layout.js?v=20260810-menu-fixo"></script>
+    
     <script type="module" src="submissoes.js"></script>
   </body>
 </html>
