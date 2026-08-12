@@ -11,11 +11,21 @@ const shell = document.querySelector(".admin-shell");
 const sidebarToggle = document.getElementById("sidebar-toggle");
 const sidebarBackdrop = document.getElementById("sidebar-backdrop");
 const mobileMenuButton = document.getElementById("mobile-menu");
+const pageHint = document.getElementById("page-hint");
 let currentView = "dashboard";
 let quill;
 let currentResourceTable = null;
 let currentResourceId = null;
 let painelAccess = null;
+let activeMountedModule = null;
+
+const moduleRoutes = {
+  comunicacao: {
+    label: "Comunicação",
+    hint: "Assinantes, newsletters e resultados em um só lugar.",
+    module: () => import("./comunicacao.js")
+  }
+};
 
 const sidebarIconMap = {
   "Visão geral": "⌂",
@@ -781,9 +791,88 @@ async function editForm(table,id) {
   document.getElementById("resource-form").addEventListener("submit",async event=>{event.preventDefault();const message=document.getElementById("form-message");message.textContent="Salvando…";const form=new FormData(event.currentTarget),payload={id};for(const field of config.fields){const [name,label,type]=field;if(type==="editor")payload[name]=quill.root.innerHTML;else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";else if(type==="number")payload[name]=form.get(name)===""?null:Number(form.get(name)||0);else if(type==="tags")payload[name]=String(form.get(name)||"").split(",").map(item=>item.trim()).filter(Boolean);else{const value=form.get(name)||null;if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.currentTarget.elements[name]?.focus();return}if(["galeria_historica","galeria","videos","links_uteis","patrocinadores"].includes(name)){try{payload[name]=value?JSON.parse(value):[]}catch{message.textContent=`O campo ${label} precisa ser um JSON válido. Use [] quando não houver itens.`;event.currentTarget.elements[name]?.focus();return}}else payload[name]=value}}if(table==="noticias"&&payload.status==="publicado"&&!payload.publicado_em)payload.publicado_em=new Date().toISOString();try{await salvarRegistro(table,payload);await resourceList(table)}catch(error){message.textContent=error.message;}});
 }
 
+function shellToast(message, type = "success") {
+  const stack = document.getElementById("toasts");
+  if (!stack) return;
+  const element = document.createElement("div");
+  element.className = `toast ${type}`;
+  element.textContent = message;
+  stack.append(element);
+  setTimeout(() => element.remove(), 3500);
+}
+
+function setShellTitle(label, hintText) {
+  if (title) title.textContent = label || "Painel";
+  if (pageHint) {
+    pageHint.textContent = hintText || "Acompanhe os principais dados do portal e escolha um módulo no menu para gerenciar conteúdo, publicidade, comunicação e configurações.";
+  }
+  document.title = `${label || "Painel"} | Eu Amo Urânia`;
+}
+
+function clearMountedModule() {
+  if (activeMountedModule?.unmount) {
+    try { activeMountedModule.unmount(); } catch (error) { console.error("Erro ao desmontar módulo:", error); }
+  }
+  activeMountedModule = null;
+}
+
+function setActiveNav(view) {
+  document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button => {
+    button.classList.toggle("active", button.dataset.view === view || button.dataset.module === view);
+  });
+}
+
+async function mountShellModule(view, options = {}) {
+  const route = moduleRoutes[view];
+  if (!route) return false;
+  clearMountedModule();
+  currentView = view;
+  currentResourceTable = null;
+  currentResourceId = null;
+  setShellTitle(route.label, route.hint);
+  setActiveNav(view);
+  const targetPath = adminPathForView(view);
+  if (location.pathname !== targetPath) {
+    history[options.replace ? "replaceState" : "pushState"]({ adminView: view }, "", targetPath);
+  }
+  sidebar.classList.remove("open");
+  document.body.classList.remove("sidebar-drawer-open");
+  app.innerHTML = '<div class="loading">Carregando módulo…</div>';
+  try {
+    const module = await route.module();
+    activeMountedModule = module;
+    await module.mount(app, {
+      db: getSupabase(),
+      access: painelAccess,
+      toast: shellToast,
+      setTitle: setShellTitle,
+      navigate: nextView => navigateToView(nextView)
+    });
+  } catch (error) {
+    console.error(`Falha ao carregar módulo ${view}:`, error);
+    app.innerHTML = `<section class="panel"><h2>Não foi possível carregar ${escapeHtml(route.label)}</h2><p class="form-message">${escapeHtml(error.message || "Erro inesperado.")}</p><button class="admin-button" data-retry-module="${escapeHtml(view)}" type="button">Tentar novamente</button></section>`;
+  }
+  return true;
+}
+
+async function navigateToView(view, options = {}) {
+  if (moduleRoutes[view]) return mountShellModule(view, options);
+  clearMountedModule();
+  currentView = view || "dashboard";
+  setActiveNav(currentView);
+  const targetPath = adminPathForView(currentView);
+  if (location.pathname !== targetPath) {
+    history[options.replace ? "replaceState" : "pushState"]({ adminView: currentView }, "", targetPath);
+  }
+  sidebar.classList.remove("open");
+  document.body.classList.remove("sidebar-drawer-open");
+  return currentView === "dashboard" ? dashboard() : resourceList(currentView);
+}
+
 async function handleClick(event) {
   const button=event.target.closest("button,[data-view]");if(!button)return;
-  if(button.dataset.view){event.preventDefault();currentView=button.dataset.view;const targetPath=adminPathForView(currentView);if(location.pathname!==targetPath)history.pushState({adminView:currentView},"",targetPath);document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(b=>b.classList.toggle("active",b===button));sidebar.classList.remove("open");document.body.classList.remove("sidebar-drawer-open");return currentView==="dashboard"?dashboard():resourceList(currentView);}
+  if(button.dataset.retryModule){event.preventDefault();return mountShellModule(button.dataset.retryModule,{replace:true});}
+  if(button.dataset.view){event.preventDefault();return navigateToView(button.dataset.view);}
   if(button.dataset.new)return editForm(button.dataset.new);
   if(button.dataset.edit)return editForm(button.dataset.edit,button.dataset.id);
   if(button.dataset.cancel)return resourceList(button.dataset.cancel);
@@ -845,16 +934,15 @@ async function init(){
   setupSidebarControls();
   document.addEventListener("click",handleClick);
   currentView=normalizeLegacyAdminRoute()||"dashboard";
-  const nav=document.querySelector(`[data-view="${currentView}"]`);if(nav)nav.click();else dashboard();
+  await navigateToView(currentView,{replace:true});
 }
 init();
 window.addEventListener("popstate",()=>{
   const view=adminViewFromLocation()||"dashboard";
-  if(view==="audiencia"||view==="aprovacoes")return;
-  currentView=view;
-  document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(b=>b.classList.toggle("active",b.dataset.view===currentView));
-  currentView==="dashboard"?dashboard():resourceList(currentView);
+  if(view==="audiencia"||view==="aprovacoes"){clearMountedModule();return;}
+  navigateToView(view,{replace:true});
 });
+window.addEventListener("admin:external-module",()=>clearMountedModule());
 import("./editorial-audience.js").catch(error=>console.error("Módulos editorial/audiência:",error));
 import("./category-fields.js").catch(error=>console.error("Categorias dos conteúdos:",error));
 import("./media-upload.js").catch(error=>console.error("Upload de imagens:",error));

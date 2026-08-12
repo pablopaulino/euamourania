@@ -2,8 +2,12 @@ import { exigirAdministrador, sair } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import "./media-upload.js";
 
-const db = getSupabase();
-const app = document.getElementById("communication-app");
+let db = getSupabase();
+let app = document.getElementById("communication-app");
+let root = document;
+let cleanupHandlers = [];
+let mountedContainer = null;
+let moduleContext = {};
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, char => ({
   "&": "&amp;",
   "<": "&lt;",
@@ -29,6 +33,10 @@ const interests = [
 ];
 
 function toast(message, type = "success") {
+  if (typeof moduleContext.toast === "function") {
+    moduleContext.toast(message, type);
+    return;
+  }
   const element = document.createElement("div");
   element.className = `toast ${type}`;
   element.textContent = message;
@@ -41,9 +49,45 @@ function loading() {
 }
 
 function tabs(view) {
-  document.querySelectorAll(".ads-tab").forEach(button => {
-    button.classList.toggle("active", button.dataset.view === view);
+  root.querySelectorAll(".ads-tab").forEach(button => {
+    button.classList.toggle("active", (button.dataset.communicationView || button.dataset.view) === view);
   });
+}
+
+function addCleanup(target, event, handler, options) {
+  target?.addEventListener(event, handler, options);
+  cleanupHandlers.push(() => target?.removeEventListener(event, handler, options));
+}
+
+function ensureCommunicationStyles() {
+  ["comunicacao.css?v=20260717-newsletter-mensal", "comunicacao-fixes.css"].forEach(href => {
+    if (document.querySelector(`link[data-communication-style][href="${href}"]`)) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    link.dataset.communicationStyle = "true";
+    document.head.appendChild(link);
+    cleanupHandlers.push(() => link.remove());
+  });
+}
+
+function renderShell(container) {
+  container.classList.add("communication-module", "ads-content");
+  container.innerHTML = `
+    <div class="ads-heading">
+      <div>
+        <h2>Central de Comunicação</h2>
+        <p>Assinantes, newsletters e resultados em um só lugar.</p>
+      </div>
+      <button class="admin-button" id="new-newsletter" type="button">+ Nova newsletter</button>
+    </div>
+    <div class="ads-tabs">
+      <button class="ads-tab active" data-communication-view="dashboard" type="button">Visão geral</button>
+      <button class="ads-tab" data-communication-view="subscribers" type="button">Assinantes</button>
+      <button class="ads-tab" data-communication-view="newsletters" type="button">Newsletters</button>
+    </div>
+    <div id="communication-app"><div class="skeleton"></div></div>
+  `;
 }
 
 function checks(name, selected = []) {
@@ -402,7 +446,7 @@ async function send(id, action) {
 }
 
 async function generateMonthly() {
-  const button = document.querySelector("[data-generate-monthly]");
+  const button = root.querySelector("[data-generate-monthly]");
   const { data: { session } } = await db.auth.getSession();
   if (!session?.access_token) return toast("Sessão expirada. Faça login novamente.", "error");
   if (!confirm("Gerar um rascunho com os destaques dos últimos 30 dias? Se já existir resumo deste mês, ele será reaproveitado.")) return;
@@ -433,12 +477,18 @@ async function generateMonthly() {
   }
 }
 
-document.querySelectorAll(".ads-tab").forEach(button => {
-  button.onclick = () => ({ dashboard, subscribers, newsletters }[button.dataset.view])();
-});
-document.getElementById("new-newsletter").onclick = () => newsletterForm();
+function bindCommunicationEvents(){
+ root.querySelectorAll(".ads-tab").forEach(button => {
+  const handler = event => {
+    event.preventDefault();
+    event.stopPropagation();
+    ({ dashboard, subscribers, newsletters }[button.dataset.communicationView || button.dataset.view])();
+  };
+  addCleanup(button, "click", handler);
+ });
+ addCleanup(root.getElementById?.("new-newsletter") || root.querySelector("#new-newsletter"), "click", () => newsletterForm());
 
-app.addEventListener("click", async event => {
+ const appClickHandler = async event => {
   const button = event.target.closest("button");
   if (!button) return;
   if (button.dataset.generateMonthly !== undefined) generateMonthly();
@@ -449,7 +499,11 @@ app.addEventListener("click", async event => {
   }
   if (button.dataset.newsEdit) newsletterForm(button.dataset.newsEdit);
   if (button.dataset.newsTest) send(button.dataset.newsTest, "test");
-  if (button.dataset.newsSend) send(button.dataset.newsSend, "send");
+ if (button.dataset.newsSend) {
+    const { data: newsletter } = await db.from("newsletters").select("status,agendado_em").eq("id", button.dataset.newsSend).single();
+    const action = newsletter?.status === "agendado" && newsletter.agendado_em ? "schedule" : "send";
+    send(button.dataset.newsSend, action);
+  }
   if (button.dataset.newsDelete && confirm("Excluir esta newsletter?")) {
     const { error } = await db.from("newsletters").delete().eq("id", button.dataset.newsDelete);
     error ? toast(error.message, "error") : (toast("Newsletter excluída."), newsletters());
@@ -470,12 +524,82 @@ app.addEventListener("click", async event => {
     toast("Newsletter duplicada.");
     newsletters();
   }
-});
-
-const access = await exigirAdministrador();
-if (access) {
-  document.getElementById("admin-user").textContent = access.admin.nome || access.user.email;
-  document.getElementById("logout").onclick = sair;
-  document.getElementById("mobile-menu").onclick = () => document.getElementById("sidebar").classList.toggle("open");
-  dashboard();
+ };
+ addCleanup(app, "click", appClickHandler);
 }
+
+function enhanceCommunicationRows() {
+  const apply = () => {
+    app.querySelectorAll("tr").forEach(row => {
+      const original = row.querySelector("[data-news-test]");
+      if (!original || row.querySelector(".mobile-news-test")) return;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "mobile-news-test";
+      button.dataset.newsTest = original.dataset.newsTest;
+      button.textContent = "Enviar teste";
+      row.cells[0]?.append(button);
+    });
+    const empty = [...app.querySelectorAll("td")].find(td => td.textContent.includes("Nenhuma newsletter"));
+    if (empty && !app.querySelector(".communication-help")) {
+      const help = document.createElement("p");
+      help.className = "communication-help";
+      help.textContent = "Crie e salve a primeira newsletter. Depois o botão Enviar teste aparecerá nesta lista.";
+      empty.append(help);
+    }
+  };
+  const observer = new MutationObserver(apply);
+  observer.observe(app, { childList: true, subtree: true });
+  cleanupHandlers.push(() => observer.disconnect());
+  apply();
+}
+
+export async function mount(container, context = {}) {
+  unmount();
+  mountedContainer = container;
+  moduleContext = context;
+  db = context.db || getSupabase();
+  root = container;
+  ensureCommunicationStyles();
+  renderShell(container);
+  app = container.querySelector("#communication-app");
+  context.setTitle?.("Comunicação", "Assinantes, newsletters e resultados em um só lugar.");
+  document.title = "Comunicação | Eu Amo Urânia";
+  bindCommunicationEvents();
+  enhanceCommunicationRows();
+  await dashboard();
+}
+
+export function unmount() {
+  cleanupHandlers.splice(0).forEach(clean => {
+    try { clean(); } catch {}
+  });
+  if (editor) {
+    editor = null;
+  }
+  if (mountedContainer) {
+    mountedContainer.classList.remove("communication-module", "ads-content");
+    mountedContainer.innerHTML = "";
+  }
+  mountedContainer = null;
+  moduleContext = {};
+  root = document;
+  app = document.getElementById("communication-app");
+}
+
+async function bootLegacyPage() {
+  const legacyApp = document.getElementById("communication-app");
+  if (!legacyApp || document.body.dataset.adminShell === "true") return;
+  app = legacyApp;
+  root = document;
+  const access = await exigirAdministrador();
+  if (access) {
+    document.getElementById("admin-user").textContent = access.admin.nome || access.user.email;
+    document.getElementById("logout").onclick = sair;
+    document.getElementById("mobile-menu").onclick = () => document.getElementById("sidebar").classList.toggle("open");
+    bindCommunicationEvents();
+    dashboard();
+  }
+}
+
+bootLegacyPage();

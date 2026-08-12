@@ -605,8 +605,8 @@ document.addEventListener("click",event=>{
  }
  if(button.dataset.newsEdit)currentNewsId=button.dataset.newsEdit;
  if(button.hasAttribute("data-news-new"))currentNewsId=null;
- if(button.id==="editorial-approvals-nav"||button.id==="dashboard-approvals"){event.preventDefault();event.stopImmediatePropagation();renderApprovals();return}
-  if(button.id==="audience-nav"||button.id==="dashboard-audience"){event.preventDefault();event.stopImmediatePropagation();renderAudience();return}
+ if(button.id==="editorial-approvals-nav"||button.id==="dashboard-approvals"){event.preventDefault();event.stopImmediatePropagation();window.dispatchEvent(new CustomEvent("admin:external-module",{detail:{view:"aprovacoes"}}));renderApprovals();return}
+  if(button.id==="audience-nav"||button.id==="dashboard-audience"){event.preventDefault();event.stopImmediatePropagation();window.dispatchEvent(new CustomEvent("admin:external-module",{detail:{view:"audiencia"}}));renderAudience();return}
   if(button.dataset.audienceTabButton){
    const tab=button.dataset.audienceTabButton;
    document.querySelectorAll("[data-audience-tab-button]").forEach(item=>{item.classList.toggle("active",item===button);item.setAttribute("aria-selected",item===button?"true":"false")});
