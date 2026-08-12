@@ -533,11 +533,11 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
     ${tabButton("ads","Publicidade")}
    </nav>
    <div class="audience-tab-panels">
-    ${tabPanel("overview",`<div class="audience-overview-grid">
-     <section class="panel audience-chart-panel"><header class="panel-header"><div><p class="eyebrow">${esc(periodLabel)}</p><h2>Evolução diária</h2><p>Picos e quedas ajudam a entender o efeito de publicações, buscas e compartilhamentos.</p></div></header>${chart(series,Math.round((end-start)/864e5)+1<=7)}</section>
+    ${tabPanel("overview",`<section class="panel audience-chart-panel audience-chart-feature"><header class="panel-header"><div><p class="eyebrow">${esc(periodLabel)}</p><h2>Evolução diária</h2><p>Picos e quedas ajudam a entender o efeito de publicações, buscas e compartilhamentos.</p></div></header>${chart(series,Math.round((end-start)/864e5)+1<=7)}</section>
+    <div class="audience-overview-grid">
+     <section class="panel audience-ranking-panel"><header class="panel-header"><div><h2>Ranking estratégico</h2><p>Conteúdos, empresas, turismo e eventos com maior movimento no período.</p></div></header>${audienceTable(["#","Conteúdo","Tipo","Interações","Participação",""],contentRows(content,contentTotal,8),"Sem conteúdos com interação no período.")}</section>
      <section class="panel audience-intel-panel"><header class="panel-header"><div><p class="eyebrow">Leitura rápida</p><h2>O que merece atenção</h2></div></header><div class="audience-insights">${strategicInsights(summary,previous,series,content,data.buscas||[])}</div></section>
-    </div>
-    <section class="panel audience-ranking-panel"><header class="panel-header"><div><h2>Ranking estratégico</h2><p>Conteúdos, empresas, turismo e eventos com maior movimento no período.</p></div></header>${audienceTable(["#","Conteúdo","Tipo","Interações","Participação",""],contentRows(content,contentTotal,8),"Sem conteúdos com interação no período.")}</section>`)}
+    </div>`)}
     ${tabPanel("content",`<div class="audience-split-grid">
      <section class="panel wide"><header class="panel-header"><div><h2>Desempenho por conteúdo</h2><p>Ranking consolidado entre notícias, guia, turismo, eventos e links.</p></div></header>${audienceTable(["#","Conteúdo","Tipo","Interações","Participação",""],contentRows(content,contentTotal,12),"Sem conteúdos no período.")}</section>
      <section class="panel"><header class="panel-header"><div><h2>Notícias lidas</h2><p>Consolidado por URL e ID da matéria.</p></div></header>${audienceTable(["#","Matéria","Interações"],simpleRows(news,"nome","total",8),"Sem notícias no período.")}</section>

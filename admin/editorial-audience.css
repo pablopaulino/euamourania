@@ -40,9 +40,15 @@
 .audience-tabs button.active{background:#073b4c;color:#fff;box-shadow:0 10px 24px rgba(7,59,76,.16)}
 .audience-tab-panel{display:none}
 .audience-tab-panel.active{display:grid;gap:1rem}
-.audience-overview-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(290px,.9fr);gap:1rem;align-items:stretch}
+.audience-overview-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.9fr);gap:1rem;align-items:start}
 .audience-overview-grid>.panel{margin:0}
-.audience-chart-panel .panel-header{align-items:flex-start}
+.audience-chart-panel .panel-header,.audience-intel-panel .panel-header,.audience-ranking-panel .panel-header{align-items:flex-start;text-align:left}
+.audience-chart-panel .panel-header>div,.audience-intel-panel .panel-header>div,.audience-ranking-panel .panel-header>div{text-align:left}
+.audience-chart-feature{position:relative;overflow:hidden;margin:0;border-color:#cfe0e4;background:linear-gradient(135deg,#fff 0%,#fff 62%,#f4fbfc 100%);box-shadow:0 18px 46px rgba(7,59,76,.08)}
+.audience-chart-feature:before{content:"";position:absolute;right:-80px;top:-90px;width:230px;height:230px;border-radius:999px;background:rgba(247,201,72,.12);pointer-events:none}
+.audience-chart-feature .panel-header,.audience-chart-feature .audience-chart{position:relative;z-index:1}
+.audience-chart-feature .audience-chart{min-height:250px;padding-top:1.4rem}
+.audience-chart-feature .audience-column{height:220px}
 .audience-intel-panel .audience-insights{display:grid;grid-template-columns:1fr;gap:.55rem}
 .audience-intel-panel .audience-insights article{display:grid;gap:.1rem;padding:.75rem .8rem;border-radius:14px;background:#f7fbfc}
 .audience-intel-panel .audience-insights strong{font-size:.88rem}
