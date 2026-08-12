@@ -24,6 +24,11 @@ const moduleRoutes = {
     label: "Comunicação",
     hint: "Assinantes, newsletters e resultados em um só lugar.",
     module: () => import("./comunicacao.js")
+  },
+  notificacoes: {
+    label: "Notificações do Viva Urânia",
+    hint: "Envios push, aparelhos cadastrados e histórico do aplicativo Viva Urânia.",
+    module: () => import("./notificacoes-app.js")
   }
 };
 
@@ -549,7 +554,7 @@ async function dashboard() {
       if (target === "publicidade") return "onclick=\"location.href='/admin/publicidade'\"";
       if (target === "comunicacao") return "onclick=\"location.href='/admin/comunicacao'\"";
       if (target === "melhores") return "onclick=\"location.href='/admin/melhores'\"";
-      if (target === "notificacoes") return "onclick=\"location.href='/admin/viva-urania'\"";
+      if (target === "notificacoes") return `data-view="${target}"`;
       if (target === "aprovacoes") return "id=\"dashboard-approvals\"";
       if (target === "audiencia") return "id=\"dashboard-audience\"";
       return `data-view="${target}"`;

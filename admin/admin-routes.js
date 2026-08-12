@@ -17,12 +17,12 @@ export const ADMIN_INDEX_ROUTES = {
   configuracoes_site: "/admin/configuracoes",
   midia: "/admin/midia",
   banners: "/admin/banners",
-  comunicacao: "/admin/comunicacao"
+  comunicacao: "/admin/comunicacao",
+  notificacoes: "/admin/viva-urania"
 };
 
 export const ADMIN_PAGE_ROUTES = {
   publicidade: "/admin/publicidade",
-  notificacoes: "/admin/viva-urania",
   melhores: "/admin/melhores",
   submissoes: "/admin/submissoes",
   usuarios: "/admin/usuarios",
