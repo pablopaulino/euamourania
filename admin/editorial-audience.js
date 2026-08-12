@@ -1,6 +1,7 @@
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { obterAudienciaAvancada } from "../assets/js/services/analyticsService.js";
 import { obterAcessoAtual, temPermissao } from "./auth.js";
+import { adminPathForView, adminViewFromLocation } from "./admin-routes.js";
 
 const db=getSupabase();
 const app=document.getElementById("app-content");
@@ -49,8 +50,10 @@ function isSuperAdmin(){
 }
 function setActive(id,title,hash){
  pageTitle.textContent=title;
- location.hash=hash;
- document.querySelectorAll(".admin-nav button").forEach(button=>button.classList.toggle("active",button.id===id));
+ const view=String(hash||"").replace(/^#/,"");
+ const targetPath=adminPathForView(view);
+ if(location.pathname!==targetPath)history.pushState({adminView:view},"",targetPath);
+ document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button=>button.classList.toggle("active",button.id===id));
  document.getElementById("sidebar")?.classList.remove("open");
 }
 function editorialLabel(status){
@@ -580,7 +583,8 @@ function exportAudience(){
 }
 
 async function decorateDashboard(){
- if(location.hash&&location.hash!=="#dashboard")return;
+ const activeView=adminViewFromLocation();
+ if(activeView&&activeView!=="dashboard")return;
  const grid=app.querySelector(".dashboard-grid");if(!grid||grid.dataset.editorialReady)return;
  grid.dataset.editorialReady="1";
  try{
@@ -643,9 +647,19 @@ const observer=new MutationObserver(()=>{
 });
 observer.observe(app,{childList:true,subtree:true});
 
-window.addEventListener("load",()=>{
+function syncEditorialRoute(){
  const approvalNav=document.getElementById("editorial-approvals-nav");
  if(approvalNav)approvalNav.hidden=!canReview();
- if(location.hash==="#aprovacoes"&&canReview())renderApprovals();
- else if(location.hash==="#audiencia")renderAudience();
-});
+ const activeView=adminViewFromLocation();
+ if(activeView==="aprovacoes"&&canReview())renderApprovals();
+ else if(activeView==="audiencia")renderAudience();
+ else decorateDashboard();
+}
+
+if(document.readyState==="loading"){
+ window.addEventListener("load",syncEditorialRoute,{once:true});
+}else{
+ syncEditorialRoute();
+}
+
+window.addEventListener("popstate",syncEditorialRoute);

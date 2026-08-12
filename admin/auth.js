@@ -9,7 +9,7 @@ const permissoesPorFuncao={
   comunicacao:["dashboard:acessar","comunicacao:acessar","comunicacao:ler","comunicacao:criar","comunicacao:editar","comunicacao:excluir","comunicacao:enviar","notificacoes:*","links:acessar","links:ler","links:criar","links:editar","links:excluir"],
   visualizador:["dashboard:acessar","insights:acessar","insights:ler","noticias:ler","categorias:ler","guia_comercial:ler","turismo:ler","eventos:ler","publicidade:ler","comunicacao:ler","notificacoes:ler","melhores:acessar","melhores:ler","links:ler"]
 };
-const rotaModulo={"publicidade.html":"publicidade","comunicacao.html":"comunicacao","notificacoes-app.html":"notificacoes","melhores.html":"melhores","submissoes.html":"submissoes","migrar.html":"importacao","usuarios.html":"usuarios"};
+const rotaModulo={"publicidade.html":"publicidade","comunicacao.html":"comunicacao","notificacoes-app.html":"notificacoes","melhores.html":"melhores","submissoes.html":"submissoes","migrar.html":"importacao","usuarios.html":"usuarios",publicidade:"publicidade",comunicacao:"comunicacao","viva-urania":"notificacoes",notificacoes:"notificacoes",melhores:"melhores",submissoes:"submissoes",importacao:"importacao",usuarios:"usuarios"};
 let acessoAtual=null;
 
 export const rotulosFuncoes={super_admin:"Super Admin",administrador:"Administrador",editor:"Editor",redator:"Redator",comercial:"Comercial",comunicacao:"Comunicação",visualizador:"Visualizador"};

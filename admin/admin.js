@@ -2,6 +2,7 @@ import { exigirAdministrador, sair } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { listarTabela, salvarRegistro, excluirRegistro } from "../assets/js/services/baseService.js";
 import { gerarSlug } from "../assets/js/utils.js";
+import { adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js";
 
 const app = document.getElementById("app-content");
 const title = document.getElementById("page-title");
@@ -260,9 +261,9 @@ async function legacyDashboard() {
       <div class="dashboard-grid">${metrics.map(([label,value,detail])=>`<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${detail}</small></article>`).join("")}</div>
       <div class="dashboard-grid dashboard-actions">
         <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>Notícias</strong><small>Criar, revisar e publicar</small></button>
-        <button class="metric-card" onclick="location.href='melhores.html'"><span>Prêmio</span><strong>Melhores de Urânia</strong><small>Votação, apuração e resultados</small></button>
+        <button class="metric-card" onclick="location.href='/admin/melhores'"><span>Prêmio</span><strong>Melhores de Urânia</strong><small>Votação, apuração e resultados</small></button>
         <button class="metric-card" id="dashboard-audience"><span>Dados</span><strong>Audiência</strong><small>Visualizações, cliques e buscas</small></button>
-        <button class="metric-card" onclick="location.href='publicidade.html'"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
+        <button class="metric-card" onclick="location.href='/admin/publicidade'"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
       </div>
       <section class="panel">
         <header class="panel-header"><h2>Notícias recentes</h2></header>
@@ -372,7 +373,7 @@ async function dashboardBase() {
         <section class="panel dashboard-section">
           <header class="panel-header"><div><h2>O que precisa de atenção</h2><p>Atalhos para as próximas ações do painel.</p></div></header>
           <div class="dashboard-task-list">
-            ${pendingTasks.length ? pendingTasks.map(([text, action, target]) => `<button class="dashboard-task" ${target === "publicidade" ? "onclick=\"location.href='publicidade.html'\"" : target === "melhores" ? "onclick=\"location.href='melhores.html'\"" : target === "aprovacoes" ? "id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} →</strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
+            ${pendingTasks.length ? pendingTasks.map(([text, action, target]) => `<button class="dashboard-task" ${target === "publicidade" ? "onclick=\"location.href='/admin/publicidade'\"" : target === "melhores" ? "onclick=\"location.href='/admin/melhores'\"" : target === "aprovacoes" ? "id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} →</strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
           </div>
         </section>
         <section class="panel dashboard-section">
@@ -399,9 +400,9 @@ async function dashboardBase() {
       </div>
       <div class="dashboard-quick-actions">
         <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>Notícias</strong><small>Criar, revisar e publicar</small></button>
-        <button class="metric-card" onclick="location.href='melhores.html'"><span>Prêmio</span><strong>Melhores de Urânia</strong><small>Votação, apuração e resultados</small></button>
-        <button class="metric-card" onclick="location.href='publicidade.html'"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
-        <button class="metric-card" onclick="location.href='comunicacao.html'"><span>Relacionamento</span><strong>Comunicação</strong><small>Newsletter e assinantes</small></button>
+        <button class="metric-card" onclick="location.href='/admin/melhores'"><span>Prêmio</span><strong>Melhores de Urânia</strong><small>Votação, apuração e resultados</small></button>
+        <button class="metric-card" onclick="location.href='/admin/publicidade'"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
+        <button class="metric-card" onclick="location.href='/admin/comunicacao'"><span>Relacionamento</span><strong>Comunicação</strong><small>Newsletter e assinantes</small></button>
       </div>`;
   } catch(error) {
     app.innerHTML = `<p class="form-message">${escapeHtml(error.message)}</p>`;
@@ -535,10 +536,10 @@ async function dashboard() {
     const attentionTotal = importantAlerts.reduce((sum, item) => sum + Math.max(1, Number(String(item[0]).match(/^\d+/)?.[0] || 1)), 0);
     const portalScore = Math.max(0, 100 - (aprovacoes * 8) - (rascunhos * 3) - (campanhasVencendo * 6) - (colaboradoresNovos * 4) - (eventSubmissionsPending * 3) - (businessSubmissionsPending * 3) - (campanhasAtivas ? 0 : 10));
     const targetAttrs = target => {
-      if (target === "publicidade") return "onclick=\"location.href='publicidade.html'\"";
-      if (target === "comunicacao") return "onclick=\"location.href='comunicacao.html'\"";
-      if (target === "melhores") return "onclick=\"location.href='melhores.html'\"";
-      if (target === "notificacoes") return "onclick=\"location.href='notificacoes-app.html'\"";
+      if (target === "publicidade") return "onclick=\"location.href='/admin/publicidade'\"";
+      if (target === "comunicacao") return "onclick=\"location.href='/admin/comunicacao'\"";
+      if (target === "melhores") return "onclick=\"location.href='/admin/melhores'\"";
+      if (target === "notificacoes") return "onclick=\"location.href='/admin/viva-urania'\"";
       if (target === "aprovacoes") return "id=\"dashboard-approvals\"";
       if (target === "audiencia") return "id=\"dashboard-audience\"";
       return `data-view="${target}"`;
@@ -674,7 +675,7 @@ async function dashboard() {
 
         <section class="ops-two-columns">
           <div class="ops-section panel">
-            <header class="ops-section-header"><div><p class="eyebrow">Prêmio</p><h2>Melhores de Urânia</h2></div><button class="admin-button secondary" onclick="location.href='melhores.html'">Abrir módulo</button></header>
+            <header class="ops-section-header"><div><p class="eyebrow">Prêmio</p><h2>Melhores de Urânia</h2></div><button class="admin-button secondary" onclick="location.href='/admin/melhores'">Abrir módulo</button></header>
             <div class="dashboard-list">${listRows(editionRows)}</div>
           </div>
           <div class="ops-section panel">
@@ -781,8 +782,8 @@ async function editForm(table,id) {
 }
 
 async function handleClick(event) {
-  const button=event.target.closest("button");if(!button)return;
-  if(button.dataset.view){currentView=button.dataset.view;location.hash=currentView;document.querySelectorAll(".admin-nav button").forEach(b=>b.classList.toggle("active",b===button));sidebar.classList.remove("open");document.body.classList.remove("sidebar-drawer-open");return currentView==="dashboard"?dashboard():resourceList(currentView);}
+  const button=event.target.closest("button,[data-view]");if(!button)return;
+  if(button.dataset.view){event.preventDefault();currentView=button.dataset.view;const targetPath=adminPathForView(currentView);if(location.pathname!==targetPath)history.pushState({adminView:currentView},"",targetPath);document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(b=>b.classList.toggle("active",b===button));sidebar.classList.remove("open");document.body.classList.remove("sidebar-drawer-open");return currentView==="dashboard"?dashboard():resourceList(currentView);}
   if(button.dataset.new)return editForm(button.dataset.new);
   if(button.dataset.edit)return editForm(button.dataset.edit,button.dataset.id);
   if(button.dataset.cancel)return resourceList(button.dataset.cancel);
@@ -843,10 +844,17 @@ async function init(){
   document.getElementById("logout").addEventListener("click",sair);
   setupSidebarControls();
   document.addEventListener("click",handleClick);
-  currentView=location.hash.slice(1)||"dashboard";
+  currentView=normalizeLegacyAdminRoute()||"dashboard";
   const nav=document.querySelector(`[data-view="${currentView}"]`);if(nav)nav.click();else dashboard();
 }
 init();
+window.addEventListener("popstate",()=>{
+  const view=adminViewFromLocation()||"dashboard";
+  if(view==="audiencia"||view==="aprovacoes")return;
+  currentView=view;
+  document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(b=>b.classList.toggle("active",b.dataset.view===currentView));
+  currentView==="dashboard"?dashboard():resourceList(currentView);
+});
 import("./editorial-audience.js").catch(error=>console.error("Módulos editorial/audiência:",error));
 import("./category-fields.js").catch(error=>console.error("Categorias dos conteúdos:",error));
 import("./media-upload.js").catch(error=>console.error("Upload de imagens:",error));

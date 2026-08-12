@@ -1,3 +1,72 @@
+const sidebarAdminRoutes = {
+  dashboard: "/admin",
+  noticias: "/admin/noticias",
+  aprovacoes: "/admin/aprovacoes",
+  colaboradores_voluntarios: "/admin/colaboracoes",
+  guia_comercial: "/admin/guia",
+  turismo: "/admin/turismo",
+  links: "/admin/links",
+  submissoes: "/admin/submissoes",
+  eventos: "/admin/agenda",
+  eventos_principais: "/admin/eventos-principais",
+  eventos_edicoes: "/admin/edicoes",
+  publicidade: "/admin/publicidade",
+  comunicacao: "/admin/comunicacao",
+  notificacoes: "/admin/viva-urania",
+  melhores: "/admin/melhores",
+  categorias: "/admin/categorias",
+  audiencia: "/admin/audiencia",
+  configuracoes_site: "/admin/configuracoes",
+  usuarios: "/admin/usuarios",
+  importacao: "/admin/importacao"
+};
+const sidebarPathToModule = Object.entries(sidebarAdminRoutes).reduce((acc, [key, path]) => {
+  acc[path] = key;
+  return acc;
+}, {
+  "/admin/index.html": "dashboard",
+  "/admin/publicidade.html": "publicidade",
+  "/admin/comunicacao.html": "comunicacao",
+  "/admin/notificacoes-app.html": "notificacoes",
+  "/admin/melhores.html": "melhores",
+  "/admin/submissoes.html": "submissoes",
+  "/admin/usuarios.html": "usuarios",
+  "/admin/migrar.html": "importacao"
+});
+const sidebarHashToModule = {
+  dashboard: "dashboard",
+  noticias: "noticias",
+  aprovacoes: "aprovacoes",
+  colaboradores_voluntarios: "colaboradores_voluntarios",
+  guia_comercial: "guia_comercial",
+  turismo: "turismo",
+  links: "links",
+  eventos: "eventos",
+  eventos_principais: "eventos_principais",
+  eventos_edicoes: "eventos_edicoes",
+  categorias: "categorias",
+  audiencia: "audiencia",
+  insights: "audiencia",
+  configuracoes_site: "configuracoes_site"
+};
+function adminPathForModule(key) {
+  return sidebarAdminRoutes[key] || sidebarAdminRoutes.dashboard;
+}
+function sidebarCleanPath(path) {
+  return String(path || "").replace(/\/+$/, "") || "/admin";
+}
+function sidebarPathFromHref(href) {
+  try { return new URL(href, location.origin).pathname; }
+  catch { return String(href || ""); }
+}
+function adminModuleFromLocation(loc = location) {
+  if (loc.hash) return sidebarHashToModule[String(loc.hash).replace(/^#/, "")] || "dashboard";
+  return sidebarPathToModule[sidebarCleanPath(sidebarPathFromHref(loc.pathname))] || "dashboard";
+}
+function adminViewFromLocation(loc = location) {
+  return adminModuleFromLocation(loc);
+}
+
 const sidebarIconSvgShared = paths => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round" focusable="false">${paths}</svg>`;
 
 const sharedSidebarIcons = {
@@ -21,43 +90,45 @@ const sharedSidebarIcons = {
 let sidebarIsRendering = false;
 
 const fullSidebarMenu = [
-  { label: "Visão geral", href: "index.html", icon: "dashboard", module: "dashboard", view: "dashboard" },
-  { label: "Notícias", href: "index.html#noticias", icon: "news", module: "noticias", view: "noticias" },
-  { label: "Aprovações", href: "index.html#aprovacoes", icon: "approval", module: "noticias", id: "editorial-approvals-nav" },
-  { label: "Colaborações", href: "index.html#colaboradores_voluntarios", icon: "users", module: "colaboradores", view: "colaboradores_voluntarios" },
-  { label: "Guia comercial", href: "index.html#guia_comercial", icon: "guide", module: "guia_comercial", view: "guia_comercial" },
-  { label: "Turismo", href: "index.html#turismo", icon: "tourism", module: "turismo", view: "turismo" },
-  { label: "Links", href: "index.html#links", icon: "links", module: "links", view: "links" },
-  { label: "Submissões públicas", href: "submissoes.html", icon: "users", module: "submissoes" },
-  { label: "Agenda simples", href: "index.html#eventos", icon: "events", module: "eventos", view: "eventos" },
-  { label: "Eventos principais", href: "index.html#eventos_principais", icon: "events", module: "eventos", view: "eventos_principais" },
-  { label: "Edições", href: "index.html#eventos_edicoes", icon: "news", module: "eventos", view: "eventos_edicoes" },
-  { label: "Publicidade", href: "publicidade.html", icon: "ads", module: "publicidade" },
-  { label: "Comunicação", href: "comunicacao.html", icon: "mail", module: "comunicacao" },
-  { label: "Notificações do Viva Urânia", href: "notificacoes-app.html", icon: "bell", module: "notificacoes" },
-  { label: "Melhores de Urânia", href: "melhores.html", icon: "award", module: "melhores" },
-  { label: "Categorias", href: "index.html#categorias", icon: "tag", module: "categorias", view: "categorias" },
-  { label: "Audiência", href: "index.html#insights", icon: "dashboard", module: "insights", id: "audience-nav" },
-  { label: "Configurações", href: "index.html#configuracoes_site", icon: "settings", module: "configuracoes", view: "configuracoes_site" },
-  { label: "Usuários administrativos", href: "usuarios.html", icon: "users", module: "usuarios" },
-  { label: "Migrar conteúdo antigo", href: "migrar.html", icon: "upload", module: "importacao" }
+  { label: "Visão geral", href: adminPathForModule("dashboard"), icon: "dashboard", module: "dashboard", view: "dashboard" },
+  { label: "Notícias", href: adminPathForModule("noticias"), icon: "news", module: "noticias", view: "noticias" },
+  { label: "Aprovações", href: adminPathForModule("aprovacoes"), icon: "approval", module: "noticias", id: "editorial-approvals-nav" },
+  { label: "Colaborações", href: adminPathForModule("colaboradores_voluntarios"), icon: "users", module: "colaboradores", view: "colaboradores_voluntarios" },
+  { label: "Guia comercial", href: adminPathForModule("guia_comercial"), icon: "guide", module: "guia_comercial", view: "guia_comercial" },
+  { label: "Turismo", href: adminPathForModule("turismo"), icon: "tourism", module: "turismo", view: "turismo" },
+  { label: "Links", href: adminPathForModule("links"), icon: "links", module: "links", view: "links" },
+  { label: "Submissões públicas", href: adminPathForModule("submissoes"), icon: "users", module: "submissoes" },
+  { label: "Agenda simples", href: adminPathForModule("eventos"), icon: "events", module: "eventos", view: "eventos" },
+  { label: "Eventos principais", href: adminPathForModule("eventos_principais"), icon: "events", module: "eventos", view: "eventos_principais" },
+  { label: "Edições", href: adminPathForModule("eventos_edicoes"), icon: "news", module: "eventos", view: "eventos_edicoes" },
+  { label: "Publicidade", href: adminPathForModule("publicidade"), icon: "ads", module: "publicidade" },
+  { label: "Comunicação", href: adminPathForModule("comunicacao"), icon: "mail", module: "comunicacao" },
+  { label: "Notificações do Viva Urânia", href: adminPathForModule("notificacoes"), icon: "bell", module: "notificacoes" },
+  { label: "Melhores de Urânia", href: adminPathForModule("melhores"), icon: "award", module: "melhores" },
+  { label: "Categorias", href: adminPathForModule("categorias"), icon: "tag", module: "categorias", view: "categorias" },
+  { label: "Audiência", href: adminPathForModule("audiencia"), icon: "dashboard", module: "insights", id: "audience-nav" },
+  { label: "Configurações", href: adminPathForModule("configuracoes_site"), icon: "settings", module: "configuracoes", view: "configuracoes_site" },
+  { label: "Usuários administrativos", href: adminPathForModule("usuarios"), icon: "users", module: "usuarios" },
+  { label: "Migrar conteúdo antigo", href: adminPathForModule("importacao"), icon: "upload", module: "importacao" }
 ];
 
 function currentSidebarTarget() {
-  const file = (location.pathname.split("/").pop() || "index.html").toLowerCase();
-  return file === "index.html" ? `index.html${location.hash || ""}` : file;
+  return adminModuleFromLocation();
 }
 
 function isCurrentSidebarItem(item) {
   const current = currentSidebarTarget();
-  const itemHref = item.href.toLowerCase();
-  return current === itemHref || (!current.includes("#") && itemHref === current);
+  const itemPath = typeof item.href === "function" ? item.href() : item.href;
+  const target = adminModuleFromLocation({ pathname: itemPath, hash: "" });
+  const targetView = adminViewFromLocation({ pathname: itemPath, hash: "" });
+  return current === item.view || current === item.module || current === target || current === targetView;
 }
 
 function isCurrentSidebarHref(href) {
   const current = currentSidebarTarget();
-  const target = String(href || "").toLowerCase();
-  return current === target || (!current.includes("#") && target === current);
+  const target = adminModuleFromLocation({ pathname: String(href || ""), hash: "" });
+  const targetView = adminViewFromLocation({ pathname: String(href || ""), hash: "" });
+  return current === target || current === targetView;
 }
 
 function normalizeSidebarMenu(sidebar) {

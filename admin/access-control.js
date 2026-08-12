@@ -1,3 +1,5 @@
+import { adminModuleFromLocation, adminPathForModule } from "./admin-routes.js";
+
 const viewModules={dashboard:"dashboard",noticias:"noticias",colaboradores_voluntarios:"colaboradores",guia_comercial:"guia_comercial",turismo:"turismo",links:"links",eventos:"eventos",eventos_principais:"eventos",eventos_edicoes:"eventos",categorias:"categorias",insights:"insights",configuracoes_site:"configuracoes"};
 const navItems=[
   ["dashboard","Visão geral","dashboard"],
@@ -24,6 +26,8 @@ const navItems=[
 const eventosEdicoesNav = navItems.find(item => item[0] === "eventos_edicoes");
 if (eventosEdicoesNav) eventosEdicoesNav[1] = "Edições";
 function currentAdminKey(){
+  const routed=adminModuleFromLocation();
+  if(routed)return routed;
   const page=location.pathname.split("/").pop()||"index.html";
   if(page==="publicidade.html")return"publicidade";
   if(page==="comunicacao.html")return"comunicacao";
@@ -44,36 +48,9 @@ function buttonForNav([key,label,module],isIndex,current){
     if(["dashboard","noticias","colaboradores_voluntarios","guia_comercial","turismo","links","eventos","eventos_principais","eventos_edicoes","categorias","configuracoes_site"].includes(key))attrs.push(`data-view="${key}"`);
     else if(key==="aprovacoes")attrs.push('id="editorial-approvals-nav"');
     else if(key==="audiencia")attrs.push('id="audience-nav"');
-    else if(key==="publicidade")attrs.push(`onclick="location.href='publicidade.html'"`);
-    else if(key==="comunicacao")attrs.push(`onclick="location.href='comunicacao.html'"`);
-    else if(key==="notificacoes")attrs.push(`onclick="location.href='notificacoes-app.html'"`);
-    else if(key==="melhores")attrs.push(`onclick="location.href='melhores.html'"`);
-    else if(key==="submissoes")attrs.push(`onclick="location.href='submissoes.html'"`);
-    else if(key==="usuarios")attrs.push(`onclick="location.href='usuarios.html'"`);
-    else if(key==="importacao")attrs.push(`onclick="location.href='migrar.html'"`);
+    else attrs.push(`onclick="location.href='${adminPathForModule(key)}'"`);
   }else{
-    const href={
-      dashboard:"index.html",
-      noticias:"index.html#noticias",
-      aprovacoes:"index.html#aprovacoes",
-      colaboradores_voluntarios:"index.html#colaboradores_voluntarios",
-      guia_comercial:"index.html#guia_comercial",
-      turismo:"index.html#turismo",
-      links:"index.html#links",
-      eventos:"index.html#eventos",
-      eventos_principais:"index.html#eventos_principais",
-      eventos_edicoes:"index.html#eventos_edicoes",
-      publicidade:"publicidade.html",
-      comunicacao:"comunicacao.html",
-      notificacoes:"notificacoes-app.html",
-      melhores:"melhores.html",
-      submissoes:"submissoes.html",
-      categorias:"index.html#categorias",
-      audiencia:"index.html#audiencia",
-      configuracoes_site:"index.html#configuracoes_site",
-      usuarios:"usuarios.html",
-      importacao:"migrar.html"
-    }[key]||"index.html";
+    const href=adminPathForModule(key);
     attrs.push(`onclick="location.href='${href}'"`);
   }
   return `<button ${attrs.join(" ")}>${label}</button>`;
@@ -99,7 +76,7 @@ function navModule(button){
   const hash=target.match(/#([a-z_]+)/)?.[1];return hash?viewModules[hash]:target.includes("index.html")?"dashboard":null;
 }
 function mainAction(button){
-  const view=location.hash.slice(1)||"dashboard",module=viewModules[view]||view;
+  const view=adminModuleFromLocation()||location.hash.slice(1)||"dashboard",module=viewModules[view]||view;
   if(button.hasAttribute("data-news-new"))return["noticias","criar"];
   if(button.dataset.newsEdit)return["noticias","editar"];
   if(button.dataset.sendApproval)return["noticias","editar"];
@@ -137,8 +114,8 @@ export function aplicarControleAcesso(access,can){
   const role=access.admin.funcao;
   document.documentElement.dataset.adminRole=role;
   const allowed=(module,action="acessar")=>module==="assinantes"&&action==="gerenciar"?["super_admin","administrador"].includes(role):can(access.admin,module,action);
-  const requested=viewModules[location.hash.slice(1)];
-  if(requested&&!allowed(requested)){history.replaceState(null,"",`${location.pathname}#dashboard`)}
+  const requested=viewModules[adminModuleFromLocation()]||viewModules[location.hash.slice(1)];
+  if(requested&&!allowed(requested)){history.replaceState(null,"",adminPathForModule("dashboard"))}
   const apply=()=>{
     document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button=>{const module=navModule(button);if(module)button.hidden=!allowed(module)});
     const path=location.pathname;

@@ -1,5 +1,6 @@
 import { uploadImagem, listarMidias, listarMidiasDisponiveis, excluirMidia } from "../assets/js/services/mediaService.js";
 import { obterAcessoAtual } from "./auth.js";
+import { adminPathForView, adminViewFromLocation } from "./admin-routes.js";
 
 const enhanced=new WeakSet();
 const app=document.getElementById("app-content");
@@ -379,7 +380,7 @@ function ensureMediaNavigation(){
 async function renderMediaLibrary(){
  libraryOpened=true;
  document.getElementById("page-title").textContent="Mídia";
- location.hash="midia";
+ if(location.pathname!==adminPathForView("midia"))history.pushState({adminView:"midia"},"",adminPathForView("midia"));
  document.querySelectorAll(".admin-nav button").forEach(button=>button.classList.toggle("active",button.id==="media-library-nav"));
  app.innerHTML='<div class="ads-card"><div class="skeleton"></div><div class="skeleton"></div></div>';
  try{
@@ -429,7 +430,7 @@ function enhance(){
  }
  const resourceForm=app?.querySelector("#resource-form");
  if(resourceForm){
-  const table=location.hash.slice(1),folder={guia_comercial:"guia",turismo:"turismo",eventos:"eventos",eventos_principais:"eventos/principais",eventos_edicoes:"eventos/edicoes"}[table];
+  const table=adminViewFromLocation()||location.hash.slice(1),folder={guia_comercial:"guia",turismo:"turismo",eventos:"eventos",eventos_principais:"eventos/principais",eventos_edicoes:"eventos/edicoes"}[table];
   if(folder){
    attachUrlUpload(resourceForm.elements.imagem_url,folder,"card");
    attachUrlUpload(resourceForm.elements.imagem_capa_url,folder,"wide");
@@ -442,7 +443,7 @@ function enhance(){
  app?.querySelectorAll('input[data-cms-image="true"]').forEach(input=>{
   attachUrlUpload(input,input.dataset.mediaFolder||"configuracoes/imagens",input.dataset.mediaPreset||"wide");
  });
- if(location.hash==="#midia"&&!libraryOpened&&obterAcessoAtual()?.admin?.funcao==="super_admin")renderMediaLibrary();
+ if((adminViewFromLocation()==="midia"||location.hash==="#midia")&&!libraryOpened&&obterAcessoAtual()?.admin?.funcao==="super_admin")renderMediaLibrary();
 }
 
 document.addEventListener("click",async event=>{
