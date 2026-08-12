@@ -18,13 +18,13 @@ export const ADMIN_INDEX_ROUTES = {
   midia: "/admin/midia",
   banners: "/admin/banners",
   comunicacao: "/admin/comunicacao",
-  notificacoes: "/admin/viva-urania"
+  notificacoes: "/admin/viva-urania",
+  submissoes: "/admin/submissoes"
 };
 
 export const ADMIN_PAGE_ROUTES = {
   publicidade: "/admin/publicidade",
   melhores: "/admin/melhores",
-  submissoes: "/admin/submissoes",
   usuarios: "/admin/usuarios",
   importacao: "/admin/importacao"
 };

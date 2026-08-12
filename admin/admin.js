@@ -29,6 +29,11 @@ const moduleRoutes = {
     label: "Notificações do Viva Urânia",
     hint: "Envios push, aparelhos cadastrados e histórico do aplicativo Viva Urânia.",
     module: () => import("./notificacoes-app.js")
+  },
+  submissoes: {
+    label: "Submissões públicas",
+    hint: "Revise empresas e eventos enviados pelo público antes de publicar no portal.",
+    module: () => import("./submissoes.js")
   }
 };
 

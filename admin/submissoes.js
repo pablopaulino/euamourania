@@ -1,12 +1,12 @@
-import { exigirAdministrador, sair } from "./auth.js";
+import { exigirPermissao, sair, temPermissao } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { gerarSlug } from "../assets/js/utils.js";
 
-const app = document.getElementById("submissions-app");
-const logoutButton = document.getElementById("logout");
-const adminUser = document.getElementById("admin-user");
-const mobileMenu = document.getElementById("mobile-menu");
-const sidebar = document.getElementById("sidebar");
+let app = null;
+let db = null;
+let moduleStyle = null;
+let cleanupHandlers = [];
+let context = {};
 
 const state = {
   type: "event",
@@ -31,6 +31,44 @@ const typeConfig = {
     titleKey: "nome"
   }
 };
+
+const statusLabels = {
+  pending: "Pendente",
+  under_review: "Em análise",
+  approved: "Aprovado",
+  rejected: "Recusado"
+};
+
+function addCleanup(handler) {
+  cleanupHandlers.push(handler);
+}
+
+function resetState() {
+  state.type = "event";
+  state.status = "pending";
+  state.items = [];
+  state.selected = null;
+  state.access = null;
+  state.message = "";
+}
+
+function ensureModuleStyle() {
+  if (document.querySelector('link[data-admin-module-style="submissoes"]')) return;
+  moduleStyle = document.createElement("link");
+  moduleStyle.rel = "stylesheet";
+  moduleStyle.href = "submissoes.css";
+  moduleStyle.dataset.adminModuleStyle = "submissoes";
+  document.head.append(moduleStyle);
+  addCleanup(() => {
+    moduleStyle?.remove();
+    moduleStyle = null;
+  });
+}
+
+function renderShellFrame(container) {
+  container.innerHTML = `<section id="submissions-app" class="submissions-shell loading">Carregando submissões…</section>`;
+  app = container.querySelector("#submissions-app");
+}
 
 function escapeHtml(value = "") {
   return String(value)
@@ -67,7 +105,7 @@ async function createUniqueSlug(table, text) {
   const base = gerarSlug(text) || "cadastro";
   let slug = base;
   for (let index = 1; index < 80; index += 1) {
-    const { data, error } = await getSupabase()
+    const { data, error } = await db
       .from(table)
       .select("id")
       .eq("slug", slug)
@@ -103,7 +141,7 @@ function dataList(item) {
 }
 
 function getInput(name) {
-  return document.querySelector(`[name="${name}"]`)?.value?.trim() || "";
+  return app?.querySelector(`[name="${name}"]`)?.value?.trim() || "";
 }
 
 function buildEventOfficialRecord(item) {
@@ -179,6 +217,7 @@ function renderReviewForm(item) {
 }
 
 function render() {
+  if (!app) return;
   const config = typeConfig[state.type];
   const selected = state.selected;
   app.classList.remove("loading");
@@ -198,7 +237,7 @@ function render() {
           <label class="submissions-field" style="max-width:220px">
             <span>Status</span>
             <select data-status-filter>
-              ${["pending", "under_review", "approved", "rejected"].map((status) => `<option value="${status}" ${state.status === status ? "selected" : ""}>${status}</option>`).join("")}
+              ${["pending", "under_review", "approved", "rejected"].map(status => `<option value="${status}" ${state.status === status ? "selected" : ""}>${statusLabels[status]}</option>`).join("")}
             </select>
           </label>
           <button class="submissions-button" type="button" data-refresh>Atualizar</button>
@@ -210,16 +249,16 @@ function render() {
 
 function renderList(config) {
   if (!state.items.length) {
-    return `<div class="submissions-alert">Nenhuma submissão em ${escapeHtml(config.label.toLowerCase())} com este status.</div>`;
+    return `<div class="submissions-alert">Nenhuma submissão em ${escapeHtml(config.label.toLowerCase())} com status ${escapeHtml(statusLabels[state.status] || state.status)}.</div>`;
   }
-  return `<div class="submissions-list">${state.items.map((item) => {
+  return `<div class="submissions-list">${state.items.map(item => {
     const title = item[config.titleKey] || "Sem título";
     return `
       <article class="submission-row">
         <div>
           <h3>${escapeHtml(title)}</h3>
           <p>Enviado por ${escapeHtml(item.submitter_name || "não informado")} • ${formatDate(item.created_at)}</p>
-          <span class="submission-status">${escapeHtml(item.status || "pending")}</span>
+          <span class="submission-status">${escapeHtml(statusLabels[item.status] || item.status || "Pendente")}</span>
         </div>
         <button class="submissions-button primary" type="button" data-review="${escapeHtml(item.id)}">Revisar</button>
       </article>`;
@@ -264,10 +303,11 @@ function renderSelected(item) {
 async function loadItems() {
   state.message = "";
   state.selected = null;
+  if (!app) return;
   app.classList.add("loading");
   app.textContent = "Carregando submissões…";
   const config = typeConfig[state.type];
-  const { data, error } = await getSupabase()
+  const { data, error } = await db
     .from(config.table)
     .select("*")
     .eq("status", state.status)
@@ -284,7 +324,7 @@ async function loadItems() {
 
 async function updateSelected(fields) {
   const config = typeConfig[state.type];
-  const { data, error } = await getSupabase()
+  const { data, error } = await db
     .from(config.table)
     .update(fields)
     .eq("id", state.selected.id)
@@ -304,7 +344,7 @@ async function approveSelected() {
     ? buildEventOfficialRecord(state.selected)
     : buildBusinessOfficialRecord(state.selected);
   record.slug = await createUniqueSlug(config.officialTable, record.titulo || record.nome);
-  const { data: official, error: insertError } = await getSupabase()
+  const { data: official, error: insertError } = await db
     .from(config.officialTable)
     .insert(record)
     .select("id")
@@ -350,9 +390,9 @@ async function markUnderReview() {
   showMessage("Submissão marcada como em revisão.");
 }
 
-app.addEventListener("click", async (event) => {
+async function handleAppClick(event) {
   const target = event.target.closest("button");
-  if (!target) return;
+  if (!target || !app?.contains(target)) return;
   try {
     if (target.dataset.type) {
       state.type = target.dataset.type;
@@ -360,7 +400,7 @@ app.addEventListener("click", async (event) => {
     } else if (target.dataset.refresh !== undefined) {
       await loadItems();
     } else if (target.dataset.review) {
-      state.selected = state.items.find((item) => String(item.id) === String(target.dataset.review));
+      state.selected = state.items.find(item => String(item.id) === String(target.dataset.review));
       state.message = "";
       render();
     } else if (target.dataset.back !== undefined) {
@@ -380,21 +420,67 @@ app.addEventListener("click", async (event) => {
   } catch (error) {
     showMessage(error?.message || "Não foi possível concluir a ação.");
   }
-});
+}
 
-app.addEventListener("change", async (event) => {
+async function handleAppChange(event) {
   if (event.target.matches("[data-status-filter]")) {
     state.status = event.target.value;
     await loadItems();
   }
-});
+}
 
-logoutButton?.addEventListener("click", sair);
-mobileMenu?.addEventListener("click", () => sidebar?.classList.toggle("open"));
-
-const access = await exigirAdministrador();
-if (access) {
-  state.access = access;
-  if (adminUser) adminUser.textContent = `${access.admin.nome || access.user.email} • ${access.admin.funcao}`;
+async function initModule(container, moduleContext = {}) {
+  context = moduleContext;
+  db = moduleContext.db || getSupabase();
+  state.access = moduleContext.access || await exigirPermissao("submissoes", "acessar");
+  if (!state.access) return;
+  if (!temPermissao(state.access.admin, "submissoes", "acessar")) {
+    throw new Error("Usuário sem permissão para acessar Submissões públicas.");
+  }
+  renderShellFrame(container);
+  app.addEventListener("click", handleAppClick);
+  app.addEventListener("change", handleAppChange);
+  addCleanup(() => app?.removeEventListener("click", handleAppClick));
+  addCleanup(() => app?.removeEventListener("change", handleAppChange));
   await loadItems();
 }
+
+export async function mount(container, moduleContext = {}) {
+  unmount();
+  ensureModuleStyle();
+  moduleContext.setTitle?.("Submissões públicas", "Revise empresas e eventos enviados pelo público. Imagens são escolhidas apenas pela equipe no painel.");
+  await initModule(container, moduleContext);
+}
+
+export function unmount() {
+  cleanupHandlers.forEach(handler => {
+    try { handler(); } catch (error) { console.warn("Falha ao desmontar submissões:", error); }
+  });
+  cleanupHandlers = [];
+  resetState();
+  app = null;
+  context = {};
+}
+
+async function bootLegacyPage() {
+  if (document.body?.dataset.adminShell === "true") return;
+  const legacyApp = document.getElementById("submissions-app");
+  if (!legacyApp) return;
+  const access = await exigirPermissao("submissoes", "acessar");
+  if (!access) return;
+  const adminUser = document.getElementById("admin-user");
+  const logoutButton = document.getElementById("logout");
+  const mobileMenu = document.getElementById("mobile-menu");
+  const sidebar = document.getElementById("sidebar");
+  adminUser.textContent = `${access.admin.nome || access.user.email} • ${access.admin.funcao}`;
+  logoutButton?.addEventListener("click", sair);
+  mobileMenu?.addEventListener("click", () => sidebar?.classList.toggle("open"));
+  db = getSupabase();
+  state.access = access;
+  app = legacyApp;
+  app.addEventListener("click", handleAppClick);
+  app.addEventListener("change", handleAppChange);
+  await loadItems();
+}
+
+bootLegacyPage();
