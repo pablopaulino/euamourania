@@ -1,6 +1,6 @@
 import { adminModuleFromLocation, adminPathForModule } from "./admin-routes.js";
 
-const viewModules={dashboard:"dashboard",noticias:"noticias",colaboradores_voluntarios:"colaboradores",guia_comercial:"guia_comercial",turismo:"turismo",links:"links",eventos:"eventos",eventos_principais:"eventos",eventos_edicoes:"eventos",categorias:"categorias",insights:"insights",audiencia:"insights",configuracoes_site:"configuracoes",comunicacao:"comunicacao",notificacoes:"notificacoes",submissoes:"submissoes"};
+const viewModules={dashboard:"dashboard",noticias:"noticias",colaboradores_voluntarios:"colaboradores",guia_comercial:"guia_comercial",turismo:"turismo",links:"links",eventos:"eventos",eventos_principais:"eventos",eventos_edicoes:"eventos",categorias:"categorias",insights:"insights",audiencia:"insights",configuracoes_site:"configuracoes",comunicacao:"comunicacao",notificacoes:"notificacoes",submissoes:"submissoes",publicidade:"publicidade",usuarios:"usuarios"};
 const navItems=[
   ["dashboard","Visão geral","dashboard"],
   ["noticias","Notícias","noticias"],
@@ -45,7 +45,7 @@ function buttonForNav([key,label,module],isIndex,current){
   const attrs=[`type="button"`,`data-module="${module}"`];
   if(current===key)attrs.push('class="active"');
   if(isIndex){
-    if(["dashboard","noticias","colaboradores_voluntarios","guia_comercial","turismo","links","eventos","eventos_principais","eventos_edicoes","categorias","configuracoes_site","comunicacao","notificacoes","submissoes"].includes(key))attrs.push(`data-view="${key}"`);
+    if(["dashboard","noticias","colaboradores_voluntarios","guia_comercial","turismo","links","eventos","eventos_principais","eventos_edicoes","categorias","configuracoes_site","comunicacao","notificacoes","submissoes","publicidade","usuarios"].includes(key))attrs.push(`data-view="${key}"`);
     else if(key==="aprovacoes")attrs.push('id="editorial-approvals-nav"');
     else if(key==="audiencia")attrs.push('id="audience-nav"');
     else attrs.push(`onclick="location.href='${adminPathForModule(key)}'"`);
@@ -60,7 +60,7 @@ function normalizeAdminNavigation(){
   if(!nav||nav.dataset.fixed==="1")return;
   const page=location.pathname.split("/").pop()||"index.html";
   const current=currentAdminKey();
-  const shellViews=["dashboard","noticias","aprovacoes","colaboradores_voluntarios","guia_comercial","turismo","links","eventos","eventos_principais","eventos_edicoes","categorias","audiencia","insights","configuracoes_site","midia","banners","comunicacao","notificacoes","submissoes","publicidade"];
+  const shellViews=["dashboard","noticias","aprovacoes","colaboradores_voluntarios","guia_comercial","turismo","links","eventos","eventos_principais","eventos_edicoes","categorias","audiencia","insights","configuracoes_site","midia","banners","comunicacao","notificacoes","submissoes","publicidade","usuarios"];
   const isIndex=page==="index.html"||page===""||location.pathname.endsWith("/admin/")||shellViews.includes(current);
   nav.innerHTML=navItems.map(item=>buttonForNav(item,isIndex,current)).join("");
   nav.dataset.fixed="1";

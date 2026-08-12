@@ -97,7 +97,7 @@
     { "source": "/admin/notificacoes", "destination": "/admin/index.html" },
     { "source": "/admin/melhores", "destination": "/admin/melhores.html" },
     { "source": "/admin/submissoes", "destination": "/admin/index.html" },
-    { "source": "/admin/usuarios", "destination": "/admin/usuarios.html" },
+    { "source": "/admin/usuarios", "destination": "/admin/index.html" },
     { "source": "/admin/importacao", "destination": "/admin/migrar.html" },
     { "source": "/melhores-de-urania/categorias/:categoria", "destination": "/melhores-de-urania/categoria-permanente.html?categoria=:categoria" },
     { "source": "/melhores-de-urania/categorias/:categoria/", "destination": "/melhores-de-urania/categoria-permanente.html?categoria=:categoria" },

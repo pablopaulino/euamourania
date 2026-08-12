@@ -39,6 +39,11 @@ const moduleRoutes = {
     label: "Publicidade",
     hint: "Campanhas, posiÃ§Ãµes, mÃ­dia e mÃ©tricas dos anÃºncios internos do portal.",
     module: () => import("./publicidade.js")
+  },
+  usuarios: {
+    label: "UsuÃ¡rios administrativos",
+    hint: "Equipe, papÃ©is e permissÃµes de acesso ao CMS.",
+    module: () => import("./usuarios.js")
   }
 };
 
