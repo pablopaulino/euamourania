@@ -21,12 +21,12 @@ export const ADMIN_INDEX_ROUTES = {
   notificacoes: "/admin/viva-urania",
   submissoes: "/admin/submissoes",
   publicidade: "/admin/publicidade",
-  usuarios: "/admin/usuarios"
+  usuarios: "/admin/usuarios",
+  importacao: "/admin/importacao"
 };
 
 export const ADMIN_PAGE_ROUTES = {
-  melhores: "/admin/melhores",
-  importacao: "/admin/importacao"
+  melhores: "/admin/melhores"
 };
 
 const PATH_TO_VIEW = Object.entries(ADMIN_INDEX_ROUTES).reduce((acc, [view, path]) => {
@@ -70,7 +70,8 @@ const HASH_TO_VIEW = {
   midia: "midia",
   banners: "banners",
   publicidade: "publicidade",
-  usuarios: "usuarios"
+  usuarios: "usuarios",
+  importacao: "importacao"
 };
 
 export function adminHashToView(hash = "") {

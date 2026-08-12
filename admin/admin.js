@@ -44,6 +44,11 @@ const moduleRoutes = {
     label: "UsuÃ¡rios administrativos",
     hint: "Equipe, papÃ©is e permissÃµes de acesso ao CMS.",
     module: () => import("./usuarios.js")
+  },
+  importacao: {
+    label: "Migrar conteÃºdo antigo",
+    hint: "ImportaÃ§Ã£o segura de arquivos legados e lotes do Guia Comercial.",
+    module: () => import("./migrar.js")
   }
 };
 
