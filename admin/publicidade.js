@@ -13,63 +13,63 @@ const $$ = s => Array.from(root.querySelectorAll(s));
 const state = { page: 1, perPage: 10, total: 0, timer: null, toastTimers: [], summaries: new Map(), currentConfig: {} };
 const formats = {
   automatico: ["Automático responsivo", "Adapta-se à posição escolhida"],
-  super_banner: ["Super banner", "940 � 210 px · destaques amplos"],
-  horizontal: ["Horizontal compacto", "760 � 86 px · final e faixas leves"],
-  retangulo: ["Retângulo", "800 � 400 ou 728 � 300 px · entre conteúdos"],
-  quadrado: ["Quadrado", "600 � 600 px · redes e mobile"],
-  vertical: ["Vertical", "300 � 600 px · campanhas especiais"],
+  super_banner: ["Super banner", "940 × 210 px · destaques amplos"],
+  horizontal: ["Horizontal compacto", "760 × 86 px · final e faixas leves"],
+  retangulo: ["Retângulo", "800 × 400 ou 728 × 300 px · entre conteúdos"],
+  quadrado: ["Quadrado", "600 × 600 px · redes e mobile"],
+  vertical: ["Vertical", "300 × 600 px · campanhas especiais"],
   nativo: ["Anúncio nativo", "Imagem, título, texto e botão"]
 };
 const mobileRecommendations = {
-  automatico: "Mobile recomendado: 640 � 300 px. O sistema adapta conforme a posição.",
-  super_banner: "Mobile recomendado: 640 � 300 px.",
-  horizontal: "Mobile recomendado: 640 � 300 px para manter boa leitura.",
-  retangulo: "Mobile recomendado: 720 � 400 px.",
-  quadrado: "Mobile recomendado: 1080 � 1080 px.",
-  vertical: "Mobile recomendado: 600 � 900 px.",
-  nativo: "Mobile recomendado: 720 � 480 px; título e texto permanecem separados."
+  automatico: "Mobile recomendado: 640 × 300 px. O sistema adapta conforme a posição.",
+  super_banner: "Mobile recomendado: 640 × 300 px.",
+  horizontal: "Mobile recomendado: 640 × 300 px para manter boa leitura.",
+  retangulo: "Mobile recomendado: 720 × 400 px.",
+  quadrado: "Mobile recomendado: 1080 × 1080 px.",
+  vertical: "Mobile recomendado: 600 × 900 px.",
+  nativo: "Mobile recomendado: 720 × 480 px; título e texto permanecem separados."
 };
 const formatSpecs = {
   automatico: {
     title: "Automático premium",
-    desktop: "Desktop: 1600 � 600 px",
-    mobile: "Celular: 1080 � 1080 px ou 1080 � 1350 px",
+    desktop: "Desktop: 1600 × 600 px",
+    mobile: "Celular: 1080 × 1080 px ou 1080 × 1350 px",
     tip: "Use quando quiser uma campanha flexível para vários pontos do site."
   },
   super_banner: {
     title: "Destaque amplo",
-    desktop: "Desktop: 1600 � 520 px",
-    mobile: "Celular: 1080 � 720 px",
+    desktop: "Desktop: 1600 × 520 px",
+    mobile: "Celular: 1080 × 720 px",
     tip: "Ideal para campanhas bonitas entre seções, sem aparecer no topo."
   },
   horizontal: {
     title: "Faixa premium",
-    desktop: "Desktop: 1440 � 420 px",
-    mobile: "Celular: 1080 � 640 px",
+    desktop: "Desktop: 1440 × 420 px",
+    mobile: "Celular: 1080 × 640 px",
     tip: "Use no final das páginas ou em chamadas compactas. Evite texto pequeno dentro da imagem."
   },
   retangulo: {
     title: "Card editorial",
-    desktop: "Desktop: 1200 � 680 px",
-    mobile: "Celular: 1080 � 720 px",
+    desktop: "Desktop: 1200 × 680 px",
+    mobile: "Celular: 1080 × 720 px",
     tip: "Melhor opção para anúncios no meio de notícias, guia, turismo e eventos."
   },
   quadrado: {
     title: "Quadrado social",
-    desktop: "Desktop/Celular: 1080 � 1080 px",
-    mobile: "Celular: 1080 � 1080 px",
+    desktop: "Desktop/Celular: 1080 × 1080 px",
+    mobile: "Celular: 1080 × 1080 px",
     tip: "Bom para logos, promoções simples e criativos vindos das redes sociais."
   },
   vertical: {
     title: "Vertical especial",
-    desktop: "Desktop: 720 � 1200 px",
-    mobile: "Celular: 900 � 1200 px",
+    desktop: "Desktop: 720 × 1200 px",
+    mobile: "Celular: 900 × 1200 px",
     tip: "Use com cuidado, para campanhas visuais. Não recomendado para textos longos."
   },
   nativo: {
     title: "Anúncio nativo",
-    desktop: "Desktop: imagem 1200 � 800 px + título e texto no painel",
-    mobile: "Celular: 1080 � 720 px",
+    desktop: "Desktop: imagem 1200 × 800 px + título e texto no painel",
+    mobile: "Celular: 1080 × 720 px",
     tip: "Formato mais profissional: imagem, título, descrição e botão ficam separados."
   }
 };
@@ -77,22 +77,22 @@ const positionRecommendations = {
   todas_paginas: "Nativo ou horizontal compacto",
   home_hero_conteudo: "Nativo ou super banner",
   home_entre_secoes: "Super banner ou nativo",
-  home_rodape: "Horizontal 728 � 90",
+  home_rodape: "Horizontal 728 × 90",
   noticias_entre_listagem: "Nativo ou retângulo",
   noticia_meio: "Nativo ou retângulo",
   noticia_final: "Super banner ou nativo",
   guia_entre_estabelecimentos: "Nativo ou retângulo",
-  guia_rodape: "Horizontal 728 � 90",
+  guia_rodape: "Horizontal 728 × 90",
   turismo_entre_cartoes: "Nativo ou retângulo",
-  turismo_rodape: "Horizontal 728 � 90",
+  turismo_rodape: "Horizontal 728 × 90",
   eventos_entre_eventos: "Nativo ou retângulo",
-  eventos_rodape: "Horizontal 728 � 90"
+  eventos_rodape: "Horizontal 728 × 90"
 };
 const positionDescriptions = {
   todas_paginas: "Campanha global exibida no fluxo ou no final das páginas, nunca no topo.",
   home_hero_conteudo: "Logo depois da apresentação da cidade.",
   home_entre_secoes: "Integra a campanha ao fluxo de conteúdo da home.",
-  home_rodape: "�altima oportunidade antes do rodapé.",
+  home_rodape: "Última oportunidade antes do rodapé.",
   noticias_entre_listagem: "Entre os cards do feed de notícias.",
   noticia_meio: "Dentro do texto, próximo ao centro da matéria.",
   noticia_final: "Depois da matéria e antes das recomendações.",
@@ -175,7 +175,7 @@ function renderShell(container) {
 }
 
 function renderPositions() {
-  $("#positions").innerHTML=`<div class="position-selection-head"><span id="position-selection-summary">Nenhuma posição selecionada</span><small>Você pode escolher vários locais.</small></div>${Object.entries(positions).map(([group,items])=>`<section class="position-group"><div class="position-group-title"><strong>${group}</strong><span>${items.length} ${items.length===1?"posição":"posições"}</span></div><div class="position-options">${items.map(([value,label])=>`<label class="position-option"><input type="checkbox" name="posicoes" value="${value}"><span class="position-check" aria-hidden="true">�S</span><span class="position-option-copy"><strong>${label}</strong><small>${positionDescriptions[value]||"Posição responsiva no portal."}</small><em>${positionRecommendations[value]||"Automático responsivo"}</em></span></label>`).join("")}</div></section>`).join("")}`;
+  $("#positions").innerHTML=`<div class="position-selection-head"><span id="position-selection-summary">Nenhuma posição selecionada</span><small>Você pode escolher vários locais.</small></div>${Object.entries(positions).map(([group,items])=>`<section class="position-group"><div class="position-group-title"><strong>${group}</strong><span>${items.length} ${items.length===1?"posição":"posições"}</span></div><div class="position-options">${items.map(([value,label])=>`<label class="position-option"><input type="checkbox" name="posicoes" value="${value}"><span class="position-check" aria-hidden="true">✓</span><span class="position-option-copy"><strong>${label}</strong><small>${positionDescriptions[value]||"Posição responsiva no portal."}</small><em>${positionRecommendations[value]||"Automático responsivo"}</em></span></label>`).join("")}</div></section>`).join("")}`;
   syncPositionCards();
 }
 
@@ -337,10 +337,10 @@ async function loadCampaigns() {
     const result=await listarCampanhas({busca:$("#campaign-search").value.trim(),status:$("#status-filter").value,tipo:$("#type-filter").value,pagina:state.page,porPagina:state.perPage});
     if (!mounted || requestRun !== runId) return;
     state.total=result.total;
-    $("#campaign-table").innerHTML=result.itens.length ?result.itens.map(c=>{const m=state.summaries.get(c.id)||{};const situation=m.situacao||c.status;return `<tr><td><div class="campaign-name">${c.imagem_url?`<img class="campaign-thumb" src="${escapeHtml(c.imagem_url)}" alt="" loading="lazy">`:'<span class="campaign-thumb"></span>'}<div><strong>${escapeHtml(c.nome)}</strong><small>${escapeHtml(c.empresa_anunciante)}</small></div></div></td><td>${escapeHtml(c.tipo)}</td><td><span class="status-pill ${situation}">${escapeHtml(situation)}</span></td><td>${fmtDate(c.data_inicio)} � ${fmtDate(c.data_fim)}</td><td>${fmtNumber(m.impressoes)}</td><td>${fmtNumber(m.cliques)}</td><td>${Number(m.ctr||0).toFixed(2)}%</td><td><div class="ads-actions"><button class="icon-button" data-edit="${c.id}" title="Editar">Editar</button><button class="icon-button danger" data-delete="${c.id}" data-name="${escapeHtml(c.nome)}" title="Excluir">Excluir</button></div></td></tr>`}).join("") : '<tr><td colspan="8"><div class="empty-state"><strong>Nenhuma campanha encontrada</strong>Ajuste os filtros ou crie uma nova campanha.</div></td></tr>';
+    $("#campaign-table").innerHTML=result.itens.length ?result.itens.map(c=>{const m=state.summaries.get(c.id)||{};const situation=m.situacao||c.status;return `<tr><td><div class="campaign-name">${c.imagem_url?`<img class="campaign-thumb" src="${escapeHtml(c.imagem_url)}" alt="" loading="lazy">`:'<span class="campaign-thumb"></span>'}<div><strong>${escapeHtml(c.nome)}</strong><small>${escapeHtml(c.empresa_anunciante)}</small></div></div></td><td>${escapeHtml(c.tipo)}</td><td><span class="status-pill ${situation}">${escapeHtml(situation)}</span></td><td>${fmtDate(c.data_inicio)} - ${fmtDate(c.data_fim)}</td><td>${fmtNumber(m.impressoes)}</td><td>${fmtNumber(m.cliques)}</td><td>${Number(m.ctr||0).toFixed(2)}%</td><td><div class="ads-actions"><button class="icon-button" data-edit="${c.id}" title="Editar">Editar</button><button class="icon-button danger" data-delete="${c.id}" data-name="${escapeHtml(c.nome)}" title="Excluir">Excluir</button></div></td></tr>`}).join("") : '<tr><td colspan="8"><div class="empty-state"><strong>Nenhuma campanha encontrada</strong>Ajuste os filtros ou crie uma nova campanha.</div></td></tr>';
     result.itens.forEach((campaign,index)=>{const cell=$("#campaign-table")?.rows[index]?.cells[1];if(cell){const selected=formatName(campaign);cell.innerHTML=`<span class="campaign-type">${escapeHtml(campaign.tipo)}</span><small class="campaign-format">${escapeHtml(selected)}</small>`}});
     const from=state.total?(state.page-1)*state.perPage+1:0, to=Math.min(state.page*state.perPage,state.total);
-    $("#pagination-info").textContent=`Mostrando ${from}�${to} de ${state.total}`;
+    $("#pagination-info").textContent=`Mostrando ${from}?${to} de ${state.total}`;
     $("#prev-page").disabled=state.page<=1; $("#next-page").disabled=to>=state.total;
     applyPermissions();
   } catch(error) { if (!mounted || requestRun !== runId) return; $("#campaign-table").innerHTML=`<tr><td colspan="8"><div class="empty-state"><strong>Publicidade indisponível</strong>${escapeHtml(errorMessage(error))}</div></td></tr>`; }
@@ -452,7 +452,7 @@ async function initModule(container, context = {}) {
   runId += 1;
   root = container || document;
   moduleContext.setTitle?.("Publicidade", "Campanhas, posições, mídia e métricas dos anúncios internos do portal.");
-  document.title = "Publicidade | Eu Amo Ur�nia";
+  document.title = "Publicidade | Eu Amo Urânia";
   enhanceCreativeForm();
   renderPositions();
   bindEvents();

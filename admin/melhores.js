@@ -371,8 +371,8 @@ async function loadDashboard() {
             <strong>Painel principal &gt; Audiência</strong>.
           </p>
           <div class="awards-actions" style="margin-top:1rem">
-            <button type="button" onclick="location.href='index.html#audiencia'">Abrir audiência</button>
-            <button type="button" onclick="location.href='melhores.html#votes'">Ver votos</button>
+            <button type="button" data-admin-view="audiencia">Abrir audiência</button>
+            <button type="button" data-dashboard-tab="votes">Ver votos</button>
           </div>
         </article>
       </div>`;
@@ -1698,8 +1698,8 @@ async function init(context = {}) {
   const access = moduleContext.access || await exigirPermissao("melhores", "acessar");
   if (!access || !isMounted(initRun)) return;
   moduleContext.access = access;
-  moduleContext.setTitle?.("Melhores de Ur�nia", "Gerencie edi��es anuais, categorias e indicados da premia��o oficial do portal.");
-  document.title = "Melhores de Ur�nia | Eu Amo Ur�nia CMS";
+  moduleContext.setTitle?.("Melhores de Urânia", "Gerencie edições anuais, categorias e indicados da premiação oficial do portal.");
+  document.title = "Melhores de Urânia | Eu Amo Urânia CMS";
   const adminUser = document.querySelector("#admin-user");
   if (adminUser) adminUser.textContent = access.admin.nome || access.user.email;
   if (!isShellMode()) {
@@ -1721,25 +1721,29 @@ async function init(context = {}) {
         if (!shouldReplace) return;
         form.elements.regulamento.value = regulamento;
         form.elements.metodologia.value = metodologia;
-        toast("Modelo oficial aplicado. Revise e salve a edi��o.");
+        toast("Modelo oficial aplicado. Revise e salve a edição.");
+        return;
+      }
+      if (button.dataset.adminView) {
+        moduleContext.navigate?.(button.dataset.adminView);
         return;
       }
       if (button.dataset.tab) return loadTab(button.dataset.tab);
       if (button.dataset.dashboardTab) return loadTab(button.dataset.dashboardTab);
       if (button.id === "new-edition" || button.hasAttribute("data-new-edition")) return editionForm();
       if (button.dataset.editEdition) return editionForm(button.dataset.editEdition);
-      if (button.dataset.deleteEdition && confirm("Excluir esta edi��o? Categorias e indicados vinculados tamb�m ser�o removidos.")) {
+      if (button.dataset.deleteEdition && confirm("Excluir esta edição? Categorias e indicados vinculados também serão removidos.")) {
         await excluirEdicao(button.dataset.deleteEdition);
-        toast("Edi��o exclu�da.");
+        toast("Edição excluída.");
         state.edicoes = [];
         return loadEditions();
       }
       if (button.hasAttribute("data-new-category")) return categoryForm();
       if (button.dataset.copyCategories) return copyCategoriesForm(button.dataset.copyCategories);
       if (button.dataset.editCategory) return categoryForm(button.dataset.editCategory);
-      if (button.dataset.deleteCategory && confirm("Excluir esta categoria? Indicados vinculados tamb�m ser�o removidos.")) {
+      if (button.dataset.deleteCategory && confirm("Excluir esta categoria? Indicados vinculados também serão removidos.")) {
         await excluirCategoria(button.dataset.deleteCategory);
-        toast("Categoria exclu�da.");
+        toast("Categoria excluída.");
         state.categorias = [];
         return loadCategories();
       }
@@ -1747,7 +1751,7 @@ async function init(context = {}) {
       if (button.dataset.editNominee) return nomineeForm(button.dataset.editNominee);
       if (button.dataset.deleteNominee && confirm("Excluir este indicado?")) {
         await excluirIndicado(button.dataset.deleteNominee);
-        toast("Indicado exclu�do.");
+        toast("Indicado excluído.");
         state.indicados = [];
         return loadNominees();
       }
@@ -1758,9 +1762,9 @@ async function init(context = {}) {
       if (button.dataset.rejectIndication) return updateIndicationStatus(button.dataset.rejectIndication, "rejeitada");
       if (button.dataset.duplicateIndication) return updateIndicationStatus(button.dataset.duplicateIndication, "duplicada");
       if (button.dataset.spamIndication) return updateIndicationStatus(button.dataset.spamIndication, "spam");
-      if (button.dataset.deleteIndication && confirm("Excluir esta indica��o?")) {
+      if (button.dataset.deleteIndication && confirm("Excluir esta indicação?")) {
         await excluirIndicacao(button.dataset.deleteIndication);
-        toast("Indica��o exclu�da.");
+        toast("Indicação excluída.");
         state.indicacoes = [];
         return loadIndications();
       }
@@ -1768,17 +1772,17 @@ async function init(context = {}) {
       if (button.hasAttribute("data-refresh-votes")) return loadVotes();
       if (button.hasAttribute("data-manual-cleanup-votes")) {
         const edicaoId = $("#votes-edition-filter")?.value || state.edicoes[0]?.id;
-        if (!edicaoId) return toast("Selecione uma edi��o.", "error");
-        if (!confirm("Executar limpeza manual dos votos individuais desta edi��o? Use somente ap�s auditoria e publica��o oficial.")) return;
+        if (!edicaoId) return toast("Selecione uma edição.", "error");
+        if (!confirm("Executar limpeza manual dos votos individuais desta edição? Use somente após auditoria e publicação oficial.")) return;
         const total = await limparVotosManual(edicaoId);
-        toast(`${total || 0} voto(s) individual(is) removido(s) ap�s consolida��o.`);
+        toast(`${total || 0} voto(s) individual(is) removido(s) após consolidação.`);
         return loadVotes();
       }
       if (button.hasAttribute("data-new-instagram")) return instagramForm();
       if (button.dataset.editInstagram) return instagramForm(button.dataset.editInstagram);
-      if (button.dataset.deleteInstagram && confirm("Excluir este lan�amento do Instagram?")) {
+      if (button.dataset.deleteInstagram && confirm("Excluir este lançamento do Instagram?")) {
         await excluirInstagramVoto(button.dataset.deleteInstagram);
-        toast("Lan�amento exclu�do.");
+        toast("Lançamento excluído.");
         state.instagram = [];
         return loadInstagram();
       }
@@ -1790,14 +1794,14 @@ async function init(context = {}) {
       if (button.dataset.editAppCampaign) return appCampaignForm(button.dataset.editAppCampaign);
       if (button.dataset.newAppWinner) return appWinnerForm(null, button.dataset.newAppWinner);
       if (button.dataset.editAppWinner) return appWinnerForm(button.dataset.editAppWinner, $("#app-campaign-filter")?.value);
-      if (button.dataset.archiveAppWinner && confirm("Arquivar este vencedor apenas na exibi��o do aplicativo?")) {
+      if (button.dataset.archiveAppWinner && confirm("Arquivar este vencedor apenas na exibição do aplicativo?")) {
         await arquivarVencedorApp(button.dataset.archiveAppWinner);
-        toast("Vencedor arquivado na exibi��o do app.");
+        toast("Vencedor arquivado na exibição do app.");
         state.appVencedores = [];
         return loadAppDisplay();
       }
       if (button.dataset.importAppWinners) {
-        if (!confirm("Importar vencedores oficiais publicados desta edi��o para o aplicativo? Vencedores existentes da mesma categoria ser�o atualizados.")) return;
+        if (!confirm("Importar vencedores oficiais publicados desta edição para o aplicativo? Vencedores existentes da mesma categoria serão atualizados.")) return;
         const total = await importarVencedoresApp(button.dataset.importAppWinners);
         toast(`${total || 0} vencedor(es) importado(s) para o aplicativo.`);
         state.appVencedores = [];
@@ -1805,7 +1809,7 @@ async function init(context = {}) {
       }
       if (button.dataset.appAction) {
         const campaign = state.appCampanhas.find(item => item.id === button.dataset.id) || await obterCampanhaApp(button.dataset.id);
-        if (!campaign) return toast("Campanha n�o encontrada.", "error");
+        if (!campaign) return toast("Campanha não encontrada.", "error");
         const now = new Date();
         const payloadByAction = {
           schedule: { status: "agendada", ativo: true },
@@ -1814,9 +1818,9 @@ async function init(context = {}) {
           close: { status: "encerrada", ativo: false, exibir_fim: now.toISOString() },
           archive: { status: "arquivada", ativo: false, arquivado_em: now.toISOString() }
         };
-        if (button.dataset.appAction === "archive" && !confirm("Arquivar esta campanha do aplicativo? O hist�rico ser� mantido no banco.")) return;
+        if (button.dataset.appAction === "archive" && !confirm("Arquivar esta campanha do aplicativo? O histórico será mantido no banco.")) return;
         await salvarCampanhaApp({ id: campaign.id, ...payloadByAction[button.dataset.appAction] });
-        toast("Status da exibi��o no app atualizado.");
+        toast("Status da exibição no app atualizado.");
         state.appCampanhas = [];
         return loadAppDisplay();
       }
@@ -1825,10 +1829,10 @@ async function init(context = {}) {
       if (button.hasAttribute("data-refresh-audit")) return loadAudit();
       if (button.hasAttribute("data-publish-results")) {
         const edicaoId = $("#apuration-edition-filter")?.value || state.edicoes[0]?.id;
-        if (!edicaoId) return toast("Selecione uma edi��o.", "error");
-        const methodology = prompt("Descreva a metodologia resumida que ficar� gravada no resultado oficial:", "Resultado calculado por percentual de votos no site e no Instagram, conforme pesos da edi��o.");
+        if (!edicaoId) return toast("Selecione uma edição.", "error");
+        const methodology = prompt("Descreva a metodologia resumida que ficará gravada no resultado oficial:", "Resultado calculado por percentual de votos no site e no Instagram, conforme pesos da edição.");
         if (methodology === null) return;
-        if (!confirm("Publicar resultado oficial agora? Esta a��o cria um snapshot hist�rico da edi��o.")) return;
+        if (!confirm("Publicar resultado oficial agora? Esta ação cria um snapshot histórico da edição.")) return;
         const total = await publicarResultado(edicaoId, methodology);
         toast(`${total || 0} resultado(s) publicado(s).`);
         state.resultados = [];

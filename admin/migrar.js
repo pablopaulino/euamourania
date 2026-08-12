@@ -2,7 +2,7 @@ import { exigirAdministrador } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { gerarSlug } from "../assets/js/utils.js";
 
-const linksIniciais = [["Nosso site","https://euamourania.com.br/","ðŸŒ"],["Canal WhatsApp","https://whatsapp.com/channel/0029VapPdlLGpLHTXQELk210","ðŸ’¬"],["WhatsApp","https://wa.me/5517976005583","ðŸ“±"],["YouTube","https://www.youtube.com/@EuAmoUr%C3%A2nia","â–¶ï¸"],["Instagram","https://instagram.com/euamourania","ðŸ“·"],["Facebook","https://facebook.com/euamourania","ðŸ‘¥"],["X (Twitter)","https://x.com/euamourania","ð•"],["TikTok","https://tiktok.com/@euamourania","ðŸŽµ"]].map(([titulo,url,icone],ordem)=>({titulo,url,icone,ordem,status:"ativo"}));
+const linksIniciais = [["Nosso site","https://euamourania.com.br/","ðŸŒ"],["Canal WhatsApp","https://whatsapp.com/channel/0029VapPdlLGpLHTXQELk210","ðŸ’¬"],["WhatsApp","https://wa.me/5517976005583","ðŸ“±"],["YouTube","https://www.youtube.com/@EuAmoUr%C3%A2nia","â–¶️"],["Instagram","https://instagram.com/euamourania","ðŸ“·"],["Facebook","https://facebook.com/euamourania","ðŸ‘¥"],["X (Twitter)","https://x.com/euamourania","ð•"],["TikTok","https://tiktok.com/@euamourania","ðŸŽµ"]].map(([titulo,url,icone],ordem)=>({titulo,url,icone,ordem,status:"ativo"}));
 const allowedStatus = new Set(["rascunho","publicado","arquivado"]);
 const esc = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const textoPuro = (html = "") => { const el = document.createElement("div"); el.innerHTML = html; return (el.textContent || "").replace(/\s+/g, " ").trim(); };
@@ -44,12 +44,12 @@ function ensureImportStyles() {
 
 function renderShell(container) {
   container.classList.add("importacao-module");
-  container.innerHTML = `<section class="panel"><div class="panel-header"><div><h2>ImportaÃ§Ã£o segura</h2><p>Transfere notÃ­cias, guia, turismo, categorias e links para o Supabase. Nenhuma Secret Key Ã© utilizada.</p></div></div><div class="resource-form"><div class="full-row"><p>VocÃª pode repetir a operaÃ§Ã£o: notÃ­cias, guia, turismo e categorias sÃ£o atualizados pelo slug; links existentes nÃ£o sÃ£o duplicados.</p><button id="run-migration" class="admin-button" type="button">Migrar dados agora</button><p id="migration-status" class="form-message" role="status">Verificando acessoâ€¦</p></div></div></section>`;
+  container.innerHTML = `<section class="panel"><div class="panel-header"><div><h2>Importação segura</h2><p>Transfere notícias, guia, turismo, categorias e links para o Supabase. Nenhuma Secret Key é utilizada.</p></div></div><div class="resource-form"><div class="full-row"><p>Você pode repetir a operação: notícias, guia, turismo e categorias são atualizados pelo slug; links existentes não são duplicados.</p><button id="run-migration" class="admin-button" type="button">Migrar dados agora</button><p id="migration-status" class="form-message" role="status">Verificando acessoâ€¦</p></div></div></section>`;
 }
 
 async function lerJson(caminho) {
   const response = await fetch(caminho, { cache: "no-store" });
-  if (!response.ok) throw new Error(`NÃ£o foi possÃ­vel ler ${caminho}.`);
+  if (!response.ok) throw new Error(`Não foi possível ler ${caminho}.`);
   const texto = await response.text();
   try { return JSON.parse(texto); }
   catch { return JSON.parse(texto.replace(/,\s*]/g, "]")); }
@@ -58,18 +58,18 @@ async function lerJson(caminho) {
 async function migrar() {
   if (!migrationButton || !statusEl) return;
   migrationButton.disabled = true;
-  statusEl.textContent = "Lendo os dados e preparando a importaÃ§Ã£oâ€¦";
+  statusEl.textContent = "Lendo os dados e preparando a importaçãoâ€¦";
   const localRun = runId;
   const supabase = getDb();
   try {
     const [noticiasAntigas, guiaAntigo] = await Promise.all([lerJson("../news-data.json"), lerJson("../guia-data.json")]);
     const noticias = noticiasAntigas.map(item => {
       const resumo = textoPuro(item.content).slice(0, 240);
-      return { titulo:item.title, slug:gerarSlug(item.title), resumo, conteudo_html:item.content || "", imagem_url:item.image || null, categoria_nome:"NotÃ­cias", autor:(item.author || "Equipe Eu Amo UrÃ¢nia").replace(/^\s*Por\s+/i, ""), status:"publicado", destaque:item.id === 1, publicado_em:item.date ? `${item.date}T12:00:00-03:00` : new Date().toISOString(), seo_titulo:item.title, seo_descricao:resumo.slice(0,160) };
+      return { titulo:item.title, slug:gerarSlug(item.title), resumo, conteudo_html:item.content || "", imagem_url:item.image || null, categoria_nome:"Notícias", autor:(item.author || "Equipe Eu Amo Urânia").replace(/^\s*Por\s+/i, ""), status:"publicado", destaque:item.id === 1, publicado_em:item.date ? `${item.date}T12:00:00-03:00` : new Date().toISOString(), seo_titulo:item.title, seo_descricao:resumo.slice(0,160) };
     });
     const guia = guiaAntigo.map(item => ({ nome:item.nome, slug:gerarSlug(item.nome), categoria_nome:item.categoria || "outros", descricao:item.descricao || "", imagem_url:item.imagem || null, whatsapp:item.whatsapp || null, instagram:item.instagram || null, endereco:item.endereco || null, recomendado:Boolean(item.destaque), status:"publicado", seo_titulo:item.nome, seo_descricao:textoPuro(item.descricao || "").slice(0,160) }));
-    const turismo = guiaAntigo.filter(item => item.categoria === "turismo").map(item => ({ nome:item.nome, slug:gerarSlug(item.nome), descricao:item.descricao || "", conteudo_html:item.descricao ? `<p>${item.descricao}</p>` : "", imagem_url:item.imagem || null, endereco:item.endereco || null, whatsapp:item.whatsapp || null, status:"publicado", destaque:Boolean(item.destaque), seo_titulo:`${item.nome} | Turismo em UrÃ¢nia`, seo_descricao:textoPuro(item.descricao || "").slice(0,160) }));
-    const categorias = [{nome:"NotÃ­cias",slug:"noticias",tipo:"noticias",ordem:0,status:"ativo"}, ...[...new Set(guiaAntigo.map(item => item.categoria).filter(Boolean))].map((nome, ordem) => ({nome, slug:gerarSlug(nome), tipo:"guia", ordem, status:"ativo"})), {nome:"Pontos turÃ­sticos",slug:"pontos-turisticos",tipo:"turismo",ordem:0,status:"ativo"}];
+    const turismo = guiaAntigo.filter(item => item.categoria === "turismo").map(item => ({ nome:item.nome, slug:gerarSlug(item.nome), descricao:item.descricao || "", conteudo_html:item.descricao ? `<p>${item.descricao}</p>` : "", imagem_url:item.imagem || null, endereco:item.endereco || null, whatsapp:item.whatsapp || null, status:"publicado", destaque:Boolean(item.destaque), seo_titulo:`${item.nome} | Turismo em Urânia`, seo_descricao:textoPuro(item.descricao || "").slice(0,160) }));
+    const categorias = [{nome:"Notícias",slug:"noticias",tipo:"noticias",ordem:0,status:"ativo"}, ...[...new Set(guiaAntigo.map(item => item.categoria).filter(Boolean))].map((nome, ordem) => ({nome, slug:gerarSlug(nome), tipo:"guia", ordem, status:"ativo"})), {nome:"Pontos turísticos",slug:"pontos-turisticos",tipo:"turismo",ordem:0,status:"ativo"}];
     for (const [tabela, dados] of [["noticias",noticias],["guia_comercial",guia],["turismo",turismo],["categorias",categorias]]) {
       const { error } = await supabase.from(tabela).upsert(dados, { onConflict:"slug" });
       if (error) throw new Error(`${tabela}: ${error.message}`);
@@ -83,11 +83,11 @@ async function migrar() {
       if (error) throw error;
     }
     if (!mounted || localRun !== runId) return;
-    statusEl.innerHTML = `<strong>MigraÃ§Ã£o concluÃ­da.</strong><br>${noticias.length} notÃ­cias, ${guia.length} itens do guia, ${turismo.length} ponto turÃ­stico e ${linksIniciais.length} links conferidos.`;
+    statusEl.innerHTML = `<strong>Migração concluída.</strong><br>${noticias.length} notícias, ${guia.length} itens do guia, ${turismo.length} ponto turístico e ${linksIniciais.length} links conferidos.`;
     migrationButton.textContent = "Executar novamente";
   } catch (error) {
     console.error(error);
-    if (mounted && localRun === runId) statusEl.textContent = `Falha na migraÃ§Ã£o: ${error.message}`;
+    if (mounted && localRun === runId) statusEl.textContent = `Falha na migração: ${error.message}`;
   } finally {
     if (mounted && localRun === runId) migrationButton.disabled = false;
   }
@@ -114,14 +114,14 @@ function normalizeItem(item, index) {
   if (!nome) errors.push(`Item ${index + 1}: informe o nome.`);
   if (!categoria) errors.push(`Item ${index + 1}: informe a categoria.`);
   const slug = gerarSlug(String(item?.slug || nome));
-  if (!slug) errors.push(`Item ${index + 1}: nÃ£o foi possÃ­vel gerar o slug.`);
+  if (!slug) errors.push(`Item ${index + 1}: não foi possível gerar o slug.`);
   const statusItem = String(item?.status || "publicado").toLowerCase();
-  if (!allowedStatus.has(statusItem)) errors.push(`Item ${index + 1}: status invÃ¡lido.`);
+  if (!allowedStatus.has(statusItem)) errors.push(`Item ${index + 1}: status inválido.`);
   const urlFields = ["instagram","facebook","site","mapa_url"];
-  for (const field of urlFields) if (item?.[field] && !onlyUrl(item[field])) errors.push(`Item ${index + 1}: ${field} precisa ser uma URL vÃ¡lida.`);
-  if ((item?.imagem_url || item?.imagem) && !siteReference(item?.imagem_url || item?.imagem)) errors.push(`Item ${index + 1}: imagem_url precisa ser um link ou caminho interno vÃ¡lido.`);
+  for (const field of urlFields) if (item?.[field] && !onlyUrl(item[field])) errors.push(`Item ${index + 1}: ${field} precisa ser uma URL válida.`);
+  if ((item?.imagem_url || item?.imagem) && !siteReference(item?.imagem_url || item?.imagem)) errors.push(`Item ${index + 1}: imagem_url precisa ser um link ou caminho interno válido.`);
   const galeria = Array.isArray(item?.galeria_urls) ? item.galeria_urls.filter(Boolean) : [];
-  if (galeria.some(url => !siteReference(url))) errors.push(`Item ${index + 1}: galeria_urls contÃ©m link ou caminho invÃ¡lido.`);
+  if (galeria.some(url => !siteReference(url))) errors.push(`Item ${index + 1}: galeria_urls contém link ou caminho inválido.`);
   return { errors, data:{ nome, slug, categoria_nome:categoria, descricao:optional(item?.descricao), imagem_url:siteReference(item?.imagem_url || item?.imagem), galeria_urls:galeria.map(siteReference), whatsapp:optional(item?.whatsapp), telefone:optional(item?.telefone), instagram:onlyUrl(item?.instagram), facebook:onlyUrl(item?.facebook), site:onlyUrl(item?.site), endereco:optional(item?.endereco), horario:optional(item?.horario), mapa_url:onlyUrl(item?.mapa_url), recomendado:Boolean(item?.recomendado ?? item?.destaque), status:statusItem, seo_titulo:optional(item?.seo_titulo) || nome, seo_descricao:(optional(item?.seo_descricao) || optional(item?.descricao) || "").slice(0,160) || null } };
 }
 
@@ -134,19 +134,19 @@ function renderGuidePreview(errors = []) {
     return;
   }
   const categories = new Set(importState.itens.map(item => item.categoria_nome));
-  preview.innerHTML = `<div class="guide-import-stats"><span>${importState.itens.length} empresa(s)</span><span>${categories.size} categoria(s)</span><span>Duplicados serÃ£o atualizados pelo slug</span></div><div class="table-wrap guide-preview"><table><thead><tr><th>Empresa</th><th>Categoria</th><th>Status</th><th>Contato</th></tr></thead><tbody>${importState.itens.map(item => `<tr><td><strong>${esc(item.nome)}</strong><small>${esc(item.slug)}</small></td><td>${esc(item.categoria_nome)}</td><td><span class="status-pill ${esc(item.status)}">${esc(item.status)}</span></td><td>${esc(item.whatsapp || item.telefone || "â€”")}</td></tr>`).join("")}</tbody></table></div>`;
+  preview.innerHTML = `<div class="guide-import-stats"><span>${importState.itens.length} empresa(s)</span><span>${categories.size} categoria(s)</span><span>Duplicados serão atualizados pelo slug</span></div><div class="table-wrap guide-preview"><table><thead><tr><th>Empresa</th><th>Categoria</th><th>Status</th><th>Contato</th></tr></thead><tbody>${importState.itens.map(item => `<tr><td><strong>${esc(item.nome)}</strong><small>${esc(item.slug)}</small></td><td>${esc(item.categoria_nome)}</td><td><span class="status-pill ${esc(item.status)}">${esc(item.status)}</span></td><td>${esc(item.whatsapp || item.telefone || "â€”")}</td></tr>`).join("")}</tbody></table></div>`;
   run.disabled = !importState.itens.length;
   run.textContent = `Importar ${importState.itens.length} empresa(s)`;
 }
 
 async function readGuideFile(file) {
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) throw new Error("O arquivo JSON deve ter no mÃ¡ximo 2 MB.");
+  if (file.size > 2 * 1024 * 1024) throw new Error("O arquivo JSON deve ter no máximo 2 MB.");
   const parsed = JSON.parse(await file.text());
   const rows = Array.isArray(parsed) ? parsed : parsed?.itens;
   if (!Array.isArray(rows)) throw new Error('Use uma lista JSON ou um objeto contendo o campo "itens".');
-  if (!rows.length) throw new Error("O arquivo nÃ£o possui empresas para importar.");
-  if (rows.length > 1000) throw new Error("Importe no mÃ¡ximo 1.000 empresas por arquivo.");
+  if (!rows.length) throw new Error("O arquivo não possui empresas para importar.");
+  if (rows.length > 1000) throw new Error("Importe no máximo 1.000 empresas por arquivo.");
   const normalized = rows.map(normalizeItem), errors = normalized.flatMap(item => item.errors);
   const slugs = normalized.map(item => item.data.slug).filter(Boolean);
   const duplicates = slugs.filter((slug, index) => slugs.indexOf(slug) !== index);
@@ -194,11 +194,11 @@ async function importGuideJson() {
       if (error) throw error;
     }
     message.className = "guide-import-note";
-    message.innerHTML = `<strong>ImportaÃ§Ã£o concluÃ­da.</strong> ${payload.length} empresa(s) foram criadas ou atualizadas.`;
-    run.textContent = "ImportaÃ§Ã£o concluÃ­da";
+    message.innerHTML = `<strong>Importação concluída.</strong> ${payload.length} empresa(s) foram criadas ou atualizadas.`;
+    run.textContent = "Importação concluída";
   } catch (error) {
     message.className = "guide-import-note error";
-    message.textContent = `Falha na importaÃ§Ã£o: ${error.message}`;
+    message.textContent = `Falha na importação: ${error.message}`;
     run.disabled = false;
     run.textContent = `Importar ${importState.itens.length} empresa(s)`;
   }
@@ -208,7 +208,7 @@ function setupGuideJsonImport() {
   ensureImportStyles();
   const oldPanel = $(".panel"), section = document.createElement("section");
   section.className = "panel guide-import-panel";
-  section.innerHTML = `<div class="panel-header"><div><h2>Importar Guia Comercial por arquivo</h2><p>Cadastre ou atualize vÃ¡rias empresas de uma vez, com validaÃ§Ã£o e prÃ©via.</p></div></div><div class="guide-import-grid"><div class="guide-file-box"><strong>1. Preencha o modelo JSON</strong><p>Nome e categoria sÃ£o obrigatÃ³rios. Os outros campos podem ficar vazios.</p><input id="guide-json-file" type="file" accept=".json,application/json"></div><div class="guide-import-actions"><a class="admin-button secondary" href="../modelos/guia-comercial-modelo.json" download>Baixar modelo JSON</a><button id="import-guide-json" class="admin-button" type="button" disabled>Importar empresas</button></div></div><div id="guide-json-preview"></div><p id="guide-json-message" class="guide-import-note">Selecione o arquivo preenchido para conferir os dados antes de importar.</p>`;
+  section.innerHTML = `<div class="panel-header"><div><h2>Importar Guia Comercial por arquivo</h2><p>Cadastre ou atualize várias empresas de uma vez, com validação e prévia.</p></div></div><div class="guide-import-grid"><div class="guide-file-box"><strong>1. Preencha o modelo JSON</strong><p>Nome e categoria são obrigatórios. Os outros campos podem ficar vazios.</p><input id="guide-json-file" type="file" accept=".json,application/json"></div><div class="guide-import-actions"><a class="admin-button secondary" href="../modelos/guia-comercial-modelo.json" download>Baixar modelo JSON</a><button id="import-guide-json" class="admin-button" type="button" disabled>Importar empresas</button></div></div><div id="guide-json-preview"></div><p id="guide-json-message" class="guide-import-note">Selecione o arquivo preenchido para conferir os dados antes de importar.</p>`;
   oldPanel?.before(section);
   addCleanup(() => section.remove());
   addListener($("#guide-json-file"), "change", async event => {
@@ -234,14 +234,14 @@ async function initModule(context = {}) {
   if (!acesso?.configurado) return;
   mounted = true;
   runId += 1;
-  moduleContext.setTitle?.("Migrar conteÃºdo antigo", "ImportaÃ§Ã£o segura de arquivos legados e lotes do Guia Comercial.");
-  document.title = "Migrar conteÃºdo | Eu Amo UrÃ¢nia";
+  moduleContext.setTitle?.("Migrar conteúdo antigo", "Importação segura de arquivos legados e lotes do Guia Comercial.");
+  document.title = "Migrar conteúdo | Eu Amo Urânia";
   const adminName = document.getElementById("admin-name") || document.getElementById("admin-user");
   if (adminName) adminName.textContent = acesso.admin?.nome || acesso.user?.email || "";
   statusEl = $("#migration-status");
   migrationButton = $("#run-migration");
   addListener(migrationButton, "click", migrar);
-  if (statusEl) statusEl.textContent = "Pronto para importar os arquivos antigos. A operaÃ§Ã£o Ã© segura para repetir.";
+  if (statusEl) statusEl.textContent = "Pronto para importar os arquivos antigos. A operação é segura para repetir.";
   setupGuideJsonImport();
 }
 
@@ -256,7 +256,7 @@ export async function mount(container, context = {}) {
 export function unmount() {
   mounted = false;
   cleanupHandlers.splice(0).forEach(handler => {
-    try { handler(); } catch (error) { console.warn("Falha ao desmontar ImportaÃ§Ã£o:", error); }
+    try { handler(); } catch (error) { console.warn("Falha ao desmontar Importação:", error); }
   });
   importState = { itens: [], arquivo: null };
   statusEl = null;

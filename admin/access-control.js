@@ -16,7 +16,7 @@ const navItems=[
   ["publicidade","Publicidade","publicidade"],
   ["comunicacao","Comunicação","comunicacao"],
   ["notificacoes","Notificações do app","notificacoes"],
-  ["melhores","Melhores de Ur�nia","melhores"],
+  ["melhores","Melhores de Urânia","melhores"],
   ["categorias","Categorias","categorias"],
   ["audiencia","Audiência","insights"],
   ["configuracoes_site","Configurações","configuracoes"],

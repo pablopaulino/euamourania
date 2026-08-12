@@ -21,33 +21,33 @@ let activeMountedModule = null;
 
 const moduleRoutes = {
   comunicacao: {
-    label: "ComunicaÃ§Ã£o",
-    hint: "Assinantes, newsletters e resultados em um sÃ³ lugar.",
+    label: "Comunicação",
+    hint: "Assinantes, newsletters e resultados em um só lugar.",
     module: () => import("./comunicacao.js")
   },
   notificacoes: {
-    label: "NotificaÃ§Ãµes do Viva UrÃ¢nia",
-    hint: "Envios push, aparelhos cadastrados e histÃ³rico do aplicativo Viva UrÃ¢nia.",
+    label: "Notificações do Viva Urânia",
+    hint: "Envios push, aparelhos cadastrados e histórico do aplicativo Viva Urânia.",
     module: () => import("./notificacoes-app.js")
   },
   submissoes: {
-    label: "SubmissÃµes pÃºblicas",
-    hint: "Revise empresas e eventos enviados pelo pÃºblico antes de publicar no portal.",
+    label: "Submissões públicas",
+    hint: "Revise empresas e eventos enviados pelo público antes de publicar no portal.",
     module: () => import("./submissoes.js")
   },
   publicidade: {
     label: "Publicidade",
-    hint: "Campanhas, posiÃ§Ãµes, mÃ­dia e mÃ©tricas dos anÃºncios internos do portal.",
+    hint: "Campanhas, posições, mídia e métricas dos anúncios internos do portal.",
     module: () => import("./publicidade.js")
   },
   usuarios: {
-    label: "UsuÃ¡rios administrativos",
-    hint: "Equipe, papÃ©is e permissÃµes de acesso ao CMS.",
+    label: "Usuários administrativos",
+    hint: "Equipe, papéis e permissões de acesso ao CMS.",
     module: () => import("./usuarios.js")
   },
   importacao: {
-    label: "Migrar conteÃºdo antigo",
-    hint: "ImportaÃ§Ã£o segura de arquivos legados e lotes do Guia Comercial.",
+    label: "Migrar conteúdo antigo",
+    hint: "Importação segura de arquivos legados e lotes do Guia Comercial.",
     module: () => import("./migrar.js")
   },
   melhores: {
@@ -82,71 +82,62 @@ const sidebarIconMap = {
 
 const sidebarIconSvg = paths => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false">${paths}</svg>`;
 const sidebarIconSvgMap = {
-  "VisÃ£o geral": sidebarIconSvg(`<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-5h5v5"/>`),
-  "NotÃ­cias": sidebarIconSvg(`<path d="M4 5.5h11.5a2.5 2.5 0 0 1 2.5 2.5v10.5H6.5A2.5 2.5 0 0 1 4 16V5.5Z"/><path d="M18 8h2v8.5a2 2 0 0 1-2 2"/><path d="M7.5 9h6"/><path d="M7.5 12h6"/><path d="M7.5 15h4"/>`),
-  "AprovaÃ§Ãµes": sidebarIconSvg(`<path d="M20 7 10 17l-5-5"/><path d="M4 5.5h9"/><path d="M4 18.5h12"/>`),
+  "Visão geral": sidebarIconSvg(`<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-5h5v5"/>`),
+  "Notícias": sidebarIconSvg(`<path d="M4 5.5h11.5a2.5 2.5 0 0 1 2.5 2.5v10.5H6.5A2.5 2.5 0 0 1 4 16V5.5Z"/><path d="M18 8h2v8.5a2 2 0 0 1-2 2"/><path d="M7.5 9h6"/><path d="M7.5 12h6"/><path d="M7.5 15h4"/>`),
+  "Aprovações": sidebarIconSvg(`<path d="M20 7 10 17l-5-5"/><path d="M4 5.5h9"/><path d="M4 18.5h12"/>`),
   "Guia comercial": sidebarIconSvg(`<path d="M4 10h16"/><path d="M5 10l1-5h12l1 5"/><path d="M6 10v9h12v-9"/><path d="M9 19v-5h6v5"/>`),
   "Turismo": sidebarIconSvg(`<path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/>`),
   "Links": sidebarIconSvg(`<path d="M10 13a5 5 0 0 0 7.1 0l1.4-1.4a5 5 0 0 0-7.1-7.1L10.6 5"/><path d="M14 11a5 5 0 0 0-7.1 0l-1.4 1.4a5 5 0 0 0 7.1 7.1l.8-.8"/>`),
-  "ColaboraÃ§Ãµes": sidebarIconSvg(`<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M20.5 8v6"/><path d="M17.5 11h6"/>`),
-  "SubmissÃµes pÃºblicas": sidebarIconSvg(`<path d="M4 4h16v12H5.5L4 19.5V4Z"/><path d="M8 8h8"/><path d="M8 11.5h5"/>`),
+  "Colaborações": sidebarIconSvg(`<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M20.5 8v6"/><path d="M17.5 11h6"/>`),
+  "Submissões públicas": sidebarIconSvg(`<path d="M4 4h16v12H5.5L4 19.5V4Z"/><path d="M8 8h8"/><path d="M8 11.5h5"/>`),
   "Agenda simples": sidebarIconSvg(`<path d="M7 3v4"/><path d="M17 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/>`),
   "Eventos principais": sidebarIconSvg(`<path d="M7 3v4"/><path d="M17 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="m12 13 1.1 2.2 2.4.35-1.75 1.7.42 2.4L12 18.5l-2.17 1.15.42-2.4-1.75-1.7 2.4-.35L12 13Z"/>`),
-  "EdiÃ§Ãµes": sidebarIconSvg(`<path d="M7 7h13v13H7z"/><path d="M4 4h13v13"/><path d="M10 11h7"/><path d="M10 15h5"/>`),
+  "Edições": sidebarIconSvg(`<path d="M7 7h13v13H7z"/><path d="M4 4h13v13"/><path d="M10 11h7"/><path d="M10 15h5"/>`),
   "Publicidade": sidebarIconSvg(`<path d="m4 14 4-2 9-5v10l-9-5-4-2v4Z"/><path d="M8 14v5"/><path d="M18 9.5c1 .8 1.5 1.7 1.5 2.5s-.5 1.7-1.5 2.5"/>`),
-  "ComunicaÃ§Ã£o": sidebarIconSvg(`<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/>`),
-  "NotificaÃ§Ãµes do app": sidebarIconSvg(`<path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>`),
-  "Melhores de UrÃ¢nia": sidebarIconSvg(`<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M5 6H3v2a4 4 0 0 0 4 4"/><path d="M19 6h2v2a4 4 0 0 1-4 4"/>`),
+  "Comunicação": sidebarIconSvg(`<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/>`),
+  "Notificações do app": sidebarIconSvg(`<path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>`),
+  "Melhores de Urânia": sidebarIconSvg(`<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M5 6H3v2a4 4 0 0 0 4 4"/><path d="M19 6h2v2a4 4 0 0 1-4 4"/>`),
   "Categorias": sidebarIconSvg(`<path d="M20.5 10.5 13.5 3.5H6l-2.5 2.5v7.5l7 7a2 2 0 0 0 2.8 0l7.2-7.2a2 2 0 0 0 0-2.8Z"/><circle cx="8.5" cy="8.5" r="1"/>`),
-  "AudiÃªncia": sidebarIconSvg(`<path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-3"/>`),
-  "ConfiguraÃ§Ãµes": sidebarIconSvg(`<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.9l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.9-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.9.34l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.9 1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.9l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.9.34h.02A1.7 1.7 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.02a1.7 1.7 0 0 0 1.9-.34l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.9v.02A1.7 1.7 0 0 0 20.91 10H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/>`),
-  "UsuÃ¡rios": sidebarIconSvg(`<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M17 11l2 2 4-4"/>`),
+  "Audiência": sidebarIconSvg(`<path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-3"/>`),
+  "Configurações": sidebarIconSvg(`<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.9l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.9-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.9.34l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.9 1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.9l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.9.34h.02A1.7 1.7 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.02a1.7 1.7 0 0 0 1.9-.34l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.9v.02A1.7 1.7 0 0 0 20.91 10H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/>`),
+  "Usuários": sidebarIconSvg(`<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M17 11l2 2 4-4"/>`),
   "Importar JSON": sidebarIconSvg(`<path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5Z"/><path d="M12 12v5"/><path d="m9.5 14.5 2.5-2.5 2.5 2.5"/>`)
 };
 
 const resources = {
-  noticias: { label:"NotÃ­cias", title:"titulo", order:"atualizado_em", fields:[
-    ["titulo","TÃ­tulo","text",true],["slug","Slug","text",true],["subtitulo","SubtÃ­tulo","text"],["resumo","Resumo","textarea"],["categoria_nome","Categoria","text"],["autor","Autor","text"],["imagem_url","URL da imagem","url"],["legenda_imagem","Legenda da imagem","text"],["status","Status","status"],["destaque","Destaque","boolean"],["publicado_em","PublicaÃ§Ã£o","datetime-local"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"],["seo_imagem","Imagem SEO","url"],["conteudo_html","ConteÃºdo","editor"]]},
+  noticias: { label:"Notícias", title:"titulo", order:"atualizado_em", fields:[
+    ["titulo","Título","text",true],["slug","Slug","text",true],["subtitulo","Subtítulo","text"],["resumo","Resumo","textarea"],["categoria_nome","Categoria","text"],["autor","Autor","text"],["imagem_url","URL da imagem","url"],["legenda_imagem","Legenda da imagem","text"],["status","Status","status"],["destaque","Destaque","boolean"],["publicado_em","Publicação","datetime-local"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["seo_imagem","Imagem SEO","url"],["conteudo_html","Conteúdo","editor"]]},
   guia_comercial: { label:"Guia comercial", title:"nome", order:"atualizado_em", fields:[
-    ["nome","Nome","text",true],["slug","Slug","text",true],["categoria_nome","Categoria","text"],["descricao","DescriÃ§Ã£o","textarea"],["imagem_url","URL da imagem","url"],["whatsapp","WhatsApp","text"],["telefone","Telefone","text"],["instagram","Instagram","url"],["facebook","Facebook","url"],["site","Site","url"],["endereco","EndereÃ§o","text"],["horario","HorÃ¡rio do site","text"],["opening_hours","HorÃ¡rios para o aplicativo","weekly-hours"],["opening_hours_note","ObservaÃ§Ã£o do horÃ¡rio no app","text"],["mapa_url","Mapa","url"],["recomendado","Recomendado","boolean"],["recomendado_editorial","Recomendado pelo Eu Amo UrÃ¢nia","boolean"],["status","Status","status"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"]]},
-  turismo: { label:"Turismo", title:"nome", order:"atualizado_em", fields:[["nome","Nome","text",true],["slug","Slug","text",true],["descricao","DescriÃ§Ã£o","textarea"],["conteudo_html","ConteÃºdo","editor"],["imagem_url","Imagem","url"],["endereco","EndereÃ§o","text"],["horario","HorÃ¡rio do site","text"],["opening_hours","HorÃ¡rios para o aplicativo","weekly-hours"],["opening_hours_note","ObservaÃ§Ã£o do horÃ¡rio no app","text"],["whatsapp","WhatsApp","text"],["mapa_url","Mapa","url"],["latitude","Latitude","number"],["longitude","Longitude","number"],["curadoria_euamourania","Curadoria Eu Amo UrÃ¢nia","boolean"],["destaque","Destaque","boolean"],["status","Status","status"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"]]},
-  links: { label:"Links", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","TÃ­tulo","text",true],["url","URL","url",true],["icone","Ãcone/emoji","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
-  colaboradores_voluntarios: { label:"ColaboraÃ§Ãµes voluntÃ¡rias", title:"nome", order:"criado_em", fields:[["nome","Nome","text",true],["whatsapp","WhatsApp","text",true],["email","E-mail","email"],["cidade","Cidade","text"],["interesses","Interesses","tags"],["mensagem","Mensagem","textarea"],["status","Status","volunteer-status"],["observacoes_internas","ObservaÃ§Ãµes internas","textarea"],["aceite_voluntario","Aceite voluntÃ¡rio","boolean"]]},
-  eventos: { label:"Eventos", title:"titulo", order:"atualizado_em", fields:[["titulo","TÃ­tulo","text",true],["slug","Slug","text",true],["descricao","DescriÃ§Ã£o","textarea"],["imagem_url","Imagem","url"],["data_inicio","InÃ­cio","datetime-local"],["data_fim","Fim","datetime-local"],["local","Local","text"],["endereco","EndereÃ§o","text"],["organizador","Organizador","text"],["whatsapp","WhatsApp","text"],["destaque","Destaque","boolean"],["status","Status","status"]]},
-  banners: { label:"Banners", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","TÃ­tulo","text"],["subtitulo","SubtÃ­tulo","text"],["imagem_url","Imagem","url"],["link_url","Link","url"],["posicao","PosiÃ§Ã£o","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
+    ["nome","Nome","text",true],["slug","Slug","text",true],["categoria_nome","Categoria","text"],["descricao","Descrição","textarea"],["imagem_url","URL da imagem","url"],["whatsapp","WhatsApp","text"],["telefone","Telefone","text"],["instagram","Instagram","url"],["facebook","Facebook","url"],["site","Site","url"],["endereco","Endereço","text"],["horario","Horário do site","text"],["opening_hours","Horários para o aplicativo","weekly-hours"],["opening_hours_note","Observação do horário no app","text"],["mapa_url","Mapa","url"],["recomendado","Recomendado","boolean"],["recomendado_editorial","Recomendado pelo Eu Amo Urânia","boolean"],["status","Status","status"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"]]},
+  turismo: { label:"Turismo", title:"nome", order:"atualizado_em", fields:[["nome","Nome","text",true],["slug","Slug","text",true],["descricao","Descrição","textarea"],["conteudo_html","Conteúdo","editor"],["imagem_url","Imagem","url"],["endereco","Endereço","text"],["horario","Horário do site","text"],["opening_hours","Horários para o aplicativo","weekly-hours"],["opening_hours_note","Observação do horário no app","text"],["whatsapp","WhatsApp","text"],["mapa_url","Mapa","url"],["latitude","Latitude","number"],["longitude","Longitude","number"],["curadoria_euamourania","Curadoria Eu Amo Urânia","boolean"],["destaque","Destaque","boolean"],["status","Status","status"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"]]},
+  links: { label:"Links", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","Título","text",true],["url","URL","url",true],["icone","Ícone/emoji","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
+  colaboradores_voluntarios: { label:"Colaborações voluntárias", title:"nome", order:"criado_em", fields:[["nome","Nome","text",true],["whatsapp","WhatsApp","text",true],["email","E-mail","email"],["cidade","Cidade","text"],["interesses","Interesses","tags"],["mensagem","Mensagem","textarea"],["status","Status","volunteer-status"],["observacoes_internas","Observações internas","textarea"],["aceite_voluntario","Aceite voluntário","boolean"]]},
+  eventos: { label:"Eventos", title:"titulo", order:"atualizado_em", fields:[["titulo","Título","text",true],["slug","Slug","text",true],["descricao","Descrição","textarea"],["imagem_url","Imagem","url"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["local","Local","text"],["endereco","Endereço","text"],["organizador","Organizador","text"],["whatsapp","WhatsApp","text"],["destaque","Destaque","boolean"],["status","Status","status"]]},
+  banners: { label:"Banners", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","Título","text"],["subtitulo","Subtítulo","text"],["imagem_url","Imagem","url"],["link_url","Link","url"],["posicao","Posição","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
   categorias: { label:"Categorias", title:"nome", order:"ordem", ascending:true, fields:[["nome","Nome","text",true],["slug","Slug","text",true],["tipo","Tipo","category-type",true],["ordem","Ordem","number"],["status","Status","active-status"]]},
-  configuracoes_site: { label:"ConfiguraÃ§Ãµes", title:"chave", order:"chave", ascending:true, fields:[["chave","Chave","text",true],["valor","Valor","textarea"],["tipo","Tipo","text"]]}
+  configuracoes_site: { label:"Configurações", title:"chave", order:"chave", ascending:true, fields:[["chave","Chave","text",true],["valor","Valor","textarea"],["tipo","Tipo","text"]]}
 };
 
-resources.eventos_principais = { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","DescriÃ’Â§Ã’Â£o curta","textarea"],["historia_html","HistÃ’Â³ria do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histÃ’Â³rica (JSON)","textarea"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","RecorrÃ’Âªncia","event-recurrence"],["periodo_aproximado","PerÃ’Â­odo aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","TÃ’Â­tulo SEO","text"],["seo_descricao","DescriÃ’Â§Ã’Â£o SEO","textarea"],["palavras_chave","Palavras-chave","text"]] };
-resources.eventos_edicoes = { label:"EdiÃ’Â§Ã’Âµes de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","ID do evento principal","text",true],["ano","Ano","number",true],["slug","Slug da ediÃ’Â§Ã’Â£o","text"],["titulo","TÃ’Â­tulo da ediÃ’Â§Ã’Â£o","text",true],["subtitulo","SubtÃ’Â­tulo","text"],["data_inicio","InÃ’Â­cio","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","ProgramaÃ’Â§Ã’Â£o","editor"],["atracoes_html","AtraÃ’Â§Ã’Âµes","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria (JSON)","textarea"],["videos","VÃ’Â­deos (JSON)","textarea"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links Ã’Âºteis (JSON)","textarea"],["patrocinadores","Patrocinadores (JSON)","textarea"],["status","Status da ediÃ’Â§Ã’Â£o","event-edition-status"],["resumo_pos_evento_html","Resumo pÃ’Â³s-evento","textarea"],["publico_estimado","PÃ’Âºblico estimado","number"],["observacoes","ObservaÃ’Â§Ã’Âµes","textarea"],["destaque","Destaque","boolean"]] };
-
-resources.eventos_principais = { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","DescriÃ§Ã£o curta","textarea"],["historia_html","HistÃ³ria do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histÃ³rica","url-list"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","RecorrÃªncia","event-recurrence"],["periodo_aproximado","PerÃ­odo aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"],["palavras_chave","Palavras-chave","text"]] };
-resources.eventos_edicoes = { label:"EdiÃ§Ãµes de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["slug","Slug da ediÃ§Ã£o","text"],["titulo","TÃ­tulo da ediÃ§Ã£o","text",true],["subtitulo","SubtÃ­tulo","text"],["data_inicio","InÃ­cio","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","ProgramaÃ§Ã£o","editor"],["atracoes_html","AtraÃ§Ãµes","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da ediÃ§Ã£o","url-list"],["videos","VÃ­deos","line-list"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links Ãºteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da ediÃ§Ã£o","event-edition-status"],["resumo_pos_evento_html","Resumo pÃ³s-evento","textarea"],["publico_estimado","PÃºblico estimado","number"],["observacoes","ObservaÃ§Ãµes","textarea"],["destaque","Destaque","boolean"]] };
-
-resources.eventos_principais = { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","DescriÃ§Ã£o curta","textarea"],["historia_html","HistÃ³ria do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histÃ³rica","url-list"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","RecorrÃªncia","event-recurrence"],["periodo_aproximado","PerÃ­odo aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"],["palavras_chave","Palavras-chave","text"]] };
-resources.eventos_edicoes = { label:"EdiÃ§Ãµes de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["slug","Slug da ediÃ§Ã£o","text"],["titulo","TÃ­tulo da ediÃ§Ã£o","text",true],["subtitulo","SubtÃ­tulo","text"],["data_inicio","InÃ­cio","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","ProgramaÃ§Ã£o","editor"],["atracoes_html","AtraÃ§Ãµes","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da ediÃ§Ã£o","url-list"],["videos","VÃ­deos","line-list"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links Ãºteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da ediÃ§Ã£o","event-edition-status"],["resumo_pos_evento_html","Resumo pÃ³s-evento","textarea"],["publico_estimado","PÃºblico estimado","number"],["observacoes","ObservaÃ§Ãµes","textarea"],["destaque","Destaque","boolean"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"],["palavras_chave","Palavras-chave","text"]] };
-
 Object.assign(resources, {
-  noticias: { label:"NotÃ­cias", title:"titulo", order:"atualizado_em", fields:[
-    ["titulo","TÃ­tulo","text",true],["slug","Slug","text",true],["subtitulo","SubtÃ­tulo","text"],["resumo","Resumo","textarea"],["categoria_nome","Categoria","text"],["autor","Autor","text"],["imagem_url","URL da imagem","url"],["legenda_imagem","Legenda da imagem","text"],["status","Status","status"],["destaque","Destaque","boolean"],["publicado_em","PublicaÃ§Ã£o","datetime-local"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"],["seo_imagem","Imagem SEO","url"],["conteudo_html","ConteÃºdo","editor"]]},
+  noticias: { label:"Notícias", title:"titulo", order:"atualizado_em", fields:[
+    ["titulo","Título","text",true],["slug","Slug","text",true],["subtitulo","Subtítulo","text"],["resumo","Resumo","textarea"],["categoria_nome","Categoria","text"],["autor","Autor","text"],["imagem_url","URL da imagem","url"],["legenda_imagem","Legenda da imagem","text"],["status","Status","status"],["destaque","Destaque","boolean"],["publicado_em","Publicação","datetime-local"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["seo_imagem","Imagem SEO","url"],["conteudo_html","Conteúdo","editor"]]},
   guia_comercial: { label:"Guia comercial", title:"nome", order:"atualizado_em", fields:[
-    ["nome","Nome","text",true],["slug","Slug","text",true],["categoria_nome","Categoria","text"],["descricao","DescriÃ§Ã£o","textarea"],["imagem_url","URL da imagem","url"],["whatsapp","WhatsApp","text"],["telefone","Telefone","text"],["instagram","Instagram","url"],["facebook","Facebook","url"],["site","Site","url"],["endereco","EndereÃ§o","text"],["horario","HorÃ¡rio do site","text"],["opening_hours","HorÃ¡rios para o aplicativo","weekly-hours"],["opening_hours_note","ObservaÃ§Ã£o do horÃ¡rio no app","text"],["mapa_url","Mapa","url"],["recomendado","Recomendado","boolean"],["recomendado_editorial","Recomendado pelo Eu Amo UrÃ¢nia","boolean"],["status","Status","status"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"]]},
-  turismo: { label:"Turismo", title:"nome", order:"atualizado_em", fields:[["nome","Nome","text",true],["slug","Slug","text",true],["descricao","DescriÃ§Ã£o","textarea"],["conteudo_html","ConteÃºdo","editor"],["imagem_url","Imagem","url"],["endereco","EndereÃ§o","text"],["horario","HorÃ¡rio do site","text"],["opening_hours","HorÃ¡rios para o aplicativo","weekly-hours"],["opening_hours_note","ObservaÃ§Ã£o do horÃ¡rio no app","text"],["whatsapp","WhatsApp","text"],["mapa_url","Mapa","url"],["latitude","Latitude","number"],["longitude","Longitude","number"],["curadoria_euamourania","Curadoria Eu Amo UrÃ¢nia","boolean"],["destaque","Destaque","boolean"],["status","Status","status"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"]]},
-  links: { label:"Links", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","TÃ­tulo","text",true],["url","URL","url",true],["icone","Ãcone/emoji","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
-  colaboradores_voluntarios: { label:"ColaboraÃ§Ãµes voluntÃ¡rias", title:"nome", order:"criado_em", fields:[["nome","Nome","text",true],["whatsapp","WhatsApp","text",true],["email","E-mail","email"],["cidade","Cidade","text"],["interesses","Interesses","tags"],["mensagem","Mensagem","textarea"],["status","Status","volunteer-status"],["observacoes_internas","ObservaÃ§Ãµes internas","textarea"],["aceite_voluntario","Aceite voluntÃ¡rio","boolean"]]},
-  eventos: { label:"Agenda simples", title:"titulo", order:"atualizado_em", fields:[["titulo","TÃ­tulo","text",true],["slug","Slug","text",true],["descricao","DescriÃ§Ã£o","textarea"],["imagem_url","Imagem","url"],["data_inicio","InÃ­cio","datetime-local"],["data_fim","Fim","datetime-local"],["recorrencia_tipo","RepetiÃ§Ã£o","event-simple-recurrence"],["recorrencia_ate","Repetir atÃ©","datetime-local"],["local","Local","text"],["endereco","EndereÃ§o","text"],["organizador","Organizador","text"],["whatsapp","WhatsApp","text"],["destaque","Destaque","boolean"],["status","Status","status"]]},
-  banners: { label:"Banners", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","TÃ­tulo","text"],["subtitulo","SubtÃ­tulo","text"],["imagem_url","Imagem","url"],["link_url","Link","url"],["posicao","PosiÃ§Ã£o","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
+    ["nome","Nome","text",true],["slug","Slug","text",true],["categoria_nome","Categoria","text"],["descricao","Descrição","textarea"],["imagem_url","URL da imagem","url"],["whatsapp","WhatsApp","text"],["telefone","Telefone","text"],["instagram","Instagram","url"],["facebook","Facebook","url"],["site","Site","url"],["endereco","Endereço","text"],["horario","Horário do site","text"],["opening_hours","Horários para o aplicativo","weekly-hours"],["opening_hours_note","Observação do horário no app","text"],["mapa_url","Mapa","url"],["recomendado","Recomendado","boolean"],["recomendado_editorial","Recomendado pelo Eu Amo Urânia","boolean"],["status","Status","status"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"]]},
+  turismo: { label:"Turismo", title:"nome", order:"atualizado_em", fields:[["nome","Nome","text",true],["slug","Slug","text",true],["descricao","Descrição","textarea"],["conteudo_html","Conteúdo","editor"],["imagem_url","Imagem","url"],["endereco","Endereço","text"],["horario","Horário do site","text"],["opening_hours","Horários para o aplicativo","weekly-hours"],["opening_hours_note","Observação do horário no app","text"],["whatsapp","WhatsApp","text"],["mapa_url","Mapa","url"],["latitude","Latitude","number"],["longitude","Longitude","number"],["curadoria_euamourania","Curadoria Eu Amo Urânia","boolean"],["destaque","Destaque","boolean"],["status","Status","status"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"]]},
+  links: { label:"Links", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","Título","text",true],["url","URL","url",true],["icone","Ícone/emoji","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
+  colaboradores_voluntarios: { label:"Colaborações voluntárias", title:"nome", order:"criado_em", fields:[["nome","Nome","text",true],["whatsapp","WhatsApp","text",true],["email","E-mail","email"],["cidade","Cidade","text"],["interesses","Interesses","tags"],["mensagem","Mensagem","textarea"],["status","Status","volunteer-status"],["observacoes_internas","Observações internas","textarea"],["aceite_voluntario","Aceite voluntário","boolean"]]},
+  eventos: { label:"Agenda simples", title:"titulo", order:"atualizado_em", fields:[["titulo","Título","text",true],["slug","Slug","text",true],["descricao","Descrição","textarea"],["imagem_url","Imagem","url"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["recorrencia_tipo","Repetição","event-simple-recurrence"],["recorrencia_ate","Repetir até","datetime-local"],["local","Local","text"],["endereco","Endereço","text"],["organizador","Organizador","text"],["whatsapp","WhatsApp","text"],["destaque","Destaque","boolean"],["status","Status","status"]]},
+  banners: { label:"Banners", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","Título","text"],["subtitulo","Subtítulo","text"],["imagem_url","Imagem","url"],["link_url","Link","url"],["posicao","Posição","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
   categorias: { label:"Categorias", title:"nome", order:"ordem", ascending:true, fields:[["nome","Nome","text",true],["slug","Slug","text",true],["tipo","Tipo","category-type",true],["ordem","Ordem","number"],["status","Status","active-status"]]},
-  configuracoes_site: { label:"ConfiguraÃ§Ãµes", title:"chave", order:"chave", ascending:true, fields:[["chave","Chave","text",true],["valor","Valor","textarea"],["tipo","Tipo","text"]]},
-  eventos_principais: { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","DescriÃ§Ã£o curta","textarea"],["historia_html","HistÃ³ria do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histÃ³rica","url-list"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","RecorrÃªncia","event-recurrence"],["periodo_aproximado","PerÃ­odo aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"],["palavras_chave","Palavras-chave","text"]]},
-  eventos_edicoes: { label:"EdiÃ§Ãµes de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["slug","Slug da ediÃ§Ã£o","text"],["titulo","TÃ­tulo da ediÃ§Ã£o","text",true],["subtitulo","SubtÃ­tulo","text"],["data_inicio","InÃ­cio","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","ProgramaÃ§Ã£o","editor"],["atracoes_html","AtraÃ§Ãµes","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da ediÃ§Ã£o","url-list"],["videos","VÃ­deos","line-list"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links Ãºteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da ediÃ§Ã£o","event-edition-status"],["resumo_pos_evento_html","Resumo pÃ³s-evento","textarea"],["publico_estimado","PÃºblico estimado","number"],["observacoes","ObservaÃ§Ãµes","textarea"],["destaque","Destaque","boolean"],["seo_titulo","TÃ­tulo SEO","text"],["seo_descricao","DescriÃ§Ã£o SEO","textarea"],["palavras_chave","Palavras-chave","text"]]}
+  configuracoes_site: { label:"Configurações", title:"chave", order:"chave", ascending:true, fields:[["chave","Chave","text",true],["valor","Valor","textarea"],["tipo","Tipo","text"]]},
+  eventos_principais: { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","Descrição curta","textarea"],["historia_html","História do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histórica","url-list"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","Recorrência","event-recurrence"],["periodo_aproximado","Período aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]]},
+  eventos_edicoes: { label:"Edições de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["slug","Slug da edição","text"],["titulo","Título da edição","text",true],["subtitulo","Subtítulo","text"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","Programação","editor"],["atracoes_html","Atrações","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da edição","url-list"],["videos","Vídeos","line-list"],["local","Local","text"],["mapa_url","Mapa","url"],["links_uteis","Links úteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da edição","event-edition-status"],["resumo_pos_evento_html","Resumo pós-evento","textarea"],["publico_estimado","Público estimado","number"],["observacoes","Observações","textarea"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]]}
 });
 
 function adicionarCamposDestaqueHome() {
   const campos = [
     ["destaque_home", "â­ Destaque da Home", "boolean"],
-    ["destaque_home_inicio", "InÃ­cio do destaque", "datetime-local"],
+    ["destaque_home_inicio", "Início do destaque", "datetime-local"],
     ["destaque_home_fim", "Fim do destaque", "datetime-local"]
   ];
   for (const tabela of ["noticias", "guia_comercial", "turismo", "eventos"]) {
@@ -166,20 +157,20 @@ const validSiteReference = value => !value || /^(?:https?:\/\/|mailto:|tel:|\/(?
 const listValue = value => Array.isArray(value) ?value.map(item => item?.url || item?.nome || item?.titulo || item).filter(Boolean).join("\n") : "";
 const parseUrlList = value => String(value || "").split(/\r?\n/).map(item => item.trim()).filter(Boolean).map(url => ({ url }));
 const parseLineList = value => String(value || "").split(/\r?\n/).map(item => item.trim()).filter(Boolean).map(nome => ({ nome }));
-const WEEK_DAYS = [["mon","Segunda-feira"],["tue","TerÃ§a-feira"],["wed","Quarta-feira"],["thu","Quinta-feira"],["fri","Sexta-feira"],["sat","SÃ¡bado"],["sun","Domingo"]];
+const WEEK_DAYS = [["mon","Segunda-feira"],["tue","Terça-feira"],["wed","Quarta-feira"],["thu","Quinta-feira"],["fri","Sexta-feira"],["sat","Sábado"],["sun","Domingo"]];
 const weeklyHourValue = (value, day, key) => escapeHtml(value && typeof value === "object" && !Array.isArray(value) ?value?.[day]?.[key] || "" : "");
 const weeklyHourChecked = (value, day) => value && typeof value === "object" && !Array.isArray(value) && value?.[day]?.closed ?"checked" : "";
 function weeklyHoursHtml(name,label,value){
   const data=value&&typeof value==="object"&&!Array.isArray(value)?value:{};
-  return `<fieldset class="full-row weekly-hours" data-weekly-hours="${name}"><legend>${label}</legend><div class="weekly-hours-head"><p>Use estes horÃ¡rios no aplicativo. O site continua usando o campo ï¿½SHorÃ¡rio do siteâ¬.</p><div class="weekly-hours-actions"><button type="button" data-weekly-copy-weekdays>Segï¿½sex = segunda</button><button type="button" data-weekly-copy-sat>SÃ¡bado = sexta</button><button type="button" data-weekly-copy-sun>Domingo = sÃ¡bado</button><button type="button" data-weekly-clear>Limpar</button></div></div>${WEEK_DAYS.map(([key,day],index)=>`<details class="weekly-day" data-weekly-day="${key}"><summary><strong>${day}</strong><span data-weekly-summary="${key}">${weeklyHourSummary(data,key)}</span></summary><div class="weekly-day-body"><label>Abre<input type="time" name="${name}_${key}_open" value="${weeklyHourValue(data,key,"open")}" aria-label="${day} abre"></label><label>Fecha<input type="time" name="${name}_${key}_close" value="${weeklyHourValue(data,key,"close")}" aria-label="${day} fecha"></label><label class="weekly-closed"><input type="checkbox" name="${name}_${key}_closed" value="true" ${weeklyHourChecked(data,key)}> Fechado</label>${index?`<button type="button" class="weekly-copy-prev" data-weekly-copy-prev="${key}">Usar dia anterior</button>`:""}</div></details>`).join("")}</fieldset>`;
+  return `<fieldset class="full-row weekly-hours" data-weekly-hours="${name}"><legend>${label}</legend><div class="weekly-hours-head"><p>Use estes horários no aplicativo. O site continua usando o campo “Horário do site”.</p><div class="weekly-hours-actions"><button type="button" data-weekly-copy-weekdays>Seg–sex = segunda</button><button type="button" data-weekly-copy-sat>Sábado = sexta</button><button type="button" data-weekly-copy-sun>Domingo = sábado</button><button type="button" data-weekly-clear>Limpar</button></div></div>${WEEK_DAYS.map(([key,day],index)=>`<details class="weekly-day" data-weekly-day="${key}"><summary><strong>${day}</strong><span data-weekly-summary="${key}">${weeklyHourSummary(data,key)}</span></summary><div class="weekly-day-body"><label>Abre<input type="time" name="${name}_${key}_open" value="${weeklyHourValue(data,key,"open")}" aria-label="${day} abre"></label><label>Fecha<input type="time" name="${name}_${key}_close" value="${weeklyHourValue(data,key,"close")}" aria-label="${day} fecha"></label><label class="weekly-closed"><input type="checkbox" name="${name}_${key}_closed" value="true" ${weeklyHourChecked(data,key)}> Fechado</label>${index?`<button type="button" class="weekly-copy-prev" data-weekly-copy-prev="${key}">Usar dia anterior</button>`:""}</div></details>`).join("")}</fieldset>`;
 }
 function weeklyHourSummary(data,key){
   const item=data?.[key]||{};
   if(item.closed)return "Fechado";
-  if(item.open&&item.close)return `${item.open}ï¿½${item.close}`;
+  if(item.open&&item.close)return `${item.open}–${item.close}`;
   if(item.open)return `Abre ${item.open}`;
   if(item.close)return `Fecha ${item.close}`;
-  return "NÃ£o configurado";
+  return "Não configurado";
 }
 function collectWeeklyHours(form,name){
   const result={};let hasValue=false;
@@ -247,7 +238,7 @@ document.addEventListener("click",handleWeeklyHoursAction);
 document.addEventListener("input",handleWeeklyHoursChange);
 document.addEventListener("change",handleWeeklyHoursChange);
 async function legacyDashboard() {
-  title.textContent = "VisÃ£o geral";
+  title.textContent = "Visão geral";
   app.innerHTML = '<div class="loading">Carregando indicadoresâ¬¦</div>';
   const supabase = getSupabase();
   const count = async (table, filters={}) => { let q=supabase.from(table).select("*",{count:"exact",head:true}); Object.entries(filters).forEach(([k,v])=>q=q.eq(k,v)); const {count,error}=await q; if(error) throw error; return count||0; };
@@ -280,40 +271,40 @@ async function legacyDashboard() {
       .order("atualizado_em",{ascending:false})
       .limit(5);
     const metrics=[
-      ["NotÃ­cias",noticias,`${publicadas} publicadas Â· ${rascunhos} rascunhos`],
+      ["Notícias",noticias,`${publicadas} publicadas · ${rascunhos} rascunhos`],
       ["Empresas",empresas,`${empresasAtivas} publicadas no guia`],
-      ["Turismo",pontos,"pontos turÃ­sticos cadastrados"],
+      ["Turismo",pontos,"pontos turísticos cadastrados"],
       ["Eventos",eventos,`${eventosAtivos} publicados`],
       ["Publicidade",campanhas,`${campanhasAtivas} campanhas ativas`],
-      ["ComunicaÃ§Ã£o",newsletters,`${assinantes} assinantes ativos`],
-      ["Melhores de UrÃ¢nia",melhoresEdicoes,`${melhoresIndicados} indicados ativos`],
+      ["Comunicação",newsletters,`${assinantes} assinantes ativos`],
+      ["Melhores de Urânia",melhoresEdicoes,`${melhoresIndicados} indicados ativos`],
       ["Links ativos",links,"canais e links publicados"]
     ];
     app.innerHTML=`
       <section class="dashboard-welcome panel">
         <div>
-          <p class="eyebrow">Painel Eu Amo UrÃ¢nia</p>
-          <h2>VisÃ£o geral do portal</h2>
-          <p>Acompanhe conteÃºdo, audiÃªncia, campanhas, comunicaÃ§Ã£o e a operaÃ§Ã£o do Melhores de UrÃ¢nia em um sÃ³ lugar.</p>
+          <p class="eyebrow">Painel Eu Amo Urânia</p>
+          <h2>Visão geral do portal</h2>
+          <p>Acompanhe conteúdo, audiência, campanhas, comunicação e a operação do Melhores de Urânia em um só lugar.</p>
         </div>
-        ${aprovacoes?`<button class="admin-button" id="dashboard-approvals">${aprovacoes} aprovaÃ§Ã£o(Ãµes) pendente(s)</button>`:""}
+        ${aprovacoes?`<button class="admin-button" id="dashboard-approvals">${aprovacoes} aprovação(ões) pendente(s)</button>`:""}
       </section>
       <div class="dashboard-grid">${metrics.map(([label,value,detail])=>`<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${detail}</small></article>`).join("")}</div>
       <div class="dashboard-grid dashboard-actions">
-        <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>NotÃ­cias</strong><small>Criar, revisar e publicar</small></button>
-        <button class="metric-card" data-view="melhores"><span>PrÃªmio</span><strong>Melhores de UrÃ¢nia</strong><small>VotaÃ§Ã£o, apuraÃ§Ã£o e resultados</small></button>
-        <button class="metric-card" id="dashboard-audience"><span>Dados</span><strong>AudiÃªncia</strong><small>VisualizaÃ§Ãµes, cliques e buscas</small></button>
+        <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>Notícias</strong><small>Criar, revisar e publicar</small></button>
+        <button class="metric-card" data-view="melhores"><span>Prêmio</span><strong>Melhores de Urânia</strong><small>Votação, apuração e resultados</small></button>
+        <button class="metric-card" id="dashboard-audience"><span>Dados</span><strong>Audiência</strong><small>Visualizações, cliques e buscas</small></button>
         <button class="metric-card" data-view="publicidade"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
       </div>
       <section class="panel">
-        <header class="panel-header"><h2>NotÃ­cias recentes</h2></header>
-        ${recentNews.length?recentNews.map(item=>`<div class="rank-item"><strong>${escapeHtml(item.titulo)}</strong><small>${escapeHtml(item.status||"")} Â· ${item.atualizado_em?new Date(item.atualizado_em).toLocaleDateString("pt-BR"):"sem data"}</small></div>`).join(""):'<div class="empty-state">Nenhuma notÃ­cia recente.</div>'}
+        <header class="panel-header"><h2>Notícias recentes</h2></header>
+        ${recentNews.length?recentNews.map(item=>`<div class="rank-item"><strong>${escapeHtml(item.titulo)}</strong><small>${escapeHtml(item.status||"")} · ${item.atualizado_em?new Date(item.atualizado_em).toLocaleDateString("pt-BR"):"sem data"}</small></div>`).join(""):'<div class="empty-state">Nenhuma notícia recente.</div>'}
       </section>`;
   } catch(error) { app.innerHTML=`<p class="form-message">${escapeHtml(error.message)}</p>`; }
 }
 
 async function dashboardBase() {
-  title.textContent = "VisÃ£o geral";
+  title.textContent = "Visão geral";
   app.innerHTML = '<div class="loading">Carregando indicadoresâ¬¦</div>';
   const supabase = getSupabase();
   const count = async (table, filters = {}) => {
@@ -374,36 +365,36 @@ async function dashboardBase() {
     ]);
 
     const primaryMetrics = [
-      ["Editorial", publicadas, "NotÃ­cias publicadas", `${rascunhos} rascunho(s) Â· ${noticias} no total`],
-      ["Fluxo", aprovacoes, "AprovaÃ§Ãµes pendentes", aprovacoes ?"Precisa de revisÃ£o editorial" : "Fila editorial em dia"],
-      ["Dados reais", views7d, "AudiÃªncia 7 dias", `${whatsapp7d} clique(s) no WhatsApp`],
+      ["Editorial", publicadas, "Notícias publicadas", `${rascunhos} rascunho(s) · ${noticias} no total`],
+      ["Fluxo", aprovacoes, "Aprovações pendentes", aprovacoes ?"Precisa de revisão editorial" : "Fila editorial em dia"],
+      ["Dados reais", views7d, "Audiência 7 dias", `${whatsapp7d} clique(s) no WhatsApp`],
       ["Publicidade", campanhasAtivas, "Campanhas ativas", `${campanhas} campanha(s) cadastrada(s)`]
     ];
     const secondaryMetrics = [
       ["Guia", empresas, `${empresasAtivas} empresas publicadas`],
       ["Turismo", pontos, `${pontosAtivos} pontos publicados`],
       ["Eventos", eventos, `${eventosAtivos} publicados`],
-      ["ComunicaÃ§Ã£o", assinantes, "assinantes ativos"],
-      ["Melhores de UrÃ¢nia", melhoresEdicoes, `${melhoresIndicados} indicados ativos`],
+      ["Comunicação", assinantes, "assinantes ativos"],
+      ["Melhores de Urânia", melhoresEdicoes, `${melhoresIndicados} indicados ativos`],
       ["Links", links, "links ativos"]
     ];
     const pendingTasks = [
-      aprovacoes ?[`${aprovacoes} matÃ©ria(s) aguardando aprovaÃ§Ã£o`, "Abrir fila", "aprovacoes"] : null,
-      rascunhos ?[`${rascunhos} notÃ­cia(s) em rascunho`, "Ver notÃ­cias", "noticias"] : null,
-      campanhasAtivas ?null : ["Nenhuma campanha publicitÃ¡ria ativa", "Criar campanha", "publicidade"],
-      melhoresEdicoes ?null : ["Nenhuma ediÃ§Ã£o ativa do Melhores cadastrada", "Abrir Melhores", "melhores"]
+      aprovacoes ?[`${aprovacoes} matéria(s) aguardando aprovação`, "Abrir fila", "aprovacoes"] : null,
+      rascunhos ?[`${rascunhos} notícia(s) em rascunho`, "Ver notícias", "noticias"] : null,
+      campanhasAtivas ?null : ["Nenhuma campanha publicitária ativa", "Criar campanha", "publicidade"],
+      melhoresEdicoes ?null : ["Nenhuma edição ativa do Melhores cadastrada", "Abrir Melhores", "melhores"]
     ].filter(Boolean);
 
     app.innerHTML = `
       <section class="dashboard-hero panel">
         <div>
-          <p class="eyebrow">Painel Eu Amo UrÃ¢nia</p>
+          <p class="eyebrow">Painel Eu Amo Urânia</p>
           <h2>Central de controle do portal</h2>
-          <p>Resumo operacional com conteÃºdo, aprovaÃ§Ãµes, audiÃªncia, publicidade e Melhores de UrÃ¢nia em um sÃ³ lugar.</p>
+          <p>Resumo operacional com conteúdo, aprovações, audiência, publicidade e Melhores de Urânia em um só lugar.</p>
         </div>
         <div class="dashboard-hero-actions">
-          <button class="admin-button" data-new="noticias">Nova notÃ­cia</button>
-          <button class="admin-button secondary" id="dashboard-audience">Ver audiÃªncia</button>
+          <button class="admin-button" data-new="noticias">Nova notícia</button>
+          <button class="admin-button secondary" id="dashboard-audience">Ver audiência</button>
         </div>
       </section>
       <div class="dashboard-primary-grid">
@@ -411,13 +402,13 @@ async function dashboardBase() {
       </div>
       <div class="dashboard-layout">
         <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>O que precisa de atenÃ§Ã£o</h2><p>Atalhos para as prÃ³ximas aÃ§Ãµes do painel.</p></div></header>
+          <header class="panel-header"><div><h2>O que precisa de atenção</h2><p>Atalhos para as próximas ações do painel.</p></div></header>
           <div class="dashboard-task-list">
-            ${pendingTasks.length ?pendingTasks.map(([text, action, target]) => `<button class="dashboard-task" ${target === "aprovacoes" ?"id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} ï¿½ </strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendÃªncia importante agora.</div>'}
+            ${pendingTasks.length ?pendingTasks.map(([text, action, target]) => `<button class="dashboard-task" ${target === "aprovacoes" ?"id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} ï¿½ </strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
           </div>
         </section>
         <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Estrutura do portal</h2><p>Dados gerais de conteÃºdo publicado e mÃ³dulos ativos.</p></div></header>
+          <header class="panel-header"><div><h2>Estrutura do portal</h2><p>Dados gerais de conteúdo publicado e módulos ativos.</p></div></header>
           <div class="dashboard-mini-grid">
             ${secondaryMetrics.map(([label, value, detail]) => `<article class="dashboard-mini-card"><strong>${value}</strong><span>${label}</span><small>${detail}</small></article>`).join("")}
           </div>
@@ -425,24 +416,24 @@ async function dashboardBase() {
       </div>
       <div class="dashboard-layout dashboard-bottom">
         <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>ï¿½altimas notÃ­cias</h2><p>ConteÃºdos editados recentemente.</p></div><button class="admin-button secondary" data-view="noticias">Ver todas</button></header>
+          <header class="panel-header"><div><h2>ï¿½altimas notícias</h2><p>Conteúdos editados recentemente.</p></div><button class="admin-button secondary" data-view="noticias">Ver todas</button></header>
           <div class="dashboard-list">
-            ${recentNews.length ?recentNews.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.titulo)}</strong><small>${escapeHtml(item.status_editorial || item.status || "")} Â· ${fmtDate(item.publicado_em || item.atualizado_em)}</small></div><span class="status-pill ${escapeHtml(item.status || "")}">${escapeHtml(item.status || "ï¿½")}</span></article>`).join("") : '<div class="empty-state">Nenhuma notÃ­cia recente.</div>'}
+            ${recentNews.length ?recentNews.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.titulo)}</strong><small>${escapeHtml(item.status_editorial || item.status || "")} · ${fmtDate(item.publicado_em || item.atualizado_em)}</small></div><span class="status-pill ${escapeHtml(item.status || "")}">${escapeHtml(item.status || "ï¿½")}</span></article>`).join("") : '<div class="empty-state">Nenhuma notícia recente.</div>'}
           </div>
         </section>
         <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>AprovaÃ§Ãµes e ediÃ§Ãµes</h2><p>Fila editorial e Ãºltimas ediÃ§Ãµes do prÃªmio.</p></div></header>
+          <header class="panel-header"><div><h2>Aprovações e edições</h2><p>Fila editorial e últimas edições do prêmio.</p></div></header>
           <div class="dashboard-list">
-            ${pendingApprovals.length ?pendingApprovals.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.noticias?.titulo || "NotÃ­cia em revisÃ£o")}</strong><small>Enviada em ${fmtDate(item.enviado_em)}</small></div><span class="status-pill">${escapeHtml(item.status)}</span></article>`).join("") : '<div class="dashboard-empty-good compact">Sem aprovaÃ§Ãµes pendentes.</div>'}
-            ${recentEditions.length ?recentEditions.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.nome || `Melhores ${item.ano}`)}</strong><small>${item.ano} Â· ${fmtDate(item.atualizado_em)}</small></div><span class="status-pill">${escapeHtml(item.status || "ï¿½")}</span></article>`).join("") : '<div class="empty-state">Nenhuma ediÃ§Ã£o do Melhores cadastrada.</div>'}
+            ${pendingApprovals.length ?pendingApprovals.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.noticias?.titulo || "Notícia em revisão")}</strong><small>Enviada em ${fmtDate(item.enviado_em)}</small></div><span class="status-pill">${escapeHtml(item.status)}</span></article>`).join("") : '<div class="dashboard-empty-good compact">Sem aprovações pendentes.</div>'}
+            ${recentEditions.length ?recentEditions.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.nome || `Melhores ${item.ano}`)}</strong><small>${item.ano} · ${fmtDate(item.atualizado_em)}</small></div><span class="status-pill">${escapeHtml(item.status || "ï¿½")}</span></article>`).join("") : '<div class="empty-state">Nenhuma edição do Melhores cadastrada.</div>'}
           </div>
         </section>
       </div>
       <div class="dashboard-quick-actions">
-        <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>NotÃ­cias</strong><small>Criar, revisar e publicar</small></button>
-        <button class="metric-card" data-view="melhores"><span>PrÃªmio</span><strong>Melhores de UrÃ¢nia</strong><small>VotaÃ§Ã£o, apuraÃ§Ã£o e resultados</small></button>
+        <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>Notícias</strong><small>Criar, revisar e publicar</small></button>
+        <button class="metric-card" data-view="melhores"><span>Prêmio</span><strong>Melhores de Urânia</strong><small>Votação, apuração e resultados</small></button>
         <button class="metric-card" data-view="publicidade"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
-        <button class="metric-card" onclick="location.href='/admin/comunicacao'"><span>Relacionamento</span><strong>ComunicaÃ§Ã£o</strong><small>Newsletter e assinantes</small></button>
+        <button class="metric-card" data-view="comunicacao"><span>Relacionamento</span><strong>Comunicação</strong><small>Newsletter e assinantes</small></button>
       </div>`;
   } catch(error) {
     app.innerHTML = `<p class="form-message">${escapeHtml(error.message)}</p>`;
@@ -450,8 +441,8 @@ async function dashboardBase() {
 }
 
 async function dashboard() {
-  title.textContent = "VisÃ£o geral";
-  app.innerHTML = '<div class="loading">Carregando central de operaÃ§Ã£oâ¬¦</div>';
+  title.textContent = "Visão geral";
+  app.innerHTML = '<div class="loading">Carregando central de operaçãoâ¬¦</div>';
   const supabase = getSupabase();
   const now = new Date();
   const isoNow = now.toISOString();
@@ -492,7 +483,7 @@ async function dashboard() {
     }
   };
   const rank = (rows, key, limit = 5) => Object.entries(rows.reduce((acc, item) => {
-    const label = item?.[key] || "NÃ£o informado";
+    const label = item?.[key] || "Não informado";
     acc[label] = (acc[label] || 0) + 1;
     return acc;
   }, {})).sort((a, b) => b[1] - a[1]).slice(0, limit).map(([label, total]) => ({ label, total }));
@@ -560,24 +551,24 @@ async function dashboard() {
     const topDevices = rank(analyticsEvents, "dispositivo", 4);
     const topOrigins = rank(analyticsEvents, "origem", 4);
     const importantAlerts = [
-      aprovacoes ?[`${aprovacoes} notÃ­cia(s) aguardando aprovaÃ§Ã£o`, "Abrir aprovaÃ§Ãµes", "aprovacoes", "warning"] : null,
-      colaboradoresNovos ?[`${colaboradoresNovos} colaborador(es) voluntÃ¡rio(s) aguardando contato`, "Ver colaboraÃ§Ãµes", "colaboradores_voluntarios", "info"] : null,
-      eventSubmissionsPending ?[`${eventSubmissionsPending} sugestÃ£o(Ãµes) de evento aguardando anÃ¡lise`, "Ver agenda", "eventos", "info"] : null,
-      businessSubmissionsPending ?[`${businessSubmissionsPending} cadastro(s) do guia aguardando anÃ¡lise`, "Ver guia", "guia_comercial", "info"] : null,
-      emRevisao ?[`${emRevisao} notÃ­cia(s) em revisÃ£o editorial`, "Ver notÃ­cias", "noticias", "info"] : null,
+      aprovacoes ?[`${aprovacoes} notícia(s) aguardando aprovação`, "Abrir aprovações", "aprovacoes", "warning"] : null,
+      colaboradoresNovos ?[`${colaboradoresNovos} colaborador(es) voluntário(s) aguardando contato`, "Ver colaborações", "colaboradores_voluntarios", "info"] : null,
+      eventSubmissionsPending ?[`${eventSubmissionsPending} sugestão(ões) de evento aguardando análise`, "Ver agenda", "eventos", "info"] : null,
+      businessSubmissionsPending ?[`${businessSubmissionsPending} cadastro(s) do guia aguardando análise`, "Ver guia", "guia_comercial", "info"] : null,
+      emRevisao ?[`${emRevisao} notícia(s) em revisão editorial`, "Ver notícias", "noticias", "info"] : null,
       rascunhos ?[`${rascunhos} rascunho(s) parado(s) no editorial`, "Organizar pauta", "noticias", "warning"] : null,
-      agendadas ?[`${agendadas} notÃ­cia(s) agendada(s) para o futuro`, "Conferir agenda", "noticias", "info"] : null,
-      campanhasVencendo ?[`${campanhasVencendo} campanha(s) vencendo em atÃ© 7 dias`, "Abrir publicidade", "publicidade", "danger"] : null,
-      campanhasAtivas ?null : ["Nenhuma campanha publicitÃ¡ria ativa", "Criar campanha", "publicidade", "warning"],
+      agendadas ?[`${agendadas} notícia(s) agendada(s) para o futuro`, "Conferir agenda", "noticias", "info"] : null,
+      campanhasVencendo ?[`${campanhasVencendo} campanha(s) vencendo em até 7 dias`, "Abrir publicidade", "publicidade", "danger"] : null,
+      campanhasAtivas ?null : ["Nenhuma campanha publicitária ativa", "Criar campanha", "publicidade", "warning"],
       eventosProximos ?[`${eventosProximos} evento(s) futuro(s) publicado(s)`, "Ver agenda", "eventos", "success"] : null,
-      eventosPrincipais && !eventosEdicoes ?["Eventos principais sem ediÃ§Ãµes cadastradas", "Abrir ediÃ§Ãµes", "eventos_edicoes", "warning"] : null,
-      melhoresEdicoes ?null : ["Nenhuma ediÃ§Ã£o ativa do Melhores", "Abrir Melhores", "melhores", "warning"]
+      eventosPrincipais && !eventosEdicoes ?["Eventos principais sem edições cadastradas", "Abrir edições", "eventos_edicoes", "warning"] : null,
+      melhoresEdicoes ?null : ["Nenhuma edição ativa do Melhores", "Abrir Melhores", "melhores", "warning"]
     ].filter(Boolean);
     const attentionTotal = importantAlerts.reduce((sum, item) => sum + Math.max(1, Number(String(item[0]).match(/^\d+/)?.[0] || 1)), 0);
     const portalScore = Math.max(0, 100 - (aprovacoes * 8) - (rascunhos * 3) - (campanhasVencendo * 6) - (colaboradoresNovos * 4) - (eventSubmissionsPending * 3) - (businessSubmissionsPending * 3) - (campanhasAtivas ?0 : 10));
     const targetAttrs = target => {
       if (target === "publicidade") return 'data-view="publicidade"';
-      if (target === "comunicacao") return "onclick=\"location.href='/admin/comunicacao'\"";
+      if (target === "comunicacao") return 'data-view="comunicacao"';
       if (target === "melhores") return 'data-view="melhores"';
       if (target === "notificacoes") return `data-view="${target}"`;
       if (target === "aprovacoes") return "id=\"dashboard-approvals\"";
@@ -585,45 +576,45 @@ async function dashboard() {
       return `data-view="${target}"`;
     };
     const primaryMetrics = [
-      ["Hoje", fmtNumber(viewsHoje), "interaÃ§Ãµes registradas", "Fonte: analytics_eventos"],
-      ["7 dias", fmtNumber(views7d), "movimento recente", `${fmtNumber(uniqueVisitors)} visitante(s) identificÃ¡veis`],
-      ["Editorial", fmtNumber(publicadas), "notÃ­cias publicadas", `${rascunhos} rascunho(s) Â· ${agendadas} agendada(s)`],
-      ["AtenÃ§Ã£o", fmtNumber(attentionTotal), "itens acionÃ¡veis", importantAlerts.length ?"Veja a fila principal abaixo" : "Rotina sem alerta importante"]
+      ["Hoje", fmtNumber(viewsHoje), "interações registradas", "Fonte: analytics_eventos"],
+      ["7 dias", fmtNumber(views7d), "movimento recente", `${fmtNumber(uniqueVisitors)} visitante(s) identificáveis`],
+      ["Editorial", fmtNumber(publicadas), "notícias publicadas", `${rascunhos} rascunho(s) · ${agendadas} agendada(s)`],
+      ["Atenção", fmtNumber(attentionTotal), "itens acionáveis", importantAlerts.length ?"Veja a fila principal abaixo" : "Rotina sem alerta importante"]
     ];
     const ecosystemCards = [
-      ["Portal editorial", `${publicadas} notÃ­cias`, `${aprovacoes} aprovaÃ§Ã£o(Ãµes) Â· ${agendadas} agendada(s)`, "noticias"],
-      ["Viva UrÃ¢nia", `${empresasAtivas} empresas Â· ${pontosAtivos} atrativos`, `${eventosAtivos} evento(s) simples publicado(s)`, "guia_comercial"],
-      ["Publicidade", `${campanhasAtivas} campanhas ativas`, `${campanhasVencendo} vencendo em atÃ© 7 dias`, "publicidade"],
-      ["ComunicaÃ§Ã£o", `${assinantes} assinantes`, `${colaboradoresNovos} colaborador(es) novo(s)`, "comunicacao"],
-      ["Melhores", `${melhoresEdicoes} ediÃ§Ã£o(Ãµes)`, `${melhoresIndicados} indicado(s) ativos`, "melhores"]
+      ["Portal editorial", `${publicadas} notícias`, `${aprovacoes} aprovação(ões) · ${agendadas} agendada(s)`, "noticias"],
+      ["Viva Urânia", `${empresasAtivas} empresas · ${pontosAtivos} atrativos`, `${eventosAtivos} evento(s) simples publicado(s)`, "guia_comercial"],
+      ["Publicidade", `${campanhasAtivas} campanhas ativas`, `${campanhasVencendo} vencendo em até 7 dias`, "publicidade"],
+      ["Comunicação", `${assinantes} assinantes`, `${colaboradoresNovos} colaborador(es) novo(s)`, "comunicacao"],
+      ["Melhores", `${melhoresEdicoes} edição(ões)`, `${melhoresIndicados} indicado(s) ativos`, "melhores"]
     ];
-    const newsRows = recentNews.map(item => ({ title: item.titulo || "NotÃ­cia sem tÃ­tulo", detail: `${item.categoria_nome || "Sem editoria"} Â· ${item.autor || "Eu Amo UrÃ¢nia"} Â· ${item.publicado_em ?`publicada em ${fmtDate(item.publicado_em)}` : `editada em ${fmtDate(item.atualizado_em)}`}`, badge: item.status_editorial || item.status || "ï¿½", badgeClass: item.status || "" }));
-    const scheduledRows = scheduledNews.map(item => ({ title: item.titulo || "NotÃ­cia agendada", detail: `PublicaÃ§Ã£o prevista para ${fmtDate(item.publicado_em)}`, badge: "agendada", badgeClass: "info" }));
-    const approvalRows = pendingApprovals.map(item => ({ title: item.noticias?.titulo || "NotÃ­cia em revisÃ£o", detail: `Enviada em ${fmtDate(item.enviado_em)}`, badge: item.status || "pendente" }));
-    const editionRows = recentEditions.map(item => ({ title: item.nome || `Melhores ${item.ano}`, detail: `${item.ano} Â· atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.status || "ï¿½" }));
-    const activityRows = recentActivities.map(item => ({ title: item.titulo || item.tabela || "Atividade", detail: `${item.acao || "aÃ§Ã£o"} Â· ${fmtDate(item.criado_em)}`, badge: item.tabela || "" }));
-    const eventRows = upcomingEvents.map(item => ({ title: item.titulo || "Evento", detail: `${fmtDate(item.data_inicio)}${item.local ?` Â· ${item.local}` : ""}`, badge: item.status || "" }));
-    const mainEventRows = recentMainEvents.map(item => ({ title: item.nome || "Evento principal", detail: `${item.categoria || "Acervo permanente"} Â· atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.ativo ?"ativo" : "inativo", badgeClass: item.ativo ?"ativo" : "" }));
-    const eventEditionRows = recentEventEditions.map(item => ({ title: item.titulo || `EdiÃ§Ã£o ${item.ano}`, detail: `${item.eventos_principais?.nome || "Evento"} Â· ${item.ano} Â· ${fmtDate(item.data_inicio || item.atualizado_em)}`, badge: item.status || "ediÃ§Ã£o" }));
-    const campaignRows = endingCampaigns.map(item => ({ title: item.nome || "Campanha", detail: `${item.empresa_anunciante || "Anunciante"} Â· vence em ${fmtDate(item.data_fim)}`, badge: item.status || "ativo", badgeClass: "ativo" }));
-    const collaboratorRows = recentCollaborators.map(item => ({ title: item.nome || "Colaborador voluntÃ¡rio", detail: `${item.cidade || "Cidade nÃ£o informada"} Â· ${(item.interesses || []).slice(0, 3).join(", ") || "sem interesses"} Â· ${fmtDate(item.criado_em)}`, badge: item.status || "novo", badgeClass: item.status || "" }));
+    const newsRows = recentNews.map(item => ({ title: item.titulo || "Notícia sem título", detail: `${item.categoria_nome || "Sem editoria"} · ${item.autor || "Eu Amo Urânia"} · ${item.publicado_em ?`publicada em ${fmtDate(item.publicado_em)}` : `editada em ${fmtDate(item.atualizado_em)}`}`, badge: item.status_editorial || item.status || "ï¿½", badgeClass: item.status || "" }));
+    const scheduledRows = scheduledNews.map(item => ({ title: item.titulo || "Notícia agendada", detail: `Publicação prevista para ${fmtDate(item.publicado_em)}`, badge: "agendada", badgeClass: "info" }));
+    const approvalRows = pendingApprovals.map(item => ({ title: item.noticias?.titulo || "Notícia em revisão", detail: `Enviada em ${fmtDate(item.enviado_em)}`, badge: item.status || "pendente" }));
+    const editionRows = recentEditions.map(item => ({ title: item.nome || `Melhores ${item.ano}`, detail: `${item.ano} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.status || "ï¿½" }));
+    const activityRows = recentActivities.map(item => ({ title: item.titulo || item.tabela || "Atividade", detail: `${item.acao || "ação"} · ${fmtDate(item.criado_em)}`, badge: item.tabela || "" }));
+    const eventRows = upcomingEvents.map(item => ({ title: item.titulo || "Evento", detail: `${fmtDate(item.data_inicio)}${item.local ?` · ${item.local}` : ""}`, badge: item.status || "" }));
+    const mainEventRows = recentMainEvents.map(item => ({ title: item.nome || "Evento principal", detail: `${item.categoria || "Acervo permanente"} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.ativo ?"ativo" : "inativo", badgeClass: item.ativo ?"ativo" : "" }));
+    const eventEditionRows = recentEventEditions.map(item => ({ title: item.titulo || `Edição ${item.ano}`, detail: `${item.eventos_principais?.nome || "Evento"} · ${item.ano} · ${fmtDate(item.data_inicio || item.atualizado_em)}`, badge: item.status || "edição" }));
+    const campaignRows = endingCampaigns.map(item => ({ title: item.nome || "Campanha", detail: `${item.empresa_anunciante || "Anunciante"} · vence em ${fmtDate(item.data_fim)}`, badge: item.status || "ativo", badgeClass: "ativo" }));
+    const collaboratorRows = recentCollaborators.map(item => ({ title: item.nome || "Colaborador voluntário", detail: `${item.cidade || "Cidade não informada"} · ${(item.interesses || []).slice(0, 3).join(", ") || "sem interesses"} · ${fmtDate(item.criado_em)}`, badge: item.status || "novo", badgeClass: item.status || "" }));
 
     app.innerHTML = `
       <section class="ops-dashboard">
         <section class="ops-hero panel">
           <div class="ops-hero-copy">
-            <p class="eyebrow">Central de operaÃ§Ã£o</p>
+            <p class="eyebrow">Central de operação</p>
             <h2>${saudacao}${firstName ?`, ${escapeHtml(firstName)}` : ""}.</h2>
-            <p>Um resumo limpo do que precisa de atenÃ§Ã£o, do que estÃ¡ acontecendo agora e de como o portal estÃ¡ performando.</p>
+            <p>Um resumo limpo do que precisa de atenção, do que está acontecendo agora e de como o portal está performando.</p>
             <div class="ops-hero-actions">
-              <button class="admin-button" data-new="noticias">Nova notÃ­cia</button>
-              <button class="admin-button secondary" ${targetAttrs("audiencia")}>Ver audiÃªncia</button>
+              <button class="admin-button" data-new="noticias">Nova notícia</button>
+              <button class="admin-button secondary" ${targetAttrs("audiencia")}>Ver audiência</button>
             </div>
           </div>
-          <div class="ops-health-card" aria-label="SaÃºde operacional">
-            <span>SaÃºde da operaÃ§Ã£o</span>
+          <div class="ops-health-card" aria-label="Saúde operacional">
+            <span>Saúde da operação</span>
             <strong>${portalScore}%</strong>
-            <small>${importantAlerts.length ?`${importantAlerts.length} Ã¡rea(s) pedindo atenÃ§Ã£o` : "Rotina sem alerta importante"}</small>
+            <small>${importantAlerts.length ?`${importantAlerts.length} área(s) pedindo atenção` : "Rotina sem alerta importante"}</small>
           </div>
         </section>
 
@@ -635,12 +626,12 @@ async function dashboard() {
           <header class="ops-section-header">
             <div>
               <p class="eyebrow">Prioridade</p>
-              <h2>Precisa da sua atenÃ§Ã£o</h2>
+              <h2>Precisa da sua atenção</h2>
             </div>
             <span>${fmtNumber(attentionTotal)} item(ns)</span>
           </header>
           <div class="ops-attention-list">
-            ${importantAlerts.length ?importantAlerts.map(([text, action, target, tone]) => `<button class="ops-attention-item ${tone || ""}" ${targetAttrs(target)}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} ï¿½ </strong></button>`).join("") : '<div class="ops-empty">Tudo certo por aqui. Nenhuma pendÃªncia importante agora.</div>'}
+            ${importantAlerts.length ?importantAlerts.map(([text, action, target, tone]) => `<button class="ops-attention-item ${tone || ""}" ${targetAttrs(target)}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} ï¿½ </strong></button>`).join("") : '<div class="ops-empty">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
           </div>
         </section>
 
@@ -649,32 +640,32 @@ async function dashboard() {
             <header class="ops-section-header">
               <div>
                 <p class="eyebrow">Rotina</p>
-                <h2>OperaÃ§Ã£o</h2>
+                <h2>Operação</h2>
               </div>
             </header>
             <div class="ops-inline-summary">
-              <span>${fmtNumber(recentNews.length)} notÃ­cias recentes</span>
+              <span>${fmtNumber(recentNews.length)} notícias recentes</span>
               <span>${fmtNumber(scheduledRows.length)} agendadas</span>
-              <span>${fmtNumber(eventRows.length)} eventos prÃ³ximos</span>
+              <span>${fmtNumber(eventRows.length)} eventos próximos</span>
               <span>${fmtNumber(campaignRows.length)} campanhas vencendo</span>
             </div>
             <div class="ops-stack">
-              <div class="ops-subsection"><h3>NotÃ­cias recentes</h3><div class="dashboard-list">${listRows(newsRows.slice(0, 4))}</div></div>
+              <div class="ops-subsection"><h3>Notícias recentes</h3><div class="dashboard-list">${listRows(newsRows.slice(0, 4))}</div></div>
               <div class="ops-subsection"><h3>Agendadas</h3><div class="dashboard-list">${listRows(scheduledRows)}</div></div>
-              <div class="ops-subsection"><h3>PrÃ³ximos eventos e campanhas</h3><div class="dashboard-list">${listRows([...eventRows, ...campaignRows].slice(0, 6))}</div></div>
+              <div class="ops-subsection"><h3>Próximos eventos e campanhas</h3><div class="dashboard-list">${listRows([...eventRows, ...campaignRows].slice(0, 6))}</div></div>
             </div>
           </div>
 
           <div class="ops-section panel">
             <header class="ops-section-header">
               <div>
-                <p class="eyebrow">Leitura rÃ¡pida</p>
+                <p class="eyebrow">Leitura rápida</p>
                 <h2>ï¿½altimas atividades</h2>
               </div>
             </header>
             <div class="ops-inline-summary">
               <span>${fmtNumber(colaboradoresNovos)} novos colaboradores</span>
-              <span>${fmtNumber(recentActivities.length)} aÃ§Ãµes recentes</span>
+              <span>${fmtNumber(recentActivities.length)} ações recentes</span>
             </div>
             <div class="dashboard-list">${listRows([...collaboratorRows, ...activityRows].slice(0, 8))}</div>
           </div>
@@ -684,20 +675,20 @@ async function dashboard() {
           <header class="ops-section-header">
             <div>
               <p class="eyebrow">Desempenho</p>
-              <h2>AudiÃªncia do portal</h2>
-              <small>Fonte Ãºnica nesta visÃ£o: eventos internos registrados em analytics_eventos.</small>
+              <h2>Audiência do portal</h2>
+              <small>Fonte única nesta visão: eventos internos registrados em analytics_eventos.</small>
             </div>
-            <button class="admin-button secondary" onclick="document.getElementById('dashboard-audience')?.click()">Abrir anÃ¡lise completa</button>
+            <button class="admin-button secondary" onclick="document.getElementById('dashboard-audience')?.click()">Abrir análise completa</button>
           </header>
           <div class="ops-performance-grid">
-            <article><strong>${fmtNumber(views30d)}</strong><span>interaÃ§Ãµes em 30 dias</span></article>
+            <article><strong>${fmtNumber(views30d)}</strong><span>interações em 30 dias</span></article>
             <article><strong>${fmtNumber(whatsapp7d)}</strong><span>cliques no WhatsApp em 7 dias</span></article>
             <article><strong>${fmtNumber(external7d)}</strong><span>cliques externos em 7 dias</span></article>
           </div>
           <div class="dashboard-rank-columns ops-rank-columns">
-            <div><h3>PÃ¡ginas mais acessadas</h3>${topPages.length ?topPages.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no perÃ­odo.</small>'}</div>
-            <div><h3>Dispositivos</h3>${topDevices.length ?topDevices.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no perÃ­odo.</small>'}</div>
-            <div><h3>Origem</h3>${topOrigins.length ?topOrigins.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no perÃ­odo.</small>'}</div>
+            <div><h3>Páginas mais acessadas</h3>${topPages.length ?topPages.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
+            <div><h3>Dispositivos</h3>${topDevices.length ?topDevices.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
+            <div><h3>Origem</h3>${topOrigins.length ?topOrigins.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
           </div>
         </section>
 
@@ -705,7 +696,7 @@ async function dashboard() {
           <header class="ops-section-header">
             <div>
               <p class="eyebrow">Ecossistema</p>
-              <h2>Portal, app e mÃ³dulos conectados</h2>
+              <h2>Portal, app e módulos conectados</h2>
             </div>
           </header>
           <div class="ops-ecosystem-grid">
@@ -715,7 +706,7 @@ async function dashboard() {
 
         <section class="ops-two-columns">
           <div class="ops-section panel">
-            <header class="ops-section-header"><div><p class="eyebrow">PrÃªmio</p><h2>Melhores de UrÃ¢nia</h2></div><button class="admin-button secondary" data-view="melhores">Abrir mÃ³dulo</button></header>
+            <header class="ops-section-header"><div><p class="eyebrow">Prêmio</p><h2>Melhores de Urânia</h2></div><button class="admin-button secondary" data-view="melhores">Abrir módulo</button></header>
             <div class="dashboard-list">${listRows(editionRows)}</div>
           </div>
           <div class="ops-section panel">
@@ -733,7 +724,7 @@ async function resourceList(table) {
   const config=resources[table]; title.textContent=config.label; app.innerHTML='<div class="loading">Carregandoâ¬¦</div>';
   try {
     const rows=await listarTabela(table,{ordem:config.order,crescente:config.ascending||false});
-    app.innerHTML=`<section class="panel"><header class="panel-header"><h2>${config.label}</h2><button class="admin-button" data-new="${table}">Novo cadastro</button></header><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Status</th><th>AtualizaÃ§Ã£o</th><th>AÃ§Ãµes</th></tr></thead><tbody>${rows.length?rows.map(row=>`<tr><td><strong>${escapeHtml(row[config.title]||"Sem tÃ­tulo")}</strong></td><td><span class="status-pill ${escapeHtml(row.status||"")}">${escapeHtml(row.status||"ï¿½")}</span></td><td>${row.atualizado_em?new Date(row.atualizado_em).toLocaleDateString("pt-BR"):"ï¿½"}</td><td><div class="row-actions"><button data-edit="${table}" data-id="${row.id}">Editar</button><button data-delete="${table}" data-id="${row.id}">Excluir</button></div></td></tr>`).join(""):'<tr><td colspan="4">Nenhum registro.</td></tr>'}</tbody></table></div></section>`;
+    app.innerHTML=`<section class="panel"><header class="panel-header"><h2>${config.label}</h2><button class="admin-button" data-new="${table}">Novo cadastro</button></header><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Status</th><th>Atualização</th><th>Ações</th></tr></thead><tbody>${rows.length?rows.map(row=>`<tr><td><strong>${escapeHtml(row[config.title]||"Sem título")}</strong></td><td><span class="status-pill ${escapeHtml(row.status||"")}">${escapeHtml(row.status||"ï¿½")}</span></td><td>${row.atualizado_em?new Date(row.atualizado_em).toLocaleDateString("pt-BR"):"ï¿½"}</td><td><div class="row-actions"><button data-edit="${table}" data-id="${row.id}">Editar</button><button data-delete="${table}" data-id="${row.id}">Excluir</button></div></td></tr>`).join(""):'<tr><td colspan="4">Nenhum registro.</td></tr>'}</tbody></table></div></section>`;
   } catch(error) { app.innerHTML=`<p class="form-message">${escapeHtml(error.message)}</p>`; }
 }
 
@@ -741,9 +732,9 @@ function fieldHtml([name,label,type,required], value) {
   const req=required?"required":"", full=["textarea","editor"].includes(type)?"full-row":"";
   if(type==="editor") return `<label class="${full}">${label}<div id="editor"></div><input type="hidden" name="${name}"></label>`;
   if(type==="textarea") return `<label class="${full}">${label}<textarea name="${name}" ${req}>${escapeHtml(inputValue(value,type))}</textarea></label>`;
-  if(type==="boolean") return `<label>${label}<select name="${name}"><option value="false" ${!value?"selected":""}>NÃ£o</option><option value="true" ${value?"selected":""}>Sim</option></select></label>`;
-  if(type==="tags") return `<label class="${full}">${label}<input type="text" name="${name}" value="${escapeHtml(Array.isArray(value)?value.join(", "):inputValue(value,type))}" placeholder="pautas, fotos, eventos"><small>Separe por vÃ­rgula.</small></label>`;
-  if(type==="event-principal-select") return `<label>${label}<select name="${name}" data-event-principal-select data-current="${escapeHtml(inputValue(value,type))}" ${req}><option value="">Carregando eventos principais...</option></select><small>Escolha o evento principal. NÃ£o precisa copiar ID.</small></label>`;
+  if(type==="boolean") return `<label>${label}<select name="${name}"><option value="false" ${!value?"selected":""}>Não</option><option value="true" ${value?"selected":""}>Sim</option></select></label>`;
+  if(type==="tags") return `<label class="${full}">${label}<input type="text" name="${name}" value="${escapeHtml(Array.isArray(value)?value.join(", "):inputValue(value,type))}" placeholder="pautas, fotos, eventos"><small>Separe por vírgula.</small></label>`;
+  if(type==="event-principal-select") return `<label>${label}<select name="${name}" data-event-principal-select data-current="${escapeHtml(inputValue(value,type))}" ${req}><option value="">Carregando eventos principais...</option></select><small>Escolha o evento principal. Não precisa copiar ID.</small></label>`;
   const options=type==="status"?["rascunho","publicado","arquivado"]:type==="active-status"?["ativo","inativo"]:type==="category-type"?["noticias","guia","turismo","eventos"]:type==="volunteer-status"?["novo","em_conversa","aprovado","recusado","arquivado"]:type==="event-recurrence"?["anual","mensal","unico","outro"]:type==="event-simple-recurrence"?["nenhuma","semanal","mensal","anual"]:type==="event-edition-status"?["anunciado","confirmado","acontecendo","encerrado","cancelado"]:null;
   if(options) return `<label>${label}<select name="${name}">${options.map(o=>`<option value="${o}" ${value===o?"selected":""}>${o}</option>`).join("")}</select></label>`;
   const inputType=type==="url"?"text":type,urlAttributes=type==="url"?' inputmode="url" data-type="url" placeholder="https://... ou /assets/..."':"";
@@ -763,7 +754,7 @@ async function carregarSelectEventosPrincipais() {
     select.innerHTML = `<option value="">Selecione um evento principal</option>${data.map(item => `<option value="${escapeHtml(item.id)}" ${item.id===current?"selected":""}>${escapeHtml(item.nome)}${item.ativo===false?" (inativo)":""}</option>`).join("")}`;
     if (!data.length) select.innerHTML = '<option value="">Cadastre um evento principal primeiro</option>';
   } catch (error) {
-    select.innerHTML = '<option value="">NÃ£o foi possÃ­vel carregar os eventos</option>';
+    select.innerHTML = '<option value="">Não foi possível carregar os eventos</option>';
   }
 }
 
@@ -782,7 +773,7 @@ else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else i
     else if(type==="line-list")payload[name]=parseLineList(form.get(name));
     else{
       const value=form.get(name)||null;
-      if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno vÃ¡lido em ${label}.`;event.target.elements[name]?.focus();return}
+      if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.target.elements[name]?.focus();return}
       payload[name]=value;
     }
   }
@@ -797,10 +788,10 @@ function fieldHtmlCorrigido([name,label,type,required], value) {
   if(type==="weekly-hours") return weeklyHoursHtml(name,label,value);
   if(type==="textarea") return `<label class="${full}">${label}<textarea name="${name}" ${req}>${escapeHtml(inputValue(value,type))}</textarea></label>`;
   if(type==="url-list") return `<label class="${full}">${label}<textarea name="${name}" placeholder="Cole uma URL de imagem por linha">${escapeHtml(listValue(value))}</textarea><small>Use uma imagem por linha para montar a galeria.</small></label>`;
-  if(type==="line-list") return `<label class="${full}">${label}<textarea name="${name}" placeholder="Digite um item por linha">${escapeHtml(listValue(value))}</textarea><small>Digite um item por linha. Exemplo: nome do patrocinador, link Ãºtil ou vÃ­deo.</small></label>`;
-  if(type==="boolean"){const checked=value===undefined&&name==="ativo"?true:Boolean(value);return `<label>${label}<select name="${name}"><option value="false" ${!checked?"selected":""}>NÃ£o</option><option value="true" ${checked?"selected":""}>Sim</option></select></label>`}
-  if(type==="tags") return `<label class="${full}">${label}<input type="text" name="${name}" value="${escapeHtml(Array.isArray(value)?value.join(", "):inputValue(value,type))}" placeholder="pautas, fotos, eventos"><small>Separe por vÃ­rgula.</small></label>`;
-  if(type==="event-principal-select") return `<label>${label}<select name="${name}" data-event-principal-select data-current="${escapeHtml(inputValue(value,type))}" ${req}><option value="">Carregando eventos principais...</option></select><small>Escolha o evento principal. NÃ£o precisa copiar ID.</small></label>`;
+  if(type==="line-list") return `<label class="${full}">${label}<textarea name="${name}" placeholder="Digite um item por linha">${escapeHtml(listValue(value))}</textarea><small>Digite um item por linha. Exemplo: nome do patrocinador, link útil ou vídeo.</small></label>`;
+  if(type==="boolean"){const checked=value===undefined&&name==="ativo"?true:Boolean(value);return `<label>${label}<select name="${name}"><option value="false" ${!checked?"selected":""}>Não</option><option value="true" ${checked?"selected":""}>Sim</option></select></label>`}
+  if(type==="tags") return `<label class="${full}">${label}<input type="text" name="${name}" value="${escapeHtml(Array.isArray(value)?value.join(", "):inputValue(value,type))}" placeholder="pautas, fotos, eventos"><small>Separe por vírgula.</small></label>`;
+  if(type==="event-principal-select") return `<label>${label}<select name="${name}" data-event-principal-select data-current="${escapeHtml(inputValue(value,type))}" ${req}><option value="">Carregando eventos principais...</option></select><small>Escolha o evento principal. Não precisa copiar ID.</small></label>`;
   const options=type==="status"?["rascunho","publicado","arquivado"]:type==="active-status"?["ativo","inativo"]:type==="category-type"?["noticias","guia","turismo","eventos"]:type==="volunteer-status"?["novo","em_conversa","aprovado","recusado","arquivado"]:type==="event-recurrence"?["anual","mensal","unico","outro"]:type==="event-simple-recurrence"?["nenhuma","semanal","mensal","anual"]:type==="event-edition-status"?["anunciado","confirmado","acontecendo","encerrado","cancelado"]:null;
   if(options) return `<label>${label}<select name="${name}">${options.map(o=>`<option value="${o}" ${value===o?"selected":""}>${o}</option>`).join("")}</select></label>`;
   const inputType=type==="url"?"text":type,urlAttributes=type==="url"?' inputmode="url" data-type="url" placeholder="https://... ou /assets/..."':"";
@@ -811,14 +802,14 @@ async function editForm(table,id) {
   const config=resources[table]; let row={};
   currentResourceTable=table;currentResourceId=id||null;
   if(id){const {data,error}=await getSupabase().from(table).select("*").eq("id",id).single();if(error)throw error;row=data;}
-  title.textContent=`${id?"Editar":"Novo"} Â· ${config.label}`;
+  title.textContent=`${id?"Editar":"Novo"} · ${config.label}`;
   app.innerHTML=`<section class="panel"><form id="resource-form" class="resource-form">${config.fields.map(field=>fieldHtmlCorrigido(field,row[field[0]])).join("")}<div class="form-actions"><button type="button" class="admin-button secondary" data-cancel="${table}">Cancelar</button><button class="admin-button" type="submit">Salvar</button></div><p id="form-message" class="form-message full-row"></p></form></section>`;
   const editorField=config.fields.find(f=>f[2]==="editor");
   if(editorField){quill=new Quill("#editor",{theme:"snow",modules:{toolbar:[["bold","italic","blockquote"],[{header:[2,3,false]}],[{list:"ordered"},{list:"bullet"}],["link","image","video"],["clean"]]}});quill.root.innerHTML=row[editorField[0]]||"";}
   await carregarSelectEventosPrincipais();
   const sourceName=config.fields.some(f=>f[0]==="titulo")?"titulo":config.fields.some(f=>f[0]==="nome")?"nome":null;
   if(sourceName&&config.fields.some(f=>f[0]==="slug")){const source=app.querySelector(`[name="${sourceName}"]`),slugInput=app.querySelector('[name="slug"]');source.addEventListener("input",()=>{if(!id||!slugInput.dataset.edited)slugInput.value=gerarSlug(source.value)});slugInput.addEventListener("input",()=>slugInput.dataset.edited="true");}
-  document.getElementById("resource-form").addEventListener("submit",async event=>{event.preventDefault();const message=document.getElementById("form-message");message.textContent="Salvandoâ¬¦";const form=new FormData(event.currentTarget),payload={id};for(const field of config.fields){const [name,label,type]=field;if(type==="editor")payload[name]=quill.root.innerHTML;else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";else if(type==="number")payload[name]=form.get(name)===""?null:Number(form.get(name)||0);else if(type==="tags")payload[name]=String(form.get(name)||"").split(",").map(item=>item.trim()).filter(Boolean);else{const value=form.get(name)||null;if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno vÃ¡lido em ${label}.`;event.currentTarget.elements[name]?.focus();return}if(["galeria_historica","galeria","videos","links_uteis","patrocinadores"].includes(name)){try{payload[name]=value?JSON.parse(value):[]}catch{message.textContent=`O campo ${label} precisa ser um JSON vÃ¡lido. Use [] quando nÃ£o houver itens.`;event.currentTarget.elements[name]?.focus();return}}else payload[name]=value}}if(table==="noticias"&&payload.status==="publicado"&&!payload.publicado_em)payload.publicado_em=new Date().toISOString();try{await salvarRegistro(table,payload);await resourceList(table)}catch(error){message.textContent=error.message;}});
+  document.getElementById("resource-form").addEventListener("submit",async event=>{event.preventDefault();const message=document.getElementById("form-message");message.textContent="Salvandoâ¬¦";const form=new FormData(event.currentTarget),payload={id};for(const field of config.fields){const [name,label,type]=field;if(type==="editor")payload[name]=quill.root.innerHTML;else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";else if(type==="number")payload[name]=form.get(name)===""?null:Number(form.get(name)||0);else if(type==="tags")payload[name]=String(form.get(name)||"").split(",").map(item=>item.trim()).filter(Boolean);else{const value=form.get(name)||null;if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.currentTarget.elements[name]?.focus();return}if(["galeria_historica","galeria","videos","links_uteis","patrocinadores"].includes(name)){try{payload[name]=value?JSON.parse(value):[]}catch{message.textContent=`O campo ${label} precisa ser um JSON válido. Use [] quando não houver itens.`;event.currentTarget.elements[name]?.focus();return}}else payload[name]=value}}if(table==="noticias"&&payload.status==="publicado"&&!payload.publicado_em)payload.publicado_em=new Date().toISOString();try{await salvarRegistro(table,payload);await resourceList(table)}catch(error){message.textContent=error.message;}});
 }
 
 function shellToast(message, type = "success") {
@@ -834,14 +825,14 @@ function shellToast(message, type = "success") {
 function setShellTitle(label, hintText) {
   if (title) title.textContent = label || "Painel";
   if (pageHint) {
-    pageHint.textContent = hintText || "Acompanhe os principais dados do portal e escolha um mÃ³dulo no menu para gerenciar conteÃºdo, publicidade, comunicaÃ§Ã£o e configuraÃ§Ãµes.";
+    pageHint.textContent = hintText || "Acompanhe os principais dados do portal e escolha um módulo no menu para gerenciar conteúdo, publicidade, comunicação e configurações.";
   }
-  document.title = `${label || "Painel"} | Eu Amo UrÃ¢nia`;
+  document.title = `${label || "Painel"} | Eu Amo Urânia`;
 }
 
 function clearMountedModule() {
   if (activeMountedModule?.unmount) {
-    try { activeMountedModule.unmount(); } catch (error) { console.error("Erro ao desmontar mÃ³dulo:", error); }
+    try { activeMountedModule.unmount(); } catch (error) { console.error("Erro ao desmontar módulo:", error); }
   }
   activeMountedModule = null;
 }
@@ -867,7 +858,7 @@ async function mountShellModule(view, options = {}) {
   }
   sidebar.classList.remove("open");
   document.body.classList.remove("sidebar-drawer-open");
-  app.innerHTML = '<div class="loading">Carregando mÃ³duloâ¬¦</div>';
+  app.innerHTML = '<div class="loading">Carregando móduloâ¬¦</div>';
   try {
     const module = await route.module();
     activeMountedModule = module;
@@ -879,8 +870,8 @@ async function mountShellModule(view, options = {}) {
       navigate: nextView => navigateToView(nextView)
     });
   } catch (error) {
-    console.error(`Falha ao carregar mÃ³dulo ${view}:`, error);
-    app.innerHTML = `<section class="panel"><h2>NÃ£o foi possÃ­vel carregar ${escapeHtml(route.label)}</h2><p class="form-message">${escapeHtml(error.message || "Erro inesperado.")}</p><button class="admin-button" data-retry-module="${escapeHtml(view)}" type="button">Tentar novamente</button></section>`;
+    console.error(`Falha ao carregar módulo ${view}:`, error);
+    app.innerHTML = `<section class="panel"><h2>Não foi possível carregar ${escapeHtml(route.label)}</h2><p class="form-message">${escapeHtml(error.message || "Erro inesperado.")}</p><button class="admin-button" data-retry-module="${escapeHtml(view)}" type="button">Tentar novamente</button></section>`;
   }
   return true;
 }
@@ -906,7 +897,7 @@ async function handleClick(event) {
   if(button.dataset.new)return editForm(button.dataset.new);
   if(button.dataset.edit)return editForm(button.dataset.edit,button.dataset.id);
   if(button.dataset.cancel)return resourceList(button.dataset.cancel);
-  if(button.dataset.delete&&confirm("Excluir este registro?Esta aÃ§Ã£o nÃ£o pode ser desfeita.")){await excluirRegistro(button.dataset.delete,button.dataset.id);return resourceList(button.dataset.delete);}
+  if(button.dataset.delete&&confirm("Excluir este registro?Esta ação não pode ser desfeita.")){await excluirRegistro(button.dataset.delete,button.dataset.id);return resourceList(button.dataset.delete);}
 }
 
 function setupSidebarControls() {
@@ -917,7 +908,7 @@ function setupSidebarControls() {
     button.dataset.label = label;
     button.title = label;
     button.dataset.navReady = "true";
-    button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${sidebarIconSvgMap[label] || sidebarIconSvgMap["VisÃ£o geral"]}</span><span class="admin-nav-label">${escapeHtml(label)}</span>`;
+    button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${sidebarIconSvgMap[label] || sidebarIconSvgMap["Visão geral"]}</span><span class="admin-nav-label">${escapeHtml(label)}</span>`;
   });
 
   const savedState = localStorage.getItem("euamourania:admin-sidebar");
@@ -973,6 +964,6 @@ window.addEventListener("popstate",()=>{
   navigateToView(view,{replace:true});
 });
 window.addEventListener("admin:external-module",()=>clearMountedModule());
-import("./editorial-audience.js").catch(error=>console.error("MÃ³dulos editorial/audiÃªncia:",error));
-import("./category-fields.js").catch(error=>console.error("Categorias dos conteÃºdos:",error));
+import("./editorial-audience.js").catch(error=>console.error("Módulos editorial/audiência:",error));
+import("./category-fields.js").catch(error=>console.error("Categorias dos conteúdos:",error));
 import("./media-upload.js").catch(error=>console.error("Upload de imagens:",error));
