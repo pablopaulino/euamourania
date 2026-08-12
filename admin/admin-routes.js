@@ -19,11 +19,11 @@ export const ADMIN_INDEX_ROUTES = {
   banners: "/admin/banners",
   comunicacao: "/admin/comunicacao",
   notificacoes: "/admin/viva-urania",
-  submissoes: "/admin/submissoes"
+  submissoes: "/admin/submissoes",
+  publicidade: "/admin/publicidade"
 };
 
 export const ADMIN_PAGE_ROUTES = {
-  publicidade: "/admin/publicidade",
   melhores: "/admin/melhores",
   usuarios: "/admin/usuarios",
   importacao: "/admin/importacao"
@@ -68,7 +68,8 @@ const HASH_TO_VIEW = {
   insights: "audiencia",
   configuracoes_site: "configuracoes_site",
   midia: "midia",
-  banners: "banners"
+  banners: "banners",
+  publicidade: "publicidade"
 };
 
 export function adminHashToView(hash = "") {

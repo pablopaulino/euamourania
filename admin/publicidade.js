@@ -1,68 +1,75 @@
-import { exigirAdministrador, sair } from "./auth.js";
+import { exigirAdministrador, sair, temPermissao } from "./auth.js";
 import { listarCampanhas, buscarCampanha, salvarCampanha, excluirCampanha, uploadMidia, obterResumoPublicidade, obterMetricasDiarias } from "../assets/js/services/publicidadeService.js";
 import { openLibraryPicker, processAndUpload } from "./media-upload.js";
 
-const $ = s => document.querySelector(s);
-const state = { page: 1, perPage: 10, total: 0, timer: null, summaries: new Map(), currentConfig: {} };
+let root = document;
+let mountedContainer = null;
+let moduleContext = {};
+let cleanupHandlers = [];
+let mounted = false;
+let runId = 0;
+const $ = s => root.querySelector(s);
+const $$ = s => Array.from(root.querySelectorAll(s));
+const state = { page: 1, perPage: 10, total: 0, timer: null, toastTimers: [], summaries: new Map(), currentConfig: {} };
 const formats = {
   automatico: ["Automático responsivo", "Adapta-se à posição escolhida"],
-  super_banner: ["Super banner", "940 × 210 px · destaques amplos"],
-  horizontal: ["Horizontal compacto", "760 × 86 px · final e faixas leves"],
-  retangulo: ["Retângulo", "800 × 400 ou 728 × 300 px · entre conteúdos"],
-  quadrado: ["Quadrado", "600 × 600 px · redes e mobile"],
-  vertical: ["Vertical", "300 × 600 px · campanhas especiais"],
+  super_banner: ["Super banner", "940 � 210 px · destaques amplos"],
+  horizontal: ["Horizontal compacto", "760 � 86 px · final e faixas leves"],
+  retangulo: ["Retângulo", "800 � 400 ou 728 � 300 px · entre conteúdos"],
+  quadrado: ["Quadrado", "600 � 600 px · redes e mobile"],
+  vertical: ["Vertical", "300 � 600 px · campanhas especiais"],
   nativo: ["Anúncio nativo", "Imagem, título, texto e botão"]
 };
 const mobileRecommendations = {
-  automatico: "Mobile recomendado: 640 × 300 px. O sistema adapta conforme a posição.",
-  super_banner: "Mobile recomendado: 640 × 300 px.",
-  horizontal: "Mobile recomendado: 640 × 300 px para manter boa leitura.",
-  retangulo: "Mobile recomendado: 720 × 400 px.",
-  quadrado: "Mobile recomendado: 1080 × 1080 px.",
-  vertical: "Mobile recomendado: 600 × 900 px.",
-  nativo: "Mobile recomendado: 720 × 480 px; título e texto permanecem separados."
+  automatico: "Mobile recomendado: 640 � 300 px. O sistema adapta conforme a posição.",
+  super_banner: "Mobile recomendado: 640 � 300 px.",
+  horizontal: "Mobile recomendado: 640 � 300 px para manter boa leitura.",
+  retangulo: "Mobile recomendado: 720 � 400 px.",
+  quadrado: "Mobile recomendado: 1080 � 1080 px.",
+  vertical: "Mobile recomendado: 600 � 900 px.",
+  nativo: "Mobile recomendado: 720 � 480 px; título e texto permanecem separados."
 };
 const formatSpecs = {
   automatico: {
     title: "Automático premium",
-    desktop: "Desktop: 1600 × 600 px",
-    mobile: "Celular: 1080 × 1080 px ou 1080 × 1350 px",
+    desktop: "Desktop: 1600 � 600 px",
+    mobile: "Celular: 1080 � 1080 px ou 1080 � 1350 px",
     tip: "Use quando quiser uma campanha flexível para vários pontos do site."
   },
   super_banner: {
     title: "Destaque amplo",
-    desktop: "Desktop: 1600 × 520 px",
-    mobile: "Celular: 1080 × 720 px",
+    desktop: "Desktop: 1600 � 520 px",
+    mobile: "Celular: 1080 � 720 px",
     tip: "Ideal para campanhas bonitas entre seções, sem aparecer no topo."
   },
   horizontal: {
     title: "Faixa premium",
-    desktop: "Desktop: 1440 × 420 px",
-    mobile: "Celular: 1080 × 640 px",
+    desktop: "Desktop: 1440 � 420 px",
+    mobile: "Celular: 1080 � 640 px",
     tip: "Use no final das páginas ou em chamadas compactas. Evite texto pequeno dentro da imagem."
   },
   retangulo: {
     title: "Card editorial",
-    desktop: "Desktop: 1200 × 680 px",
-    mobile: "Celular: 1080 × 720 px",
+    desktop: "Desktop: 1200 � 680 px",
+    mobile: "Celular: 1080 � 720 px",
     tip: "Melhor opção para anúncios no meio de notícias, guia, turismo e eventos."
   },
   quadrado: {
     title: "Quadrado social",
-    desktop: "Desktop/Celular: 1080 × 1080 px",
-    mobile: "Celular: 1080 × 1080 px",
+    desktop: "Desktop/Celular: 1080 � 1080 px",
+    mobile: "Celular: 1080 � 1080 px",
     tip: "Bom para logos, promoções simples e criativos vindos das redes sociais."
   },
   vertical: {
     title: "Vertical especial",
-    desktop: "Desktop: 720 × 1200 px",
-    mobile: "Celular: 900 × 1200 px",
+    desktop: "Desktop: 720 � 1200 px",
+    mobile: "Celular: 900 � 1200 px",
     tip: "Use com cuidado, para campanhas visuais. Não recomendado para textos longos."
   },
   nativo: {
     title: "Anúncio nativo",
-    desktop: "Desktop: imagem 1200 × 800 px + título e texto no painel",
-    mobile: "Celular: 1080 × 720 px",
+    desktop: "Desktop: imagem 1200 � 800 px + título e texto no painel",
+    mobile: "Celular: 1080 � 720 px",
     tip: "Formato mais profissional: imagem, título, descrição e botão ficam separados."
   }
 };
@@ -70,22 +77,22 @@ const positionRecommendations = {
   todas_paginas: "Nativo ou horizontal compacto",
   home_hero_conteudo: "Nativo ou super banner",
   home_entre_secoes: "Super banner ou nativo",
-  home_rodape: "Horizontal 728 × 90",
+  home_rodape: "Horizontal 728 � 90",
   noticias_entre_listagem: "Nativo ou retângulo",
   noticia_meio: "Nativo ou retângulo",
   noticia_final: "Super banner ou nativo",
   guia_entre_estabelecimentos: "Nativo ou retângulo",
-  guia_rodape: "Horizontal 728 × 90",
+  guia_rodape: "Horizontal 728 � 90",
   turismo_entre_cartoes: "Nativo ou retângulo",
-  turismo_rodape: "Horizontal 728 × 90",
+  turismo_rodape: "Horizontal 728 � 90",
   eventos_entre_eventos: "Nativo ou retângulo",
-  eventos_rodape: "Horizontal 728 × 90"
+  eventos_rodape: "Horizontal 728 � 90"
 };
 const positionDescriptions = {
   todas_paginas: "Campanha global exibida no fluxo ou no final das páginas, nunca no topo.",
   home_hero_conteudo: "Logo depois da apresentação da cidade.",
   home_entre_secoes: "Integra a campanha ao fluxo de conteúdo da home.",
-  home_rodape: "Última oportunidade antes do rodapé.",
+  home_rodape: "�altima oportunidade antes do rodapé.",
   noticias_entre_listagem: "Entre os cards do feed de notícias.",
   noticia_meio: "Dentro do texto, próximo ao centro da matéria.",
   noticia_final: "Depois da matéria e antes das recomendações.",
@@ -107,25 +114,80 @@ const positions = {
 
 function escapeHtml(value="") { const el=document.createElement("div"); el.textContent=String(value); return el.innerHTML; }
 function fmtNumber(value) { return new Intl.NumberFormat("pt-BR").format(Number(value)||0); }
-function fmtDate(value) { return value ? new Intl.DateTimeFormat("pt-BR",{dateStyle:"short"}).format(new Date(value)) : "Sem limite"; }
+function fmtDate(value) { return value ?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short"}).format(new Date(value)) : "Sem limite"; }
 function inputDate(value) { if(!value) return ""; const d=new Date(value); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); }
-function toast(message, type="success") { const el=document.createElement("div"); el.className=`toast ${type}`; el.textContent=message; $("#toasts").append(el); setTimeout(()=>el.remove(),3800); }
-function errorMessage(error) { return error?.message?.includes("campanhas_publicitarias") ? "A estrutura de Publicidade ainda não foi instalada no Supabase." : (error?.message || "Não foi possível concluir a operação."); }
+function addCleanup(handler) { cleanupHandlers.push(handler); }
+function addListener(target, event, handler, options) {
+  target?.addEventListener(event, handler, options);
+  addCleanup(() => target?.removeEventListener(event, handler, options));
+}
+function toast(message, type="success") {
+  if (typeof moduleContext.toast === "function") {
+    moduleContext.toast(message, type);
+    return;
+  }
+  const stack = document.getElementById("toasts");
+  if (!stack) return;
+  const el=document.createElement("div");
+  el.className=`toast ${type}`;
+  el.textContent=message;
+  stack.append(el);
+  const timer = setTimeout(()=>el.remove(),3800);
+  state.toastTimers.push(timer);
+}
+function errorMessage(error) { return error?.message?.includes("campanhas_publicitarias") ?"A estrutura de Publicidade ainda não foi instalada no Supabase." : (error?.message || "Não foi possível concluir a operação."); }
+
+function can(acao) {
+  return temPermissao(moduleContext.access?.admin, "publicidade", acao);
+}
+
+function ensureModuleStyles() {
+  [
+    ["publicidade", "publicidade.css"],
+    ["publicidade-v2", "publicidade-v2.css"]
+  ].forEach(([key, href]) => {
+    if (document.querySelector(`link[data-admin-module-style="${key}"]`)) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    link.dataset.adminModuleStyle = key;
+    document.head.append(link);
+    addCleanup(() => link.remove());
+  });
+}
+
+function renderShell(container) {
+  container.classList.add("ads-main");
+  container.innerHTML = `<div class="ads-content">
+    <div class="ads-heading">
+      <div><h2>Central de campanhas</h2><p>Gerencie anúncios, períodos, posições e resultados em um só lugar.</p></div>
+      <button class="admin-button" id="new-campaign">+ Nova campanha</button>
+    </div>
+    <div class="ads-tabs" role="tablist">
+      <button class="ads-tab active" data-tab="dashboard">Visão geral</button>
+      <button class="ads-tab" data-tab="campaigns">Campanhas</button>
+      <button class="ads-tab" data-tab="form" hidden>Editar campanha</button>
+    </div>
+    <section id="dashboard-view"><div class="ads-grid" id="metrics"><div class="metric-card"><span>Carregando</span><div class="skeleton"></div></div></div><div class="ads-dashboard-layout"><article class="ads-card"><h3>Desempenho nos últimos 30 dias</h3><div id="performance-chart" class="chart" aria-label="Gráfico de impressões e cliques"></div></article><article class="ads-card"><h3>Resumo das campanhas</h3><div id="campaign-summary"></div></article></div></section>
+    <section id="campaigns-view" class="hidden"><article class="ads-card"><div class="ads-toolbar"><input id="campaign-search" type="search" placeholder="Pesquisar campanha ou empresa⬦" aria-label="Pesquisar"><select id="status-filter" aria-label="Filtrar por status"><option value="">Todos os status</option><option value="rascunho">Rascunho</option><option value="ativo">Ativo</option><option value="pausado">Pausado</option><option value="encerrado">Encerrado</option></select><select id="type-filter" aria-label="Filtrar por tipo"><option value="">Todos os tipos</option><option value="banner">Banner</option><option value="popup">Pop-up</option><option value="video">Vídeo</option></select><button class="admin-button secondary" id="clear-filters">Limpar</button></div><div class="ads-table-wrap"><table class="ads-table"><thead><tr><th data-sort="nome">Campanha</th><th>Tipo</th><th>Status</th><th>Período</th><th>Impressões</th><th>Cliques</th><th>CTR</th><th>Ações</th></tr></thead><tbody id="campaign-table"><tr><td colspan="8"><div class="skeleton"></div><div class="skeleton"></div></td></tr></tbody></table></div><div class="ads-pagination"><span id="pagination-info"></span><div class="ads-pagination-buttons"><button id="prev-page">Anterior</button><button id="next-page">Próxima</button></div></div></article></section>
+    <section id="form-view" class="ads-form"><form id="campaign-form"><input type="hidden" name="id"><article class="ads-card"><h3>Informações da campanha</h3><div class="ads-form-grid"><div class="ads-field"><label for="nome">Nome da campanha *</label><input id="nome" name="nome" required maxlength="120"></div><div class="ads-field"><label for="empresa_anunciante">Empresa anunciante *</label><input id="empresa_anunciante" name="empresa_anunciante" required maxlength="120"></div><div class="ads-field"><label for="tipo">Tipo do anúncio *</label><select id="tipo" name="tipo" required><option value="banner">Banner</option><option value="popup">Pop-up</option><option value="video">Vídeo</option></select></div><div class="ads-field"><label for="status">Status</label><select id="status" name="status"><option value="rascunho">Rascunho</option><option value="ativo">Ativo</option><option value="pausado">Pausado</option><option value="encerrado">Encerrado</option></select></div><div class="ads-field"><label for="logo_empresa_url">Logo da empresa</label><div class="upload-row"><input id="logo_empresa_url" name="logo_empresa_url" type="text" inputmode="url" placeholder="URL da logo ou assets/logo.jpg"><input id="logo-upload" type="file" accept="image/*" title="Enviar logo"></div><small class="upload-state" id="logo-state"></small></div><div class="ads-field"><label for="imagem_url">Imagem do anúncio</label><div class="upload-row"><input id="imagem_url" name="imagem_url" type="text" inputmode="url" placeholder="URL da imagem ou assets/imagem.jpg"><input id="image-upload" type="file" accept="image/*" title="Enviar imagem"></div><small class="upload-state" id="image-state"></small></div><div class="ads-field"><label for="video_url">Vídeo</label><div class="upload-row"><input id="video_url" name="video_url" type="text" inputmode="url" placeholder="YouTube ou URL do vídeo"><input id="video-upload" type="file" accept="video/mp4,video/webm" title="Enviar vídeo"></div><small class="upload-state" id="video-state"></small></div><div class="ads-field"><label for="link_destino">Link de destino</label><input id="link_destino" name="link_destino" type="text" inputmode="url" placeholder="https://..."></div><div class="ads-field"><label for="texto_botao">Texto do botão</label><input id="texto_botao" name="texto_botao" maxlength="40" placeholder="Saiba mais"></div><div class="ads-field"><label for="prioridade">Prioridade</label><input id="prioridade" name="prioridade" type="number" value="0" min="0" max="9999"><small>Campanhas com número maior aparecem primeiro.</small></div><label class="ads-checkbox"><input name="abrir_nova_aba" type="checkbox" checked> Abrir link em nova aba</label></div></article><article class="ads-card"><h3>Período e exibição</h3><div class="ads-form-grid"><div class="ads-field"><label for="data_inicio">Data de início</label><input id="data_inicio" name="data_inicio" type="datetime-local"></div><div class="ads-field"><label for="data_fim">Data de término</label><input id="data_fim" name="data_fim" type="datetime-local"></div><fieldset class="ads-group full"><legend>Locais de exibição</legend><div class="ads-positions" id="positions"></div></fieldset></div></article><article class="ads-card popup-options" id="popup-options"><h3>Comportamento do pop-up</h3><div class="ads-form-grid"><label class="ads-checkbox"><input name="popup_uma_vez" type="checkbox" checked> Mostrar somente uma vez por visitante</label><label class="ads-checkbox"><input name="popup_botao_fechar" type="checkbox" checked> Exibir botão para fechar</label><div class="ads-field"><label for="popup_reexibir">Mostrar novamente</label><select id="popup_reexibir" name="popup_reexibir"><option value="24h">Após 24 horas</option><option value="7d">Após 7 dias</option><option value="sempre">Sempre</option></select></div><div class="ads-field"><label for="popup_atraso_seg">Tempo para aparecer (segundos)</label><input id="popup_atraso_seg" name="popup_atraso_seg" type="number" value="3" min="0" max="300"></div></div></article><div class="form-actions"><button type="button" class="admin-button secondary" id="cancel-form">Cancelar</button><button type="submit" class="admin-button" id="save-campaign">Salvar campanha</button></div></form></section>
+  </div>`;
+}
 
 function renderPositions() {
-  $("#positions").innerHTML=`<div class="position-selection-head"><span id="position-selection-summary">Nenhuma posição selecionada</span><small>Você pode escolher vários locais.</small></div>${Object.entries(positions).map(([group,items])=>`<section class="position-group"><div class="position-group-title"><strong>${group}</strong><span>${items.length} ${items.length===1?"posição":"posições"}</span></div><div class="position-options">${items.map(([value,label])=>`<label class="position-option"><input type="checkbox" name="posicoes" value="${value}"><span class="position-check" aria-hidden="true">✓</span><span class="position-option-copy"><strong>${label}</strong><small>${positionDescriptions[value]||"Posição responsiva no portal."}</small><em>${positionRecommendations[value]||"Automático responsivo"}</em></span></label>`).join("")}</div></section>`).join("")}`;
+  $("#positions").innerHTML=`<div class="position-selection-head"><span id="position-selection-summary">Nenhuma posição selecionada</span><small>Você pode escolher vários locais.</small></div>${Object.entries(positions).map(([group,items])=>`<section class="position-group"><div class="position-group-title"><strong>${group}</strong><span>${items.length} ${items.length===1?"posição":"posições"}</span></div><div class="position-options">${items.map(([value,label])=>`<label class="position-option"><input type="checkbox" name="posicoes" value="${value}"><span class="position-check" aria-hidden="true">�S</span><span class="position-option-copy"><strong>${label}</strong><small>${positionDescriptions[value]||"Posição responsiva no portal."}</small><em>${positionRecommendations[value]||"Automático responsivo"}</em></span></label>`).join("")}</div></section>`).join("")}`;
   syncPositionCards();
 }
 
 function syncPositionCards() {
-  const selected=[...document.querySelectorAll('[name="posicoes"]:checked')];
-  document.querySelectorAll(".position-option").forEach(card=>card.classList.toggle("selected",card.querySelector("input")?.checked));
+  const selected=$$('[name="posicoes"]:checked');
+  $$(".position-option").forEach(card=>card.classList.toggle("selected",card.querySelector("input")?.checked));
   const summary=$("#position-selection-summary");
   if(summary)summary.textContent=selected.length?`${selected.length} ${selected.length===1?"posição selecionada":"posições selecionadas"}`:"Nenhuma posição selecionada";
 }
 
 function enhanceCreativeForm() {
-  if(!document.querySelector('link[href*="publicidade-v2.css"]')){const link=document.createElement("link");link.rel="stylesheet";link.href="publicidade-v2.css";document.head.appendChild(link)}
+  if(!document.querySelector('link[href*="publicidade-v2.css"]')){const link=document.createElement("link");link.rel="stylesheet";link.href="publicidade-v2.css";document.head.appendChild(link);addCleanup(()=>link.remove())}
   const imageField=$("#imagem_url")?.closest(".ads-field");
   if(!imageField||$("#formato"))return;
   imageField.insertAdjacentHTML("afterend",`<div class="ads-field"><label for="formato">Formato do anúncio</label><select id="formato" name="formato">${Object.entries(formats).map(([value,[label]])=>`<option value="${value}">${label}</option>`).join("")}</select><small id="format-help">Adapta-se à posição escolhida.</small></div><div class="ads-field format-size-guide" id="format-size-guide" aria-live="polite"></div><div class="ads-field"><label for="imagem_mobile_url">Imagem para celular</label><div class="upload-row"><input id="imagem_mobile_url" name="imagem_mobile_url" type="text" inputmode="url" placeholder="Opcional · URL da versão mobile"><input id="mobile-image-upload" type="file" accept="image/*" title="Enviar imagem mobile"></div><small class="upload-state" id="mobile-image-state">Se não houver versão mobile, a imagem principal será adaptada.</small></div><div class="ads-field"><label for="titulo_publico">Título público</label><input id="titulo_publico" name="titulo_publico" maxlength="100" placeholder="Usado principalmente no formato nativo"></div><div class="ads-field"><label for="texto_publico">Texto público</label><textarea id="texto_publico" name="texto_publico" rows="3" maxlength="240" placeholder="Descrição curta e objetiva do anúncio"></textarea></div><div class="ads-field"><label for="rotacao_segundos">Tempo de exibição</label><input id="rotacao_segundos" name="rotacao_segundos" type="number" min="5" max="30" value="8"><small>Segundos desta campanha antes da próxima. Padrão: 8 segundos.</small></div><div class="ads-field full creative-preview-field"><div class="creative-preview-head"><div><label>Prévia real do anúncio</label><small>Confira formato, imagem, logo, texto e botão antes de publicar.</small></div><div class="preview-device-switch" role="group" aria-label="Dispositivo da prévia"><button type="button" class="active" data-preview-device="desktop" aria-pressed="true">Desktop</button><button type="button" data-preview-device="mobile" aria-pressed="false">Celular</button></div></div><div id="campaign-preview" class="campaign-preview" data-device="desktop"></div></div>`);
@@ -152,7 +214,7 @@ function enhanceAdImageLibrary() {
       const button = tools.querySelector("[data-ad-library]");
       const stateEl = input.closest(".ads-field")?.querySelector(".upload-state") || tools.querySelector("small");
       button.disabled = true;
-      stateEl.textContent = "Abrindo biblioteca…";
+      stateEl.textContent = "Abrindo biblioteca⬦";
       try {
         await openLibraryPicker({
           folder,
@@ -164,7 +226,7 @@ function enhanceAdImageLibrary() {
             updateCreativePreview();
           }
         });
-        stateEl.textContent = input.value ? "Imagem da biblioteca selecionada." : "Seleção cancelada.";
+        stateEl.textContent = input.value ?"Imagem da biblioteca selecionada." : "Seleção cancelada.";
       } catch (error) {
         stateEl.textContent = errorMessage(error);
         toast(errorMessage(error), "error");
@@ -192,13 +254,13 @@ function updateCreativePreview() {
   preview.className=`campaign-preview preview-${selected}`;
   const youtubeUrl=youtubePreview(video);
   const media=type==="video"&&youtubeUrl
-    ? `<iframe src="${escapeHtml(youtubeUrl)}" title="Prévia do vídeo"></iframe>`
+    ?`<iframe src="${escapeHtml(youtubeUrl)}" title="Prévia do vídeo"></iframe>`
     : type==="video"&&video
-      ? `<video src="${escapeHtml(video)}" controls muted playsinline></video>`
+      ?`<video src="${escapeHtml(video)}" controls muted playsinline></video>`
       : source
-        ? `<img src="${escapeHtml(source)}" alt="">`
+        ?`<img src="${escapeHtml(source)}" alt="">`
         : selected==="nativo"
-          ? `<div class="preview-native-placeholder">${logo?`<img src="${escapeHtml(logo)}" alt="">`:`<strong>${escapeHtml(form.elements.empresa_anunciante?.value||"Sua empresa")}</strong>`}</div>`
+          ?`<div class="preview-native-placeholder">${logo?`<img src="${escapeHtml(logo)}" alt="">`:`<strong>${escapeHtml(form.elements.empresa_anunciante?.value||"Sua empresa")}</strong>`}</div>`
           : "";
   preview.innerHTML=media?`<div class="preview-creative"><span>Publicidade</span>${media}${logo&&source?`<img class="preview-logo" src="${escapeHtml(logo)}" alt="">`:""}<div class="preview-copy"><strong>${escapeHtml(title)}</strong>${selected==="nativo"?`<p>${escapeHtml(text)}</p>`:""}<b>${escapeHtml(button)}</b></div></div>`:'<div class="preview-empty"><strong>O anúncio ainda não possui mídia.</strong><span>Adicione uma imagem, vídeo ou escolha o formato nativo com conteúdo.</span></div>';
   const help=formats[selected]?.[1]||formats.automatico[1];
@@ -234,28 +296,30 @@ function renderInventory(campaigns) {
 function switchView(name) {
   ["dashboard","campaigns"].forEach(v=>$("#"+v+"-view").classList.toggle("hidden",v!==name));
   $("#form-view").classList.toggle("open",name==="form");
-  document.querySelectorAll(".ads-tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===name));
+  $$(".ads-tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===name));
   if(name==="dashboard") loadDashboard();
   if(name==="campaigns") loadCampaigns();
 }
 
 async function loadDashboard() {
+  const requestRun = runId;
   $("#metrics").innerHTML=Array(6).fill('<div class="metric-card"><span>&nbsp;</span><div class="skeleton"></div></div>').join("");
   try {
     const [summary,daily,inventory]=await Promise.all([obterResumoPublicidade(),obterMetricasDiarias(30),listarCampanhas({pagina:1,porPagina:1000})]);
+    if (!mounted || requestRun !== runId) return;
     state.summaries=new Map(summary.map(item=>[item.id,item]));
     const active=summary.filter(x=>x.situacao==="ativa").length;
     const ended=summary.filter(x=>x.situacao==="encerrada").length;
     const scheduled=summary.filter(x=>x.situacao==="agendada").length;
     const impressions=summary.reduce((a,x)=>a+Number(x.impressoes||0),0);
     const clicks=summary.reduce((a,x)=>a+Number(x.cliques||0),0);
-    const ctr=impressions ? clicks*100/impressions : 0;
+    const ctr=impressions ?clicks*100/impressions : 0;
     const cards=[["Campanhas ativas",active],["Agendadas",scheduled],["Encerradas",ended],["Impressões",fmtNumber(impressions)],["Cliques",fmtNumber(clicks)],["CTR geral",ctr.toFixed(2)+"%"]];
     $("#metrics").innerHTML=cards.map(([label,value])=>`<div class="metric-card"><span>${label}</span><strong>${value}</strong></div>`).join("");
-    $("#campaign-summary").innerHTML=summary.length ? `<p><strong>${summary.length}</strong> campanhas cadastradas</p><p><strong>${active}</strong> entregando anúncios agora</p><p><strong>${scheduled}</strong> programadas para começar</p>` : '<div class="empty-state"><strong>Nenhuma campanha ainda</strong>Crie a primeira campanha para começar.</div>';
+    $("#campaign-summary").innerHTML=summary.length ?`<p><strong>${summary.length}</strong> campanhas cadastradas</p><p><strong>${active}</strong> entregando anúncios agora</p><p><strong>${scheduled}</strong> programadas para começar</p>` : '<div class="empty-state"><strong>Nenhuma campanha ainda</strong>Crie a primeira campanha para começar.</div>';
     renderChart(daily);
     renderInventory(inventory.itens);
-  } catch(error) { $("#metrics").innerHTML=`<div class="ads-card" style="grid-column:1/-1">${escapeHtml(errorMessage(error))}</div>`; $("#performance-chart").innerHTML=""; }
+  } catch(error) { if (!mounted || requestRun !== runId) return; $("#metrics").innerHTML=`<div class="ads-card" style="grid-column:1/-1">${escapeHtml(errorMessage(error))}</div>`; $("#performance-chart").innerHTML=""; }
 }
 
 function renderChart(rows) {
@@ -266,35 +330,38 @@ function renderChart(rows) {
 }
 
 async function loadCampaigns() {
+  const requestRun = runId;
   $("#campaign-table").innerHTML='<tr><td colspan="8"><div class="skeleton"></div><div class="skeleton"></div></td></tr>';
   try {
     if(!state.summaries.size) { const summaries=await obterResumoPublicidade(); state.summaries=new Map(summaries.map(x=>[x.id,x])); }
     const result=await listarCampanhas({busca:$("#campaign-search").value.trim(),status:$("#status-filter").value,tipo:$("#type-filter").value,pagina:state.page,porPagina:state.perPage});
+    if (!mounted || requestRun !== runId) return;
     state.total=result.total;
-    $("#campaign-table").innerHTML=result.itens.length ? result.itens.map(c=>{const m=state.summaries.get(c.id)||{};const situation=m.situacao||c.status;return `<tr><td><div class="campaign-name">${c.imagem_url?`<img class="campaign-thumb" src="${escapeHtml(c.imagem_url)}" alt="" loading="lazy">`:'<span class="campaign-thumb"></span>'}<div><strong>${escapeHtml(c.nome)}</strong><small>${escapeHtml(c.empresa_anunciante)}</small></div></div></td><td>${escapeHtml(c.tipo)}</td><td><span class="status-pill ${situation}">${escapeHtml(situation)}</span></td><td>${fmtDate(c.data_inicio)} — ${fmtDate(c.data_fim)}</td><td>${fmtNumber(m.impressoes)}</td><td>${fmtNumber(m.cliques)}</td><td>${Number(m.ctr||0).toFixed(2)}%</td><td><div class="ads-actions"><button class="icon-button" data-edit="${c.id}" title="Editar">Editar</button><button class="icon-button danger" data-delete="${c.id}" data-name="${escapeHtml(c.nome)}" title="Excluir">Excluir</button></div></td></tr>`}).join("") : '<tr><td colspan="8"><div class="empty-state"><strong>Nenhuma campanha encontrada</strong>Ajuste os filtros ou crie uma nova campanha.</div></td></tr>';
+    $("#campaign-table").innerHTML=result.itens.length ?result.itens.map(c=>{const m=state.summaries.get(c.id)||{};const situation=m.situacao||c.status;return `<tr><td><div class="campaign-name">${c.imagem_url?`<img class="campaign-thumb" src="${escapeHtml(c.imagem_url)}" alt="" loading="lazy">`:'<span class="campaign-thumb"></span>'}<div><strong>${escapeHtml(c.nome)}</strong><small>${escapeHtml(c.empresa_anunciante)}</small></div></div></td><td>${escapeHtml(c.tipo)}</td><td><span class="status-pill ${situation}">${escapeHtml(situation)}</span></td><td>${fmtDate(c.data_inicio)} � ${fmtDate(c.data_fim)}</td><td>${fmtNumber(m.impressoes)}</td><td>${fmtNumber(m.cliques)}</td><td>${Number(m.ctr||0).toFixed(2)}%</td><td><div class="ads-actions"><button class="icon-button" data-edit="${c.id}" title="Editar">Editar</button><button class="icon-button danger" data-delete="${c.id}" data-name="${escapeHtml(c.nome)}" title="Excluir">Excluir</button></div></td></tr>`}).join("") : '<tr><td colspan="8"><div class="empty-state"><strong>Nenhuma campanha encontrada</strong>Ajuste os filtros ou crie uma nova campanha.</div></td></tr>';
     result.itens.forEach((campaign,index)=>{const cell=$("#campaign-table")?.rows[index]?.cells[1];if(cell){const selected=formatName(campaign);cell.innerHTML=`<span class="campaign-type">${escapeHtml(campaign.tipo)}</span><small class="campaign-format">${escapeHtml(selected)}</small>`}});
     const from=state.total?(state.page-1)*state.perPage+1:0, to=Math.min(state.page*state.perPage,state.total);
-    $("#pagination-info").textContent=`Mostrando ${from}–${to} de ${state.total}`;
+    $("#pagination-info").textContent=`Mostrando ${from}�${to} de ${state.total}`;
     $("#prev-page").disabled=state.page<=1; $("#next-page").disabled=to>=state.total;
-  } catch(error) { $("#campaign-table").innerHTML=`<tr><td colspan="8"><div class="empty-state"><strong>Publicidade indisponível</strong>${escapeHtml(errorMessage(error))}</div></td></tr>`; }
+    applyPermissions();
+  } catch(error) { if (!mounted || requestRun !== runId) return; $("#campaign-table").innerHTML=`<tr><td colspan="8"><div class="empty-state"><strong>Publicidade indisponível</strong>${escapeHtml(errorMessage(error))}</div></td></tr>`; }
 }
 
 function openForm(campaign=null) {
   const form=$("#campaign-form"); form.reset(); form.elements.id.value=""; form.elements.prioridade.value=0; form.elements.popup_atraso_seg.value=3; form.elements.abrir_nova_aba.checked=true; form.elements.popup_uma_vez.checked=true; form.elements.popup_botao_fechar.checked=true;
   state.currentConfig={};form.elements.formato.value="automatico";form.elements.rotacao_segundos.value=8;
-  document.querySelectorAll('[name="posicoes"]').forEach(x=>x.checked=false);
+  $$('[name="posicoes"]').forEach(x=>x.checked=false);
   if(campaign) {
     Object.entries(campaign).forEach(([key,value])=>{const field=form.elements[key];if(!field||key==="campanha_posicoes")return;if(field.type==="checkbox")field.checked=Boolean(value);else if(field.type==="datetime-local")field.value=inputDate(value);else field.value=value??"";});
     state.currentConfig={...(campaign.configuracao_futura||{})};["formato","imagem_mobile_url","titulo_publico","texto_publico","rotacao_segundos"].forEach(key=>{if(form.elements[key])form.elements[key].value=state.currentConfig[key]??(key==="formato"?"automatico":key==="rotacao_segundos"?8:"")});
     (campaign.campanha_posicoes||[]).forEach(x=>{const field=form.querySelector(`[name="posicoes"][value="${x.posicao}"]`);if(field)field.checked=true;});
   }
-  syncPositionCards();togglePopup();updateCreativePreview(); switchView("form"); window.scrollTo({top:0,behavior:"smooth"});
+  syncPositionCards();togglePopup();updateCreativePreview(); switchView("form"); (mountedContainer || window).scrollTo?.({top:0,behavior:"smooth"});
 }
 
 function togglePopup() { $("#popup-options").classList.toggle("visible",$("#tipo").value==="popup"); }
 
 async function handleSave(event) {
-  event.preventDefault(); const form=event.currentTarget; const button=$("#save-campaign"); button.disabled=true; button.textContent="Salvando…";
+  event.preventDefault(); const form=event.currentTarget; const button=$("#save-campaign"); button.disabled=true; button.textContent="Salvando⬦";
   try {
     const fd=new FormData(form); const campaign={}; ["id","nome","empresa_anunciante","tipo","status","logo_empresa_url","imagem_url","video_url","link_destino","texto_botao"].forEach(k=>campaign[k]=fd.get(k)||null);
     if(!campaign.id) delete campaign.id;
@@ -310,13 +377,13 @@ async function handleSave(event) {
 }
 
 async function upload(input,target,stateEl) {
-  const file=input.files?.[0]; if(!file)return; stateEl.textContent="Enviando arquivo…"; input.disabled=true;
+  const file=input.files?.[0]; if(!file)return; stateEl.textContent="Enviando arquivo⬦"; input.disabled=true;
   try {
     if(file.type.startsWith("video/")){
       target.value=await uploadMidia(file,"videos");
     } else {
-      const folder = target.id === "logo_empresa_url" ? "publicidade/logos" : target.id === "imagem_mobile_url" ? "publicidade/mobile" : "publicidade/campanhas";
-      const preset = target.id === "logo_empresa_url" ? "square" : "card";
+      const folder = target.id === "logo_empresa_url" ?"publicidade/logos" : target.id === "imagem_mobile_url" ?"publicidade/mobile" : "publicidade/campanhas";
+      const preset = target.id === "logo_empresa_url" ?"square" : "card";
       const result = await processAndUpload(file, folder, preset);
       if(!result){stateEl.textContent="Envio cancelado.";return}
       target.value=result.url;
@@ -330,20 +397,109 @@ async function upload(input,target,stateEl) {
 }
 
 function bindEvents() {
-  $("#logout").addEventListener("click",sair); $("#mobile-menu").addEventListener("click",()=>$("#sidebar").classList.toggle("open"));
-  document.querySelectorAll(".ads-tab").forEach(t=>t.addEventListener("click",()=>switchView(t.dataset.tab)));
-  $("#new-campaign").addEventListener("click",()=>openForm()); $("#cancel-form").addEventListener("click",()=>switchView("campaigns")); $("#tipo").addEventListener("change",()=>{togglePopup();updateCreativePreview()}); $("#campaign-form").addEventListener("submit",handleSave);
-  [["logo-upload","logo_empresa_url","logo-state"],["image-upload","imagem_url","image-state"],["mobile-image-upload","imagem_mobile_url","mobile-image-state"],["video-upload","video_url","video-state"]].forEach(([a,b,c])=>$("#"+a).addEventListener("change",e=>upload(e.target,$("#"+b),$("#"+c))));
-  $("#campaign-form").addEventListener("input",event=>{if(["formato","tipo","imagem_url","imagem_mobile_url","video_url","logo_empresa_url","titulo_publico","texto_publico","texto_botao","empresa_anunciante"].includes(event.target.name))updateCreativePreview()});
-  $("#positions").addEventListener("change",event=>{if(event.target.matches('[name="posicoes"]'))syncPositionCards()});
-  document.querySelectorAll("[data-preview-device]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-preview-device]").forEach(item=>{const active=item===button;item.classList.toggle("active",active);item.setAttribute("aria-pressed",String(active))});$("#campaign-preview").dataset.device=button.dataset.previewDevice;updateCreativePreview()}));
-  $("#campaign-search").addEventListener("input",()=>{clearTimeout(state.timer);state.timer=setTimeout(()=>{state.page=1;loadCampaigns()},350)}); ["status-filter","type-filter"].forEach(id=>$("#"+id).addEventListener("change",()=>{state.page=1;loadCampaigns()}));
-  $("#clear-filters").addEventListener("click",()=>{$("#campaign-search").value="";$("#status-filter").value="";$("#type-filter").value="";state.page=1;loadCampaigns()});
-  $("#prev-page").addEventListener("click",()=>{if(state.page>1){state.page--;loadCampaigns()}}); $("#next-page").addEventListener("click",()=>{if(state.page*state.perPage<state.total){state.page++;loadCampaigns()}});
-  $("#campaign-table").addEventListener("click",async e=>{const edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-delete]"); if(edit){try{openForm(await buscarCampanha(edit.dataset.edit))}catch(error){toast(errorMessage(error),"error")}} if(del&&confirm(`Excluir a campanha “${del.dataset.name}”? Esta ação não pode ser desfeita.`)){try{await excluirCampanha(del.dataset.delete);state.summaries.clear();toast("Campanha excluída.");loadCampaigns()}catch(error){toast(errorMessage(error),"error")}}});
+  addListener($("#logout"),"click",sair);
+  addListener($("#mobile-menu"),"click",()=>document.getElementById("sidebar")?.classList.toggle("open"));
+  $$(".ads-tab").forEach(t=>addListener(t,"click",()=>switchView(t.dataset.tab)));
+  addListener($("#new-campaign"),"click",()=>openForm());
+  addListener($("#cancel-form"),"click",()=>switchView("campaigns"));
+  addListener($("#tipo"),"change",()=>{togglePopup();updateCreativePreview()});
+  addListener($("#campaign-form"),"submit",handleSave);
+  [["logo-upload","logo_empresa_url","logo-state"],["image-upload","imagem_url","image-state"],["mobile-image-upload","imagem_mobile_url","mobile-image-state"],["video-upload","video_url","video-state"]].forEach(([a,b,c])=>addListener($("#"+a),"change",e=>upload(e.target,$("#"+b),$("#"+c))));
+  addListener($("#campaign-form"),"input",event=>{if(["formato","tipo","imagem_url","imagem_mobile_url","video_url","logo_empresa_url","titulo_publico","texto_publico","texto_botao","empresa_anunciante"].includes(event.target.name))updateCreativePreview()});
+  addListener($("#positions"),"change",event=>{if(event.target.matches('[name="posicoes"]'))syncPositionCards()});
+  $$("[data-preview-device]").forEach(button=>addListener(button,"click",()=>{$$("[data-preview-device]").forEach(item=>{const active=item===button;item.classList.toggle("active",active);item.setAttribute("aria-pressed",String(active))});$("#campaign-preview").dataset.device=button.dataset.previewDevice;updateCreativePreview()}));
+  addListener($("#campaign-search"),"input",()=>{clearTimeout(state.timer);state.timer=setTimeout(()=>{state.page=1;loadCampaigns()},350)});
+  ["status-filter","type-filter"].forEach(id=>addListener($("#"+id),"change",()=>{state.page=1;loadCampaigns()}));
+  addListener($("#clear-filters"),"click",()=>{$("#campaign-search").value="";$("#status-filter").value="";$("#type-filter").value="";state.page=1;loadCampaigns()});
+  addListener($("#prev-page"),"click",()=>{if(state.page>1){state.page--;loadCampaigns()}});
+  addListener($("#next-page"),"click",()=>{if(state.page*state.perPage<state.total){state.page++;loadCampaigns()}});
+  addListener($("#campaign-table"),"click",async e=>{const edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-delete]"); if(edit){try{openForm(await buscarCampanha(edit.dataset.edit))}catch(error){toast(errorMessage(error),"error")}} if(del&&confirm(`Excluir a campanha “${del.dataset.name}”?Esta ação não pode ser desfeita.`)){try{await excluirCampanha(del.dataset.delete);state.summaries.clear();toast("Campanha excluída.");loadCampaigns()}catch(error){toast(errorMessage(error),"error")}}});
 }
 
-async function init() {
-  const auth=await exigirAdministrador(); if(!auth)return; $("#admin-user").textContent=auth.admin?.nome||auth.user.email; enhanceCreativeForm();renderPositions(); bindEvents(); loadDashboard();
+function resetState() {
+  clearTimeout(state.timer);
+  state.toastTimers.forEach(timer => clearTimeout(timer));
+  state.page = 1;
+  state.perPage = 10;
+  state.total = 0;
+  state.timer = null;
+  state.toastTimers = [];
+  state.summaries = new Map();
+  state.currentConfig = {};
 }
-init();
+
+function applyPermissions() {
+  const canCreate = can("criar");
+  const canEdit = can("editar");
+  const canDelete = can("excluir");
+  const newButton = $("#new-campaign");
+  if (newButton) newButton.hidden = !canCreate;
+  $$("[data-edit]").forEach(button => { button.hidden = !canEdit; });
+  $$("[data-delete]").forEach(button => { button.hidden = !canDelete; });
+  const saveButton = $("#save-campaign");
+  if (saveButton) saveButton.hidden = !(canCreate || canEdit);
+}
+
+async function initModule(container, context = {}) {
+  moduleContext = context;
+  const access = context.access || await exigirAdministrador();
+  if (!access) return;
+  moduleContext.access = access;
+  if (!temPermissao(access.admin, "publicidade", "acessar") && !temPermissao(access.admin, "publicidade", "ler")) {
+    throw new Error("Usuário sem permissão para acessar Publicidade.");
+  }
+  mounted = true;
+  runId += 1;
+  root = container || document;
+  moduleContext.setTitle?.("Publicidade", "Campanhas, posições, mídia e métricas dos anúncios internos do portal.");
+  document.title = "Publicidade | Eu Amo Ur�nia";
+  enhanceCreativeForm();
+  renderPositions();
+  bindEvents();
+  applyPermissions();
+  await loadDashboard();
+  if (mounted && root === container) applyPermissions();
+}
+
+export async function mount(container, context = {}) {
+  unmount();
+  ensureModuleStyles();
+  mountedContainer = container;
+  renderShell(container);
+  await initModule(container, context);
+}
+
+export function unmount() {
+  mounted = false;
+  cleanupHandlers.splice(0).forEach(handler => {
+    try { handler(); } catch (error) { console.warn("Falha ao desmontar Publicidade:", error); }
+  });
+  resetState();
+  if (mountedContainer) {
+    mountedContainer.classList.remove("ads-main");
+    mountedContainer.innerHTML = "";
+  }
+  mountedContainer = null;
+  moduleContext = {};
+  root = document;
+}
+
+async function bootLegacyPage() {
+  if (document.body?.dataset.adminShell === "true") return;
+  if (!document.querySelector(".ads-content")) return;
+  const auth = await exigirAdministrador();
+  if (!auth) return;
+  const adminUser = document.getElementById("admin-user");
+  if (adminUser) adminUser.textContent = auth.admin?.nome || auth.user.email;
+  root = document;
+  moduleContext = { access: auth };
+  mounted = true;
+  runId += 1;
+  enhanceCreativeForm();
+  renderPositions();
+  bindEvents();
+  applyPermissions();
+  await loadDashboard();
+}
+
+bootLegacyPage();

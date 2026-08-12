@@ -12,11 +12,11 @@ const navItems=[
   ["submissoes","Submissões públicas","submissoes"],
   ["eventos","Agenda simples","eventos"],
   ["eventos_principais","Eventos principais","eventos"],
-  ["eventos_edicoes","EdiÃ§Ãµes","eventos"],
+  ["eventos_edicoes","Edições","eventos"],
   ["publicidade","Publicidade","publicidade"],
   ["comunicacao","Comunicação","comunicacao"],
   ["notificacoes","Notificações do app","notificacoes"],
-  ["melhores","Melhores de Urânia","melhores"],
+  ["melhores","Melhores de Ur�nia","melhores"],
   ["categorias","Categorias","categorias"],
   ["audiencia","Audiência","insights"],
   ["configuracoes_site","Configurações","configuracoes"],
@@ -60,7 +60,7 @@ function normalizeAdminNavigation(){
   if(!nav||nav.dataset.fixed==="1")return;
   const page=location.pathname.split("/").pop()||"index.html";
   const current=currentAdminKey();
-  const shellViews=["dashboard","noticias","aprovacoes","colaboradores_voluntarios","guia_comercial","turismo","links","eventos","eventos_principais","eventos_edicoes","categorias","audiencia","insights","configuracoes_site","midia","banners","comunicacao","notificacoes","submissoes"];
+  const shellViews=["dashboard","noticias","aprovacoes","colaboradores_voluntarios","guia_comercial","turismo","links","eventos","eventos_principais","eventos_edicoes","categorias","audiencia","insights","configuracoes_site","midia","banners","comunicacao","notificacoes","submissoes","publicidade"];
   const isIndex=page==="index.html"||page===""||location.pathname.endsWith("/admin/")||shellViews.includes(current);
   nav.innerHTML=navItems.map(item=>buttonForNav(item,isIndex,current)).join("");
   nav.dataset.fixed="1";

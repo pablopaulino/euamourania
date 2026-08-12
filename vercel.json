@@ -91,7 +91,7 @@
     { "source": "/admin/configuracoes", "destination": "/admin/index.html" },
     { "source": "/admin/midia", "destination": "/admin/index.html" },
     { "source": "/admin/banners", "destination": "/admin/index.html" },
-    { "source": "/admin/publicidade", "destination": "/admin/publicidade.html" },
+    { "source": "/admin/publicidade", "destination": "/admin/index.html" },
     { "source": "/admin/comunicacao", "destination": "/admin/index.html" },
     { "source": "/admin/viva-urania", "destination": "/admin/index.html" },
     { "source": "/admin/notificacoes", "destination": "/admin/index.html" },
