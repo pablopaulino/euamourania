@@ -39,7 +39,26 @@ import {
   importarVencedoresApp
 } from "../assets/js/services/melhoresService.js";
 
-const $ = selector => document.querySelector(selector);
+let root = document;
+let mountedContainer = null;
+let moduleContext = {};
+let mounted = false;
+let runId = 0;
+const cleanupHandlers = [];
+const toastTimers = [];
+
+const $ = selector => {
+  if (!mounted && document.body?.dataset.adminShell === "true") return null;
+  const scoped = root?.querySelector?.(selector);
+  if (scoped) return scoped;
+  return isShellMode() ? null : document.querySelector(selector);
+};
+const $$ = selector => {
+  if (!mounted && document.body?.dataset.adminShell === "true") return [];
+  const scoped = root?.querySelectorAll?.(selector);
+  if (scoped?.length) return Array.from(scoped);
+  return isShellMode() ? [] : Array.from(document.querySelectorAll(selector));
+};
 const state = { tab: "dashboard", returnTab: "dashboard", edicoes: [], categorias: [], indicacoes: [], indicados: [], guia: [], votos: [], instagram: [], apuracao: [], resultados: [], auditoria: [], appCampanhas: [], appVencedores: [], appPreviewResultados: [] };
 const editionStatuses = [
   "planejamento",
@@ -65,11 +84,115 @@ function escapeHtml(value = "") {
 }
 
 function toast(message, type = "success") {
+  if (moduleContext.toast) return moduleContext.toast(message, type);
   const el = document.createElement("div");
   el.className = `toast ${type}`;
   el.textContent = message;
-  $("#toasts").append(el);
-  setTimeout(() => el.remove(), 3800);
+  document.querySelector("#toasts")?.append(el);
+  const timer = setTimeout(() => el.remove(), 3800);
+  toastTimers.push(timer);
+}
+
+function addCleanup(handler) {
+  cleanupHandlers.push(handler);
+}
+
+function addListener(target, type, handler, options) {
+  if (!target) return;
+  target.addEventListener(type, handler, options);
+  addCleanup(() => target.removeEventListener(type, handler, options));
+}
+
+function isShellMode() {
+  return Boolean(mountedContainer);
+}
+
+function isMounted(expectedRun = runId) {
+  return mounted && expectedRun === runId;
+}
+
+function ensureModuleStyles() {
+  [
+    ["melhores", "melhores.css"],
+    ["melhores-indicacoes", "melhores-indicacoes.css"]
+  ].forEach(([key, href]) => {
+    if (document.querySelector(`link[data-admin-module-style="${key}"],link[href$="${href}"]`)) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    link.dataset.adminModuleStyle = key;
+    document.head.append(link);
+    addCleanup(() => link.remove());
+  });
+}
+
+function renderShell(container) {
+  container.classList.add("melhores-admin-module");
+  container.innerHTML = `
+    <div class="awards-content">
+      <section class="awards-hero">
+        <div>
+          <span class="awards-signature">Uma realização Eu Amo Urânia</span>
+          <h2>Central do Melhores de Urânia</h2>
+          <p>
+            Controle edições anuais, categorias, indicados, indicações públicas, votação, Instagram,
+            apuração, auditoria, resultados e textos oficiais em um só lugar.
+          </p>
+        </div>
+        <button class="admin-button" id="new-edition">Nova edição</button>
+      </section>
+
+      <div class="awards-tabs" role="tablist">
+        <button class="awards-tab active" data-tab="dashboard" type="button">Visão geral</button>
+        <button class="awards-tab" data-tab="editions" type="button">Edições</button>
+        <button class="awards-tab" data-tab="categories" type="button">Categorias</button>
+        <button class="awards-tab" data-tab="indications" type="button">Indicações</button>
+        <button class="awards-tab" data-tab="nominees" type="button">Indicados</button>
+        <button class="awards-tab" data-tab="votes" type="button">Votação</button>
+        <button class="awards-tab" data-tab="instagram" type="button">Instagram</button>
+        <button class="awards-tab" data-tab="apuration" type="button">Apuração</button>
+        <button class="awards-tab" data-tab="results" type="button">Resultados</button>
+        <button class="awards-tab" data-tab="app" type="button">Exibição no aplicativo</button>
+        <button class="awards-tab" data-tab="audience" type="button">Audiência</button>
+        <button class="awards-tab" data-tab="audit" type="button">Auditoria</button>
+        <button class="awards-tab" data-tab="settings" type="button">Configurações</button>
+      </div>
+
+      <section id="dashboard-view" class="awards-view active"></section>
+      <section id="editions-view" class="awards-view"></section>
+      <section id="categories-view" class="awards-view"></section>
+      <section id="indications-view" class="awards-view"></section>
+      <section id="nominees-view" class="awards-view"></section>
+      <section id="votes-view" class="awards-view"></section>
+      <section id="instagram-view" class="awards-view"></section>
+      <section id="apuration-view" class="awards-view"></section>
+      <section id="results-view" class="awards-view"></section>
+      <section id="app-view" class="awards-view"></section>
+      <section id="audience-view" class="awards-view"></section>
+      <section id="audit-view" class="awards-view"></section>
+      <section id="settings-view" class="awards-view"></section>
+      <section id="form-view" class="awards-view"></section>
+    </div>`;
+}
+
+function resetState() {
+  Object.assign(state, {
+    tab: "dashboard",
+    returnTab: "dashboard",
+    edicoes: [],
+    categorias: [],
+    indicacoes: [],
+    indicados: [],
+    guia: [],
+    votos: [],
+    instagram: [],
+    apuracao: [],
+    resultados: [],
+    auditoria: [],
+    appCampanhas: [],
+    appVencedores: [],
+    appPreviewResultados: []
+  });
 }
 
 function fmtDate(value) {
@@ -167,14 +290,26 @@ function currentHashTab() {
   return tabLoaders[tab] ? tab : "dashboard";
 }
 
+function initialTab() {
+  if (location.hash) return currentHashTab();
+  return history.state?.melhoresTab && tabLoaders[history.state.melhoresTab] ? history.state.melhoresTab : "dashboard";
+}
+
 function setActiveTab(tab, { persist = true } = {}) {
   state.tab = tab;
-  document.querySelectorAll(".awards-tab").forEach(button => button.classList.toggle("active", button.dataset.tab === tab));
-  document.querySelectorAll(".awards-view").forEach(view => view.classList.toggle("active", view.id === `${tab}-view`));
-  if (persist && tabLoaders[tab]) history.replaceState(null, "", `#${tab}`);
+  $$(".awards-tab").forEach(button => button.classList.toggle("active", button.dataset.tab === tab));
+  $$(".awards-view").forEach(view => view.classList.toggle("active", view.id === `${tab}-view`));
+  if (persist && tabLoaders[tab]) {
+    if (isShellMode()) {
+      history.replaceState({ ...(history.state || {}), adminView: "melhores", melhoresTab: tab }, "", "/admin/melhores");
+    } else {
+      history.replaceState(null, "", `#${tab}`);
+    }
+  }
 }
 
 function loadTab(tab) {
+  if (!mounted) return Promise.resolve();
   return (tabLoaders[tab] || loadDashboard)();
 }
 
@@ -183,7 +318,8 @@ function showError(error) {
   const hint = message.includes("melhores_")
     ? "A migração inicial do módulo Melhores de Urânia precisa estar executada no Supabase antes de usar este módulo."
     : message;
-  $(".awards-view.active").innerHTML = `<div class="awards-error"><strong>Não foi possível carregar o módulo.</strong><p>${escapeHtml(hint)}</p></div>`;
+  const active = $(".awards-view.active");
+  if (active) active.innerHTML = `<div class="awards-error"><strong>Não foi possível carregar o módulo.</strong><p>${escapeHtml(hint)}</p></div>`;
 }
 
 async function loadDashboard() {
@@ -1056,12 +1192,12 @@ function bindSimpleSearch(prefix, rootId) {
   const filter = () => {
     const term = (input?.value || "").toLowerCase();
     const cat = category?.value || "";
-    document.querySelectorAll(`#${rootId} [data-search]`).forEach(row => {
+    $$(`#${rootId} [data-search]`).forEach(row => {
       row.hidden = !row.dataset.search.includes(term) || (cat && row.dataset.category !== cat);
     });
   };
-  input?.addEventListener("input", filter);
-  category?.addEventListener("input", filter);
+  addListener(input, "input", filter);
+  addListener(category, "input", filter);
 }
 
 function bindFilter(type) {
@@ -1071,12 +1207,12 @@ function bindFilter(type) {
   const filter = () => {
     const term = (input?.value || "").toLowerCase();
     const selectedStatus = status?.value || "";
-    document.querySelectorAll(`#${rowsId} tr[data-search]`).forEach(row => {
+    $$(`#${rowsId} tr[data-search]`).forEach(row => {
       row.hidden = !row.dataset.search.includes(term) || (selectedStatus && row.dataset.status !== selectedStatus);
     });
   };
-  input?.addEventListener("input", filter);
-  status?.addEventListener("input", filter);
+  addListener(input, "input", filter);
+  addListener(status, "input", filter);
 }
 
 function field(name, label, value = "", attrs = "") {
@@ -1095,7 +1231,15 @@ function showForm(title, html, onSubmit, { submitLabel = "Salvar" } = {}) {
   if (state.tab !== "form") state.returnTab = state.tab || "dashboard";
   setActiveTab("form", { persist: false });
   $("#form-view").innerHTML = `<article class="awards-card awards-form-card"><div class="awards-panel-head"><div><h3>${escapeHtml(title)}</h3><p>Preencha com atenção. Slugs, pesos e períodos têm validação no banco.</p></div></div><form class="awards-form" id="awards-form">${html}<div class="awards-form-actions"><button type="button" class="admin-button secondary" data-cancel-form>Cancelar</button><button class="admin-button" type="submit">${escapeHtml(submitLabel)}</button></div></form></article>`;
-  $("#awards-form").addEventListener("submit", onSubmit);
+  const form = $("#awards-form");
+  addListener(form, "submit", async event => {
+    const submitter = event.submitter || form?.querySelector?.("button[type=submit]");
+    if (submitter?.dataset.awardsBusy === "1") {
+      event.preventDefault();
+      return;
+    }
+    await guardedAction(submitter, () => onSubmit(event));
+  });
 }
 
 function attachAwardsMedia(fields) {
@@ -1110,10 +1254,10 @@ function attachAwardsMedia(fields) {
 function wireSlug(form, sourceName = "nome") {
   const source = form.elements[sourceName];
   const slug = form.elements.slug;
-  source?.addEventListener("input", () => {
+  addListener(source, "input", () => {
     if (slug && !slug.dataset.manual) slug.value = gerarSlug(source.value);
   });
-  slug?.addEventListener("input", () => slug.dataset.manual = "1");
+  addListener(slug, "input", () => slug.dataset.manual = "1");
 }
 
 async function editionForm(id) {
@@ -1336,11 +1480,11 @@ async function nomineeForm(id) {
   attachAwardsMedia({ imagem_url: ["melhores/indicados", "square"] });
   const form = $("#awards-form");
   wireSlug(form);
-  form.elements.edicao_id.addEventListener("change", async () => {
+  addListener(form.elements.edicao_id, "change", async () => {
     const cats = await listarCategorias(form.elements.edicao_id.value);
     form.elements.categoria_id.innerHTML = cats.map(c => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("");
   });
-  form.elements.guia_comercial_id.addEventListener("change", () => {
+  addListener(form.elements.guia_comercial_id, "change", () => {
     const guide = state.guia.find(g => g.id === form.elements.guia_comercial_id.value);
     if (!guide) return;
     if (!form.elements.nome.value) form.elements.nome.value = guide.nome || "";
@@ -1390,13 +1534,13 @@ async function instagramForm(id) {
   });
   attachAwardsMedia({ comprovante_url: ["melhores/comprovantes", "original"] });
   const form = $("#awards-form");
-  form.elements.edicao_id.addEventListener("change", async () => {
+  addListener(form.elements.edicao_id, "change", async () => {
     const cats = await listarCategorias(form.elements.edicao_id.value);
     form.elements.categoria_id.innerHTML = cats.map(c => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("");
     const noms = await listarIndicados({ edicaoId: form.elements.edicao_id.value, categoriaId: cats[0]?.id });
     form.elements.indicado_id.innerHTML = noms.map(n => `<option value="${n.id}">${escapeHtml(n.nome)}</option>`).join("");
   });
-  form.elements.categoria_id.addEventListener("change", async () => {
+  addListener(form.elements.categoria_id, "change", async () => {
     const noms = await listarIndicados({ edicaoId: form.elements.edicao_id.value, categoriaId: form.elements.categoria_id.value });
     form.elements.indicado_id.innerHTML = noms.map(n => `<option value="${n.id}">${escapeHtml(n.nome)}</option>`).join("");
   });
@@ -1511,7 +1655,7 @@ async function appWinnerForm(id, campanhaId) {
   });
   attachAwardsMedia({ imagem_url: ["melhores/app-vencedores", "square"] });
   const form = $("#awards-form");
-  form.elements.guia_comercial_id.addEventListener("change", () => {
+  addListener(form.elements.guia_comercial_id, "change", () => {
     const guide = state.guia.find(g => g.id === form.elements.guia_comercial_id.value);
     if (!guide) return;
     if (!form.elements.nome_exibido.value) form.elements.nome_exibido.value = guide.nome || "";
@@ -1524,149 +1668,178 @@ async function appWinnerForm(id, campanhaId) {
   });
 }
 
-async function init() {
-  const access = await exigirPermissao("melhores", "acessar");
-  if (!access) return;
-  $("#admin-user").textContent = access.admin.nome || access.user.email;
-  $("#logout").addEventListener("click", sair);
-  $("#mobile-menu").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+function setButtonBusy(button, busy = true) {
+  if (!button) return;
+  if (busy) {
+    button.dataset.awardsBusy = "1";
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+  } else {
+    delete button.dataset.awardsBusy;
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
+  }
+}
 
-  document.addEventListener("click", async event => {
+async function guardedAction(button, action) {
+  if (button?.dataset.awardsBusy === "1") return;
+  setButtonBusy(button, true);
+  const actionRun = runId;
+  try {
+    await action();
+  } finally {
+    if (isMounted(actionRun) || !isShellMode()) setButtonBusy(button, false);
+  }
+}
+
+async function init(context = {}) {
+  const initRun = runId;
+  moduleContext = context || {};
+  const access = moduleContext.access || await exigirPermissao("melhores", "acessar");
+  if (!access || !isMounted(initRun)) return;
+  moduleContext.access = access;
+  moduleContext.setTitle?.("Melhores de Ur�nia", "Gerencie edi��es anuais, categorias e indicados da premia��o oficial do portal.");
+  document.title = "Melhores de Ur�nia | Eu Amo Ur�nia CMS";
+  const adminUser = document.querySelector("#admin-user");
+  if (adminUser) adminUser.textContent = access.admin.nome || access.user.email;
+  if (!isShellMode()) {
+    addListener(document.querySelector("#logout"), "click", sair);
+    addListener(document.querySelector("#mobile-menu"), "click", () => document.querySelector("#sidebar")?.classList.toggle("open"));
+  }
+
+  addListener(root, "click", async event => {
     const button = event.target.closest("button");
-    if (!button) return;
-    if (button.hasAttribute("data-fill-official-texts")) {
-      const form = $("#awards-form");
-      const ano = Number(form?.elements?.ano?.value || 2026);
-      const regulamento = getDefaultRegulamento(ano) || getDefaultRegulamento(2026);
-      const metodologia = getDefaultMetodologia(ano) || getDefaultMetodologia(2026);
-      const shouldReplace = !form.elements.regulamento.value.trim()
-        || confirm("Substituir o regulamento e a metodologia atuais pelo modelo oficial?");
-      if (!shouldReplace) return;
-      form.elements.regulamento.value = regulamento;
-      form.elements.metodologia.value = metodologia;
-      toast("Modelo oficial aplicado. Revise e salve a edição.");
-      return;
-    }
-    if (button.dataset.tab) {
-      return loadTab(button.dataset.tab);
-    }
-    if (button.dataset.dashboardTab) {
-      return loadTab(button.dataset.dashboardTab);
-    }
-    if (button.id === "new-edition" || button.hasAttribute("data-new-edition")) return editionForm();
-    if (button.dataset.editEdition) return editionForm(button.dataset.editEdition);
-    if (button.dataset.deleteEdition && confirm("Excluir esta edição? Categorias e indicados vinculados também serão removidos.")) {
-      await excluirEdicao(button.dataset.deleteEdition);
-      toast("Edição excluída.");
-      state.edicoes = [];
-      return loadEditions();
-    }
-    if (button.hasAttribute("data-new-category")) return categoryForm();
-    if (button.dataset.copyCategories) return copyCategoriesForm(button.dataset.copyCategories);
-    if (button.dataset.editCategory) return categoryForm(button.dataset.editCategory);
-    if (button.dataset.deleteCategory && confirm("Excluir esta categoria? Indicados vinculados também serão removidos.")) {
-      await excluirCategoria(button.dataset.deleteCategory);
-      toast("Categoria excluída.");
-      state.categorias = [];
-      return loadCategories();
-    }
-    if (button.hasAttribute("data-new-nominee")) return nomineeForm();
-    if (button.dataset.editNominee) return nomineeForm(button.dataset.editNominee);
-    if (button.dataset.deleteNominee && confirm("Excluir este indicado?")) {
-      await excluirIndicado(button.dataset.deleteNominee);
-      toast("Indicado excluído.");
-      state.indicados = [];
-      return loadNominees();
-    }
-    if (button.hasAttribute("data-refresh-categories")) return loadCategories();
-    if (button.hasAttribute("data-refresh-indications")) return loadIndications();
-    if (button.dataset.convertIndication) return convertIndication(button.dataset.convertIndication);
-    if (button.dataset.approveIndication) return updateIndicationStatus(button.dataset.approveIndication, "aprovada");
-    if (button.dataset.rejectIndication) return updateIndicationStatus(button.dataset.rejectIndication, "rejeitada");
-    if (button.dataset.duplicateIndication) return updateIndicationStatus(button.dataset.duplicateIndication, "duplicada");
-    if (button.dataset.spamIndication) return updateIndicationStatus(button.dataset.spamIndication, "spam");
-    if (button.dataset.deleteIndication && confirm("Excluir esta indicação?")) {
-      await excluirIndicacao(button.dataset.deleteIndication);
-      toast("Indicação excluída.");
-      state.indicacoes = [];
-      return loadIndications();
-    }
-    if (button.hasAttribute("data-refresh-nominees")) return loadNominees();
-    if (button.hasAttribute("data-refresh-votes")) return loadVotes();
-    if (button.hasAttribute("data-manual-cleanup-votes")) {
-      const edicaoId = $("#votes-edition-filter")?.value || state.edicoes[0]?.id;
-      if (!edicaoId) return toast("Selecione uma edição.", "error");
-      if (!confirm("Executar limpeza manual dos votos individuais desta edição? Use somente após auditoria e publicação oficial.")) return;
-      const total = await limparVotosManual(edicaoId);
-      toast(`${total || 0} voto(s) individual(is) removido(s) após consolidação.`);
-      return loadVotes();
-    }
-    if (button.hasAttribute("data-new-instagram")) return instagramForm();
-    if (button.dataset.editInstagram) return instagramForm(button.dataset.editInstagram);
-    if (button.dataset.deleteInstagram && confirm("Excluir este lançamento do Instagram?")) {
-      await excluirInstagramVoto(button.dataset.deleteInstagram);
-      toast("Lançamento excluído.");
-      state.instagram = [];
-      return loadInstagram();
-    }
-    if (button.hasAttribute("data-refresh-instagram")) return loadInstagram();
-    if (button.hasAttribute("data-refresh-apuration")) return loadApuration();
-    if (button.hasAttribute("data-refresh-results")) return loadResults();
-    if (button.hasAttribute("data-refresh-app-display")) return loadAppDisplay();
-    if (button.hasAttribute("data-new-app-campaign")) return appCampaignForm();
-    if (button.dataset.editAppCampaign) return appCampaignForm(button.dataset.editAppCampaign);
-    if (button.dataset.newAppWinner) return appWinnerForm(null, button.dataset.newAppWinner);
-    if (button.dataset.editAppWinner) return appWinnerForm(button.dataset.editAppWinner, $("#app-campaign-filter")?.value);
-    if (button.dataset.archiveAppWinner && confirm("Arquivar este vencedor apenas na exibição do aplicativo?")) {
-      await arquivarVencedorApp(button.dataset.archiveAppWinner);
-      toast("Vencedor arquivado na exibição do app.");
-      state.appVencedores = [];
-      return loadAppDisplay();
-    }
-    if (button.dataset.importAppWinners) {
-      if (!confirm("Importar vencedores oficiais publicados desta edição para o aplicativo? Vencedores existentes da mesma categoria serão atualizados.")) return;
-      const total = await importarVencedoresApp(button.dataset.importAppWinners);
-      toast(`${total || 0} vencedor(es) importado(s) para o aplicativo.`);
-      state.appVencedores = [];
-      return loadAppDisplay();
-    }
-    if (button.dataset.appAction) {
-      const campaign = state.appCampanhas.find(item => item.id === button.dataset.id) || await obterCampanhaApp(button.dataset.id);
-      if (!campaign) return toast("Campanha não encontrada.", "error");
-      const now = new Date();
-      const payloadByAction = {
-        schedule: { status: "agendada", ativo: true },
-        activate: { status: "ativa", ativo: true, exibir_inicio: campaign.exibir_inicio || now.toISOString() },
-        deactivate: { status: "inativa", ativo: false },
-        close: { status: "encerrada", ativo: false, exibir_fim: now.toISOString() },
-        archive: { status: "arquivada", ativo: false, arquivado_em: now.toISOString() }
-      };
-      if (button.dataset.appAction === "archive" && !confirm("Arquivar esta campanha do aplicativo? O histórico será mantido no banco.")) return;
-      await salvarCampanhaApp({ id: campaign.id, ...payloadByAction[button.dataset.appAction] });
-      toast("Status da exibição no app atualizado.");
-      state.appCampanhas = [];
-      return loadAppDisplay();
-    }
-    if (button.hasAttribute("data-refresh-audience")) return loadAudience();
-    if (button.hasAttribute("data-open-audience")) return loadAudience();
-    if (button.hasAttribute("data-refresh-audit")) return loadAudit();
-    if (button.hasAttribute("data-publish-results")) {
-      const edicaoId = $("#apuration-edition-filter")?.value || state.edicoes[0]?.id;
-      if (!edicaoId) return toast("Selecione uma edição.", "error");
-      const methodology = prompt("Descreva a metodologia resumida que ficará gravada no resultado oficial:", "Resultado calculado por percentual de votos no site e no Instagram, conforme pesos da edição.");
-      if (methodology === null) return;
-      if (!confirm("Publicar resultado oficial agora? Esta ação cria um snapshot histórico da edição.")) return;
-      const total = await publicarResultado(edicaoId, methodology);
-      toast(`${total || 0} resultado(s) publicado(s).`);
-      state.resultados = [];
-      return loadResults();
-    }
-    if (button.hasAttribute("data-cancel-form")) {
-      if (state.tab === "form") return loadTab(state.returnTab || "dashboard");
-    }
+    if (!button || !root.contains(button) || !isMounted(initRun)) return;
+    await guardedAction(button, async () => {
+      if (button.hasAttribute("data-fill-official-texts")) {
+        const form = $("#awards-form");
+        const ano = Number(form?.elements?.ano?.value || 2026);
+        const regulamento = getDefaultRegulamento(ano) || getDefaultRegulamento(2026);
+        const metodologia = getDefaultMetodologia(ano) || getDefaultMetodologia(2026);
+        const shouldReplace = !form.elements.regulamento.value.trim()
+          || confirm("Substituir o regulamento e a metodologia atuais pelo modelo oficial?");
+        if (!shouldReplace) return;
+        form.elements.regulamento.value = regulamento;
+        form.elements.metodologia.value = metodologia;
+        toast("Modelo oficial aplicado. Revise e salve a edi��o.");
+        return;
+      }
+      if (button.dataset.tab) return loadTab(button.dataset.tab);
+      if (button.dataset.dashboardTab) return loadTab(button.dataset.dashboardTab);
+      if (button.id === "new-edition" || button.hasAttribute("data-new-edition")) return editionForm();
+      if (button.dataset.editEdition) return editionForm(button.dataset.editEdition);
+      if (button.dataset.deleteEdition && confirm("Excluir esta edi��o? Categorias e indicados vinculados tamb�m ser�o removidos.")) {
+        await excluirEdicao(button.dataset.deleteEdition);
+        toast("Edi��o exclu�da.");
+        state.edicoes = [];
+        return loadEditions();
+      }
+      if (button.hasAttribute("data-new-category")) return categoryForm();
+      if (button.dataset.copyCategories) return copyCategoriesForm(button.dataset.copyCategories);
+      if (button.dataset.editCategory) return categoryForm(button.dataset.editCategory);
+      if (button.dataset.deleteCategory && confirm("Excluir esta categoria? Indicados vinculados tamb�m ser�o removidos.")) {
+        await excluirCategoria(button.dataset.deleteCategory);
+        toast("Categoria exclu�da.");
+        state.categorias = [];
+        return loadCategories();
+      }
+      if (button.hasAttribute("data-new-nominee")) return nomineeForm();
+      if (button.dataset.editNominee) return nomineeForm(button.dataset.editNominee);
+      if (button.dataset.deleteNominee && confirm("Excluir este indicado?")) {
+        await excluirIndicado(button.dataset.deleteNominee);
+        toast("Indicado exclu�do.");
+        state.indicados = [];
+        return loadNominees();
+      }
+      if (button.hasAttribute("data-refresh-categories")) return loadCategories();
+      if (button.hasAttribute("data-refresh-indications")) return loadIndications();
+      if (button.dataset.convertIndication) return convertIndication(button.dataset.convertIndication);
+      if (button.dataset.approveIndication) return updateIndicationStatus(button.dataset.approveIndication, "aprovada");
+      if (button.dataset.rejectIndication) return updateIndicationStatus(button.dataset.rejectIndication, "rejeitada");
+      if (button.dataset.duplicateIndication) return updateIndicationStatus(button.dataset.duplicateIndication, "duplicada");
+      if (button.dataset.spamIndication) return updateIndicationStatus(button.dataset.spamIndication, "spam");
+      if (button.dataset.deleteIndication && confirm("Excluir esta indica��o?")) {
+        await excluirIndicacao(button.dataset.deleteIndication);
+        toast("Indica��o exclu�da.");
+        state.indicacoes = [];
+        return loadIndications();
+      }
+      if (button.hasAttribute("data-refresh-nominees")) return loadNominees();
+      if (button.hasAttribute("data-refresh-votes")) return loadVotes();
+      if (button.hasAttribute("data-manual-cleanup-votes")) {
+        const edicaoId = $("#votes-edition-filter")?.value || state.edicoes[0]?.id;
+        if (!edicaoId) return toast("Selecione uma edi��o.", "error");
+        if (!confirm("Executar limpeza manual dos votos individuais desta edi��o? Use somente ap�s auditoria e publica��o oficial.")) return;
+        const total = await limparVotosManual(edicaoId);
+        toast(`${total || 0} voto(s) individual(is) removido(s) ap�s consolida��o.`);
+        return loadVotes();
+      }
+      if (button.hasAttribute("data-new-instagram")) return instagramForm();
+      if (button.dataset.editInstagram) return instagramForm(button.dataset.editInstagram);
+      if (button.dataset.deleteInstagram && confirm("Excluir este lan�amento do Instagram?")) {
+        await excluirInstagramVoto(button.dataset.deleteInstagram);
+        toast("Lan�amento exclu�do.");
+        state.instagram = [];
+        return loadInstagram();
+      }
+      if (button.hasAttribute("data-refresh-instagram")) return loadInstagram();
+      if (button.hasAttribute("data-refresh-apuration")) return loadApuration();
+      if (button.hasAttribute("data-refresh-results")) return loadResults();
+      if (button.hasAttribute("data-refresh-app-display")) return loadAppDisplay();
+      if (button.hasAttribute("data-new-app-campaign")) return appCampaignForm();
+      if (button.dataset.editAppCampaign) return appCampaignForm(button.dataset.editAppCampaign);
+      if (button.dataset.newAppWinner) return appWinnerForm(null, button.dataset.newAppWinner);
+      if (button.dataset.editAppWinner) return appWinnerForm(button.dataset.editAppWinner, $("#app-campaign-filter")?.value);
+      if (button.dataset.archiveAppWinner && confirm("Arquivar este vencedor apenas na exibi��o do aplicativo?")) {
+        await arquivarVencedorApp(button.dataset.archiveAppWinner);
+        toast("Vencedor arquivado na exibi��o do app.");
+        state.appVencedores = [];
+        return loadAppDisplay();
+      }
+      if (button.dataset.importAppWinners) {
+        if (!confirm("Importar vencedores oficiais publicados desta edi��o para o aplicativo? Vencedores existentes da mesma categoria ser�o atualizados.")) return;
+        const total = await importarVencedoresApp(button.dataset.importAppWinners);
+        toast(`${total || 0} vencedor(es) importado(s) para o aplicativo.`);
+        state.appVencedores = [];
+        return loadAppDisplay();
+      }
+      if (button.dataset.appAction) {
+        const campaign = state.appCampanhas.find(item => item.id === button.dataset.id) || await obterCampanhaApp(button.dataset.id);
+        if (!campaign) return toast("Campanha n�o encontrada.", "error");
+        const now = new Date();
+        const payloadByAction = {
+          schedule: { status: "agendada", ativo: true },
+          activate: { status: "ativa", ativo: true, exibir_inicio: campaign.exibir_inicio || now.toISOString() },
+          deactivate: { status: "inativa", ativo: false },
+          close: { status: "encerrada", ativo: false, exibir_fim: now.toISOString() },
+          archive: { status: "arquivada", ativo: false, arquivado_em: now.toISOString() }
+        };
+        if (button.dataset.appAction === "archive" && !confirm("Arquivar esta campanha do aplicativo? O hist�rico ser� mantido no banco.")) return;
+        await salvarCampanhaApp({ id: campaign.id, ...payloadByAction[button.dataset.appAction] });
+        toast("Status da exibi��o no app atualizado.");
+        state.appCampanhas = [];
+        return loadAppDisplay();
+      }
+      if (button.hasAttribute("data-refresh-audience")) return loadAudience();
+      if (button.hasAttribute("data-open-audience")) return loadAudience();
+      if (button.hasAttribute("data-refresh-audit")) return loadAudit();
+      if (button.hasAttribute("data-publish-results")) {
+        const edicaoId = $("#apuration-edition-filter")?.value || state.edicoes[0]?.id;
+        if (!edicaoId) return toast("Selecione uma edi��o.", "error");
+        const methodology = prompt("Descreva a metodologia resumida que ficar� gravada no resultado oficial:", "Resultado calculado por percentual de votos no site e no Instagram, conforme pesos da edi��o.");
+        if (methodology === null) return;
+        if (!confirm("Publicar resultado oficial agora? Esta a��o cria um snapshot hist�rico da edi��o.")) return;
+        const total = await publicarResultado(edicaoId, methodology);
+        toast(`${total || 0} resultado(s) publicado(s).`);
+        state.resultados = [];
+        return loadResults();
+      }
+      if (button.hasAttribute("data-cancel-form") && state.tab === "form") return loadTab(state.returnTab || "dashboard");
+    });
   });
 
-  document.addEventListener("change", event => {
+  addListener(root, "change", event => {
+    if (!isMounted(initRun)) return;
     if (event.target.id === "category-edition-filter") loadCategories();
     if (event.target.id === "indication-edition-filter" || event.target.id === "indication-status-filter") loadIndications();
     if (event.target.id === "nominee-edition-filter" || event.target.id === "nominee-category-filter") {
@@ -1685,12 +1858,52 @@ async function init() {
     if (event.target.id === "audit-edition-filter") loadAudit();
   });
 
-  window.addEventListener("hashchange", () => {
-    const tab = currentHashTab();
-    if (tab !== state.tab) loadTab(tab);
-  });
+  if (!isShellMode()) {
+    addListener(window, "hashchange", () => {
+      const tab = currentHashTab();
+      if (tab !== state.tab) loadTab(tab);
+    });
+  }
 
-  await loadTab(currentHashTab());
+  await loadTab(initialTab());
 }
 
-init();
+export async function mount(container, context = {}) {
+  unmount();
+  mountedContainer = container;
+  root = container;
+  resetState();
+  mounted = true;
+  runId += 1;
+  ensureModuleStyles();
+  renderShell(container);
+  await init(context);
+}
+
+export function unmount() {
+  mounted = false;
+  runId += 1;
+  cleanupHandlers.splice(0).forEach(clean => {
+    try { clean(); } catch (error) { console.warn("Falha ao desmontar Melhores:", error); }
+  });
+  toastTimers.splice(0).forEach(timer => clearTimeout(timer));
+  resetState();
+  moduleContext = {};
+  if (mountedContainer) {
+    mountedContainer.classList.remove("melhores-admin-module");
+    mountedContainer.innerHTML = "";
+  }
+  mountedContainer = null;
+  root = document;
+}
+
+async function bootLegacyPage() {
+  if (document.body?.dataset.adminShell === "true") return;
+  if (!document.querySelector(".awards-content")) return;
+  root = document;
+  mounted = true;
+  runId += 1;
+  await init({});
+}
+
+bootLegacyPage();

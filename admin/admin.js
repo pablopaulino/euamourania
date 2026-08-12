@@ -49,6 +49,11 @@ const moduleRoutes = {
     label: "Migrar conteÃºdo antigo",
     hint: "ImportaÃ§Ã£o segura de arquivos legados e lotes do Guia Comercial.",
     module: () => import("./migrar.js")
+  },
+  melhores: {
+    label: "Melhores de Urânia",
+    hint: "Edições, categorias, indicados, votos, apuração e resultados da premiação.",
+    module: () => import("./melhores.js")
   }
 };
 
@@ -296,7 +301,7 @@ async function legacyDashboard() {
       <div class="dashboard-grid">${metrics.map(([label,value,detail])=>`<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${detail}</small></article>`).join("")}</div>
       <div class="dashboard-grid dashboard-actions">
         <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>NotÃ­cias</strong><small>Criar, revisar e publicar</small></button>
-        <button class="metric-card" onclick="location.href='/admin/melhores'"><span>PrÃªmio</span><strong>Melhores de UrÃ¢nia</strong><small>VotaÃ§Ã£o, apuraÃ§Ã£o e resultados</small></button>
+        <button class="metric-card" data-view="melhores"><span>PrÃªmio</span><strong>Melhores de UrÃ¢nia</strong><small>VotaÃ§Ã£o, apuraÃ§Ã£o e resultados</small></button>
         <button class="metric-card" id="dashboard-audience"><span>Dados</span><strong>AudiÃªncia</strong><small>VisualizaÃ§Ãµes, cliques e buscas</small></button>
         <button class="metric-card" data-view="publicidade"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
       </div>
@@ -408,7 +413,7 @@ async function dashboardBase() {
         <section class="panel dashboard-section">
           <header class="panel-header"><div><h2>O que precisa de atenÃ§Ã£o</h2><p>Atalhos para as prÃ³ximas aÃ§Ãµes do painel.</p></div></header>
           <div class="dashboard-task-list">
-            ${pendingTasks.length ?pendingTasks.map(([text, action, target]) => `<button class="dashboard-task" ${target === "melhores" ?"onclick=\"location.href='/admin/melhores'\"" : target === "aprovacoes" ?"id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} ï¿½ </strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendÃªncia importante agora.</div>'}
+            ${pendingTasks.length ?pendingTasks.map(([text, action, target]) => `<button class="dashboard-task" ${target === "aprovacoes" ?"id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} ï¿½ </strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendÃªncia importante agora.</div>'}
           </div>
         </section>
         <section class="panel dashboard-section">
@@ -435,7 +440,7 @@ async function dashboardBase() {
       </div>
       <div class="dashboard-quick-actions">
         <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>NotÃ­cias</strong><small>Criar, revisar e publicar</small></button>
-        <button class="metric-card" onclick="location.href='/admin/melhores'"><span>PrÃªmio</span><strong>Melhores de UrÃ¢nia</strong><small>VotaÃ§Ã£o, apuraÃ§Ã£o e resultados</small></button>
+        <button class="metric-card" data-view="melhores"><span>PrÃªmio</span><strong>Melhores de UrÃ¢nia</strong><small>VotaÃ§Ã£o, apuraÃ§Ã£o e resultados</small></button>
         <button class="metric-card" data-view="publicidade"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
         <button class="metric-card" onclick="location.href='/admin/comunicacao'"><span>Relacionamento</span><strong>ComunicaÃ§Ã£o</strong><small>Newsletter e assinantes</small></button>
       </div>`;
@@ -573,7 +578,7 @@ async function dashboard() {
     const targetAttrs = target => {
       if (target === "publicidade") return 'data-view="publicidade"';
       if (target === "comunicacao") return "onclick=\"location.href='/admin/comunicacao'\"";
-      if (target === "melhores") return "onclick=\"location.href='/admin/melhores'\"";
+      if (target === "melhores") return 'data-view="melhores"';
       if (target === "notificacoes") return `data-view="${target}"`;
       if (target === "aprovacoes") return "id=\"dashboard-approvals\"";
       if (target === "audiencia") return "id=\"dashboard-audience\"";
@@ -710,7 +715,7 @@ async function dashboard() {
 
         <section class="ops-two-columns">
           <div class="ops-section panel">
-            <header class="ops-section-header"><div><p class="eyebrow">PrÃªmio</p><h2>Melhores de UrÃ¢nia</h2></div><button class="admin-button secondary" onclick="location.href='/admin/melhores'">Abrir mÃ³dulo</button></header>
+            <header class="ops-section-header"><div><p class="eyebrow">PrÃªmio</p><h2>Melhores de UrÃ¢nia</h2></div><button class="admin-button secondary" data-view="melhores">Abrir mÃ³dulo</button></header>
             <div class="dashboard-list">${listRows(editionRows)}</div>
           </div>
           <div class="ops-section panel">

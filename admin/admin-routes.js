@@ -22,12 +22,11 @@ export const ADMIN_INDEX_ROUTES = {
   submissoes: "/admin/submissoes",
   publicidade: "/admin/publicidade",
   usuarios: "/admin/usuarios",
-  importacao: "/admin/importacao"
-};
-
-export const ADMIN_PAGE_ROUTES = {
+  importacao: "/admin/importacao",
   melhores: "/admin/melhores"
 };
+
+export const ADMIN_PAGE_ROUTES = {};
 
 const PATH_TO_VIEW = Object.entries(ADMIN_INDEX_ROUTES).reduce((acc, [view, path]) => {
   acc[trimSlash(path)] = view === "insights" ? "audiencia" : view;
@@ -71,7 +70,8 @@ const HASH_TO_VIEW = {
   banners: "banners",
   publicidade: "publicidade",
   usuarios: "usuarios",
-  importacao: "importacao"
+  importacao: "importacao",
+  melhores: "melhores"
 };
 
 export function adminHashToView(hash = "") {
