@@ -6,7 +6,7 @@ const db=getSupabase();
 const app=document.getElementById("app-content");
 const pageTitle=document.getElementById("page-title");
 const esc=(value="")=>String(value??"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
-const fmtDate=value=>value?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short",timeZone:"America/Sao_Paulo"}).format(new Date(value)):"—";
+const fmtDate=value=>value?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short",timeZone:"America/Sao_Paulo"}).format(new Date(value)):"�";
 const isoDate=date=>date.toISOString().slice(0,10);
 let currentNewsId=null;
 let audienceData=null;
@@ -84,7 +84,7 @@ async function renderApprovals(){
   app.innerHTML=`<section class="panel editorial-panel">
    <div class="cms-section-head"><div><h2>Fila de aprovação</h2><p>Revise matérias, solicite ajustes ou aprove a publicação.</p></div><span class="approval-counter">${pending} aguardando</span></div>
    <div class="cms-toolbar-v2">
-    <input id="approval-search" type="search" placeholder="Pesquisar matéria…">
+    <input id="approval-search" type="search" placeholder="Pesquisar matéria⬦">
     <select id="approval-status"><option value="">Todos os status</option><option value="pendente">Aguardando revisão</option><option value="ajustes_solicitados">Ajustes solicitados</option><option value="aprovado">Aprovadas</option><option value="cancelado">Canceladas</option></select>
     <select id="approval-author"><option value="">Todos os autores</option>${authors.map(author=>`<option>${esc(author)}</option>`).join("")}</select>
     <input id="approval-date" type="date" aria-label="Filtrar por data de envio">
@@ -120,7 +120,7 @@ function openPreview(newsId){
  const item=approvalItem(newsId);if(!item)return;
  const news=item.noticia,dialog=document.getElementById("editorial-dialog");
  dialog.innerHTML=`<div class="cms-dialog-backdrop"><section class="cms-dialog editorial-preview" role="dialog" aria-modal="true" aria-label="Prévia da notícia">
-  <button class="dialog-close" data-dialog-close aria-label="Fechar">×</button>
+  <button class="dialog-close" data-dialog-close aria-label="Fechar">�</button>
   <p class="eyebrow">Pré-visualização editorial</p><h2>${esc(news.titulo)}</h2>
   ${news.resumo?`<p class="article-subtitle">${esc(news.resumo)}</p>`:""}
   ${news.imagem_url?`<img src="${esc(news.imagem_url)}" alt="">`:""}
@@ -136,7 +136,7 @@ function openReview(newsId){
  const item=approvalItem(newsId);if(!item)return;
  const dialog=document.getElementById("editorial-dialog");
  dialog.innerHTML=`<div class="cms-dialog-backdrop"><section class="cms-dialog" role="dialog" aria-modal="true" aria-label="Revisar notícia">
-  <button class="dialog-close" data-dialog-close aria-label="Fechar">×</button>
+  <button class="dialog-close" data-dialog-close aria-label="Fechar">�</button>
   <p class="eyebrow">Revisão editorial</p><h2>${esc(item.noticia.titulo)}</h2>
   <label class="cms-field full"><span>Comentário para o redator</span><textarea id="review-comment" rows="5" placeholder="Obrigatório ao solicitar ajustes. Opcional na aprovação."></textarea></label>
   <label class="cms-field"><span>Data e horário de publicação</span><input id="review-published-at" type="datetime-local" value="${localDateTime(item.noticia.publicado_em)}"></label>
@@ -248,6 +248,44 @@ async function mergeNewsPageViews(resources=[],pages=[]){
   grouped.set(key,current);
  });
  return[...grouped.values()].sort((a,b)=>b.total-a.total);
+}
+async function consolidatedNewsAudience(startString,endString){
+ const startIso=`${startString}T00:00:00-03:00`,endDate=new Date(`${endString}T00:00:00-03:00`);
+ endDate.setDate(endDate.getDate()+1);
+ const {data,error}=await db.from("analytics_eventos")
+  .select("tipo,pagina,recurso_tipo,recurso_id")
+  .in("tipo",["page_view","noticia_view"])
+  .gte("criado_em",startIso).lt("criado_em",endDate.toISOString()).limit(10000);
+ if(error)throw error;
+ const byId=new Map(),bySlug=new Map();
+ (data||[]).forEach(item=>{
+  if(item.tipo==="noticia_view"&&item.recurso_id){
+   byId.set(item.recurso_id,(byId.get(item.recurso_id)||0)+1);
+   return;
+  }
+  if(item.tipo==="page_view"){
+   const slug=slugNoticiaPagina(item.pagina);
+   if(slug)bySlug.set(slug,(bySlug.get(slug)||0)+1);
+  }
+ });
+ const ids=[...byId.keys()],slugs=[...bySlug.keys()],newsById=new Map(),newsBySlug=new Map();
+ if(ids.length){
+  const {data:rows}=await db.from("noticias").select("id,titulo,slug").in("id",ids);
+  (rows||[]).forEach(item=>newsById.set(item.id,item));
+ }
+ if(slugs.length){
+  const {data:rows}=await db.from("noticias").select("id,titulo,slug").in("slug",slugs);
+  (rows||[]).forEach(item=>{newsById.set(item.id,item);newsBySlug.set(item.slug,item)});
+ }
+ bySlug.forEach((total,slug)=>{
+  const news=newsBySlug.get(slug);
+  if(news)byId.set(news.id,Math.max(byId.get(news.id)||0,total));
+ });
+ const ranking=[...byId.entries()].map(([id,total])=>{
+  const news=newsById.get(id);
+  return{tipo:"noticia",id,nome:news?.titulo||"Noticia removida",slug:news?.slug,total};
+ }).filter(item=>item.total>0).sort((a,b)=>b.total-a.total);
+ return{total:ranking.reduce((sum,item)=>sum+Number(item.total||0),0),ranking};
 }
 async function resourceNames(resources=[]){
  const config={noticia:["noticias","titulo"],guia:["guia_comercial","nome"],evento:["eventos","titulo"],evento_principal:["eventos_principais","nome"],evento_edicao:["eventos_edicoes","titulo"],turismo:["turismo","nome"],link:["links","titulo"]};
@@ -415,32 +453,38 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
   const end=customEnd?new Date(`${customEnd}T12:00:00`):new Date();
   const start=customStart?new Date(`${customStart}T12:00:00`):new Date(end.getTime()-(days-1)*864e5);
   const startString=isoDate(start),endString=isoDate(end);
-  const [data,ads,google,appStats]=await Promise.all([
+  const periodDays=Math.max(1,Math.round((end-start)/864e5)+1);
+  const previousEnd=new Date(start.getTime()-864e5),previousStart=new Date(previousEnd.getTime()-(periodDays-1)*864e5);
+  const previousStartString=isoDate(previousStart),previousEndString=isoDate(previousEnd);
+  const [data,ads,google,appStats,newsStats,previousNewsStats]=await Promise.all([
    obterAudienciaAvancada(startString,endString),
    db.from("publicidade_resumo").select("nome,impressoes,cliques,ctr").order("impressoes",{ascending:false}).limit(8),
    googleAudience(startString,endString),
-   appAudience(startString,endString)
+   appAudience(startString,endString),
+   consolidatedNewsAudience(startString,endString),
+   consolidatedNewsAudience(previousStartString,previousEndString)
   ]);
   data.recursos=await resourceNames(await mergeNewsPageViews(data.recursos||[],data.paginas||[]));
-  audienceData={...data,app:appStats};
-  const summary=data.resumo||{},previous=data.anterior||{};
+  data.resumo={...(data.resumo||{}),noticias:newsStats.total};
+  audienceData={...data,app:appStats,noticias_consolidadas:newsStats};
+  const summary=data.resumo||{},previous=data.anterior||{},previousNews=Number(previousNewsStats.total||0);
   const metrics=[
    ["Visualizações",summary.visualizacoes||0,variation(summary.visualizacoes||0,previous.visualizacoes||0)],
    ["Visitantes",summary.visitantes||0,variation(summary.visitantes||0,previous.visitantes||0)],
-   ["Notícias lidas",summary.noticias||0,variation(summary.noticias||0,previous.noticias||0)],
+   ["Notícias lidas",summary.noticias||0,variation(summary.noticias||0,previousNews)],
    ["Cliques WhatsApp",summary.whatsapp||0,variation(summary.whatsapp||0,previous.whatsapp||0)],
    ["Links externos",summary.externos||0,variation(summary.externos||0,previous.externos||0)],
-   ["Cliques em conteúdos",summary.cliques_conteudo||0,"—"]
+   ["Cliques em conteúdos",summary.cliques_conteudo||0,"�"]
   ];
-  const content=(data.recursos||[]).filter(item=>["noticia","guia","evento","evento_principal","evento_edicao","turismo","link"].includes(item.tipo)).slice(0,12);
+  const content=[...(newsStats.ranking||[]),...(data.recursos||[]).filter(item=>item.tipo!=="noticia")].filter(item=>["noticia","guia","evento","evento_principal","evento_edicao","turismo","link"].includes(item.tipo)).sort((a,b)=>Number(b.total||0)-Number(a.total||0)).slice(0,12);
   const series=completeDailySeries(startString,endString,data.serie),usefulClicks=Number(summary.whatsapp||0)+Number(summary.externos||0)+Number(summary.cliques_conteudo||0);
   const strategicMetrics=[
    ["Visualizações",summary.visualizacoes||0,variation(summary.visualizacoes||0,previous.visualizacoes||0),"Volume total de páginas vistas"],
    ["Visitantes",summary.visitantes||0,variation(summary.visitantes||0,previous.visitantes||0),"Sessões identificadas sem dados pessoais"],
-   ["Notícias lidas",summary.noticias||0,variation(summary.noticias||0,previous.noticias||0),"Leituras registradas em matérias"],
-   ["Ações úteis",usefulClicks,"—","WhatsApp, links externos e cliques em conteúdos"]
+   ["Notícias lidas",summary.noticias||0,variation(summary.noticias||0,previousNews),"Leituras consolidadas por URL e ID da materia"],
+   ["Ações úteis",usefulClicks,"�","WhatsApp, links externos e cliques em conteúdos"]
   ];
-  const news=content.filter(item=>item.tipo==="noticia").slice(0,6),localServices=content.filter(item=>item.tipo!=="noticia").slice(0,6),contentTotal=content.reduce((sum,item)=>sum+Number(item.total||0),0);
+  const news=(newsStats.ranking||[]).slice(0,6),localServices=content.filter(item=>item.tipo!=="noticia").slice(0,6),contentTotal=content.reduce((sum,item)=>sum+Number(item.total||0),0);
   app.innerHTML=`<section class="audience-head panel"><div><p class="eyebrow">Inteligência do portal</p><h2>Central de audiência</h2><p>Visão estratégica do comportamento do público, desempenho editorial e oportunidades do Eu Amo Urânia.</p></div>
    <div class="audience-filters"><select id="audience-period"><option value="7">7 dias</option><option value="30" ${days===30?"selected":""}>30 dias</option><option value="90" ${days===90?"selected":""}>90 dias</option><option value="custom">Personalizado</option></select><input id="audience-start" type="date" value="${isoDate(start)}"><input id="audience-end" type="date" value="${isoDate(end)}"><button class="admin-button secondary" id="audience-apply">Aplicar</button><button class="admin-button secondary" id="audience-export">Exportar CSV</button></div>
   </section>
