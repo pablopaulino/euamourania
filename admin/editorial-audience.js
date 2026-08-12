@@ -325,6 +325,76 @@ function contentCard(item,index,total=1){
  const share=total?Math.round((Number(item.total||0)/total)*100):0,url=contentUrl(item);
  return`<article class="audience-content-card"><span>${index+1}</span><div><p>${esc(typeLabel[item.tipo]||item.tipo||"Conteúdo")}</p><h3>${esc(item.nome||"Conteúdo removido")}</h3><small>${fmt(item.total)} interação(ões) · ${share}% do ranking</small></div>${url?`<a href="${url}" target="_blank" rel="noopener">Abrir</a>`:""}</article>`;
 }
+async function countRows(table,build=query=>query){
+ const {count,error}=await build(db.from(table).select("*",{count:"exact",head:true}));
+ if(error)throw error;
+ return count||0;
+}
+async function listRows(table,select,build=query=>query){
+ const {data,error}=await build(db.from(table).select(select));
+ if(error)throw error;
+ return data||[];
+}
+async function appAudience(startString,endString){
+ if(!temPermissao(access()?.admin,"notificacoes","ler")){
+  return{available:false,error:"Seu perfil nao possui permissao para consultar dados do app."};
+ }
+ const startIso=`${startString}T00:00:00.000Z`,endIso=`${endString}T23:59:59.999Z`;
+ try{
+  const [ativos,ativosPeriodo,android,ios,tokens,notifications,failures]=await Promise.all([
+   countRows("app_push_tokens",query=>query.eq("ativo",true)),
+   countRows("app_push_tokens",query=>query.eq("ativo",true).gte("visto_em",startIso)),
+   countRows("app_push_tokens",query=>query.eq("ativo",true).eq("plataforma","android")),
+   countRows("app_push_tokens",query=>query.eq("ativo",true).eq("plataforma","ios")),
+   listRows("app_push_tokens","plataforma,app_version,locale,ativo,visto_em,criado_em",query=>query.eq("ativo",true).order("visto_em",{ascending:false}).limit(600)),
+   listRows("app_notificacoes","titulo,status,plataforma,total_destinatarios,total_aceitos,total_erros,enviado_em,criado_em",query=>query.gte("criado_em",startIso).lte("criado_em",endIso).order("criado_em",{ascending:false}).limit(80)),
+   countRows("app_push_falhas",query=>query.gte("criado_em",startIso).lte("criado_em",endIso))
+  ]);
+  const versions=new Map(),locales=new Map();
+  tokens.forEach(item=>{
+   const version=item.app_version||"Sem versao";
+   versions.set(version,(versions.get(version)||0)+1);
+   const locale=item.locale||"Nao informado";
+   locales.set(locale,(locales.get(locale)||0)+1);
+  });
+  const sent=notifications.filter(item=>item.status==="enviado").length;
+  const accepted=notifications.reduce((sum,item)=>sum+Number(item.total_aceitos||0),0);
+  const recipients=notifications.reduce((sum,item)=>sum+Number(item.total_destinatarios||0),0);
+  const errors=notifications.reduce((sum,item)=>sum+Number(item.total_erros||0),0);
+  return{available:true,ativos,ativosPeriodo,platforms:{android,ios},
+   versions:[...versions.entries()].map(([label,total])=>({label,total})).sort((a,b)=>b.total-a.total),
+   locales:[...locales.entries()].map(([label,total])=>({label,total})).sort((a,b)=>b.total-a.total),
+   notifications,sent,accepted,recipients,errors,failures};
+ }catch(error){
+  return{available:false,error:error.message};
+ }
+}
+function appRank(rows=[],limit=5){
+ return rows.slice(0,limit).map((item,index)=>`<div class="audience-rank-row"><span>${index+1}</span><div><strong>${esc(item.label)}</strong></div><small>${fmt(item.total)}</small></div>`).join("")||'<div class="empty-state">Sem dados do app.</div>';
+}
+function appStatusLabel(status){
+ return({rascunho:"Rascunho",enviando:"Enviando",enviado:"Enviado",falhou:"Falhou",cancelado:"Cancelado"})[status]||status||"Sem status";
+}
+function appPanels(data){
+ if(!data?.available){
+  return`<section class="panel wide app-audience-panel unavailable"><header class="panel-header"><div><p class="eyebrow">Viva Ur\u00e2nia</p><h2>Audi\u00eancia do app</h2><p>Os dados do aplicativo ficam separados dos eventos do site.</p></div></header><div class="empty-state">${esc(data?.error||"Dados do app indisponiveis no momento.")}</div></section>`;
+ }
+ const delivery=data.recipients?Math.round((data.accepted/data.recipients)*100):0;
+ return`<section class="panel wide app-audience-panel"><header class="panel-header"><div><p class="eyebrow">Viva Ur\u00e2nia</p><h2>Audi\u00eancia do app</h2><p>Instalacoes com push ativo, atividade recente e desempenho das notificacoes no periodo.</p></div><span class="audience-source-pill">Fonte: app_push_tokens</span></header>
+  <div class="app-audience-grid">
+   <article><span>Aparelhos ativos</span><strong>${fmt(data.ativos)}</strong><small>Total com push ativo</small></article>
+   <article><span>Ativos no periodo</span><strong>${fmt(data.ativosPeriodo)}</strong><small>Vistos dentro do filtro</small></article>
+   <article><span>Android</span><strong>${fmt(data.platforms.android)}</strong><small>${data.ativos?Math.round(data.platforms.android/data.ativos*100):0}% dos aparelhos</small></article>
+   <article><span>iPhone</span><strong>${fmt(data.platforms.ios)}</strong><small>${data.ativos?Math.round(data.platforms.ios/data.ativos*100):0}% dos aparelhos</small></article>
+   <article><span>Push enviados</span><strong>${fmt(data.sent)}</strong><small>${fmt(data.accepted)} aceitos</small></article>
+   <article><span>Entrega</span><strong>${delivery}%</strong><small>${fmt(data.errors+data.failures)} falha(s)</small></article>
+  </div>
+  <div class="app-audience-columns">
+   <div><h3>Versoes do app</h3>${appRank(data.versions)}</div>
+   <div><h3>Campanhas recentes</h3>${data.notifications.slice(0,5).map((item,index)=>`<div class="audience-rank-row"><span>${index+1}</span><div><strong>${esc(item.titulo)}</strong><small>${esc(appStatusLabel(item.status))} · ${esc(item.plataforma)}</small></div><small>${fmt(item.total_aceitos||0)} aceitos</small></div>`).join("")||'<div class="empty-state">Sem push no periodo.</div>'}</div>
+  </div>
+ </section>`;
+}
 function strategicInsights(summary={},previous={},series=[],content=[],searches=[]){
  const views=Number(summary.visualizacoes||0),useful=Number(summary.whatsapp||0)+Number(summary.externos||0)+Number(summary.cliques_conteudo||0);
  const avg=Math.round(views/Math.max(series.length,1)),best=[...series].sort((a,b)=>Number(b.visualizacoes||0)-Number(a.visualizacoes||0))[0];
@@ -345,13 +415,14 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
   const end=customEnd?new Date(`${customEnd}T12:00:00`):new Date();
   const start=customStart?new Date(`${customStart}T12:00:00`):new Date(end.getTime()-(days-1)*864e5);
   const startString=isoDate(start),endString=isoDate(end);
-  const [data,ads,google]=await Promise.all([
+  const [data,ads,google,appStats]=await Promise.all([
    obterAudienciaAvancada(startString,endString),
    db.from("publicidade_resumo").select("nome,impressoes,cliques,ctr").order("impressoes",{ascending:false}).limit(8),
-   googleAudience(startString,endString)
+   googleAudience(startString,endString),
+   appAudience(startString,endString)
   ]);
   data.recursos=await resourceNames(await mergeNewsPageViews(data.recursos||[],data.paginas||[]));
-  audienceData=data;
+  audienceData={...data,app:appStats};
   const summary=data.resumo||{},previous=data.anterior||{};
   const metrics=[
    ["Visualizações",summary.visualizacoes||0,variation(summary.visualizacoes||0,previous.visualizacoes||0)],
@@ -384,6 +455,7 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
    <section class="panel"><header class="panel-header"><h2>Origem e dispositivo</h2></header><h3 class="audience-subtitle">Origem dos acessos</h3>${compactRank(data.origens,"origem","total",5)}<h3 class="audience-subtitle">Dispositivos</h3>${compactRank(data.dispositivos,"dispositivo","total",5)}</section>
    <section class="panel"><header class="panel-header"><h2>Pesquisas no portal</h2></header>${compactRank(data.buscas,"termo","total",8)}</section>
    <section class="panel"><header class="panel-header"><h2>Publicidade</h2></header>${(ads.data||[]).map((item,index)=>`<div class="audience-rank-row"><span>${index+1}</span><div><strong>${esc(item.nome)}</strong><small>${item.cliques||0} cliques · CTR ${item.ctr||0}%</small></div><small>${fmt(item.impressoes)} imp.</small></div>`).join("")||'<div class="empty-state">Sem campanhas.</div>'}</section>
+   ${appPanels(appStats)}
    ${googlePanels(google)}
   </div>`;
   return;
@@ -413,6 +485,15 @@ function exportAudience(){
  (audienceData.dispositivos||[]).forEach(item=>rows.push(["Dispositivos",item.dispositivo,item.total]));
  (audienceData.buscas||[]).forEach(item=>rows.push(["Buscas",item.termo,item.total]));
  (audienceData.recursos||[]).forEach(item=>rows.push(["Conteúdos",`${item.tipo}: ${item.nome}`,item.total]));
+ if(audienceData.app?.available){
+  rows.push(["App","Aparelhos ativos",audienceData.app.ativos]);
+  rows.push(["App","Aparelhos ativos no periodo",audienceData.app.ativosPeriodo]);
+  rows.push(["App","Android",audienceData.app.platforms.android]);
+  rows.push(["App","iPhone",audienceData.app.platforms.ios]);
+  rows.push(["App","Push enviados",audienceData.app.sent]);
+  rows.push(["App","Push aceitos",audienceData.app.accepted]);
+  (audienceData.app.versions||[]).forEach(item=>rows.push(["Versoes do app",item.label,item.total]));
+ }
  const csv="\ufeff"+rows.map(row=>row.map(value=>`"${String(value??"").replaceAll('"','""')}"`).join(";")).join("\n");
  const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"})),link=document.createElement("a");
  link.href=url;link.download=`audiencia-eu-amo-urania-${new Date().toISOString().slice(0,10)}.csv`;link.click();URL.revokeObjectURL(url);
