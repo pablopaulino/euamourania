@@ -495,20 +495,31 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
     <div class="audience-filter-actions"><button class="admin-button secondary" id="audience-apply">Aplicar</button><button class="admin-button secondary" id="audience-export">Exportar CSV</button></div>
    </div>
   </section>
-  <div class="insight-grid audience-metrics pro">${strategicMetrics.map(([label,value,change,help])=>`<article class="metric-card"><span>${label}</span><strong>${fmt(value)}</strong><small class="${String(change).startsWith("-")?"down":"up"}">${change} vs. período anterior</small><em>${esc(help)}</em></article>`).join("")}</div>
-  <section class="panel audience-strategy"><div><p class="eyebrow">Leitura rápida</p><h2>O que os dados indicam</h2><p>Resumo automático para ajudar na tomada de decisão editorial e comercial.</p></div><div class="audience-insights">${strategicInsights(summary,previous,series,content,data.buscas||[])}</div></section>
-  <div class="insight-layout audience-layout pro">
-   <section class="panel wide audience-chart-panel"><header class="panel-header"><div><h2>Evolução diária</h2><p>Ajuda a identificar picos, quedas e efeito de novas publicações.</p></div></header>${chart(series,Math.round((end-start)/864e5)+1<=7)}</section>
-   <section class="panel wide audience-content-panel"><header class="panel-header"><div><h2>Conteúdos que puxaram audiência</h2><p>Ranking consolidado entre notícias, guia, turismo e eventos.</p></div></header><div class="audience-content-grid">${content.slice(0,6).map((item,index)=>contentCard(item,index,contentTotal)).join("")||'<div class="empty-state">Sem conteúdos com interação no período.</div>'}</div></section>
-   <section class="panel"><header class="panel-header"><h2>Notícias mais fortes</h2></header>${news.map((item,index)=>contentCard(item,index,contentTotal)).join("")||'<div class="empty-state">Sem notícias no período.</div>'}</section>
-   <section class="panel"><header class="panel-header"><h2>Guia, turismo e eventos</h2></header>${localServices.map((item,index)=>contentCard(item,index,contentTotal)).join("")||'<div class="empty-state">Sem interações locais no período.</div>'}</section>
-   <section class="panel"><header class="panel-header"><h2>Páginas mais acessadas</h2></header>${compactRank(data.paginas,"pagina","total",8)}</section>
-   <section class="panel"><header class="panel-header"><h2>Origem e dispositivo</h2></header><h3 class="audience-subtitle">Origem dos acessos</h3>${compactRank(data.origens,"origem","total",5)}<h3 class="audience-subtitle">Dispositivos</h3>${compactRank(data.dispositivos,"dispositivo","total",5)}</section>
-   <section class="panel"><header class="panel-header"><h2>Pesquisas no portal</h2></header>${compactRank(data.buscas,"termo","total",8)}</section>
-   <section class="panel"><header class="panel-header"><h2>Publicidade</h2></header>${(ads.data||[]).map((item,index)=>`<div class="audience-rank-row"><span>${index+1}</span><div><strong>${esc(item.nome)}</strong><small>${item.cliques||0} cliques · CTR ${item.ctr||0}%</small></div><small>${fmt(item.impressoes)} imp.</small></div>`).join("")||'<div class="empty-state">Sem campanhas.</div>'}</section>
-   ${appPanels(appStats)}
-   ${googlePanels(google)}
-  </div>`;
+  <section class="audience-section">
+   <div class="audience-section-title"><div><p class="eyebrow">1. Resumo do período</p><h2>Os números principais</h2><p>Leitura rápida para saber se o portal cresceu, quais ações aconteceram e como as notícias performaram.</p></div><span>${periodDays} dia(s) analisado(s)</span></div>
+   <div class="insight-grid audience-metrics pro">${strategicMetrics.map(([label,value,change,help])=>`<article class="metric-card"><span>${label}</span><strong>${fmt(value)}</strong><small class="${String(change).startsWith("-")?"down":"up"}">${change} vs. período anterior</small><em>${esc(help)}</em></article>`).join("")}</div>
+  </section>
+  <section class="panel audience-strategy"><div><p class="eyebrow">2. Diagnóstico</p><h2>O que os dados indicam</h2><p>Resumo automático para transformar números em decisões editoriais e comerciais.</p></div><div class="audience-insights">${strategicInsights(summary,previous,series,content,data.buscas||[])}</div></section>
+  <section class="audience-section">
+   <div class="audience-section-title"><div><p class="eyebrow">3. Conteúdo e crescimento</p><h2>O que movimentou a audiência</h2><p>Veja primeiro a evolução diária e depois quais publicações, empresas, turismo e eventos puxaram o interesse do público.</p></div></div>
+   <div class="insight-layout audience-layout pro">
+    <section class="panel wide audience-chart-panel"><header class="panel-header"><div><h2>Evolução diária</h2><p>Picos e quedas ajudam a entender o efeito de publicações, buscas e compartilhamentos.</p></div></header>${chart(series,Math.round((end-start)/864e5)+1<=7)}</section>
+    <section class="panel wide audience-content-panel"><header class="panel-header"><div><h2>Conteúdos que puxaram audiência</h2><p>Ranking consolidado entre notícias, guia, turismo e eventos.</p></div></header><div class="audience-content-grid">${content.slice(0,6).map((item,index)=>contentCard(item,index,contentTotal)).join("")||'<div class="empty-state">Sem conteúdos com interação no período.</div>'}</div></section>
+    <section class="panel"><header class="panel-header"><div><h2>Notícias mais fortes</h2><p>Matérias consolidadas por URL e ID.</p></div></header>${news.map((item,index)=>contentCard(item,index,contentTotal)).join("")||'<div class="empty-state">Sem notícias no período.</div>'}</section>
+    <section class="panel"><header class="panel-header"><div><h2>Guia, turismo e eventos</h2><p>Interações locais fora das notícias.</p></div></header>${localServices.map((item,index)=>contentCard(item,index,contentTotal)).join("")||'<div class="empty-state">Sem interações locais no período.</div>'}</section>
+   </div>
+  </section>
+  <section class="audience-section">
+   <div class="audience-section-title"><div><p class="eyebrow">4. Caminhos do público</p><h2>Como as pessoas chegam e navegam</h2><p>Dados complementares para entender páginas, origem, dispositivos, pesquisas internas, anúncios e integrações.</p></div></div>
+   <div class="insight-layout audience-layout pro audience-support-layout">
+    <section class="panel"><header class="panel-header"><h2>Páginas mais acessadas</h2></header>${compactRank(data.paginas,"pagina","total",8)}</section>
+    <section class="panel"><header class="panel-header"><h2>Origem e dispositivo</h2></header><h3 class="audience-subtitle">Origem dos acessos</h3>${compactRank(data.origens,"origem","total",5)}<h3 class="audience-subtitle">Dispositivos</h3>${compactRank(data.dispositivos,"dispositivo","total",5)}</section>
+    <section class="panel"><header class="panel-header"><h2>Pesquisas no portal</h2></header>${compactRank(data.buscas,"termo","total",8)}</section>
+    <section class="panel"><header class="panel-header"><h2>Publicidade</h2></header>${(ads.data||[]).map((item,index)=>`<div class="audience-rank-row"><span>${index+1}</span><div><strong>${esc(item.nome)}</strong><small>${item.cliques||0} cliques · CTR ${item.ctr||0}%</small></div><small>${fmt(item.impressoes)} imp.</small></div>`).join("")||'<div class="empty-state">Sem campanhas.</div>'}</section>
+    ${appPanels(appStats)}
+    ${googlePanels(google)}
+   </div>
+  </section>`;
   return;
   app.innerHTML=`<section class="audience-head panel"><div><h2>Central de audiência</h2><p>Dados próprios do portal, sem armazenamento de IP ou informações pessoais.</p></div>
    <div class="audience-filters"><select id="audience-period"><option value="7">7 dias</option><option value="30" ${days===30?"selected":""}>30 dias</option><option value="90" ${days===90?"selected":""}>90 dias</option><option value="custom">Personalizado</option></select><input id="audience-start" type="date" value="${isoDate(start)}"><input id="audience-end" type="date" value="${isoDate(end)}"><button class="admin-button secondary" id="audience-apply">Aplicar</button><button class="admin-button secondary" id="audience-export">Exportar CSV</button></div>

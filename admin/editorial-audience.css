@@ -30,6 +30,11 @@
 .audience-filters label[hidden]{display:none}
 .audience-filters select,.audience-filters input{min-height:40px;padding:.52rem .7rem;border:1px solid #cfdbde;border-radius:10px;background:#fff;color:#073b4c;font-size:.92rem;text-transform:none;letter-spacing:0}
 .audience-filter-actions{display:flex;justify-content:flex-end;gap:.5rem}
+.audience-section{display:grid;gap:.75rem;margin-bottom:.85rem}
+.audience-section-title{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;padding:.15rem .15rem 0}
+.audience-section-title h2{margin:.1rem 0 .22rem;color:#073b4c;font-size:clamp(1.25rem,2vw,1.65rem);line-height:1.1}
+.audience-section-title p{max-width:780px;margin:0;color:#647780;line-height:1.45}
+.audience-section-title>span{display:inline-flex;flex:0 0 auto;align-items:center;padding:.42rem .7rem;border-radius:999px;background:#fff4c7;color:#073b4c;font-size:.74rem;font-weight:900}
 .audience-metrics{grid-template-columns:repeat(5,minmax(0,1fr))}
 .audience-metrics small{display:block;margin-top:.45rem;font-size:.74rem;font-weight:700}
 .audience-metrics small.up{color:#168153}.audience-metrics small.down{color:#b4442c}
@@ -39,6 +44,7 @@
 .audience-metrics.pro em{display:block;margin-top:.42rem;color:#647780;font-size:.74rem;font-style:normal;line-height:1.35}
 .audience-layout .wide{grid-column:1/-1}
 .audience-layout.pro{align-items:start;gap:.9rem}
+.audience-support-layout{grid-template-columns:repeat(2,minmax(0,1fr))}
 .audience-strategy{display:grid;grid-template-columns:minmax(230px,.42fr) minmax(0,1fr);gap:.85rem;align-items:start;margin-bottom:.75rem;background:linear-gradient(135deg,#fff,#f7fbfc)}
 .audience-strategy h2{margin:.1rem 0 .35rem;color:#073b4c}
 .audience-strategy p{margin:0;color:#647780}
@@ -86,5 +92,5 @@
 .app-audience-columns>div{padding:.9rem;border:1px solid rgba(7,59,76,.1);border-radius:16px;background:#fff}
 .app-audience-columns h3{margin:0 0 .5rem;color:#073b4c;font-size:.92rem}
 @media(max-width:1180px){.app-audience-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:1050px){.audience-metrics,.audience-metrics.pro{grid-template-columns:repeat(2,minmax(0,1fr))}.audience-head{grid-template-columns:1fr}.audience-filters{justify-self:stretch;width:100%}.audience-filter-actions{justify-content:flex-start}.audience-strategy{grid-template-columns:1fr}.audience-insights{grid-template-columns:repeat(2,minmax(0,1fr))}.audience-content-grid{grid-template-columns:1fr}.app-audience-columns{grid-template-columns:1fr}}
-@media(max-width:640px){.audience-metrics,.audience-metrics.pro,.google-metrics,.audience-insights,.app-audience-grid{grid-template-columns:1fr}.google-heading{display:block}.dialog-actions>*{width:100%}.audience-filter-actions{display:grid;grid-template-columns:1fr}.audience-filter-actions>*{width:100%}.audience-content-card,.audience-rank-row{grid-template-columns:30px minmax(0,1fr)}.audience-content-card a{grid-column:2;justify-self:start}.audience-source-pill{margin-top:.6rem}.app-audience-grid article{padding:1rem}.app-audience-grid strong{font-size:1.55rem}}
+@media(max-width:1050px){.audience-metrics,.audience-metrics.pro{grid-template-columns:repeat(2,minmax(0,1fr))}.audience-head{grid-template-columns:1fr}.audience-filters{justify-self:stretch;width:100%}.audience-filter-actions{justify-content:flex-start}.audience-strategy{grid-template-columns:1fr}.audience-insights{grid-template-columns:repeat(2,minmax(0,1fr))}.audience-content-grid,.audience-support-layout{grid-template-columns:1fr}.app-audience-columns{grid-template-columns:1fr}}
+@media(max-width:640px){.audience-metrics,.audience-metrics.pro,.google-metrics,.audience-insights,.app-audience-grid{grid-template-columns:1fr}.audience-section-title{display:grid}.audience-section-title>span{width:max-content}.google-heading{display:block}.dialog-actions>*{width:100%}.audience-filter-actions{display:grid;grid-template-columns:1fr}.audience-filter-actions>*{width:100%}.audience-content-card,.audience-rank-row{grid-template-columns:30px minmax(0,1fr)}.audience-content-card a{grid-column:2;justify-self:start}.audience-source-pill{margin-top:.6rem}.app-audience-grid article{padding:1rem}.app-audience-grid strong{font-size:1.55rem}}
