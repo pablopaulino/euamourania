@@ -915,9 +915,9 @@ function setupSidebarControls() {
   const applyCollapsed = collapsed => {
     shell?.classList.toggle("sidebar-collapsed", collapsed);
     sidebarToggle?.setAttribute("aria-expanded", String(!collapsed));
-    sidebarToggle?.setAttribute("aria-label", collapsed ?"Expandir menu" : "Recolher menu");
+    sidebarToggle?.setAttribute("aria-label", collapsed ? "Expandir menu" : "Recolher menu");
     const icon = sidebarToggle?.querySelector("span");
-    if (icon) icon.textContent = collapsed ?"â¬º" : "â¬¹";
+    if (icon) icon.textContent = collapsed ? "\u203a" : "\u2039";
   };
 
   applyCollapsed(savedState === "collapsed");
@@ -925,7 +925,7 @@ function setupSidebarControls() {
   sidebarToggle?.addEventListener("click", () => {
     const collapsed = !shell?.classList.contains("sidebar-collapsed");
     applyCollapsed(collapsed);
-    localStorage.setItem("euamourania:admin-sidebar", collapsed ?"collapsed" : "expanded");
+    localStorage.setItem("euamourania:admin-sidebar", collapsed ? "collapsed" : "expanded");
   });
 
   mobileMenuButton?.addEventListener("click", () => {
