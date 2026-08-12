@@ -22,27 +22,31 @@
 .cms-actions button:disabled{opacity:.5;cursor:not-allowed}
 .editor-locked{pointer-events:none;opacity:.65}
 .approval-metric button{margin-top:.5rem;border:0;background:none;color:#006b78;font-weight:800;cursor:pointer}
-.audience-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem}
-.audience-head h2{margin-top:0}
-.audience-filters{display:flex;justify-content:flex-end;gap:.5rem;flex-wrap:wrap}
-.audience-filters select,.audience-filters input{min-height:42px;padding:.55rem .7rem;border:1px solid #cfdbde;border-radius:9px;background:#fff}
+.audience-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,500px);align-items:center;gap:1.15rem;margin-bottom:.75rem;padding:1.05rem 1.2rem}
+.audience-head h2{margin:.1rem 0 .35rem}
+.audience-head p{margin:0}
+.audience-filters{display:grid;grid-template-columns:1fr;gap:.45rem;justify-self:end;width:min(100%,500px)}
+.audience-filters label{display:grid;gap:.22rem;margin:0;color:#607780;font-size:.72rem;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
+.audience-filters label[hidden]{display:none}
+.audience-filters select,.audience-filters input{min-height:40px;padding:.52rem .7rem;border:1px solid #cfdbde;border-radius:10px;background:#fff;color:#073b4c;font-size:.92rem;text-transform:none;letter-spacing:0}
+.audience-filter-actions{display:flex;justify-content:flex-end;gap:.5rem}
 .audience-metrics{grid-template-columns:repeat(5,minmax(0,1fr))}
 .audience-metrics small{display:block;margin-top:.45rem;font-size:.74rem;font-weight:700}
 .audience-metrics small.up{color:#168153}.audience-metrics small.down{color:#b4442c}
-.audience-metrics.pro{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:1rem}
-.audience-metrics.pro .metric-card{position:relative;overflow:hidden;border-radius:20px}
+.audience-metrics.pro{grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-bottom:.75rem}
+.audience-metrics.pro .metric-card{position:relative;min-height:150px;overflow:hidden;border-radius:18px}
 .audience-metrics.pro .metric-card:after{content:"";position:absolute;right:-26px;top:-26px;width:82px;height:82px;border-radius:50%;background:rgba(247,201,72,.16)}
 .audience-metrics.pro em{display:block;margin-top:.42rem;color:#647780;font-size:.74rem;font-style:normal;line-height:1.35}
 .audience-layout .wide{grid-column:1/-1}
-.audience-layout.pro{align-items:start}
-.audience-strategy{display:grid;grid-template-columns:minmax(230px,.42fr) minmax(0,1fr);gap:1rem;align-items:start;margin-bottom:1rem;background:linear-gradient(135deg,#fff,#f7fbfc)}
+.audience-layout.pro{align-items:start;gap:.9rem}
+.audience-strategy{display:grid;grid-template-columns:minmax(230px,.42fr) minmax(0,1fr);gap:.85rem;align-items:start;margin-bottom:.75rem;background:linear-gradient(135deg,#fff,#f7fbfc)}
 .audience-strategy h2{margin:.1rem 0 .35rem;color:#073b4c}
 .audience-strategy p{margin:0;color:#647780}
-.audience-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+.audience-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}
 .audience-insights article{padding:.85rem;border:1px solid #dce7ea;border-radius:14px;background:#fff}
 .audience-insights strong{display:block;color:#073b4c;font-size:.9rem}
 .audience-insights p{margin:.25rem 0 0;color:#647780;font-size:.82rem;line-height:1.45}
-.audience-content-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.audience-content-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}
 .audience-content-card{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:.75rem;align-items:center;padding:.85rem;border:1px solid #dce7ea;border-radius:16px;background:#fff}
 .audience-content-card>span,.audience-rank-row>span{display:grid;place-items:center;width:30px;height:30px;border-radius:999px;background:#fff4c7;color:#073b4c;font-weight:900}
 .audience-content-card p{margin:0 0 .18rem;color:#0b4f6c;font-size:.68rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase}
@@ -82,5 +86,5 @@
 .app-audience-columns>div{padding:.9rem;border:1px solid rgba(7,59,76,.1);border-radius:16px;background:#fff}
 .app-audience-columns h3{margin:0 0 .5rem;color:#073b4c;font-size:.92rem}
 @media(max-width:1180px){.app-audience-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:1050px){.audience-metrics,.audience-metrics.pro{grid-template-columns:repeat(2,minmax(0,1fr))}.audience-head{display:block}.audience-filters{justify-content:flex-start}.audience-strategy{grid-template-columns:1fr}.audience-insights{grid-template-columns:repeat(2,minmax(0,1fr))}.audience-content-grid{grid-template-columns:1fr}.app-audience-columns{grid-template-columns:1fr}}
-@media(max-width:640px){.audience-metrics,.audience-metrics.pro,.google-metrics,.audience-insights,.app-audience-grid{grid-template-columns:1fr}.google-heading{display:block}.dialog-actions>*{width:100%}.audience-filters>*{width:100%}.audience-content-card,.audience-rank-row{grid-template-columns:30px minmax(0,1fr)}.audience-content-card a{grid-column:2;justify-self:start}.audience-source-pill{margin-top:.6rem}.app-audience-grid article{padding:1rem}.app-audience-grid strong{font-size:1.55rem}}
+@media(max-width:1050px){.audience-metrics,.audience-metrics.pro{grid-template-columns:repeat(2,minmax(0,1fr))}.audience-head{grid-template-columns:1fr}.audience-filters{justify-self:stretch;width:100%}.audience-filter-actions{justify-content:flex-start}.audience-strategy{grid-template-columns:1fr}.audience-insights{grid-template-columns:repeat(2,minmax(0,1fr))}.audience-content-grid{grid-template-columns:1fr}.app-audience-columns{grid-template-columns:1fr}}
+@media(max-width:640px){.audience-metrics,.audience-metrics.pro,.google-metrics,.audience-insights,.app-audience-grid{grid-template-columns:1fr}.google-heading{display:block}.dialog-actions>*{width:100%}.audience-filter-actions{display:grid;grid-template-columns:1fr}.audience-filter-actions>*{width:100%}.audience-content-card,.audience-rank-row{grid-template-columns:30px minmax(0,1fr)}.audience-content-card a{grid-column:2;justify-self:start}.audience-source-pill{margin-top:.6rem}.app-audience-grid article{padding:1rem}.app-audience-grid strong{font-size:1.55rem}}

@@ -6,7 +6,7 @@ const db=getSupabase();
 const app=document.getElementById("app-content");
 const pageTitle=document.getElementById("page-title");
 const esc=(value="")=>String(value??"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
-const fmtDate=value=>value?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short",timeZone:"America/Sao_Paulo"}).format(new Date(value)):"�";
+const fmtDate=value=>value?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short",timeZone:"America/Sao_Paulo"}).format(new Date(value)):"—";
 const isoDate=date=>date.toISOString().slice(0,10);
 let currentNewsId=null;
 let audienceData=null;
@@ -120,7 +120,7 @@ function openPreview(newsId){
  const item=approvalItem(newsId);if(!item)return;
  const news=item.noticia,dialog=document.getElementById("editorial-dialog");
  dialog.innerHTML=`<div class="cms-dialog-backdrop"><section class="cms-dialog editorial-preview" role="dialog" aria-modal="true" aria-label="Prévia da notícia">
-  <button class="dialog-close" data-dialog-close aria-label="Fechar">�</button>
+  <button class="dialog-close" data-dialog-close aria-label="Fechar">&times;</button>
   <p class="eyebrow">Pré-visualização editorial</p><h2>${esc(news.titulo)}</h2>
   ${news.resumo?`<p class="article-subtitle">${esc(news.resumo)}</p>`:""}
   ${news.imagem_url?`<img src="${esc(news.imagem_url)}" alt="">`:""}
@@ -136,7 +136,7 @@ function openReview(newsId){
  const item=approvalItem(newsId);if(!item)return;
  const dialog=document.getElementById("editorial-dialog");
  dialog.innerHTML=`<div class="cms-dialog-backdrop"><section class="cms-dialog" role="dialog" aria-modal="true" aria-label="Revisar notícia">
-  <button class="dialog-close" data-dialog-close aria-label="Fechar">�</button>
+  <button class="dialog-close" data-dialog-close aria-label="Fechar">&times;</button>
   <p class="eyebrow">Revisão editorial</p><h2>${esc(item.noticia.titulo)}</h2>
   <label class="cms-field full"><span>Comentário para o redator</span><textarea id="review-comment" rows="5" placeholder="Obrigatório ao solicitar ajustes. Opcional na aprovação."></textarea></label>
   <label class="cms-field"><span>Data e horário de publicação</span><input id="review-published-at" type="datetime-local" value="${localDateTime(item.noticia.publicado_em)}"></label>
@@ -468,25 +468,32 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
   data.resumo={...(data.resumo||{}),noticias:newsStats.total};
   audienceData={...data,app:appStats,noticias_consolidadas:newsStats};
   const summary=data.resumo||{},previous=data.anterior||{},previousNews=Number(previousNewsStats.total||0);
+  const previousUsefulClicks=Number(previous.whatsapp||0)+Number(previous.externos||0)+Number(previous.cliques_conteudo||0);
+  const isCustomRange=Boolean(customStart&&customEnd);
   const metrics=[
    ["Visualizações",summary.visualizacoes||0,variation(summary.visualizacoes||0,previous.visualizacoes||0)],
    ["Visitantes",summary.visitantes||0,variation(summary.visitantes||0,previous.visitantes||0)],
    ["Notícias lidas",summary.noticias||0,variation(summary.noticias||0,previousNews)],
    ["Cliques WhatsApp",summary.whatsapp||0,variation(summary.whatsapp||0,previous.whatsapp||0)],
    ["Links externos",summary.externos||0,variation(summary.externos||0,previous.externos||0)],
-   ["Cliques em conteúdos",summary.cliques_conteudo||0,"�"]
+   ["Cliques em conteúdos",summary.cliques_conteudo||0,variation(summary.cliques_conteudo||0,previous.cliques_conteudo||0)]
   ];
   const content=[...(newsStats.ranking||[]),...(data.recursos||[]).filter(item=>item.tipo!=="noticia")].filter(item=>["noticia","guia","evento","evento_principal","evento_edicao","turismo","link"].includes(item.tipo)).sort((a,b)=>Number(b.total||0)-Number(a.total||0)).slice(0,12);
   const series=completeDailySeries(startString,endString,data.serie),usefulClicks=Number(summary.whatsapp||0)+Number(summary.externos||0)+Number(summary.cliques_conteudo||0);
   const strategicMetrics=[
    ["Visualizações",summary.visualizacoes||0,variation(summary.visualizacoes||0,previous.visualizacoes||0),"Volume total de páginas vistas"],
    ["Visitantes",summary.visitantes||0,variation(summary.visitantes||0,previous.visitantes||0),"Sessões identificadas sem dados pessoais"],
-   ["Notícias lidas",summary.noticias||0,variation(summary.noticias||0,previousNews),"Leituras consolidadas por URL e ID da materia"],
-   ["Ações úteis",usefulClicks,"�","WhatsApp, links externos e cliques em conteúdos"]
+   ["Notícias lidas",summary.noticias||0,variation(summary.noticias||0,previousNews),"Leituras consolidadas por URL e ID da matéria"],
+   ["Ações úteis",usefulClicks,variation(usefulClicks,previousUsefulClicks),"WhatsApp, links externos e cliques em conteúdos"]
   ];
   const news=(newsStats.ranking||[]).slice(0,6),localServices=content.filter(item=>item.tipo!=="noticia").slice(0,6),contentTotal=content.reduce((sum,item)=>sum+Number(item.total||0),0);
   app.innerHTML=`<section class="audience-head panel"><div><p class="eyebrow">Inteligência do portal</p><h2>Central de audiência</h2><p>Visão estratégica do comportamento do público, desempenho editorial e oportunidades do Eu Amo Urânia.</p></div>
-   <div class="audience-filters"><select id="audience-period"><option value="7">7 dias</option><option value="30" ${days===30?"selected":""}>30 dias</option><option value="90" ${days===90?"selected":""}>90 dias</option><option value="custom">Personalizado</option></select><input id="audience-start" type="date" value="${isoDate(start)}"><input id="audience-end" type="date" value="${isoDate(end)}"><button class="admin-button secondary" id="audience-apply">Aplicar</button><button class="admin-button secondary" id="audience-export">Exportar CSV</button></div>
+   <div class="audience-filters">
+    <label><span>Período</span><select id="audience-period"><option value="7" ${!isCustomRange&&days===7?"selected":""}>7 dias</option><option value="30" ${!isCustomRange&&days===30?"selected":""}>30 dias</option><option value="90" ${!isCustomRange&&days===90?"selected":""}>90 dias</option><option value="custom" ${isCustomRange?"selected":""}>Personalizado</option></select></label>
+    <label data-custom-date ${isCustomRange?"":"hidden"}><span>Início</span><input id="audience-start" type="date" value="${isoDate(start)}"></label>
+    <label data-custom-date ${isCustomRange?"":"hidden"}><span>Fim</span><input id="audience-end" type="date" value="${isoDate(end)}"></label>
+    <div class="audience-filter-actions"><button class="admin-button secondary" id="audience-apply">Aplicar</button><button class="admin-button secondary" id="audience-export">Exportar CSV</button></div>
+   </div>
   </section>
   <div class="insight-grid audience-metrics pro">${strategicMetrics.map(([label,value,change,help])=>`<article class="metric-card"><span>${label}</span><strong>${fmt(value)}</strong><small class="${String(change).startsWith("-")?"down":"up"}">${change} vs. período anterior</small><em>${esc(help)}</em></article>`).join("")}</div>
   <section class="panel audience-strategy"><div><p class="eyebrow">Leitura rápida</p><h2>O que os dados indicam</h2><p>Resumo automático para ajudar na tomada de decisão editorial e comercial.</p></div><div class="audience-insights">${strategicInsights(summary,previous,series,content,data.buscas||[])}</div></section>
@@ -581,7 +588,8 @@ document.addEventListener("click",event=>{
  if(button.dataset.sendApproval){sendForApproval(button.dataset.sendApproval);return}
  if(button.id==="audience-apply"){
   const period=document.getElementById("audience-period").value,start=document.getElementById("audience-start").value,end=document.getElementById("audience-end").value;
-  renderAudience(period==="custom"?30:Number(period),start,end);return;
+  if(period==="custom"){renderAudience(30,start,end);return}
+  renderAudience(Number(period));return;
  }
  if(button.id==="audience-export"){exportAudience();return}
 },true);
@@ -589,8 +597,7 @@ document.addEventListener("click",event=>{
 document.addEventListener("change",event=>{
  if(event.target.id!=="audience-period")return;
  const custom=event.target.value==="custom";
- document.getElementById("audience-start").hidden=!custom;
- document.getElementById("audience-end").hidden=!custom;
+ document.querySelectorAll("[data-custom-date]").forEach(item=>{item.hidden=!custom});
 });
 
 const observer=new MutationObserver(()=>{
