@@ -68,6 +68,8 @@
       "permanent": true
     },
     { "source": "/turismo-details.html", "destination": "/turismo.html", "permanent": true },
+    { "source": "/divulgue.html", "destination": "/divulgue", "permanent": true },
+    { "source": "/divulgue/", "destination": "/divulgue", "permanent": true },
     { "source": "/categorias/:categoria", "destination": "/news/:categoria", "permanent": true },
     { "source": "/categorias/:categoria/", "destination": "/news/:categoria", "permanent": true }
   ],
@@ -122,6 +124,7 @@
     { "source": "/eventos/:slug", "destination": "/eventos/evento.html?slug=:slug" },
     { "source": "/eventos/:slug/", "destination": "/eventos/evento.html?slug=:slug" },
     { "source": "/links", "destination": "/links/index.html" },
+    { "source": "/divulgue", "destination": "/divulgue.html" },
     { "source": "/api/newsletter-open", "destination": "/api/newsletter-track?event=open" },
     { "source": "/api/newsletter-click", "destination": "/api/newsletter-track?event=click" },
     { "source": "/noticias/feed.xml", "destination": "/api/rss" },
