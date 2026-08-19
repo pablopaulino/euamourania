@@ -1,5 +1,6 @@
 import { exigirAdministrador, sair, temPermissao } from "./auth.js";
 import { listarCampanhas, buscarCampanha, salvarCampanha, excluirCampanha, uploadMidia, obterResumoPublicidade, obterMetricasDiarias } from "../assets/js/services/publicidadeService.js";
+import { PLANOS_COMERCIAIS, aprovarSolicitacaoComercial, atualizarStatusAssinatura, garantirEntregasDoMes, listarAssinaturasComerciais, listarSolicitacoesComerciais, marcarPagamentoAssinatura, normalizarPlanoComercial, planoComercial, registrarUsoEntrega, salvarAssinaturaComercial, obterResumoAssinaturasComerciais } from "../assets/js/services/commercialSubscriptionsService.js";
 import { openLibraryPicker, processAndUpload } from "./media-upload.js";
 
 let root = document;
@@ -10,7 +11,7 @@ let mounted = false;
 let runId = 0;
 const $ = s => root.querySelector(s);
 const $$ = s => Array.from(root.querySelectorAll(s));
-const state = { page: 1, perPage: 10, total: 0, timer: null, toastTimers: [], summaries: new Map(), currentConfig: {} };
+const state = { page: 1, perPage: 10, total: 0, timer: null, toastTimers: [], summaries: new Map(), currentConfig: {}, subscriptions: [], requests: [] };
 const formats = {
   automatico: ["Automático responsivo", "Adapta-se à posição escolhida"],
   super_banner: ["Super banner", "940 × 210 px · destaques amplos"],
@@ -115,7 +116,17 @@ const positions = {
 function escapeHtml(value="") { const el=document.createElement("div"); el.textContent=String(value); return el.innerHTML; }
 function fmtNumber(value) { return new Intl.NumberFormat("pt-BR").format(Number(value)||0); }
 function fmtDate(value) { return value ?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short"}).format(new Date(value)) : "Sem limite"; }
+function fmtCurrency(value) { return new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(Number(value)||0); }
+function fmtDateOnly(value) { return value ?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short"}).format(new Date(`${String(value).slice(0,10)}T12:00:00`)) : "—"; }
 function inputDate(value) { if(!value) return ""; const d=new Date(value); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); }
+function inputDateOnly(value) { return value ? String(value).slice(0,10) : ""; }
+function monthDeliveries(subscription) {
+  const rows = [...(subscription.assinatura_entregas_mensais || [])].sort((a,b)=>String(b.competencia).localeCompare(String(a.competencia)));
+  return rows[0] || null;
+}
+function planOptions(selected="presenca") {
+  return Object.entries(PLANOS_COMERCIAIS).map(([key,plan])=>`<option value="${key}" ${normalizarPlanoComercial(selected)===key?"selected":""}>${escapeHtml(plan.nome)} · ${fmtCurrency(plan.valor)}</option>`).join("");
+}
 function addCleanup(handler) { cleanupHandlers.push(handler); }
 function addListener(target, event, handler, options) {
   target?.addEventListener(event, handler, options);
@@ -172,6 +183,61 @@ function renderShell(container) {
     <section id="campaigns-view" class="hidden"><article class="ads-card"><div class="ads-toolbar"><input id="campaign-search" type="search" placeholder="Pesquisar campanha ou empresa⬦" aria-label="Pesquisar"><select id="status-filter" aria-label="Filtrar por status"><option value="">Todos os status</option><option value="rascunho">Rascunho</option><option value="ativo">Ativo</option><option value="pausado">Pausado</option><option value="encerrado">Encerrado</option></select><select id="type-filter" aria-label="Filtrar por tipo"><option value="">Todos os tipos</option><option value="banner">Banner</option><option value="popup">Pop-up</option><option value="video">Vídeo</option></select><button class="admin-button secondary" id="clear-filters">Limpar</button></div><div class="ads-table-wrap"><table class="ads-table"><thead><tr><th data-sort="nome">Campanha</th><th>Tipo</th><th>Status</th><th>Período</th><th>Impressões</th><th>Cliques</th><th>CTR</th><th>Ações</th></tr></thead><tbody id="campaign-table"><tr><td colspan="8"><div class="skeleton"></div><div class="skeleton"></div></td></tr></tbody></table></div><div class="ads-pagination"><span id="pagination-info"></span><div class="ads-pagination-buttons"><button id="prev-page">Anterior</button><button id="next-page">Próxima</button></div></div></article></section>
     <section id="form-view" class="ads-form"><form id="campaign-form"><input type="hidden" name="id"><article class="ads-card"><h3>Informações da campanha</h3><div class="ads-form-grid"><div class="ads-field"><label for="nome">Nome da campanha *</label><input id="nome" name="nome" required maxlength="120"></div><div class="ads-field"><label for="empresa_anunciante">Empresa anunciante *</label><input id="empresa_anunciante" name="empresa_anunciante" required maxlength="120"></div><div class="ads-field"><label for="tipo">Tipo do anúncio *</label><select id="tipo" name="tipo" required><option value="banner">Banner</option><option value="popup">Pop-up</option><option value="video">Vídeo</option></select></div><div class="ads-field"><label for="status">Status</label><select id="status" name="status"><option value="rascunho">Rascunho</option><option value="ativo">Ativo</option><option value="pausado">Pausado</option><option value="encerrado">Encerrado</option></select></div><div class="ads-field"><label for="logo_empresa_url">Logo da empresa</label><div class="upload-row"><input id="logo_empresa_url" name="logo_empresa_url" type="text" inputmode="url" placeholder="URL da logo ou assets/logo.jpg"><input id="logo-upload" type="file" accept="image/*" title="Enviar logo"></div><small class="upload-state" id="logo-state"></small></div><div class="ads-field"><label for="imagem_url">Imagem do anúncio</label><div class="upload-row"><input id="imagem_url" name="imagem_url" type="text" inputmode="url" placeholder="URL da imagem ou assets/imagem.jpg"><input id="image-upload" type="file" accept="image/*" title="Enviar imagem"></div><small class="upload-state" id="image-state"></small></div><div class="ads-field"><label for="video_url">Vídeo</label><div class="upload-row"><input id="video_url" name="video_url" type="text" inputmode="url" placeholder="YouTube ou URL do vídeo"><input id="video-upload" type="file" accept="video/mp4,video/webm" title="Enviar vídeo"></div><small class="upload-state" id="video-state"></small></div><div class="ads-field"><label for="link_destino">Link de destino</label><input id="link_destino" name="link_destino" type="text" inputmode="url" placeholder="https://..."></div><div class="ads-field"><label for="texto_botao">Texto do botão</label><input id="texto_botao" name="texto_botao" maxlength="40" placeholder="Saiba mais"></div><div class="ads-field"><label for="prioridade">Prioridade</label><input id="prioridade" name="prioridade" type="number" value="0" min="0" max="9999"><small>Campanhas com número maior aparecem primeiro.</small></div><label class="ads-checkbox"><input name="abrir_nova_aba" type="checkbox" checked> Abrir link em nova aba</label></div></article><article class="ads-card"><h3>Período e exibição</h3><div class="ads-form-grid"><div class="ads-field"><label for="data_inicio">Data de início</label><input id="data_inicio" name="data_inicio" type="datetime-local"></div><div class="ads-field"><label for="data_fim">Data de término</label><input id="data_fim" name="data_fim" type="datetime-local"></div><fieldset class="ads-group full"><legend>Locais de exibição</legend><div class="ads-positions" id="positions"></div></fieldset></div></article><article class="ads-card popup-options" id="popup-options"><h3>Comportamento do pop-up</h3><div class="ads-form-grid"><label class="ads-checkbox"><input name="popup_uma_vez" type="checkbox" checked> Mostrar somente uma vez por visitante</label><label class="ads-checkbox"><input name="popup_botao_fechar" type="checkbox" checked> Exibir botão para fechar</label><div class="ads-field"><label for="popup_reexibir">Mostrar novamente</label><select id="popup_reexibir" name="popup_reexibir"><option value="24h">Após 24 horas</option><option value="7d">Após 7 dias</option><option value="sempre">Sempre</option></select></div><div class="ads-field"><label for="popup_atraso_seg">Tempo para aparecer (segundos)</label><input id="popup_atraso_seg" name="popup_atraso_seg" type="number" value="3" min="0" max="300"></div></div></article><div class="form-actions"><button type="button" class="admin-button secondary" id="cancel-form">Cancelar</button><button type="submit" class="admin-button" id="save-campaign">Salvar campanha</button></div></form></section>
   </div>`;
+}
+
+function enhanceCommercialArea() {
+  const heading = $(".ads-heading");
+  if (heading && !$("#add-subscriber")) {
+    heading.querySelector("#new-campaign")?.insertAdjacentHTML("beforebegin", '<button class="admin-button secondary" id="add-subscriber">+ Assinante</button>');
+  }
+  const tabs = $(".ads-tabs");
+  if (tabs && !tabs.querySelector('[data-tab="subscriptions"]')) {
+    tabs.querySelector('[data-tab="form"]')?.insertAdjacentHTML("beforebegin", '<button class="ads-tab" data-tab="subscriptions">Assinantes</button><button class="ads-tab" data-tab="requests">Solicitações</button><button class="ads-tab" data-tab="subscription-form" hidden>Editar assinante</button>');
+  }
+  const campaigns = $("#campaigns-view");
+  if (campaigns && !$("#subscriptions-view")) {
+    campaigns.insertAdjacentHTML("afterend", `
+      <section id="subscriptions-view" class="hidden">
+        <article class="ads-card">
+          <div class="commercial-section-head">
+            <div><h3>Assinantes ativos</h3><p>Planos mensais, próximas cobranças e entregas do mês.</p></div>
+            <button class="admin-button" id="add-subscriber-inline">Adicionar assinante</button>
+          </div>
+          <div id="subscriptions-list" class="subscription-list"><div class="skeleton"></div></div>
+        </article>
+      </section>
+      <section id="requests-view" class="hidden">
+        <article class="ads-card">
+          <div class="commercial-section-head">
+            <div><h3>Solicitações de /divulgue</h3><p>Aprove uma solicitação para transformá-la em assinatura permanente.</p></div>
+          </div>
+          <div id="requests-list" class="request-list"><div class="skeleton"></div></div>
+        </article>
+      </section>
+      <section id="subscription-form-view" class="ads-form">
+        <form id="subscription-form">
+          <input type="hidden" name="id">
+          <article class="ads-card">
+            <h3>Assinatura comercial</h3>
+            <div class="ads-form-grid">
+              <div class="ads-field"><label for="sub_empresa_nome">Empresa *</label><input id="sub_empresa_nome" name="empresa_nome" required maxlength="140"></div>
+              <div class="ads-field"><label for="sub_responsavel_nome">Responsável</label><input id="sub_responsavel_nome" name="responsavel_nome" maxlength="140"></div>
+              <div class="ads-field"><label for="sub_plano">Plano</label><select id="sub_plano" name="plano">${planOptions()}</select></div>
+              <div class="ads-field"><label for="sub_valor_mensal">Valor mensal</label><input id="sub_valor_mensal" name="valor_mensal" type="number" min="0" step="0.01" value="89"></div>
+              <div class="ads-field"><label for="sub_status">Status</label><select id="sub_status" name="status"><option value="ativa">Ativa</option><option value="pendente">Pendente</option><option value="pausada">Pausada</option><option value="cancelada">Cancelada</option></select></div>
+              <div class="ads-field"><label for="sub_data_inicio">Data de início</label><input id="sub_data_inicio" name="data_inicio" type="date"></div>
+              <div class="ads-field"><label for="sub_proxima_cobranca">Próxima cobrança</label><input id="sub_proxima_cobranca" name="proxima_cobranca" type="date"></div>
+              <div class="ads-field"><label for="sub_whatsapp">WhatsApp</label><input id="sub_whatsapp" name="whatsapp" inputmode="tel"></div>
+              <div class="ads-field"><label for="sub_email">E-mail</label><input id="sub_email" name="email" type="email"></div>
+              <div class="ads-field"><label for="sub_instagram">Instagram</label><input id="sub_instagram" name="instagram"></div>
+              <div class="ads-field"><label for="sub_categoria">Categoria</label><input id="sub_categoria" name="categoria"></div>
+              <div class="ads-field full"><label for="sub_observacoes">Observações</label><textarea id="sub_observacoes" name="observacoes" rows="3"></textarea></div>
+            </div>
+          </article>
+          <div class="form-actions"><button type="button" class="admin-button secondary" id="cancel-subscription-form">Cancelar</button><button type="submit" class="admin-button" id="save-subscription">Salvar assinatura</button></div>
+        </form>
+      </section>`);
+  }
 }
 
 function renderPositions() {
@@ -294,18 +360,21 @@ function renderInventory(campaigns) {
 }
 
 function switchView(name) {
-  ["dashboard","campaigns"].forEach(v=>$("#"+v+"-view").classList.toggle("hidden",v!==name));
+  ["dashboard","campaigns","subscriptions","requests"].forEach(v=>$("#"+v+"-view")?.classList.toggle("hidden",v!==name));
   $("#form-view").classList.toggle("open",name==="form");
+  $("#subscription-form-view")?.classList.toggle("open",name==="subscription-form");
   $$(".ads-tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===name));
   if(name==="dashboard") loadDashboard();
   if(name==="campaigns") loadCampaigns();
+  if(name==="subscriptions") loadSubscriptions();
+  if(name==="requests") loadCommercialRequests();
 }
 
 async function loadDashboard() {
   const requestRun = runId;
   $("#metrics").innerHTML=Array(6).fill('<div class="metric-card"><span>&nbsp;</span><div class="skeleton"></div></div>').join("");
   try {
-    const [summary,daily,inventory]=await Promise.all([obterResumoPublicidade(),obterMetricasDiarias(30),listarCampanhas({pagina:1,porPagina:1000})]);
+    const [summary,daily,inventory,commercialSummary,requests]=await Promise.all([obterResumoPublicidade(),obterMetricasDiarias(30),listarCampanhas({pagina:1,porPagina:1000}),obterResumoAssinaturasComerciais().catch(()=>null),listarSolicitacoesComerciais().catch(()=>[])]);
     if (!mounted || requestRun !== runId) return;
     state.summaries=new Map(summary.map(item=>[item.id,item]));
     const active=summary.filter(x=>x.situacao==="ativa").length;
@@ -314,8 +383,8 @@ async function loadDashboard() {
     const impressions=summary.reduce((a,x)=>a+Number(x.impressoes||0),0);
     const clicks=summary.reduce((a,x)=>a+Number(x.cliques||0),0);
     const ctr=impressions ?clicks*100/impressions : 0;
-    const cards=[["Campanhas ativas",active],["Agendadas",scheduled],["Encerradas",ended],["Impressões",fmtNumber(impressions)],["Cliques",fmtNumber(clicks)],["CTR geral",ctr.toFixed(2)+"%"]];
-    $("#metrics").innerHTML=cards.map(([label,value])=>`<div class="metric-card"><span>${label}</span><strong>${value}</strong></div>`).join("");
+    const commercialCards=[["Assinantes ativos",commercialSummary?.assinantes_ativos??0],["MRR",fmtCurrency(commercialSummary?.mrr||0)],["Novas solicitações",requests.length],["Pagamentos pendentes",commercialSummary?.pagamentos_pendentes??0],["Campanhas ativas",active],["CTR geral",ctr.toFixed(2)+"%"]];
+    $("#metrics").innerHTML=commercialCards.map(([label,value])=>`<div class="metric-card"><span>${label}</span><strong>${value}</strong></div>`).join("");
     $("#campaign-summary").innerHTML=summary.length ?`<p><strong>${summary.length}</strong> campanhas cadastradas</p><p><strong>${active}</strong> entregando anúncios agora</p><p><strong>${scheduled}</strong> programadas para começar</p>` : '<div class="empty-state"><strong>Nenhuma campanha ainda</strong>Crie a primeira campanha para começar.</div>';
     renderChart(daily);
     renderInventory(inventory.itens);
@@ -356,6 +425,137 @@ function openForm(campaign=null) {
     (campaign.campanha_posicoes||[]).forEach(x=>{const field=form.querySelector(`[name="posicoes"][value="${x.posicao}"]`);if(field)field.checked=true;});
   }
   syncPositionCards();togglePopup();updateCreativePreview(); switchView("form"); (mountedContainer || window).scrollTo?.({top:0,behavior:"smooth"});
+}
+
+function subscriptionById(id) {
+  return state.subscriptions.find(item => item.id === id);
+}
+
+function renderDeliveryProgress(label, used, total, field, id) {
+  const value = Number(used || 0);
+  const max = Number(total || 0);
+  return `<div class="delivery-chip"><span>${escapeHtml(label)}</span><strong>${value}/${max}</strong><div class="delivery-actions"><button type="button" data-delivery-minus="${field}" data-subscription="${id}" ${value<=0?"disabled":""}>-</button><button type="button" data-delivery-plus="${field}" data-subscription="${id}" ${value>=max?"disabled":""}>+</button></div></div>`;
+}
+
+function renderSubscriptionCard(item) {
+  const plan = planoComercial(item.plano);
+  const delivery = monthDeliveries(item) || {};
+  const statusClass = item.status === "ativa" ? "ativa" : item.status === "pausada" ? "pausado" : item.status === "cancelada" ? "encerrado" : "agendada";
+  return `<article class="subscription-card">
+    <div class="subscription-main">
+      <div><span class="status-pill ${statusClass}">${escapeHtml(item.status || "ativa")}</span><h4>${escapeHtml(item.empresa_nome)}</h4><p>${escapeHtml(plan.nome)} · ${fmtCurrency(item.valor_mensal)}</p></div>
+      <div class="subscription-dates"><span>Início <strong>${fmtDateOnly(item.data_inicio)}</strong></span><span>Próxima cobrança <strong>${fmtDateOnly(item.proxima_cobranca)}</strong></span></div>
+    </div>
+    <div class="subscription-deliveries">
+      ${renderDeliveryProgress("Stories", delivery.story_usados, delivery.story_total, "story_usados", item.id)}
+      ${renderDeliveryProgress("Atualizações", delivery.atualizacao_usados, delivery.atualizacao_total, "atualizacao_usados", item.id)}
+      ${renderDeliveryProgress("Feed", delivery.feed_usados, delivery.feed_total, "feed_usados", item.id)}
+    </div>
+    <div class="subscription-actions">
+      <button type="button" class="icon-button" data-sub-edit="${item.id}">Editar</button>
+      <button type="button" class="icon-button" data-sub-payment="${item.id}">Marcar pagamento</button>
+      ${item.status==="ativa"?`<button type="button" class="icon-button" data-sub-status="pausada" data-subscription="${item.id}">Pausar</button>`:`<button type="button" class="icon-button" data-sub-status="ativa" data-subscription="${item.id}">Ativar</button>`}
+      <button type="button" class="icon-button danger" data-sub-status="cancelada" data-subscription="${item.id}">Cancelar</button>
+    </div>
+  </article>`;
+}
+
+async function loadSubscriptions() {
+  const requestRun = runId;
+  const target = $("#subscriptions-list");
+  if (!target) return;
+  target.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+  try {
+    const rows = await listarAssinaturasComerciais();
+    if (!mounted || requestRun !== runId) return;
+    state.subscriptions = rows;
+    await Promise.all(rows.filter(item => item.status !== "cancelada").map(item => garantirEntregasDoMes(item).catch(() => null)));
+    const refreshed = await listarAssinaturasComerciais();
+    if (!mounted || requestRun !== runId) return;
+    state.subscriptions = refreshed;
+    target.innerHTML = refreshed.length ? refreshed.map(renderSubscriptionCard).join("") : '<div class="empty-state"><strong>Nenhum assinante ainda</strong>Adicione manualmente ou aprove uma solicitação recebida pelo /divulgue.</div>';
+    applyPermissions();
+  } catch(error) {
+    if (!mounted || requestRun !== runId) return;
+    target.innerHTML = `<div class="empty-state"><strong>Assinaturas indisponíveis</strong>${escapeHtml(errorMessage(error))}</div>`;
+  }
+}
+
+function renderRequestCard(item) {
+  const data = item.commercial || {};
+  const plan = planoComercial(data.plano);
+  return `<article class="request-card">
+    <div><span class="status-pill agendada">${escapeHtml(plan.nome)}</span><h4>${escapeHtml(data.empresa_nome)}</h4><p>${escapeHtml(data.responsavel_nome || "Responsável não informado")} · ${escapeHtml(data.whatsapp || "sem WhatsApp")}</p><small>Recebida em ${fmtDateOnly(item.created_at)}</small></div>
+    <div class="request-price"><strong>${fmtCurrency(data.valor_mensal)}</strong><span>mensal</span></div>
+    <button type="button" class="admin-button" data-approve-request="${item.id}">Aprovar assinatura</button>
+  </article>`;
+}
+
+async function loadCommercialRequests() {
+  const requestRun = runId;
+  const target = $("#requests-list");
+  if (!target) return;
+  target.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+  try {
+    const rows = await listarSolicitacoesComerciais();
+    if (!mounted || requestRun !== runId) return;
+    state.requests = rows;
+    target.innerHTML = rows.length ? rows.map(renderRequestCard).join("") : '<div class="empty-state"><strong>Nenhuma solicitação nova</strong>As adesões enviadas pela página /divulgue aparecerão aqui.</div>';
+    applyPermissions();
+  } catch(error) {
+    if (!mounted || requestRun !== runId) return;
+    target.innerHTML = `<div class="empty-state"><strong>Solicitações indisponíveis</strong>${escapeHtml(errorMessage(error))}</div>`;
+  }
+}
+
+function openSubscriptionForm(item=null) {
+  const form = $("#subscription-form");
+  form?.reset();
+  if (!form) return;
+  form.elements.id.value = item?.id || "";
+  form.elements.empresa_nome.value = item?.empresa_nome || "";
+  form.elements.responsavel_nome.value = item?.responsavel_nome || "";
+  form.elements.plano.innerHTML = planOptions(item?.plano || "presenca");
+  form.elements.valor_mensal.value = Number(item?.valor_mensal || planoComercial(item?.plano).valor);
+  form.elements.status.value = item?.status || "ativa";
+  form.elements.data_inicio.value = inputDateOnly(item?.data_inicio || new Date().toISOString());
+  form.elements.proxima_cobranca.value = inputDateOnly(item?.proxima_cobranca || "");
+  form.elements.whatsapp.value = item?.whatsapp || "";
+  form.elements.email.value = item?.email || "";
+  form.elements.instagram.value = item?.instagram || "";
+  form.elements.categoria.value = item?.categoria || "";
+  form.elements.observacoes.value = item?.observacoes || "";
+  switchView("subscription-form");
+  (mountedContainer || window).scrollTo?.({top:0,behavior:"smooth"});
+}
+
+async function handleSubscriptionSave(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = $("#save-subscription");
+  button.disabled = true;
+  button.textContent = "Salvando...";
+  try {
+    const fd = new FormData(form);
+    const payload = Object.fromEntries(fd.entries());
+    const current = payload.id ? subscriptionById(payload.id) : null;
+    if (!payload.id) delete payload.id;
+    await salvarAssinaturaComercial({
+      ...current,
+      ...payload,
+      anunciante_id: current?.anunciante_id || payload.anunciante_id || null,
+      guia_comercial_id: current?.guia_comercial_id || payload.guia_comercial_id || null,
+      business_submission_id: current?.business_submission_id || payload.business_submission_id || null,
+      configuracao: current?.configuracao || payload.configuracao || {}
+    });
+    toast("Assinatura salva.");
+    switchView("subscriptions");
+  } catch(error) {
+    toast(errorMessage(error), "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Salvar assinatura";
+  }
 }
 
 function togglePopup() { $("#popup-options").classList.toggle("visible",$("#tipo").value==="popup"); }
@@ -401,6 +601,11 @@ function bindEvents() {
   addListener($("#mobile-menu"),"click",()=>document.getElementById("sidebar")?.classList.toggle("open"));
   $$(".ads-tab").forEach(t=>addListener(t,"click",()=>switchView(t.dataset.tab)));
   addListener($("#new-campaign"),"click",()=>openForm());
+  addListener($("#add-subscriber"),"click",()=>openSubscriptionForm());
+  addListener($("#add-subscriber-inline"),"click",()=>openSubscriptionForm());
+  addListener($("#cancel-subscription-form"),"click",()=>switchView("subscriptions"));
+  addListener($("#subscription-form"),"submit",handleSubscriptionSave);
+  addListener($("#sub_plano"),"change",event=>{$("#sub_valor_mensal").value=planoComercial(event.target.value).valor});
   addListener($("#cancel-form"),"click",()=>switchView("campaigns"));
   addListener($("#tipo"),"change",()=>{togglePopup();updateCreativePreview()});
   addListener($("#campaign-form"),"submit",handleSave);
@@ -413,6 +618,8 @@ function bindEvents() {
   addListener($("#clear-filters"),"click",()=>{$("#campaign-search").value="";$("#status-filter").value="";$("#type-filter").value="";state.page=1;loadCampaigns()});
   addListener($("#prev-page"),"click",()=>{if(state.page>1){state.page--;loadCampaigns()}});
   addListener($("#next-page"),"click",()=>{if(state.page*state.perPage<state.total){state.page++;loadCampaigns()}});
+  addListener($("#requests-list"),"click",async e=>{const approve=e.target.closest("[data-approve-request]");if(!approve)return;approve.disabled=true;try{await aprovarSolicitacaoComercial(approve.dataset.approveRequest);toast("Solicitação aprovada e assinatura criada.");await loadCommercialRequests();}catch(error){toast(errorMessage(error),"error")}finally{approve.disabled=false;}});
+  addListener($("#subscriptions-list"),"click",async e=>{const edit=e.target.closest("[data-sub-edit]"),pay=e.target.closest("[data-sub-payment]"),status=e.target.closest("[data-sub-status]"),plus=e.target.closest("[data-delivery-plus]"),minus=e.target.closest("[data-delivery-minus]");try{if(edit){openSubscriptionForm(subscriptionById(edit.dataset.subEdit));return}if(pay){await marcarPagamentoAssinatura(subscriptionById(pay.dataset.subPayment));toast("Pagamento marcado.");await loadSubscriptions();return}if(status){await atualizarStatusAssinatura(status.dataset.subscription,status.dataset.subStatus);toast("Status atualizado.");await loadSubscriptions();return}const delivery=plus||minus;if(delivery){await registrarUsoEntrega(subscriptionById(delivery.dataset.subscription),delivery.dataset.deliveryPlus||delivery.dataset.deliveryMinus,plus?1:-1);await loadSubscriptions();}}catch(error){toast(errorMessage(error),"error")}});
   addListener($("#campaign-table"),"click",async e=>{const edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-delete]"); if(edit){try{openForm(await buscarCampanha(edit.dataset.edit))}catch(error){toast(errorMessage(error),"error")}} if(del&&confirm(`Excluir a campanha “${del.dataset.name}”?Esta ação não pode ser desfeita.`)){try{await excluirCampanha(del.dataset.delete);state.summaries.clear();toast("Campanha excluída.");loadCampaigns()}catch(error){toast(errorMessage(error),"error")}}});
 }
 
@@ -426,6 +633,8 @@ function resetState() {
   state.toastTimers = [];
   state.summaries = new Map();
   state.currentConfig = {};
+  state.subscriptions = [];
+  state.requests = [];
 }
 
 function applyPermissions() {
@@ -434,10 +643,17 @@ function applyPermissions() {
   const canDelete = can("excluir");
   const newButton = $("#new-campaign");
   if (newButton) newButton.hidden = !canCreate;
+  const addSubscriber = $("#add-subscriber");
+  const addSubscriberInline = $("#add-subscriber-inline");
+  if (addSubscriber) addSubscriber.hidden = !canCreate && !canEdit;
+  if (addSubscriberInline) addSubscriberInline.hidden = !canCreate && !canEdit;
   $$("[data-edit]").forEach(button => { button.hidden = !canEdit; });
   $$("[data-delete]").forEach(button => { button.hidden = !canDelete; });
+  $$("[data-approve-request],[data-sub-edit],[data-sub-payment],[data-sub-status],[data-delivery-plus],[data-delivery-minus]").forEach(button => { button.hidden = !canEdit; });
   const saveButton = $("#save-campaign");
   if (saveButton) saveButton.hidden = !(canCreate || canEdit);
+  const saveSubscription = $("#save-subscription");
+  if (saveSubscription) saveSubscription.hidden = !(canCreate || canEdit);
 }
 
 async function initModule(container, context = {}) {
@@ -453,6 +669,7 @@ async function initModule(container, context = {}) {
   root = container || document;
   moduleContext.setTitle?.("Publicidade", "Campanhas, posições, mídia e métricas dos anúncios internos do portal.");
   document.title = "Publicidade | Eu Amo Urânia";
+  enhanceCommercialArea();
   enhanceCreativeForm();
   renderPositions();
   bindEvents();
@@ -495,6 +712,7 @@ async function bootLegacyPage() {
   moduleContext = { access: auth };
   mounted = true;
   runId += 1;
+  enhanceCommercialArea();
   enhanceCreativeForm();
   renderPositions();
   bindEvents();

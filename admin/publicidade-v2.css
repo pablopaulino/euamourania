@@ -66,3 +66,27 @@
 .ads-form .form-actions{position:sticky;right:0;bottom:12px;z-index:20;width:max-content;margin-left:auto;padding:9px;background:rgba(255,255,255,.94);border:1px solid var(--ad-line);border-radius:13px;box-shadow:0 12px 34px rgba(31,19,44,.13);backdrop-filter:blur(10px)}
 @media(max-width:1000px){.placement-inventory{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:760px){.creative-preview-head,.inventory-heading{align-items:stretch;flex-direction:column}.preview-device-switch{align-self:flex-start}.placement-inventory{grid-template-columns:repeat(2,1fr)}.campaign-preview{min-height:210px;padding:10px}.preview-nativo .preview-creative{grid-template-columns:1fr}.preview-nativo .preview-creative>img:not(.preview-logo),.preview-native-placeholder{height:150px;min-height:150px}.position-selection-head{align-items:flex-start;flex-direction:column;gap:.25rem}.position-options{padding:8px}.placement-card{padding:14px}.ads-library-tools{align-items:stretch;flex-direction:column}.ads-library-tools .admin-button{width:100%}.ads-form .form-actions{right:auto;bottom:6px;width:auto;margin-inline:0}}
+.ads-heading-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.commercial-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.commercial-section-head h3{margin:0 0 5px}
+.commercial-section-head p{margin:0;color:var(--ad-muted)}
+.subscription-list,.request-list{display:grid;gap:14px}
+.subscription-card,.request-card{border:1px solid var(--ad-line);border-radius:16px;background:linear-gradient(135deg,#fff 0%,#fff 62%,#fff8e4 100%);padding:16px;box-shadow:0 8px 22px rgba(31,19,44,.04)}
+.subscription-main,.request-card{display:grid;grid-template-columns:1fr auto auto;gap:16px;align-items:center}
+.subscription-main h4,.request-card h4{margin:8px 0 4px;color:var(--ad-ink);font-size:1.08rem}
+.subscription-main p,.request-card p,.request-card small{margin:0;color:var(--ad-muted)}
+.subscription-dates{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.subscription-dates span{display:grid;gap:4px;min-width:130px;border:1px solid var(--ad-line);border-radius:12px;padding:9px 11px;color:var(--ad-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
+.subscription-dates strong{color:var(--ad-ink);font-size:.95rem;text-transform:none;letter-spacing:0}
+.subscription-deliveries{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.delivery-chip{border:1px solid var(--ad-line);border-radius:14px;background:#fff;padding:10px;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
+.delivery-chip span{font-size:.78rem;color:var(--ad-muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.delivery-chip strong{color:var(--ad-ink)}
+.delivery-actions{display:flex;gap:4px}
+.delivery-actions button{width:28px;height:28px;border:1px solid var(--ad-line);background:#fff;border-radius:999px;color:var(--ad-primary);font-weight:900;cursor:pointer}
+.delivery-actions button:disabled{opacity:.35;cursor:not-allowed}
+.subscription-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.request-price{display:grid;text-align:right;gap:2px}
+.request-price strong{font-size:1.25rem;color:var(--ad-primary)}
+.request-price span{font-size:.72rem;color:var(--ad-muted);text-transform:uppercase;font-weight:800}
+@media(max-width:900px){.subscription-main,.request-card{grid-template-columns:1fr}.subscription-dates,.subscription-actions{justify-content:flex-start}.subscription-deliveries{grid-template-columns:1fr}.commercial-section-head{flex-direction:column}.commercial-section-head .admin-button{width:100%}.ads-heading-actions{width:100%}.ads-heading-actions .admin-button{flex:1}}
