@@ -377,6 +377,147 @@
   }
 }
 
+/* Ajustes finais solicitados: adesão compacta, FAQ vertical e CTA final menor. */
+.advertise-page .adhesion-section {
+  padding-block: clamp(2.4rem, 4.5vw, 4rem);
+}
+
+.advertise-page .adhesion-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1.1rem, 2vw, 1.6rem);
+  max-width: 960px;
+}
+
+.advertise-page .adhesion-grid > div:first-child {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, .72fr);
+  gap: 1rem 2rem;
+  align-items: end;
+  padding: clamp(1.1rem, 2vw, 1.45rem);
+  border: 1px solid var(--ad-line);
+  border-radius: 24px;
+  background: linear-gradient(135deg, #fff, #f5fbfb);
+  box-shadow: 0 14px 38px rgba(7, 63, 81, .06);
+}
+
+.advertise-page .adhesion-grid > div:first-child .eyebrow {
+  grid-column: 1 / -1;
+  margin-bottom: .2rem;
+}
+
+.advertise-page .adhesion-grid > div:first-child h2 {
+  margin: 0;
+  font-size: clamp(1.85rem, 3vw, 2.65rem);
+  line-height: 1;
+}
+
+.advertise-page .adhesion-grid > div:first-child p:not(.eyebrow) {
+  max-width: none;
+  margin: 0;
+  font-size: .98rem;
+  line-height: 1.48;
+}
+
+.advertise-page .commercial-form {
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.advertise-page .commercial-form textarea {
+  min-height: 104px;
+}
+
+.advertise-page .faq-section {
+  padding-block: clamp(2.2rem, 4vw, 3.6rem);
+}
+
+.advertise-page .faq-grid {
+  display: block;
+  max-width: 920px;
+}
+
+.advertise-page .faq-grid > div:first-child {
+  margin-bottom: 1.2rem;
+}
+
+.advertise-page .faq-grid h2 {
+  font-size: clamp(1.9rem, 3.4vw, 3rem);
+}
+
+.advertise-page .faq-list {
+  gap: .65rem;
+}
+
+.advertise-page .faq-list details {
+  padding: .9rem 1rem;
+  border-radius: 18px;
+}
+
+.advertise-page .final-commercial-cta {
+  padding: clamp(2.4rem, 5vw, 4.2rem) 0;
+  background:
+    radial-gradient(circle at 14% 24%, rgba(255, 207, 63, .18), transparent 17rem),
+    linear-gradient(135deg, #073f51, #0c6985);
+}
+
+.advertise-page .final-commercial-cta .container {
+  display: grid;
+  grid-template-columns: minmax(0, .62fr) minmax(320px, .7fr);
+  gap: clamp(1rem, 4vw, 2.6rem);
+  align-items: center;
+}
+
+.advertise-page .final-commercial-cta .eyebrow {
+  margin: 0;
+}
+
+.advertise-page .final-commercial-cta h2 {
+  max-width: 620px;
+  font-size: clamp(2rem, 4.6vw, 4rem);
+  line-height: .98;
+}
+
+.advertise-page .final-commercial-cta p:not(.eyebrow) {
+  margin: 0;
+  font-size: clamp(1rem, 1.8vw, 1.18rem);
+  line-height: 1.45;
+}
+
+.advertise-page .final-commercial-cta .ad-hero-actions {
+  justify-content: flex-start;
+  margin-top: .8rem;
+}
+
+@media (max-width: 720px) {
+  .advertise-page .adhesion-grid > div:first-child {
+    display: block;
+  }
+
+  .advertise-page .adhesion-grid > div:first-child h2 {
+    margin-top: .35rem;
+  }
+
+  .advertise-page .adhesion-grid > div:first-child p:not(.eyebrow) {
+    margin-top: .65rem;
+  }
+
+  .advertise-page .final-commercial-cta {
+    padding: 2.2rem 0;
+  }
+
+  .advertise-page .final-commercial-cta .container {
+    display: block;
+  }
+
+  .advertise-page .final-commercial-cta h2 {
+    margin-top: .55rem;
+    font-size: clamp(2rem, 10vw, 2.8rem);
+  }
+
+  .advertise-page .final-commercial-cta p:not(.eyebrow) {
+    margin-top: .8rem;
+  }
+}
+
 @media (max-width: 720px) {
   .advertise-page .ad-hero {
     padding: 2.45rem 0 2.8rem;
