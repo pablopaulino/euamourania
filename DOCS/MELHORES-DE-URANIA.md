@@ -122,3 +122,43 @@ Rotas:
 - teste de voto feito;
 - sitemap validado;
 - página mobile revisada.
+
+## RLS e permissões
+## Retenção dos votos individuais
+Os votos individuais são retidos temporariamente e apagados.
+
+## RLS e permissões
+As políticas de RLS protegem os dados.
+
+
+Requer MELHORES_VOTO_SECRET.
+
+## Fase 3
+Usa melhores_instagram_votos e calcula a pontuação_final.
+
+## Fase 4
+Fase de polimento e encerramento.
+
+## Fase 4
+Usa 20260712_melhores_urania_fase4_audiencia.sql.
+
+## Fase 5
+Usa /api/melhores-indicar.
+
+## RLS e permissões
+As políticas de RLS protegem os dados.
+
+## Retenção dos votos individuais
+Os votos individuais são retidos temporariamente e apagados.
+
+## Fase 2
+Requer MELHORES_VOTO_SECRET.
+
+## Fase 3
+Usa melhores_instagram_votos e calcula a pontuação_final.
+
+## Fase 4
+Usa 20260712_melhores_urania_fase4_audiencia.sql.
+
+## Fase 5
+Usa /api/melhores-indicar.

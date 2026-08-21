@@ -100,3 +100,11 @@ Fontes externas complementares:
 - Search Console.
 
 Sempre documentar quando um card usar fonte externa.
+
+O sistema não grava IP para garantir a privacidade dos usuários.
+
+A API Google utiliza cache por dez minutos e tem autenticação. Nunca exponha o JSON da conta de serviço.
+
+O sistema não grava IP para garantir a privacidade dos usuários.
+
+A API Google utiliza cache por dez minutos e tem autenticação. Nunca exponha o JSON da conta de serviço.
