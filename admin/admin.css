@@ -98,12 +98,16 @@
 .weekly-closed input{width:auto!important}
 @media(max-width:720px){.weekly-day-body{grid-template-columns:1fr 1fr}.weekly-closed,.weekly-copy-prev{grid-column:1/-1}}
 
-.cms-gallery-field{border:1px solid rgba(7,59,76,.12);border-radius:22px;padding:1rem;background:linear-gradient(180deg,#fbfdfc,#f5f9f8);box-shadow:0 14px 34px rgba(7,59,76,.06)}
-.cms-gallery-field legend{padding:0 .35rem;color:var(--navy);font-weight:900;letter-spacing:.02em}
-.cms-gallery-field .field-hint{margin:.15rem 0 1rem;color:var(--muted);font-size:.9rem}
-.cms-gallery-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem 1rem}
-.cms-gallery-list label{margin:0;color:var(--navy);font-weight:850}
-.cms-gallery-list input{margin-top:.35rem}
+.cms-gallery-field{border:1px solid rgba(7,59,76,.1);border-radius:20px;padding:1rem;background:linear-gradient(180deg,#fff,#f7fbfc);box-shadow:0 10px 26px rgba(7,59,76,.045)}
+.cms-gallery-field legend{padding:0 .35rem;color:var(--navy);font-weight:900;letter-spacing:.01em}
+.cms-gallery-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin:.2rem 0 .35rem}
+.cms-gallery-head span{color:var(--blue);font-size:.78rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.cms-gallery-head strong{display:inline-flex;align-items:center;justify-content:center;min-width:46px;padding:.28rem .55rem;color:var(--navy);background:#fff6d7;border:1px solid rgba(247,201,72,.55);border-radius:999px;font-size:.8rem}
+.cms-gallery-field .field-hint{margin:0 0 .9rem;color:var(--muted);font-size:.88rem;line-height:1.45}
+.cms-gallery-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.cms-gallery-list label{margin:0;padding:.75rem;background:rgba(255,255,255,.82);border:1px solid rgba(7,59,76,.08);border-radius:16px;color:var(--navy);font-weight:850}
+.cms-gallery-list label span{display:block;margin-bottom:.42rem;color:var(--blue);font-size:.75rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+.cms-gallery-list input{margin-top:0;background:#fff;border-color:rgba(7,59,76,.14)}
 @media(max-width:720px){.cms-gallery-list{grid-template-columns:1fr}}
 
 @media(max-width:560px){
