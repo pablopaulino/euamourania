@@ -1395,3 +1395,125 @@
     font-weight: 900;
   }
 }
+
+/* FAQ da pagina Divulgue seguindo o padrao visual do Premio */
+.advertise-page .faq-section {
+  background:
+    radial-gradient(circle at top right, rgba(247, 201, 72, .14), transparent 28rem),
+    #f7fbfb;
+}
+
+.advertise-page .faq-grid {
+  display: block !important;
+  max-width: 920px;
+  margin-inline: auto;
+}
+
+.advertise-page .faq-grid > div:first-child {
+  margin-bottom: 1.15rem;
+}
+
+.advertise-page .faq-grid > div:first-child p,
+.advertise-page .faq-grid > div:first-child h2 {
+  text-align: left;
+}
+
+.advertise-page .faq-list {
+  display: grid;
+  gap: .85rem;
+}
+
+.advertise-page .faq-list details {
+  overflow: hidden;
+  padding: 0 !important;
+  border: 1px solid rgba(11, 79, 108, .12) !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  box-shadow: 0 16px 38px rgba(11, 79, 108, .07) !important;
+}
+
+.advertise-page .faq-list summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.08rem 1.2rem;
+  color: #073b4c;
+  cursor: pointer;
+  font-weight: 900;
+  line-height: 1.25;
+  list-style: none;
+}
+
+.advertise-page .faq-list summary::-webkit-details-marker {
+  display: none;
+}
+
+.advertise-page .faq-list summary::after {
+  content: "+";
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  place-items: center;
+  border-radius: 999px;
+  background: #eff7f8;
+  color: #0b4f6c;
+  font-size: 1.05rem;
+  font-weight: 950;
+  transition: transform .2s ease, background .2s ease;
+}
+
+.advertise-page .faq-list details[open] summary::after {
+  content: "-";
+  background: #f7c948;
+  transform: rotate(180deg);
+}
+
+.advertise-page .faq-list summary:focus-visible {
+  outline: 3px solid #f7c948;
+  outline-offset: 4px;
+}
+
+.advertise-page .faq-list details p {
+  margin: 0 !important;
+  padding: 0 1.2rem 1.15rem;
+  color: #526670;
+  font-size: .98rem;
+  line-height: 1.65;
+}
+
+@media (max-width: 720px) {
+  .advertise-page .faq-list {
+    gap: .65rem;
+  }
+
+  .advertise-page .faq-list details {
+    border-radius: 18px !important;
+  }
+
+  .advertise-page .faq-list summary {
+    align-items: flex-start;
+    padding: .95rem 1rem;
+    font-size: .95rem;
+  }
+
+  .advertise-page .faq-list summary::after {
+    width: 1.8rem;
+    height: 1.8rem;
+    flex-basis: 1.8rem;
+  }
+
+  .advertise-page .faq-list details p {
+    padding: 0 1rem 1rem;
+    font-size: .92rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advertise-page .faq-list summary::after {
+    transition: none;
+  }
+}
