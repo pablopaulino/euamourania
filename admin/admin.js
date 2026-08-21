@@ -104,6 +104,51 @@ const sidebarIconSvgMap = {
   "Importar JSON": sidebarIconSvg(`<path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5Z"/><path d="M12 12v5"/><path d="m9.5 14.5 2.5-2.5 2.5 2.5"/>`)
 };
 
+const sidebarLabelsByKey = {
+  dashboard: "Visão geral",
+  noticias: "Notícias",
+  aprovacoes: "Aprovações",
+  guia_comercial: "Guia comercial",
+  turismo: "Turismo",
+  links: "Links",
+  colaboradores_voluntarios: "Colaborações",
+  submissoes: "Submissões públicas",
+  eventos: "Agenda simples",
+  eventos_principais: "Eventos principais",
+  eventos_edicoes: "Edições",
+  publicidade: "Publicidade",
+  comunicacao: "Comunicação",
+  notificacoes: "Notificações do app",
+  melhores: "Melhores de Urânia",
+  categorias: "Categorias",
+  audiencia: "Audiência",
+  insights: "Audiência",
+  configuracoes_site: "Configurações",
+  usuarios: "Usuários",
+  importacao: "Importar JSON",
+  "editorial-approvals-nav": "Aprovações",
+  "audience-nav": "Audiência"
+};
+
+function getSidebarButtonLabel(button) {
+  const key = button.dataset.view || button.dataset.module || button.id || "";
+  const currentLabel = button.querySelector(".admin-nav-label")?.textContent?.trim();
+  return sidebarLabelsByKey[key] || button.dataset.label || currentLabel || button.textContent.trim().replace(/\s+/g, " ");
+}
+
+function decorateSidebarButton(button) {
+  const label = getSidebarButtonLabel(button);
+  if (!label) return;
+  button.dataset.label = label;
+  button.title = label;
+  if (button.querySelector(".admin-nav-icon") && button.querySelector(".admin-nav-label")?.textContent?.trim() === label) return;
+  button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${sidebarIconSvgMap[label] || sidebarIconSvgMap["Visão geral"]}</span><span class="admin-nav-label">${escapeHtml(label)}</span>`;
+}
+
+function refreshSidebarNavigation() {
+  document.querySelectorAll(".admin-nav button").forEach(decorateSidebarButton);
+}
+
 const resources = {
   noticias: { label:"Notícias", title:"titulo", order:"atualizado_em", fields:[
     ["titulo","Título","text",true],["slug","Slug","text",true],["subtitulo","Subtítulo","text"],["resumo","Resumo","textarea"],["categoria_nome","Categoria","text"],["autor","Autor","text"],["imagem_url","URL da imagem","url"],["legenda_imagem","Legenda da imagem","text"],["status","Status","status"],["destaque","Destaque","boolean"],["publicado_em","Publicação","datetime-local"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["seo_imagem","Imagem SEO","url"],["conteudo_html","Conteúdo","editor"]]},
@@ -136,7 +181,7 @@ Object.assign(resources, {
 
 function adicionarCamposDestaqueHome() {
   const campos = [
-    ["destaque_home", "â­ Destaque da Home", "boolean"],
+    ["destaque_home", "Destaque da Home", "boolean"],
     ["destaque_home_inicio", "Início do destaque", "datetime-local"],
     ["destaque_home_fim", "Fim do destaque", "datetime-local"]
   ];
@@ -249,7 +294,7 @@ document.addEventListener("input",handleWeeklyHoursChange);
 document.addEventListener("change",handleWeeklyHoursChange);
 async function legacyDashboard() {
   title.textContent = "Visão geral";
-  app.innerHTML = '<div class="loading">Carregando indicadoresâ¬¦</div>';
+  app.innerHTML = '<div class="loading">Carregando indicadores...</div>';
   const supabase = getSupabase();
   const count = async (table, filters={}) => { let q=supabase.from(table).select("*",{count:"exact",head:true}); Object.entries(filters).forEach(([k,v])=>q=q.eq(k,v)); const {count,error}=await q; if(error) throw error; return count||0; };
   const safeCount = async (table, filters={}) => { try { return await count(table, filters); } catch { return 0; } };
@@ -315,7 +360,7 @@ async function legacyDashboard() {
 
 async function dashboardBase() {
   title.textContent = "Visão geral";
-  app.innerHTML = '<div class="loading">Carregando indicadoresâ¬¦</div>';
+  app.innerHTML = '<div class="loading">Carregando indicadores...</div>';
   const supabase = getSupabase();
   const count = async (table, filters = {}) => {
     let query = supabase.from(table).select("*", { count: "exact", head: true });
@@ -414,7 +459,7 @@ async function dashboardBase() {
         <section class="panel dashboard-section">
           <header class="panel-header"><div><h2>O que precisa de atenção</h2><p>Atalhos para as próximas ações do painel.</p></div></header>
           <div class="dashboard-task-list">
-            ${pendingTasks.length ?pendingTasks.map(([text, action, target]) => `<button class="dashboard-task" ${target === "aprovacoes" ?"id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} ï¿½ </strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
+            ${pendingTasks.length ?pendingTasks.map(([text, action, target]) => `<button class="dashboard-task" ${target === "aprovacoes" ?"id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} →</strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
           </div>
         </section>
         <section class="panel dashboard-section">
@@ -426,16 +471,16 @@ async function dashboardBase() {
       </div>
       <div class="dashboard-layout dashboard-bottom">
         <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>ï¿½altimas notícias</h2><p>Conteúdos editados recentemente.</p></div><button class="admin-button secondary" data-view="noticias">Ver todas</button></header>
+          <header class="panel-header"><div><h2>Últimas notícias</h2><p>Conteúdos editados recentemente.</p></div><button class="admin-button secondary" data-view="noticias">Ver todas</button></header>
           <div class="dashboard-list">
-            ${recentNews.length ?recentNews.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.titulo)}</strong><small>${escapeHtml(item.status_editorial || item.status || "")} · ${fmtDate(item.publicado_em || item.atualizado_em)}</small></div><span class="status-pill ${escapeHtml(item.status || "")}">${escapeHtml(item.status || "ï¿½")}</span></article>`).join("") : '<div class="empty-state">Nenhuma notícia recente.</div>'}
+            ${recentNews.length ?recentNews.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.titulo)}</strong><small>${escapeHtml(item.status_editorial || item.status || "")} · ${fmtDate(item.publicado_em || item.atualizado_em)}</small></div><span class="status-pill ${escapeHtml(item.status || "")}">${escapeHtml(item.status || "—")}</span></article>`).join("") : '<div class="empty-state">Nenhuma notícia recente.</div>'}
           </div>
         </section>
         <section class="panel dashboard-section">
           <header class="panel-header"><div><h2>Aprovações e edições</h2><p>Fila editorial e últimas edições do prêmio.</p></div></header>
           <div class="dashboard-list">
             ${pendingApprovals.length ?pendingApprovals.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.noticias?.titulo || "Notícia em revisão")}</strong><small>Enviada em ${fmtDate(item.enviado_em)}</small></div><span class="status-pill">${escapeHtml(item.status)}</span></article>`).join("") : '<div class="dashboard-empty-good compact">Sem aprovações pendentes.</div>'}
-            ${recentEditions.length ?recentEditions.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.nome || `Melhores ${item.ano}`)}</strong><small>${item.ano} · ${fmtDate(item.atualizado_em)}</small></div><span class="status-pill">${escapeHtml(item.status || "ï¿½")}</span></article>`).join("") : '<div class="empty-state">Nenhuma edição do Melhores cadastrada.</div>'}
+            ${recentEditions.length ?recentEditions.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.nome || `Melhores ${item.ano}`)}</strong><small>${item.ano} · ${fmtDate(item.atualizado_em)}</small></div><span class="status-pill">${escapeHtml(item.status || "—")}</span></article>`).join("") : '<div class="empty-state">Nenhuma edição do Melhores cadastrada.</div>'}
           </div>
         </section>
       </div>
@@ -452,7 +497,7 @@ async function dashboardBase() {
 
 async function dashboard() {
   title.textContent = "Visão geral";
-  app.innerHTML = '<div class="loading">Carregando central de operaçãoâ¬¦</div>';
+  app.innerHTML = '<div class="loading">Carregando central de operação...</div>';
   const supabase = getSupabase();
   const now = new Date();
   const isoNow = now.toISOString();
@@ -598,10 +643,10 @@ async function dashboard() {
       ["Comunicação", `${assinantes} assinantes`, `${colaboradoresNovos} colaborador(es) novo(s)`, "comunicacao"],
       ["Melhores", `${melhoresEdicoes} edição(ões)`, `${melhoresIndicados} indicado(s) ativos`, "melhores"]
     ];
-    const newsRows = recentNews.map(item => ({ title: item.titulo || "Notícia sem título", detail: `${item.categoria_nome || "Sem editoria"} · ${item.autor || "Eu Amo Urânia"} · ${item.publicado_em ?`publicada em ${fmtDate(item.publicado_em)}` : `editada em ${fmtDate(item.atualizado_em)}`}`, badge: item.status_editorial || item.status || "ï¿½", badgeClass: item.status || "" }));
+    const newsRows = recentNews.map(item => ({ title: item.titulo || "Notícia sem título", detail: `${item.categoria_nome || "Sem editoria"} · ${item.autor || "Eu Amo Urânia"} · ${item.publicado_em ?`publicada em ${fmtDate(item.publicado_em)}` : `editada em ${fmtDate(item.atualizado_em)}`}`, badge: item.status_editorial || item.status || "—", badgeClass: item.status || "" }));
     const scheduledRows = scheduledNews.map(item => ({ title: item.titulo || "Notícia agendada", detail: `Publicação prevista para ${fmtDate(item.publicado_em)}`, badge: "agendada", badgeClass: "info" }));
     const approvalRows = pendingApprovals.map(item => ({ title: item.noticias?.titulo || "Notícia em revisão", detail: `Enviada em ${fmtDate(item.enviado_em)}`, badge: item.status || "pendente" }));
-    const editionRows = recentEditions.map(item => ({ title: item.nome || `Melhores ${item.ano}`, detail: `${item.ano} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.status || "ï¿½" }));
+    const editionRows = recentEditions.map(item => ({ title: item.nome || `Melhores ${item.ano}`, detail: `${item.ano} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.status || "—" }));
     const activityRows = recentActivities.map(item => ({ title: item.titulo || item.tabela || "Atividade", detail: `${item.acao || "ação"} · ${fmtDate(item.criado_em)}`, badge: item.tabela || "" }));
     const eventRows = upcomingEvents.map(item => ({ title: item.titulo || "Evento", detail: `${fmtDate(item.data_inicio)}${item.local ?` · ${item.local}` : ""}`, badge: item.status || "" }));
     const mainEventRows = recentMainEvents.map(item => ({ title: item.nome || "Evento principal", detail: `${item.categoria || "Acervo permanente"} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.ativo ?"ativo" : "inativo", badgeClass: item.ativo ?"ativo" : "" }));
@@ -641,7 +686,7 @@ async function dashboard() {
             <span>${fmtNumber(attentionTotal)} item(ns)</span>
           </header>
           <div class="ops-attention-list">
-            ${importantAlerts.length ?importantAlerts.map(([text, action, target, tone]) => `<button class="ops-attention-item ${tone || ""}" ${targetAttrs(target)}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} ï¿½ </strong></button>`).join("") : '<div class="ops-empty">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
+            ${importantAlerts.length ?importantAlerts.map(([text, action, target, tone]) => `<button class="ops-attention-item ${tone || ""}" ${targetAttrs(target)}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} →</strong></button>`).join("") : '<div class="ops-empty">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
           </div>
         </section>
 
@@ -670,7 +715,7 @@ async function dashboard() {
             <header class="ops-section-header">
               <div>
                 <p class="eyebrow">Leitura rápida</p>
-                <h2>ï¿½altimas atividades</h2>
+                <h2>Últimas atividades</h2>
               </div>
             </header>
             <div class="ops-inline-summary">
@@ -731,10 +776,10 @@ async function dashboard() {
 }
 
 async function resourceList(table) {
-  const config=resources[table]; title.textContent=config.label; app.innerHTML='<div class="loading">Carregandoâ¬¦</div>';
+  const config=resources[table]; title.textContent=config.label; app.innerHTML='<div class="loading">Carregando...</div>';
   try {
     const rows=await listarTabela(table,{ordem:config.order,crescente:config.ascending||false});
-    app.innerHTML=`<section class="panel"><header class="panel-header"><h2>${config.label}</h2><button class="admin-button" data-new="${table}">Novo cadastro</button></header><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Status</th><th>Atualização</th><th>Ações</th></tr></thead><tbody>${rows.length?rows.map(row=>`<tr><td><strong>${escapeHtml(row[config.title]||"Sem título")}</strong></td><td><span class="status-pill ${escapeHtml(row.status||"")}">${escapeHtml(row.status||"ï¿½")}</span></td><td>${row.atualizado_em?new Date(row.atualizado_em).toLocaleDateString("pt-BR"):"ï¿½"}</td><td><div class="row-actions"><button data-edit="${table}" data-id="${row.id}">Editar</button><button data-delete="${table}" data-id="${row.id}">Excluir</button></div></td></tr>`).join(""):'<tr><td colspan="4">Nenhum registro.</td></tr>'}</tbody></table></div></section>`;
+    app.innerHTML=`<section class="panel"><header class="panel-header"><h2>${config.label}</h2><button class="admin-button" data-new="${table}">Novo cadastro</button></header><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Status</th><th>Atualização</th><th>Ações</th></tr></thead><tbody>${rows.length?rows.map(row=>`<tr><td><strong>${escapeHtml(row[config.title]||"Sem título")}</strong></td><td><span class="status-pill ${escapeHtml(row.status||"")}">${escapeHtml(row.status||"—")}</span></td><td>${row.atualizado_em?new Date(row.atualizado_em).toLocaleDateString("pt-BR"):"—"}</td><td><div class="row-actions"><button data-edit="${table}" data-id="${row.id}">Editar</button><button data-delete="${table}" data-id="${row.id}">Excluir</button></div></td></tr>`).join(""):'<tr><td colspan="4">Nenhum registro.</td></tr>'}</tbody></table></div></section>`;
   } catch(error) { app.innerHTML=`<p class="form-message">${escapeHtml(error.message)}</p>`; }
 }
 
@@ -772,7 +817,7 @@ async function salvarEvento2Form(event) {
   if(event.target.id!=="resource-form"||!["eventos_principais","eventos_edicoes"].includes(currentResourceTable))return;
   event.preventDefault();event.stopImmediatePropagation();
   const table=currentResourceTable,config=resources[table],message=document.getElementById("form-message");
-  message.textContent="Salvandoâ¬¦";
+  message.textContent="Salvando...";
   const form=new FormData(event.target),payload={id:currentResourceId};
   for(const field of config.fields){
     const [name,label,type]=field;
@@ -820,7 +865,7 @@ async function editForm(table,id) {
   await carregarSelectEventosPrincipais();
   const sourceName=config.fields.some(f=>f[0]==="titulo")?"titulo":config.fields.some(f=>f[0]==="nome")?"nome":null;
   if(sourceName&&config.fields.some(f=>f[0]==="slug")){const source=app.querySelector(`[name="${sourceName}"]`),slugInput=app.querySelector('[name="slug"]');source.addEventListener("input",()=>{if(!id||!slugInput.dataset.edited)slugInput.value=gerarSlug(source.value)});slugInput.addEventListener("input",()=>slugInput.dataset.edited="true");}
-  document.getElementById("resource-form").addEventListener("submit",async event=>{event.preventDefault();const message=document.getElementById("form-message");message.textContent="Salvandoâ¬¦";const form=new FormData(event.currentTarget),payload={id};for(const field of config.fields){const [name,label,type]=field;if(type==="editor")payload[name]=quill.root.innerHTML;else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="gallery-urls")payload[name]=collectGalleryUrls(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";else if(type==="number")payload[name]=form.get(name)===""?null:Number(form.get(name)||0);else if(type==="tags")payload[name]=String(form.get(name)||"").split(",").map(item=>item.trim()).filter(Boolean);else{const value=form.get(name)||null;if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.currentTarget.elements[name]?.focus();return}if(["galeria_historica","galeria","videos","links_uteis","patrocinadores"].includes(name)){try{payload[name]=value?JSON.parse(value):[]}catch{message.textContent=`O campo ${label} precisa ser um JSON válido. Use [] quando não houver itens.`;event.currentTarget.elements[name]?.focus();return}}else payload[name]=value}}if(table==="noticias"&&payload.status==="publicado"&&!payload.publicado_em)payload.publicado_em=new Date().toISOString();try{await salvarRegistro(table,payload);await resourceList(table)}catch(error){message.textContent=error.message;}});
+  document.getElementById("resource-form").addEventListener("submit",async event=>{event.preventDefault();const message=document.getElementById("form-message");message.textContent="Salvando...";const form=new FormData(event.currentTarget),payload={id};for(const field of config.fields){const [name,label,type]=field;if(type==="editor")payload[name]=quill.root.innerHTML;else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="gallery-urls")payload[name]=collectGalleryUrls(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";else if(type==="number")payload[name]=form.get(name)===""?null:Number(form.get(name)||0);else if(type==="tags")payload[name]=String(form.get(name)||"").split(",").map(item=>item.trim()).filter(Boolean);else{const value=form.get(name)||null;if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.currentTarget.elements[name]?.focus();return}if(["galeria_historica","galeria","videos","links_uteis","patrocinadores"].includes(name)){try{payload[name]=value?JSON.parse(value):[]}catch{message.textContent=`O campo ${label} precisa ser um JSON válido. Use [] quando não houver itens.`;event.currentTarget.elements[name]?.focus();return}}else payload[name]=value}}if(table==="noticias"&&payload.status==="publicado"&&!payload.publicado_em)payload.publicado_em=new Date().toISOString();try{await salvarRegistro(table,payload);await resourceList(table)}catch(error){message.textContent=error.message;}});
 }
 
 function shellToast(message, type = "success") {
@@ -849,6 +894,7 @@ function clearMountedModule() {
 }
 
 function setActiveNav(view) {
+  refreshSidebarNavigation();
   document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button => {
     button.classList.toggle("active", button.dataset.view === view || button.dataset.module === view);
   });
@@ -869,7 +915,7 @@ async function mountShellModule(view, options = {}) {
   }
   sidebar.classList.remove("open");
   document.body.classList.remove("sidebar-drawer-open");
-  app.innerHTML = '<div class="loading">Carregando móduloâ¬¦</div>';
+  app.innerHTML = '<div class="loading">Carregando módulo...</div>';
   try {
     const module = await route.module();
     activeMountedModule = module;
@@ -913,14 +959,7 @@ async function handleClick(event) {
 
 function setupSidebarControls() {
   const buttons = [...document.querySelectorAll(".admin-nav button")];
-  buttons.forEach(button => {
-    if (button.dataset.navReady) return;
-    const label = button.textContent.trim().replace(/\s+/g, " ");
-    button.dataset.label = label;
-    button.title = label;
-    button.dataset.navReady = "true";
-    button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${sidebarIconSvgMap[label] || sidebarIconSvgMap["Visão geral"]}</span><span class="admin-nav-label">${escapeHtml(label)}</span>`;
-  });
+  buttons.forEach(decorateSidebarButton);
 
   const savedState = localStorage.getItem("euamourania:admin-sidebar");
   const applyCollapsed = collapsed => {
