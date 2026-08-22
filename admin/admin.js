@@ -792,8 +792,31 @@ function fieldHtml([name,label,type,required], value) {
   if(type==="event-principal-select") return `<label>${label}<select name="${name}" data-event-principal-select data-current="${escapeHtml(inputValue(value,type))}" ${req}><option value="">Carregando eventos principais...</option></select><small>Escolha o evento principal. Não precisa copiar ID.</small></label>`;
   const options=type==="status"?["rascunho","publicado","arquivado"]:type==="active-status"?["ativo","inativo"]:type==="category-type"?["noticias","guia","turismo","eventos"]:type==="volunteer-status"?["novo","em_conversa","aprovado","recusado","arquivado"]:type==="event-recurrence"?["anual","mensal","unico","outro"]:type==="event-simple-recurrence"?["nenhuma","semanal","mensal","anual"]:type==="event-edition-status"?["anunciado","confirmado","acontecendo","encerrado","cancelado"]:null;
   if(options) return `<label>${label}<select name="${name}">${options.map(o=>`<option value="${o}" ${value===o?"selected":""}>${o}</option>`).join("")}</select></label>`;
-  const inputType=type==="url"?"text":type,urlAttributes=type==="url"?' inputmode="url" data-type="url" placeholder="https://... ou /assets/..."':"";
+  const inputType=type==="url"||type==="number"?"text":type,urlAttributes=type==="url"?' inputmode="url" data-type="url" placeholder="https://... ou /assets/..."':type==="number"?' inputmode="decimal" data-type="number" placeholder="Ex.: -20.2046718"':"";
   return `<label class="${full}">${label}<input type="${inputType}"${urlAttributes} name="${name}" value="${escapeHtml(inputValue(value,type))}" ${req}></label>`;
+}
+
+function parseAdminNumber(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  const normalized = raw.replace(/\s+/g, "").replace(",", ".");
+  const number = Number(normalized);
+  if (!Number.isFinite(number)) throw new Error("Número inválido");
+  return number;
+}
+
+function normalizeCoordinateInputs(container = app) {
+  container
+    .querySelectorAll('input[name="latitude"], input[name="longitude"]')
+    .forEach((input) => {
+      input.type = "text";
+      input.inputMode = "decimal";
+      input.dataset.type = "number";
+      input.placeholder = "Ex.: -20.2046718";
+      input.removeAttribute("step");
+      input.removeAttribute("min");
+      input.removeAttribute("max");
+    });
 }
 
 async function carregarSelectEventosPrincipais() {
@@ -823,7 +846,7 @@ async function salvarEvento2Form(event) {
     const [name,label,type]=field;
     if(type==="editor")payload[name]=quill.root.innerHTML;
 else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="gallery-urls")payload[name]=collectGalleryUrls(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";
-    else if(type==="number")payload[name]=form.get(name)===""?null:Number(form.get(name)||0);
+    else if(type==="number"){try{payload[name]=parseAdminNumber(form.get(name))}catch{message.textContent=`Informe um número válido em ${label}.`;event.target.elements[name]?.focus();return}}
     else if(type==="url-list")payload[name]=parseUrlList(form.get(name));
     else if(type==="line-list")payload[name]=parseLineList(form.get(name));
     else{
@@ -850,7 +873,7 @@ function fieldHtmlCorrigido([name,label,type,required], value) {
   if(type==="event-principal-select") return `<label>${label}<select name="${name}" data-event-principal-select data-current="${escapeHtml(inputValue(value,type))}" ${req}><option value="">Carregando eventos principais...</option></select><small>Escolha o evento principal. Não precisa copiar ID.</small></label>`;
   const options=type==="status"?["rascunho","publicado","arquivado"]:type==="active-status"?["ativo","inativo"]:type==="category-type"?["noticias","guia","turismo","eventos"]:type==="volunteer-status"?["novo","em_conversa","aprovado","recusado","arquivado"]:type==="event-recurrence"?["anual","mensal","unico","outro"]:type==="event-simple-recurrence"?["nenhuma","semanal","mensal","anual"]:type==="event-edition-status"?["anunciado","confirmado","acontecendo","encerrado","cancelado"]:null;
   if(options) return `<label>${label}<select name="${name}">${options.map(o=>`<option value="${o}" ${value===o?"selected":""}>${o}</option>`).join("")}</select></label>`;
-  const inputType=type==="url"?"text":type,urlAttributes=type==="url"?' inputmode="url" data-type="url" placeholder="https://... ou /assets/..."':"";
+  const inputType=type==="url"||type==="number"?"text":type,urlAttributes=type==="url"?' inputmode="url" data-type="url" placeholder="https://... ou /assets/..."':type==="number"?' inputmode="decimal" data-type="number" placeholder="Ex.: -20.2046718"':"";
   return `<label class="${full}">${label}<input type="${inputType}"${urlAttributes} name="${name}" value="${escapeHtml(inputValue(value,type))}" ${req}></label>`;
 }
 
@@ -860,12 +883,13 @@ async function editForm(table,id) {
   if(id){const {data,error}=await getSupabase().from(table).select("*").eq("id",id).single();if(error)throw error;row=data;}
   title.textContent=`${id?"Editar":"Novo"} · ${config.label}`;
   app.innerHTML=`<section class="panel"><form id="resource-form" class="resource-form">${config.fields.map(field=>fieldHtmlCorrigido(field,row[field[0]])).join("")}<div class="form-actions"><button type="button" class="admin-button secondary" data-cancel="${table}">Cancelar</button><button class="admin-button" type="submit">Salvar</button></div><p id="form-message" class="form-message full-row"></p></form></section>`;
+  normalizeCoordinateInputs(app);
   const editorField=config.fields.find(f=>f[2]==="editor");
   if(editorField){quill=new Quill("#editor",{theme:"snow",modules:{toolbar:[["bold","italic","blockquote"],[{header:[2,3,false]}],[{list:"ordered"},{list:"bullet"}],["link","image","video"],["clean"]]}});quill.root.innerHTML=row[editorField[0]]||"";}
   await carregarSelectEventosPrincipais();
   const sourceName=config.fields.some(f=>f[0]==="titulo")?"titulo":config.fields.some(f=>f[0]==="nome")?"nome":null;
   if(sourceName&&config.fields.some(f=>f[0]==="slug")){const source=app.querySelector(`[name="${sourceName}"]`),slugInput=app.querySelector('[name="slug"]');source.addEventListener("input",()=>{if(!id||!slugInput.dataset.edited)slugInput.value=gerarSlug(source.value)});slugInput.addEventListener("input",()=>slugInput.dataset.edited="true");}
-  document.getElementById("resource-form").addEventListener("submit",async event=>{event.preventDefault();const message=document.getElementById("form-message");message.textContent="Salvando...";const form=new FormData(event.currentTarget),payload={id};for(const field of config.fields){const [name,label,type]=field;if(type==="editor")payload[name]=quill.root.innerHTML;else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="gallery-urls")payload[name]=collectGalleryUrls(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";else if(type==="number")payload[name]=form.get(name)===""?null:Number(form.get(name)||0);else if(type==="tags")payload[name]=String(form.get(name)||"").split(",").map(item=>item.trim()).filter(Boolean);else{const value=form.get(name)||null;if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.currentTarget.elements[name]?.focus();return}if(["galeria_historica","galeria","videos","links_uteis","patrocinadores"].includes(name)){try{payload[name]=value?JSON.parse(value):[]}catch{message.textContent=`O campo ${label} precisa ser um JSON válido. Use [] quando não houver itens.`;event.currentTarget.elements[name]?.focus();return}}else payload[name]=value}}if(table==="noticias"&&payload.status==="publicado"&&!payload.publicado_em)payload.publicado_em=new Date().toISOString();try{await salvarRegistro(table,payload);await resourceList(table)}catch(error){message.textContent=error.message;}});
+  document.getElementById("resource-form").addEventListener("submit",async event=>{event.preventDefault();const message=document.getElementById("form-message");message.textContent="Salvando...";const form=new FormData(event.currentTarget),payload={id};for(const field of config.fields){const [name,label,type]=field;if(type==="editor")payload[name]=quill.root.innerHTML;else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="gallery-urls")payload[name]=collectGalleryUrls(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";else if(type==="number"){try{payload[name]=parseAdminNumber(form.get(name))}catch{message.textContent=`Informe um número válido em ${label}.`;event.currentTarget.elements[name]?.focus();return}}else if(type==="tags")payload[name]=String(form.get(name)||"").split(",").map(item=>item.trim()).filter(Boolean);else{const value=form.get(name)||null;if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.currentTarget.elements[name]?.focus();return}if(["galeria_historica","galeria","videos","links_uteis","patrocinadores"].includes(name)){try{payload[name]=value?JSON.parse(value):[]}catch{message.textContent=`O campo ${label} precisa ser um JSON válido. Use [] quando não houver itens.`;event.currentTarget.elements[name]?.focus();return}}else payload[name]=value}}if(table==="noticias"&&payload.status==="publicado"&&!payload.publicado_em)payload.publicado_em=new Date().toISOString();try{await salvarRegistro(table,payload);await resourceList(table)}catch(error){message.textContent=error.message;}});
 }
 
 function shellToast(message, type = "success") {
