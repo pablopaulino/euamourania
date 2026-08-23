@@ -130,6 +130,18 @@ function readInitialTourism() {
   }
 }
 
+async function currentTourismCategory(item) {
+  if (!item?.categoria_id) return item?.categoria_nome || "Turismo local";
+  const [category] = await fetchPublicRows("categorias", {
+    select: "id,nome",
+    id: `eq.${item.categoria_id}`,
+    tipo: "eq.turismo",
+    status: "eq.ativo",
+    limit: "1"
+  }, { ttl: 180000 }).catch(() => []);
+  return category?.nome || item.categoria_nome || "Turismo local";
+}
+
 async function relatedBlocks(item) {
   const [food, stay, attractions, news] = await Promise.all([
     fetchPublicRows("guia_comercial", { select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco", status: "eq.publicado", or: "(categoria_nome.ilike.*aliment*,categoria_nome.ilike.*restaurante*,categoria_nome.ilike.*pizz*,categoria_nome.ilike.*lanche*,categoria_nome.ilike.*bar*,nome.ilike.*restaurante*,nome.ilike.*pizz*)", order: "recomendado.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => []),
@@ -172,6 +184,7 @@ async function carregar() {
       return;
     }
 
+    const categoriaAtual = await currentTourismCategory(item);
     const imagem = safeImage(item.imagem_url) || fallbackImage;
     definirMeta({
       titulo: `${item.seo_titulo || item.nome} | Eu Amo Urânia`,
@@ -189,7 +202,7 @@ async function carregar() {
       <a class="tourism-detail-back" href="/turismo.html"><span aria-hidden="true">←</span> Voltar aos lugares</a>
       <section class="tourism-detail-hero">
         <figure><img src="${imagem}" alt="${escapeHtml(item.nome)}" width="1200" height="760" decoding="async" fetchpriority="high"></figure>
-        <header class="tourism-detail-header"><p class="eyebrow">Experiência em Urânia</p><h1>${escapeHtml(item.nome)}</h1>${item.descricao ? `<p class="tourism-detail-summary">${escapeHtml(item.descricao)}</p>` : ""}${quickFacts(item)}<span class="tourism-detail-label">Turismo local</span></header>
+        <header class="tourism-detail-header"><p class="eyebrow">Experiência em Urânia</p><h1>${escapeHtml(item.nome)}</h1>${item.descricao ? `<p class="tourism-detail-summary">${escapeHtml(item.descricao)}</p>` : ""}${quickFacts(item)}<span class="tourism-detail-label">${escapeHtml(categoriaAtual)}</span></header>
       </section>
       <div class="tourism-detail-layout">
         <section class="tourism-detail-copy" aria-labelledby="tourism-about-title"><p class="eyebrow">Sobre a experiência</p><h2 id="tourism-about-title">Conheça este lugar</h2><div class="article-copy">${conteudo}</div>${galeria}</section>

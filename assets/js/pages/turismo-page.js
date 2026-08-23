@@ -25,6 +25,7 @@ let allItems = [];
 let visibleCount = PAGE_SIZE;
 let filteredItems = [];
 let isLoadingMore = false;
+let categoryNames = new Map();
 
 loadMore.id = "turismo-ver-mais";
 loadMore.className = "news-load-more tourism-load-more";
@@ -48,7 +49,7 @@ function updateLoadState(visibleLength) {
 function tourismCard(item,index) {
   const url = `/turismo/${encodeURIComponent(item.slug)}`;
   const description = String(item.descricao || "").trim();
-  const category = String(item.categoria_nome || item.categoria || "Turismo").trim();
+  const category = String(categoryNames.get(item.categoria_id) || item.categoria_nome || item.categoria || "Turismo").trim();
   const mapsUrl = item.endereco ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.endereco)}` : "";
   return `<article class="card-guia tourism-card" data-tourism-id="${escapeHtml(item.id)}"${item.destaque ? ' data-tourism-featured="true"' : ""}>
     <a class="tourism-card-media" href="${url}" aria-label="Conhecer ${escapeHtml(item.nome)}">
@@ -73,7 +74,10 @@ function tourismCard(item,index) {
 
 function renderTourism() {
   const term = normalize(search?.value);
-  filteredItems = allItems.filter(item => !term || normalize(`${item.nome} ${item.descricao} ${item.endereco} ${item.horario} ${item.categoria_nome || item.categoria || ""}`).includes(term));
+  filteredItems = allItems.filter(item => {
+    const category = categoryNames.get(item.categoria_id) || item.categoria_nome || item.categoria || "";
+    return !term || normalize(`${item.nome} ${item.descricao} ${item.endereco} ${item.horario} ${category}`).includes(term);
+  });
   const visible = filteredItems.slice(0, visibleCount);
   container.innerHTML = visible.map(tourismCard).join("");
   empty.hidden = Boolean(filteredItems.length);
@@ -122,11 +126,20 @@ if ("IntersectionObserver" in window) {
 async function carregarTurismo() {
   if (!publicSupabaseConfigured()) { status.textContent = "Configure o Supabase para carregar os pontos turísticos."; return; }
   try {
-    const itens = await fetchPublicRows("turismo", {
-      select: "id,nome,slug,descricao,imagem_url,endereco,horario,destaque,categoria_nome",
-      status: "eq.publicado",
-      order: "destaque.desc,nome.asc"
-    });
+    const [itens, categorias] = await Promise.all([
+      fetchPublicRows("turismo", {
+        select: "id,nome,slug,descricao,imagem_url,endereco,horario,destaque,categoria_id,categoria_nome",
+        status: "eq.publicado",
+        order: "destaque.desc,nome.asc"
+      }),
+      fetchPublicRows("categorias", {
+        select: "id,nome",
+        tipo: "eq.turismo",
+        status: "eq.ativo",
+        order: "ordem.asc,nome.asc"
+      }, { ttl: 180000 }).catch(() => [])
+    ]);
+    categoryNames = new Map((categorias || []).map(item => [item.id, item.nome]));
     if (!itens.length) { status.textContent = "Nenhum ponto turístico publicado."; return; }
     allItems = itens;
     total.textContent = String(itens.length);
