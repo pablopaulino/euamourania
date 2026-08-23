@@ -3,6 +3,7 @@ import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { listarTabela, salvarRegistro, excluirRegistro } from "../assets/js/services/baseService.js";
 import { gerarSlug } from "../assets/js/utils.js";
 import { adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js";
+import { summarizeBusinessQuality } from "./business-quality.js";
 
 const app = document.getElementById("app-content");
 const title = document.getElementById("page-title");
@@ -35,6 +36,11 @@ const moduleRoutes = {
     hint: "Revise empresas e eventos enviados pelo público antes de publicar no portal.",
     module: () => import("./submissoes.js")
   },
+  guia_verificacao: {
+    label: "Verificação do Guia",
+    hint: "Acompanhe cadastros comerciais que precisam ser conferidos periodicamente.",
+    module: () => import("./guia-verificacao.js")
+  },
   publicidade: {
     label: "Publicidade",
     hint: "Campanhas, posições, mídia e métricas dos anúncios internos do portal.",
@@ -62,6 +68,7 @@ const sidebarIconMap = {
   "Notícias": "N",
   "Aprovações": "A",
   "Guia comercial": "G",
+  "Verificação do Guia": "V",
   "Turismo": "T",
   "Links": "L",
   "Colaborações": "C",
@@ -86,6 +93,7 @@ const sidebarIconSvgMap = {
   "Notícias": sidebarIconSvg(`<path d="M4 5.5h11.5a2.5 2.5 0 0 1 2.5 2.5v10.5H6.5A2.5 2.5 0 0 1 4 16V5.5Z"/><path d="M18 8h2v8.5a2 2 0 0 1-2 2"/><path d="M7.5 9h6"/><path d="M7.5 12h6"/><path d="M7.5 15h4"/>`),
   "Aprovações": sidebarIconSvg(`<path d="M20 7 10 17l-5-5"/><path d="M4 5.5h9"/><path d="M4 18.5h12"/>`),
   "Guia comercial": sidebarIconSvg(`<path d="M4 10h16"/><path d="M5 10l1-5h12l1 5"/><path d="M6 10v9h12v-9"/><path d="M9 19v-5h6v5"/>`),
+  "Verificação do Guia": sidebarIconSvg(`<path d="M20 7 10 17l-5-5"/><path d="M4 5.5h9"/><path d="M4 18.5h12"/>`),
   "Turismo": sidebarIconSvg(`<path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/>`),
   "Links": sidebarIconSvg(`<path d="M10 13a5 5 0 0 0 7.1 0l1.4-1.4a5 5 0 0 0-7.1-7.1L10.6 5"/><path d="M14 11a5 5 0 0 0-7.1 0l-1.4 1.4a5 5 0 0 0 7.1 7.1l.8-.8"/>`),
   "Colaborações": sidebarIconSvg(`<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M20.5 8v6"/><path d="M17.5 11h6"/>`),
@@ -109,6 +117,7 @@ const sidebarLabelsByKey = {
   noticias: "Notícias",
   aprovacoes: "Aprovações",
   guia_comercial: "Guia comercial",
+  guia_verificacao: "Verificação do Guia",
   turismo: "Turismo",
   links: "Links",
   colaboradores_voluntarios: "Colaborações",
@@ -653,6 +662,12 @@ async function dashboard() {
       safeList(() => supabase.from("eventos_principais").select("nome,categoria,ativo,atualizado_em").eq("ativo", true).order("atualizado_em", { ascending: false }).limit(4)),
       safeList(() => supabase.from("eventos_edicoes").select("titulo,ano,status,data_inicio,atualizado_em,eventos_principais(nome)").order("ano", { ascending: false }).limit(4))
     ]);
+    const businessQualityRows = await safeList(() => supabase
+      .from("guia_comercial")
+      .select("*")
+      .neq("status", "arquivado")
+      .limit(1000));
+    const guideQuality = summarizeBusinessQuality(businessQualityRows);
 
     const uniqueVisitors = new Set(analyticsEvents.map(item => item.sessao_hash).filter(Boolean)).size;
     const topPages = rank(analyticsEvents, "pagina", 6);
@@ -695,6 +710,16 @@ async function dashboard() {
       ["Publicidade", `${campanhasAtivas} campanhas ativas`, `${campanhasVencendo} vencendo em até 7 dias`, "publicidade"],
       ["Comunicação", `${assinantes} assinantes`, `${colaboradoresNovos} colaborador(es) novo(s)`, "comunicacao"],
       ["Melhores", `${melhoresEdicoes} edição(ões)`, `${melhoresIndicados} indicado(s) ativos`, "melhores"]
+    ];
+    const qualityCards = [
+      ["missing_hours", "Sem horário", guideQuality.missingHours, "Horário estruturado ausente ou incompleto"],
+      ["missing_address", "Sem endereço", guideQuality.missingAddress, "Endereço não informado"],
+      ["missing_whatsapp", "Sem WhatsApp", guideQuality.missingWhatsapp, "Contato direto incompleto"],
+      ["missing_image", "Sem imagem", guideQuality.missingImage, "Imagem principal ausente"],
+      ["missing_category", "Sem categoria", guideQuality.missingCategory, "Categoria não informada"],
+      ["missing_description", "Sem descrição", guideQuality.missingDescription, "Texto de apresentação ausente"],
+      ["missing_location", "Sem localização", guideQuality.missingLocation, "Sem mapa ou coordenadas"],
+      ["complete", "Completos", guideQuality.complete, `${guideQuality.averageScore}% de média geral`]
     ];
     const newsRows = recentNews.map(item => ({ title: item.titulo || "Notícia sem título", detail: `${item.categoria_nome || "Sem editoria"} · ${item.autor || "Eu Amo Urânia"} · ${item.publicado_em ?`publicada em ${fmtDate(item.publicado_em)}` : `editada em ${fmtDate(item.atualizado_em)}`}`, badge: item.status_editorial || item.status || "—", badgeClass: item.status || "" }));
     const scheduledRows = scheduledNews.map(item => ({ title: item.titulo || "Notícia agendada", detail: `Publicação prevista para ${fmtDate(item.publicado_em)}`, badge: "agendada", badgeClass: "info" }));
@@ -809,6 +834,20 @@ async function dashboard() {
           </header>
           <div class="ops-ecosystem-grid">
             ${ecosystemCards.map(([label, value, detail, target]) => `<button class="ops-ecosystem-card" ${targetAttrs(target)}><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(detail)}</small></button>`).join("")}
+          </div>
+        </section>
+
+        <section class="ops-section panel">
+          <header class="ops-section-header">
+            <div>
+              <p class="eyebrow">Guia Comercial</p>
+              <h2>Qualidade dos cadastros</h2>
+              <small>Indicadores derivados dos dados atuais. Não bloqueiam publicação.</small>
+            </div>
+            <button class="admin-button secondary" data-view="guia_verificacao" data-quality-filter="all">Abrir diagnóstico</button>
+          </header>
+          <div class="ops-ecosystem-grid">
+            ${qualityCards.map(([filter, label, value, detail]) => `<button class="ops-ecosystem-card" data-view="guia_verificacao" data-quality-filter="${escapeHtml(filter)}"><span>${escapeHtml(label)}</span><strong>${fmtNumber(value)}</strong><small>${escapeHtml(detail)}</small></button>`).join("")}
           </div>
         </section>
 
@@ -1001,7 +1040,8 @@ async function mountShellModule(view, options = {}) {
       access: painelAccess,
       toast: shellToast,
       setTitle: setShellTitle,
-      navigate: nextView => navigateToView(nextView)
+      navigate: nextView => navigateToView(nextView),
+      editResource: (table, id) => editForm(table, id)
     });
   } catch (error) {
     console.error(`Falha ao carregar módulo ${view}:`, error);
@@ -1027,7 +1067,11 @@ async function navigateToView(view, options = {}) {
 async function handleClick(event) {
   const button=event.target.closest("button,[data-view]");if(!button)return;
   if(button.dataset.retryModule){event.preventDefault();return mountShellModule(button.dataset.retryModule,{replace:true});}
-  if(button.dataset.view){event.preventDefault();return navigateToView(button.dataset.view);}
+  if(button.dataset.view){
+    event.preventDefault();
+    if (button.dataset.qualityFilter) sessionStorage.setItem("euamourania:guide-quality-filter", button.dataset.qualityFilter);
+    return navigateToView(button.dataset.view);
+  }
   if(button.dataset.new)return editForm(button.dataset.new);
   if(button.dataset.edit)return editForm(button.dataset.edit,button.dataset.id);
   if(button.dataset.cancel)return resourceList(button.dataset.cancel);
