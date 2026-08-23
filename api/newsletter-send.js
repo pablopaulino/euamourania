@@ -388,7 +388,7 @@ module.exports = async (req, res) => {
     }
     return await sendNewsletter(req, res, token);
   } catch (error) {
-    console.error(error);
+    console.error("newsletter-send:", error?.message || error);
     return res.status(500).json({ error: error.message || "Falha no envio" });
   }
 };

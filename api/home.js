@@ -1,5 +1,6 @@
 const { readFile } = require("node:fs/promises");
 const path = require("node:path");
+const { handlePublicSubmission } = require("../lib/public-submission-handler.js");
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://omhcpbphvtihqwdkbsbf.supabase.co";
 const KEY = process.env.SUPABASE_PUBLISHABLE_KEY || "sb_publishable_m02B2sC8Ddh4fCtnvsGePg_TqwUanoM";
@@ -30,6 +31,16 @@ function replaceStructuredData(html, graph) {
 
 module.exports = async (req, res) => {
   try {
+    if (req.method === "POST" && req.query?.acao === "public-submission") {
+      const result = await handlePublicSubmission(req);
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      return res.status(result.status).send(JSON.stringify(result.body));
+    }
+    if (req.method !== "GET") {
+      res.setHeader("Allow", "GET, POST");
+      return res.status(405).send("Método não permitido");
+    }
+
     const html = await readFile(path.join(process.cwd(), "index.html"), "utf8");
 
     const response = await fetch(`${SUPABASE_URL}/rest/v1/configuracoes_site?select=chave,valor&chave=in.(seo_titulo_padrao,seo_descricao_padrao,imagem_compartilhamento,dominio_principal,nome_site)`, {
@@ -40,8 +51,8 @@ module.exports = async (req, res) => {
     const domain = /^https:\/\//.test(config.dominio_principal || "")
       ? config.dominio_principal.replace(/\/$/, "")
       : "https://euamourania.com.br";
-    const title = config.seo_titulo_padrao || "Eu Amo Urânia | Guia, notícias e turismo";
-    const description = config.seo_descricao_padrao || "Informação local, turismo, Guia, eventos e histórias de Urânia.";
+    const title = config.seo_titulo_padrao || "Urânia SP: notícias, guia comercial e turismo | Eu Amo Urânia";
+    const description = config.seo_descricao_padrao || "Portal local de Urânia SP com notícias, guia comercial, turismo, eventos, história da cidade e informações úteis para moradores e visitantes.";
     const image = absolute(config.imagem_compartilhamento || "/assets/compartilhamento-logo.png", domain);
     const logo = absolute("/assets/1505 - Urania - Logo Horizontal - 1.png", domain);
     const graph = [
@@ -60,13 +71,21 @@ module.exports = async (req, res) => {
           "https://www.instagram.com/euamourania/",
           "https://www.facebook.com/euamourania"
         ],
+        "knowsAbout": [
+          "Urânia SP",
+          "notícias de Urânia",
+          "guia comercial de Urânia",
+          "turismo em Urânia",
+          "eventos em Urânia",
+          "história de Urânia"
+        ],
         "areaServed": { "@id": `${domain}/urania/#place` }
       },
       {
         "@type": "WebSite",
         "@id": `${domain}/#website`,
         "name": "Eu Amo Urânia",
-        "alternateName": ["Portal de Urânia", "Notícias de Urânia", "Urânia SP"],
+        "alternateName": ["Portal de Urânia", "Notícias de Urânia", "Urânia SP", "Eu Amo Urania"],
         "url": `${domain}/`,
         "publisher": { "@id": `${domain}/#organization` },
         "about": { "@id": `${domain}/urania/#place` },
@@ -92,10 +111,24 @@ module.exports = async (req, res) => {
         "inLanguage": "pt-BR"
       },
       {
+        "@type": "ItemList",
+        "@id": `${domain}/#main-sections`,
+        "name": "Principais áreas do Eu Amo Urânia",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Urânia SP", "url": `${domain}/urania/` },
+          { "@type": "ListItem", "position": 2, "name": "Notícias de Urânia", "url": `${domain}/news/` },
+          { "@type": "ListItem", "position": 3, "name": "Guia Comercial de Urânia", "url": `${domain}/guia.html` },
+          { "@type": "ListItem", "position": 4, "name": "Turismo em Urânia", "url": `${domain}/turismo.html` },
+          { "@type": "ListItem", "position": 5, "name": "Eventos em Urânia", "url": `${domain}/eventos/` },
+          { "@type": "ListItem", "position": 6, "name": "Melhores de Urânia", "url": `${domain}/melhores-de-urania/` },
+          { "@type": "ListItem", "position": 7, "name": "Aplicativo Viva Urânia", "url": `${domain}/app` }
+        ]
+      },
+      {
         "@type": "City",
         "@id": `${domain}/urania/#place`,
         "name": "Urânia",
-        "alternateName": ["Urânia SP", "Cidade de Urânia", "Município de Urânia"],
+        "alternateName": ["Urânia SP", "Urania", "Cidade de Urânia", "Município de Urânia"],
         "address": {
           "@type": "PostalAddress",
           "addressLocality": "Urânia",
@@ -108,7 +141,7 @@ module.exports = async (req, res) => {
 
     let output = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
     output = meta(output, "description", description);
-    output = meta(output, "keywords", "Urânia, Urânia SP, Eu Amo Urânia, notícias de Urânia, guia de Urânia, turismo em Urânia");
+    output = meta(output, "keywords", "Urânia, Urânia SP, Urania, Eu Amo Urânia, notícias de Urânia, guia comercial de Urânia, turismo em Urânia, eventos em Urânia, história de Urânia");
     output = meta(output, "og:site_name", "Eu Amo Urânia", true);
     output = meta(output, "og:title", title, true);
     output = meta(output, "og:description", description, true);

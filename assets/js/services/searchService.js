@@ -126,15 +126,15 @@ function staticPages() {
   return [
     staticPage({
       id: "pagina-urania",
-      title: "Urânia",
-      description: "História, identidade e informações sobre a cidade de Urânia.",
+      title: "Urânia SP",
+      description: "História, turismo, guia comercial, notícias e informações sobre a cidade de Urânia.",
       url: "/urania/",
       category: "Cidade",
       meta: "Conheça Urânia",
       actionLabel: "Abrir página",
       featured: true,
       imageUrl: "assets/AD3A1763-min (1).jpg",
-      terms: "história noroeste paulista turismo comunidade informações cidade"
+      terms: "urania urânia sp cidade de urania município de urânia história noroeste paulista turismo comunidade guia comercial notícias eventos"
     }),
     staticPage({
       id: "pagina-quem-somos",
@@ -155,6 +155,18 @@ function staticPages() {
       meta: "Canais",
       actionLabel: "Ver links",
       terms: "whatsapp contato instagram facebook canais úteis"
+    }),
+    staticPage({
+      id: "pagina-app",
+      title: "Viva Urânia",
+      description: "Baixe o aplicativo Viva Urânia para acessar guia comercial, turismo, eventos, notícias e informações úteis da cidade.",
+      url: "/app",
+      category: "Aplicativo",
+      meta: "Baixar app",
+      actionLabel: "Baixar aplicativo",
+      featured: true,
+      imageUrl: "assets/icons/apple-touch-icon.png",
+      terms: "app aplicativo viva urania baixar google play android guia comercial turismo eventos noticias favoritos celular"
     }),
     staticPage({
       id: "pagina-colabore",

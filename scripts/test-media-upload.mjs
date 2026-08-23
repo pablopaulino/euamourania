@@ -35,7 +35,7 @@ must(libraryMigration.includes("midia_cms_em_uso")&&libraryMigration.includes("e
 for(const feature of["eventos_principais","eventos_edicoes","galeria_historica::text","patrocinadores::text","configuracao_futura::text","melhores_edicoes","melhores_categorias","melhores_indicados","app_melhores_vencedores"])must(usageMigration.includes(feature),`Uso de mídia não cobre: ${feature}`);
 must(pickerMigration.includes('using(public.is_admin())'),"Biblioteca compartilhada não respeita autenticação administrativa");
 must(admin.includes('import("./media-upload.js")')&&communication.includes('import "./media-upload.js"')&&awards.includes('import { attachUrlUpload } from "./media-upload.js"'),"Módulo de upload não carregado no CMS");
-must(admin.includes('querySelectorAll(".admin-nav button")')&&cms.includes('querySelectorAll(".admin-nav button")'),"Menu administrativo pode manter duas seções ativas");
+must(admin.includes('querySelectorAll(".admin-nav button,.admin-nav a")')&&admin.includes('classList.toggle("active"'),"Menu administrativo pode manter duas seções ativas");
 must(admin.includes('inputType=type==="url"?"text":type')&&admin.includes("validSiteReference(value)"),"Formulários do CMS não aceitam caminhos internos de assets");
 must(ui.includes("/^(?:https?:\\/\\/|\\/?assets\\/)"),"Prévia do CMS não aceita imagens internas de assets");
 for(const file of[await read("assets/js/pages/turismo-page.js"),await read("assets/js/pages/turismo-details-page.js")])must(file.includes("/^\\/?assets\\//"),"Turismo público não aceita /assets nas imagens");

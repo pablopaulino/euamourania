@@ -1,8 +1,14 @@
 import { getSupabase, supabaseConfigurado } from "../services/supabaseClient.js";
+import { TURNSTILE_SITE_KEY } from "../supabase-config.js";
 
 const RATE_LIMIT_KEY = "euamourania:public-submissions";
 const MAX_SUBMISSIONS_PER_HOUR = 3;
 const TERMS_VERSION = "public-submissions-no-media-v1";
+const turnstileSiteKey = () => window.EUAM_TURNSTILE_SITE_KEY
+  || document.querySelector('meta[name="turnstile-site-key"]')?.getAttribute("content")
+  || TURNSTILE_SITE_KEY;
+let turnstileLoadPromise;
+let turnstileWidgetId = null;
 
 const form = document.querySelector("[data-submission-form]");
 const result = document.querySelector("[data-submission-result]");
@@ -49,6 +55,63 @@ function recordSubmissionAttempt() {
   const recent = readRateLimit();
   recent.push(Date.now());
   localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(recent));
+}
+
+function loadTurnstile() {
+  if (!turnstileSiteKey()) return Promise.resolve(false);
+  if (window.turnstile) return Promise.resolve(true);
+  if (turnstileLoadPromise) return turnstileLoadPromise;
+  turnstileLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => reject(new Error("Não foi possível carregar a verificação de segurança."));
+    document.head.append(script);
+  });
+  return turnstileLoadPromise;
+}
+
+async function getTurnstileToken(action = "public_submission") {
+  const sitekey = turnstileSiteKey();
+  if (!sitekey) throw new Error("Verificação de segurança indisponível.");
+  await loadTurnstile();
+  return new Promise((resolve, reject) => {
+    let container = document.getElementById("public-submission-turnstile");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "public-submission-turnstile";
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.width = "1px";
+      container.style.height = "1px";
+      document.body.append(container);
+    }
+    if (turnstileWidgetId !== null) {
+      try { window.turnstile.remove(turnstileWidgetId); } catch {}
+      turnstileWidgetId = null;
+    }
+    const timeout = setTimeout(() => reject(new Error("A verificação demorou demais. Tente novamente.")), 15000);
+    turnstileWidgetId = window.turnstile.render(container, {
+      sitekey,
+      size: "invisible",
+      action,
+      callback: token => {
+        clearTimeout(timeout);
+        resolve(token);
+      },
+      "error-callback": () => {
+        clearTimeout(timeout);
+        reject(new Error("Confirmação de segurança inválida. Atualize a página e tente novamente."));
+      },
+      "expired-callback": () => {
+        clearTimeout(timeout);
+        reject(new Error("A confirmação de segurança expirou. Tente novamente."));
+      }
+    });
+    window.turnstile.execute(turnstileWidgetId);
+  });
 }
 
 function getValue(formData, key) {
@@ -181,7 +244,7 @@ async function loadCategories() {
 async function handleSubmit(event) {
   event.preventDefault();
   if (!form) return;
-  if (!supabaseConfigurado()) {
+  if (!supabaseConfigurado() || !turnstileSiteKey()) {
     setResult("error", "O envio ainda não está configurado. Tente novamente mais tarde.");
     return;
   }
@@ -193,12 +256,19 @@ async function handleSubmit(event) {
     const formData = new FormData(form);
     const type = getFormType();
     const payload = type === "business" ? buildBusinessPayload(formData) : buildEventPayload(formData);
-    const table = type === "business" ? "business_submissions" : "event_submissions";
-    const { error } = await getSupabase().from(table).insert(payload);
-    if (error) throw error;
+    const turnstileToken = await getTurnstileToken(type === "business" ? "business_submission" : "event_submission");
+    const response = await fetch("/api/home?acao=public-submission", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, payload, turnstile_token: turnstileToken })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) {
+      throw new Error(data.message || "Não foi possível enviar agora. Tente novamente em instantes.");
+    }
     recordSubmissionAttempt();
     form.reset();
-    setResult("success", "Cadastro enviado para análise. A equipe vai revisar as informações antes da publicação.");
+    setResult("success", data.message || "Cadastro enviado para análise. A equipe vai revisar as informações antes da publicação.");
   } catch (error) {
     setResult("error", error?.message || "Não foi possível enviar agora. Tente novamente em instantes.");
   } finally {

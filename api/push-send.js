@@ -112,7 +112,7 @@ module.exports=async(req,res)=>{
     }});
     return res.status(200).json({ok:true,total:devices.length,accepted,errors:failures.length});
   }catch(error){
-    console.error("push-send:",error);
+    console.error("push-send:", error?.message || error);
     if(id)await rest(`app_notificacoes?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",token,body:{status:"falhou"}}).catch(()=>{});
     return res.status(error.status||500).json({error:error.message||"Falha no envio das notificações."});
   }

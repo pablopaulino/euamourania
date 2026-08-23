@@ -41,7 +41,7 @@ async function rest(path, { method = "GET", body } = {}) {
 }
 
 async function verifyTurnstile(token, ip) {
-  if (!TURNSTILE_SECRET) return { ok: true, skipped: true };
+  if (!TURNSTILE_SECRET) return { ok: false, reason: "missing-turnstile-secret" };
   if (!token) return { ok: false, reason: "missing-token" };
   const body = new URLSearchParams();
   body.set("secret", TURNSTILE_SECRET);
@@ -88,6 +88,10 @@ module.exports = async (req, res) => {
     if (!aceite) return json(res, 400, { ok: false, message: "É preciso aceitar o regulamento para enviar a indicação." });
 
     const ip = firstIp(req);
+    if (!TURNSTILE_SECRET) {
+      console.error("melhores-indicar: TURNSTILE_SECRET_KEY ausente.");
+      return json(res, 503, { ok: false, message: "Verificação de segurança ausente. Configure o Turnstile para receber indicações." });
+    }
     const turnstile = await verifyTurnstile(payload.turnstile_token || payload.cf_turnstile_response, ip);
     if (!turnstile.ok) return json(res, 403, { ok: false, message: "Confirmação de segurança inválida. Atualize a página e tente novamente." });
 
@@ -126,7 +130,7 @@ module.exports = async (req, res) => {
       message: "Indicação enviada com sucesso. Ela será analisada pela equipe do Eu Amo Urânia."
     });
   } catch (error) {
-    console.error("melhores-indicar:", error);
+    console.error("melhores-indicar:", error?.message || error);
     return json(res, 500, { ok: false, message: "Não foi possível enviar a indicação agora." });
   }
 };

@@ -93,7 +93,7 @@ module.exports = async (req, res) => {
       try {
         return await handleCleanup(req, res);
       } catch (error) {
-        console.error("melhores-limpeza:", error);
+        console.error("melhores-limpeza:", error?.message || error);
         return json(res, 500, { ok: false, message: "Não foi possível executar a limpeza automática." });
       }
     }
@@ -206,7 +206,7 @@ module.exports = async (req, res) => {
     if (error.status === 409 || String(error.details?.message || "").includes("duplicate key")) {
       return json(res, 409, { ok: false, message: "Você já votou nesta categoria." });
     }
-    console.error("melhores-votar:", error);
+    console.error("melhores-votar:", error?.message || error);
     return json(res, 500, { ok: false, message: "Não foi possível registrar o voto agora." });
   }
 };

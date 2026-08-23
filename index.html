@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Eu Amo Urânia: notícias, turismo, comércio e histórias que aproximam quem vive e ama Urânia.">
-  <meta property="og:title" content="Eu Amo Urânia — A cidade mais perto de você">
-  <meta property="og:description" content="Informação local, lugares para conhecer e tudo o que conecta a comunidade de Urânia.">
+  <meta name="description" content="Portal local de Urânia SP com notícias, guia comercial, turismo, eventos, história da cidade e informações úteis para moradores e visitantes.">
+  <meta name="keywords" content="Urânia, Urânia SP, Urania, notícias de Urânia, guia comercial de Urânia, turismo em Urânia, eventos em Urânia">
+  <meta property="og:title" content="Urânia SP: notícias, guia comercial e turismo | Eu Amo Urânia">
+  <meta property="og:description" content="Notícias, turismo, guia comercial, eventos e histórias de Urânia SP em um só lugar.">
   <meta property="og:image" content="https://euamourania.com.br/assets/compartilhamento-logo.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -15,12 +16,12 @@
   <meta property="og:locale" content="pt_BR">
   <meta property="og:site_name" content="Eu Amo Ur&acirc;nia">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Eu Amo Ur&acirc;nia &mdash; A cidade mais perto de voc&ecirc;">
-  <meta name="twitter:description" content="Informa&ccedil;&atilde;o local, lugares para conhecer e tudo o que conecta a comunidade de Ur&acirc;nia.">
+  <meta name="twitter:title" content="Ur&acirc;nia SP: not&iacute;cias, guia comercial e turismo | Eu Amo Ur&acirc;nia">
+  <meta name="twitter:description" content="Not&iacute;cias, turismo, guia comercial, eventos e hist&oacute;rias de Ur&acirc;nia SP em um s&oacute; lugar.">
   <meta name="twitter:image" content="https://euamourania.com.br/assets/compartilhamento-logo.png">
   <meta name="twitter:image:alt" content="Eu Amo Ur&acirc;nia">
   <meta name="theme-color" content="#0b4f6c">
-  <title>Eu Amo Urânia | Informação, turismo e comunidade</title>
+  <title>Urânia SP: notícias, guia comercial e turismo | Eu Amo Urânia</title>
   <link rel="canonical" href="https://euamourania.com.br/">
   <link rel="preload" as="image" href="assets/AD3A1763-min (1).jpg" fetchpriority="high">
   <link rel="stylesheet" href="styles.css">
@@ -36,21 +37,57 @@
         "@type": "Organization",
         "@id": "https://euamourania.com.br/#organization",
         "name": "Eu Amo Urânia",
+        "alternateName": ["Portal Eu Amo Urânia", "Eu Amo Urania"],
         "url": "https://euamourania.com.br/",
-        "logo": "https://euamourania.com.br/assets/1505%20-%20Urania%20-%20Logo%20Horizontal%20-%201.png"
+        "logo": "https://euamourania.com.br/assets/1505%20-%20Urania%20-%20Logo%20Horizontal%20-%201.png",
+        "areaServed": { "@id": "https://euamourania.com.br/urania/#place" },
+        "knowsAbout": [
+          "Urânia SP",
+          "notícias de Urânia",
+          "guia comercial de Urânia",
+          "turismo em Urânia",
+          "eventos em Urânia"
+        ]
       },
       {
         "@type": "WebSite",
         "@id": "https://euamourania.com.br/#website",
         "name": "Eu Amo Urânia",
+        "alternateName": ["Portal de Urânia", "Notícias de Urânia", "Urânia SP"],
         "url": "https://euamourania.com.br/",
         "publisher": { "@id": "https://euamourania.com.br/#organization" },
+        "about": { "@id": "https://euamourania.com.br/urania/#place" },
         "potentialAction": {
           "@type": "SearchAction",
           "target": "https://euamourania.com.br/buscar.html?q={search_term_string}",
           "query-input": "required name=search_term_string"
         },
         "inLanguage": "pt-BR"
+      },
+      {
+        "@type": "City",
+        "@id": "https://euamourania.com.br/urania/#place",
+        "name": "Urânia",
+        "alternateName": ["Urânia SP", "Urania", "Cidade de Urânia", "Município de Urânia"],
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Urânia",
+          "addressRegion": "SP",
+          "addressCountry": "BR"
+        },
+        "url": "https://euamourania.com.br/urania/"
+      },
+      {
+        "@type": "ItemList",
+        "@id": "https://euamourania.com.br/#main-sections",
+        "name": "Principais áreas do Eu Amo Urânia",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Urânia SP", "url": "https://euamourania.com.br/urania/" },
+          { "@type": "ListItem", "position": 2, "name": "Notícias de Urânia", "url": "https://euamourania.com.br/news/" },
+          { "@type": "ListItem", "position": 3, "name": "Guia Comercial de Urânia", "url": "https://euamourania.com.br/guia.html" },
+          { "@type": "ListItem", "position": 4, "name": "Turismo em Urânia", "url": "https://euamourania.com.br/turismo.html" },
+          { "@type": "ListItem", "position": 5, "name": "Eventos em Urânia", "url": "https://euamourania.com.br/eventos/" }
+        ]
       }
     ]
   }
@@ -60,7 +97,7 @@
   <header class="site-header"><div class="container header-content">
     <a class="brand" href="#inicio" aria-label="Eu Amo Urânia — início"><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56"></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal"><span class="menu-icon" aria-hidden="true"></span><span>Menu</span></button>
-    <nav class="main-nav" id="menu-principal" aria-label="Navega&ccedil;&atilde;o principal"><ul><li><a href="index.html" aria-current="page">In&iacute;cio</a></li><li><a href="guia.html">Guia</a></li><li><a href="turismo.html">Turismo</a></li><li><a href="news/index.html">Not&iacute;cias</a></li><li><a href="quem-somos.html">Quem somos</a></li></ul></nav>
+    <nav class="main-nav" id="menu-principal" aria-label="Navega&ccedil;&atilde;o principal"><ul><li><a href="index.html" aria-current="page">In&iacute;cio</a></li><li><a href="/urania/">Ur&acirc;nia</a></li><li><a href="guia.html">Guia</a></li><li><a href="turismo.html">Turismo</a></li><li><a href="news/index.html">Not&iacute;cias</a></li><li><a href="quem-somos.html">Quem somos</a></li></ul></nav>
   </div></header>
   <main id="conteudo">
     <section class="hero" id="inicio" aria-labelledby="hero-title"><div class="container hero-grid">
@@ -72,6 +109,8 @@
       <a class="feature-card feature-card-highlight" href="guia.html"><span class="feature-number" aria-hidden="true">02</span><h3>Guia</h3><p>Descubra onde comer, comprar, visitar e encontrar serviços.</p><span class="card-link">Abrir o guia <span aria-hidden="true">→</span></span></a>
       <a class="feature-card" href="links/index.html"><span class="feature-number" aria-hidden="true">03</span><h3>Nossos canais</h3><p>Encontre o Eu Amo Urânia nas redes e fique sempre por perto.</p><span class="card-link">Ver todos os links <span aria-hidden="true">→</span></span></a>
     </div></div></section>
+    <section class="container app-inline-cta" aria-label="Baixar aplicativo Viva Urânia"><div><p class="eyebrow">Viva Urânia</p><h2>Baixe o aplicativo da cidade.</h2><p>Guia comercial, turismo, eventos, notícias e favoritos em uma experiência feita para o celular.</p></div><a class="button" href="/app">Conhecer o app</a></section>
+
     <section class="submission-entry" aria-labelledby="submission-entry-title"><div class="container submission-entry-box"><div><p class="eyebrow">Cadastros públicos</p><h2 id="submission-entry-title">Quer aparecer no Eu Amo Urânia?</h2><p>Envie as informações do seu estabelecimento, evento ou conheça os planos para manter sua empresa em destaque no ecossistema local.</p></div><div class="submission-entry-actions"><a class="submission-entry-card accent" href="/divulgue"><strong>Divulgue sua empresa</strong><span>Conheça os planos mensais para Guia, Viva Urânia, portal e redes sociais.</span><small>Ver planos →</small></a><a class="submission-entry-card" href="cadastrar-empresa.html"><strong>Cadastrar empresa</strong><span>Indique gratuitamente um comércio, serviço ou profissional para o Guia Comercial.</span><small>Enviar para análise →</small></a><a class="submission-entry-card" href="cadastrar-evento.html"><strong>Cadastrar evento</strong><span>Divulgue uma programação, encontro, campanha ou atividade da cidade.</span><small>Enviar evento →</small></a></div></div></section>
     <section class="destination" aria-labelledby="borboletario-title"><div class="container destination-grid">
       <div class="destination-gallery" aria-label="Galeria do Borboletário Municipal"><img class="gallery-main" src="assets/3Q2A7854-min-min.jpg" alt="Jardim interno do Borboletário Municipal de Urânia" loading="lazy" width="760" height="560"><img src="assets/1V4A4044-min.jpg" alt="Borboleta pousada em uma planta no Borboletário Municipal" loading="lazy" width="420" height="360"></div>
@@ -81,7 +120,7 @@
     <section class="community" aria-labelledby="comunidade-title"><div class="container community-box"><div><p class="eyebrow">Faça parte</p><h2 id="comunidade-title">Receba Urânia no seu WhatsApp</h2><p>Notícias, eventos e novidades da cidade em um canal direto e fácil de acompanhar.</p></div><a class="button button-accent" href="https://whatsapp.com/channel/0029VapPdlLGpLHTXQELk210" target="_blank" rel="noopener noreferrer">Entrar no canal <span class="sr-only">(abre em nova aba)</span></a></div></section>
   </main>
   <a href="https://wa.me/5517976005583" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="Falar com o Eu Amo Urânia pelo WhatsApp (abre em nova aba)"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="" width="28" height="28"></a>
-  <footer class="site-footer"><div class="container footer-grid"><div><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" class="footer-logo" width="170" height="50"><p>Informação, turismo e comunidade.</p></div><nav aria-label="Links do rodapé"><a href="turismo.html">Turismo</a><a href="/divulgue">Para empresas</a><a href="mailto:euamourania@gmail.com">Contato</a><a href="termos-de-servico.html">Termos de serviço</a><a href="politica-de-privacidade.html">Privacidade</a></nav></div><div class="container footer-bottom"><p>&copy; <span id="year"></span> Eu Amo Urânia. Todos os direitos reservados.</p></div></footer>
+  <footer class="site-footer"><div class="container footer-grid"><div><img src="assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" class="footer-logo" width="170" height="50"><p>Informação, turismo e comunidade.</p></div><nav aria-label="Links do rodapé"><a href="/app">Baixar app</a><a href="turismo.html">Turismo</a><a href="/divulgue">Para empresas</a><a href="mailto:euamourania@gmail.com">Contato</a><a href="termos-de-servico.html">Termos de serviço</a><a href="politica-de-privacidade.html">Privacidade</a></nav></div><div class="container footer-bottom"><p>&copy; <span id="year"></span> Eu Amo Urânia. Todos os direitos reservados.</p></div></footer>
   <div id="cookie-banner" class="cookie-banner" role="region" aria-label="Aviso sobre cookies" hidden><p>Usamos cookies para melhorar sua experiência. Consulte nossa <a href="politica-de-privacidade.html">Política de Privacidade</a>.</p><button id="accept-cookies" type="button">Entendi</button></div>
   <script type="module" src="assets/js/pages/melhores-home-page.js"></script>
   <script type="module" src="assets/js/pages/home-guide-page.js"></script>

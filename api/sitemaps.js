@@ -118,19 +118,21 @@ module.exports = async (req, res) => {
       melhoresCategoriasRows()
     ]);
     const statics = [
-      "/",
-      "/urania/",
-      "/news/",
-      "/news/sobre-publicacoes/",
-      "/news/politica-editorial/",
-      "/news/correcoes-transparencia-contato/",
-      "/colabore/",
-      "/guia.html",
-      "/turismo.html",
-      "/eventos/",
-      "/melhores-de-urania/",
-      "/links/",
-      "/quem-somos.html"
+      { path: "/", priority: "1.0", changefreq: "daily" },
+      { path: "/urania/", priority: "0.95", changefreq: "weekly" },
+      { path: "/news/", priority: "0.9", changefreq: "daily" },
+      { path: "/guia.html", priority: "0.85", changefreq: "weekly" },
+      { path: "/turismo.html", priority: "0.85", changefreq: "weekly" },
+      { path: "/eventos/", priority: "0.8", changefreq: "weekly" },
+      { path: "/melhores-de-urania/", priority: "0.8", changefreq: "weekly" },
+      { path: "/app", priority: "0.75", changefreq: "monthly" },
+      { path: "/divulgue", priority: "0.7", changefreq: "monthly" },
+      { path: "/links/", priority: "0.6", changefreq: "monthly" },
+      { path: "/colabore/", priority: "0.6", changefreq: "monthly" },
+      { path: "/quem-somos.html", priority: "0.6", changefreq: "monthly" },
+      { path: "/news/sobre-publicacoes/", priority: "0.5", changefreq: "yearly" },
+      { path: "/news/politica-editorial/", priority: "0.5", changefreq: "yearly" },
+      { path: "/news/correcoes-transparencia-contato/", priority: "0.5", changefreq: "yearly" }
     ];
     const categoriasNoticias = [...new Map(noticias
       .filter(item => item.categoria_nome && slugify(item.categoria_nome))
@@ -186,7 +188,7 @@ module.exports = async (req, res) => {
       }])
     ).values()];
     const all = [
-      ...statics.map(path => ({ loc: DOMAIN + path })),
+      ...statics.map(item => ({ loc: DOMAIN + item.path, priority: item.priority, changefreq: item.changefreq })),
       ...noticias.map(noticia => ({
         loc: `${DOMAIN}/noticias/${noticia.slug}`,
         lastmod: noticia.publicado_em,
@@ -235,7 +237,7 @@ module.exports = async (req, res) => {
       ...melhoresUrls
     ];
     const urls = all.map(item =>
-      `<url><loc>${xml(item.loc)}</loc>${item.lastmod ? `<lastmod>${xml(String(item.lastmod).slice(0, 10))}</lastmod>` : ""}${item.image || ""}</url>`
+      `<url><loc>${xml(item.loc)}</loc>${item.lastmod ? `<lastmod>${xml(String(item.lastmod).slice(0, 10))}</lastmod>` : ""}${item.changefreq ? `<changefreq>${xml(item.changefreq)}</changefreq>` : ""}${item.priority ? `<priority>${xml(item.priority)}</priority>` : ""}${item.image || ""}</url>`
     ).join("");
     return res.status(200).send(
       `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">${urls}</urlset>`

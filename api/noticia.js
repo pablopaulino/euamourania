@@ -79,7 +79,7 @@ function renderHeader({ siteName, logo, current }) {
 }
 
 function renderFooter({ siteName, logo }) {
-  return `<footer class="site-footer"><div class="container footer-grid"><div><img src="${esc(logo)}" alt="${esc(siteName)}" class="footer-logo" width="170" height="50"><p>Informação, turismo e comunidade.</p></div><nav><a href="mailto:euamourania@gmail.com">Contato</a><a href="/termos-de-servico.html">Termos</a><a href="/politica-de-privacidade.html">Privacidade</a></nav></div><div class="container footer-bottom"><p>&copy; <span id="year"></span> ${esc(siteName)}.</p></div></footer>`;
+  return `<footer class="site-footer"><div class="container footer-grid"><div><img src="${esc(logo)}" alt="${esc(siteName)}" class="footer-logo" width="170" height="50"><p>Informação, turismo e comunidade.</p></div><nav><a href="/app">Baixar app</a><a href="mailto:euamourania@gmail.com">Contato</a><a href="/termos-de-servico.html">Termos</a><a href="/politica-de-privacidade.html">Privacidade</a></nav></div><div class="container footer-bottom"><p>&copy; <span id="year"></span> ${esc(siteName)}.</p></div></footer>`;
 }
 
 async function renderGuia(req, res, slug) {
