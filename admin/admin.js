@@ -213,65 +213,84 @@ function collectGalleryUrls(form,name){
   return Array.from({length:EXTRA_GALLERY_LIMIT},(_,index)=>String(form.get(`${name}_${index}`)||"").trim()).filter(Boolean).filter((url,index,array)=>array.indexOf(url)===index);
 }
 const WEEK_DAYS = [["mon","Segunda-feira"],["tue","Terça-feira"],["wed","Quarta-feira"],["thu","Quinta-feira"],["fri","Sexta-feira"],["sat","Sábado"],["sun","Domingo"]];
-const weeklyHourValue = (value, day, key) => escapeHtml(value && typeof value === "object" && !Array.isArray(value) ?value?.[day]?.[key] || "" : "");
+const weeklyDayRecord = (value, day) => value && typeof value === "object" && !Array.isArray(value) ? value?.[day] || {} : {};
+function weeklyHourPeriods(value, day) {
+  const item = weeklyDayRecord(value, day);
+  const periods = Array.isArray(item.periods) ? item.periods : [];
+  const normalized = periods
+    .map(period => ({ open: String(period?.open || "").trim(), close: String(period?.close || "").trim() }))
+    .filter(period => period.open || period.close);
+  if (!normalized.length && (item.open || item.close)) normalized.push({ open: item.open || "", close: item.close || "" });
+  return [normalized[0] || { open: "", close: "" }, normalized[1] || { open: "", close: "" }];
+}
+const weeklyPeriodValue = (value, day, index, key) => escapeHtml(weeklyHourPeriods(value, day)[index]?.[key] || "");
 const weeklyHourChecked = (value, day) => value && typeof value === "object" && !Array.isArray(value) && value?.[day]?.closed ?"checked" : "";
 const weeklyHourIs24 = (value, day) => {
-  const item = value && typeof value === "object" && !Array.isArray(value) ? value?.[day] || {} : {};
+  const item = weeklyDayRecord(value, day);
   return Boolean(item.twenty_four_hours || item.open_24h || item.is_24h || item.all_day || (!item.closed && item.open === "00:00" && ["23:59","24:00","00:00"].includes(item.close)));
 };
 const weeklyHour24Checked = (value, day) => weeklyHourIs24(value, day) ? "checked" : "";
 const weeklyHourDisabled = (value, day) => weeklyHourChecked(value, day) || weeklyHourIs24(value, day) ? "disabled" : "";
+function weeklyPeriodHtml(name, key, day, index, data) {
+  const label = index ? "2º turno" : "1º turno";
+  return `<div class="weekly-period" data-weekly-period="${index}"><span>${label}</span><label>Abre<input type="time" name="${name}_${key}_open_${index}" value="${weeklyPeriodValue(data,key,index,"open")}" aria-label="${day} ${label} abre" ${weeklyHourDisabled(data,key)}></label><label>Fecha<input type="time" name="${name}_${key}_close_${index}" value="${weeklyPeriodValue(data,key,index,"close")}" aria-label="${day} ${label} fecha" ${weeklyHourDisabled(data,key)}></label></div>`;
+}
 function weeklyHoursHtml(name,label,value){
   const data=value&&typeof value==="object"&&!Array.isArray(value)?value:{};
-  return `<fieldset class="full-row weekly-hours" data-weekly-hours="${name}"><legend>${label}</legend><div class="weekly-hours-head"><p>Use estes horários no aplicativo. O site continua usando o campo “Horário do site”.</p><div class="weekly-hours-actions"><button type="button" data-weekly-all-24>Todos 24h</button><button type="button" data-weekly-copy-weekdays>Seg–sex = segunda</button><button type="button" data-weekly-copy-sat>Sábado = sexta</button><button type="button" data-weekly-copy-sun>Domingo = sábado</button><button type="button" data-weekly-clear>Limpar</button></div></div>${WEEK_DAYS.map(([key,day],index)=>`<details class="weekly-day" data-weekly-day="${key}"><summary><strong>${day}</strong><span data-weekly-summary="${key}">${weeklyHourSummary(data,key)}</span></summary><div class="weekly-day-body"><label>Abre<input type="time" name="${name}_${key}_open" value="${weeklyHourValue(data,key,"open")}" aria-label="${day} abre" ${weeklyHourDisabled(data,key)}></label><label>Fecha<input type="time" name="${name}_${key}_close" value="${weeklyHourValue(data,key,"close")}" aria-label="${day} fecha" ${weeklyHourDisabled(data,key)}></label><label class="weekly-24h"><input type="checkbox" name="${name}_${key}_24h" value="true" ${weeklyHour24Checked(data,key)}> Aberto 24 horas</label><label class="weekly-closed"><input type="checkbox" name="${name}_${key}_closed" value="true" ${weeklyHourChecked(data,key)}> Fechado</label>${index?`<button type="button" class="weekly-copy-prev" data-weekly-copy-prev="${key}">Usar dia anterior</button>`:""}</div></details>`).join("")}</fieldset>`;
+  return `<fieldset class="full-row weekly-hours" data-weekly-hours="${name}"><legend>${label}</legend><div class="weekly-hours-head"><p>Use estes horários no aplicativo. O site continua usando o campo “Horário do site”.</p><div class="weekly-hours-actions"><button type="button" data-weekly-all-24>Todos 24h</button><button type="button" data-weekly-copy-weekdays>Seg–sex = segunda</button><button type="button" data-weekly-copy-sat>Sábado = sexta</button><button type="button" data-weekly-copy-sun>Domingo = sábado</button><button type="button" data-weekly-clear>Limpar</button></div></div>${WEEK_DAYS.map(([key,day],index)=>`<details class="weekly-day" data-weekly-day="${key}"><summary><strong>${day}</strong><span data-weekly-summary="${key}">${weeklyHourSummary(data,key)}</span></summary><div class="weekly-day-body"><div class="weekly-periods">${weeklyPeriodHtml(name,key,day,0,data)}${weeklyPeriodHtml(name,key,day,1,data)}</div><div class="weekly-day-options"><label class="weekly-24h"><input type="checkbox" name="${name}_${key}_24h" value="true" ${weeklyHour24Checked(data,key)}> 24h</label><label class="weekly-closed"><input type="checkbox" name="${name}_${key}_closed" value="true" ${weeklyHourChecked(data,key)}> Fechado</label>${index?`<button type="button" class="weekly-copy-prev" data-weekly-copy-prev="${key}">Usar dia anterior</button>`:""}</div></div></details>`).join("")}</fieldset>`;
 }
 function weeklyHourSummary(data,key){
   const item=data?.[key]||{};
   if(item.closed)return "Fechado";
   if(item.twenty_four_hours || item.open_24h || item.is_24h || item.all_day)return "Aberto 24 horas";
-  if(item.open&&item.close)return `${item.open}–${item.close}`;
-  if(item.open)return `Abre ${item.open}`;
-  if(item.close)return `Fecha ${item.close}`;
+  const periods=weeklyHourPeriods(data,key).filter(period=>period.open||period.close);
+  if(periods.length)return periods.map(period=>period.open&&period.close?`${period.open}–${period.close}`:period.open?`Abre ${period.open}`:`Fecha ${period.close}`).join(" / ");
   return "Não configurado";
 }
 function collectWeeklyHours(form,name){
   const result={};let hasValue=false;
   for(const [key] of WEEK_DAYS){
-    const open=String(form.get(`${name}_${key}_open`)||"").trim();
-    const close=String(form.get(`${name}_${key}_close`)||"").trim();
+    const periods=[0,1].map(index=>({
+      open:String(form.get(`${name}_${key}_open_${index}`)||"").trim(),
+      close:String(form.get(`${name}_${key}_close_${index}`)||"").trim()
+    })).filter(period=>period.open||period.close);
+    const [firstPeriod={open:"",close:""}]=periods;
     const closed=form.get(`${name}_${key}_closed`) === "true";
     const twentyFourHours=form.get(`${name}_${key}_24h`) === "true";
-    if(open||close||closed||twentyFourHours){result[key]=twentyFourHours?{open:"00:00",close:"23:59",closed:false,twenty_four_hours:true}:{open:open||null,close:close||null,closed};hasValue=true;}
+    if(periods.length||closed||twentyFourHours){result[key]=twentyFourHours?{open:"00:00",close:"23:59",closed:false,twenty_four_hours:true,periods:[{open:"00:00",close:"23:59"}]}:{open:firstPeriod.open||null,close:firstPeriod.close||null,closed,periods};hasValue=true;}
   }
   return hasValue?result:null;
 }
 function weeklyDayData(root,name,key){
-  const open=root.querySelector(`[name="${name}_${key}_open"]`)?.value||"";
-  const close=root.querySelector(`[name="${name}_${key}_close"]`)?.value||"";
+  const periods=[0,1].map(index=>({
+    open:root.querySelector(`[name="${name}_${key}_open_${index}"]`)?.value||"",
+    close:root.querySelector(`[name="${name}_${key}_close_${index}"]`)?.value||""
+  })).filter(period=>period.open||period.close);
+  const [firstPeriod={open:"",close:""}]=periods;
   const closed=Boolean(root.querySelector(`[name="${name}_${key}_closed"]`)?.checked);
   const twenty_four_hours=Boolean(root.querySelector(`[name="${name}_${key}_24h"]`)?.checked);
-  return {open,close,closed,twenty_four_hours};
+  return {open:firstPeriod.open,close:firstPeriod.close,closed,twenty_four_hours,periods};
 }
 function setWeeklyDay(root,name,key,data){
-  const open=root.querySelector(`[name="${name}_${key}_open"]`);
-  const close=root.querySelector(`[name="${name}_${key}_close"]`);
+  const periods=Array.isArray(data.periods)&&data.periods.length?data.periods:[{open:data.open||"",close:data.close||""}];
+  for(const index of [0,1]){
+    const open=root.querySelector(`[name="${name}_${key}_open_${index}"]`);
+    const close=root.querySelector(`[name="${name}_${key}_close_${index}"]`);
+    if(open)open.value=periods[index]?.open||"";
+    if(close)close.value=periods[index]?.close||"";
+  }
   const closed=root.querySelector(`[name="${name}_${key}_closed"]`);
   const twentyFourHours=root.querySelector(`[name="${name}_${key}_24h"]`);
-  if(open)open.value=data.open||"";
-  if(close)close.value=data.close||"";
   if(closed)closed.checked=Boolean(data.closed);
   if(twentyFourHours)twentyFourHours.checked=Boolean(data.twenty_four_hours || data.open_24h || data.is_24h || data.all_day);
   applyWeeklyDayState(root,name,key);
   updateWeeklySummary(root,name,key);
 }
 function applyWeeklyDayState(root,name,key){
-  const open=root.querySelector(`[name="${name}_${key}_open"]`);
-  const close=root.querySelector(`[name="${name}_${key}_close"]`);
   const closed=root.querySelector(`[name="${name}_${key}_closed"]`);
   const twentyFourHours=root.querySelector(`[name="${name}_${key}_24h"]`);
   const disabled=Boolean(twentyFourHours?.checked||closed?.checked);
-  if(open)open.disabled=disabled;
-  if(close)close.disabled=disabled;
+  for(const input of root.querySelectorAll(`[name^="${name}_${key}_open_"],[name^="${name}_${key}_close_"]`))input.disabled=disabled;
 }
 function updateWeeklySummary(root,name,key){
   const summary=root.querySelector(`[data-weekly-summary="${key}"]`);
