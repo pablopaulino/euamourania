@@ -1318,11 +1318,12 @@ body:has(#guia-container) .inner-content {
   overflow: hidden;
   color: var(--navy);
   background:
-    radial-gradient(circle at 96% 6%, rgba(247, 201, 72, .22), transparent 7rem),
-    linear-gradient(135deg, #ffffff, #f7fbfb 58%, #fff8dd);
-  border: 1px solid rgba(247, 201, 72, .58);
+    radial-gradient(circle at 96% 6%, rgba(255, 30, 23, .1), transparent 7rem),
+    radial-gradient(circle at 8% 95%, rgba(255, 143, 0, .18), transparent 7rem),
+    linear-gradient(135deg, #ffffff, #fffaf1 58%, #fff3cf);
+  border: 1px solid rgba(247, 201, 72, .68);
   border-radius: 24px;
-  box-shadow: 0 18px 44px rgba(7, 59, 76, .1);
+  box-shadow: 0 18px 44px rgba(255, 94, 0, .1), 0 10px 28px rgba(7, 59, 76, .06);
   text-decoration: none;
   transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
 }
@@ -1332,19 +1333,34 @@ body:has(#guia-container) .inner-content {
   position: absolute;
   inset: 0 auto 0 0;
   width: 5px;
-  background: linear-gradient(180deg, var(--yellow), var(--blue));
+  background: linear-gradient(180deg, #ff1515 0%, #ff8f00 55%, #f7c948 100%);
 }
 
 .links-app-visual {
+  position: relative;
   display: grid;
   width: 54px;
   height: 54px;
   place-items: center;
-  color: #fff;
-  background: linear-gradient(135deg, var(--blue), #0e6f89);
-  border: 1px solid rgba(255, 255, 255, .55);
+  color: #ff1717;
+  background:
+    radial-gradient(circle at 62% 34%, rgba(255, 143, 0, .2), transparent 1.2rem),
+    linear-gradient(135deg, #fff8ed, #ffffff);
+  border: 1px solid rgba(255, 143, 0, .25);
   border-radius: 18px;
-  box-shadow: 0 14px 28px rgba(7, 59, 76, .18);
+  box-shadow: 0 14px 28px rgba(255, 94, 0, .14), inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+
+.links-app-visual::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 10px;
+  height: 18px;
+  background: linear-gradient(180deg, #ff9b00, #ff7a00);
+  border-radius: 5px 5px 2px 2px;
+  transform: rotate(0deg);
 }
 
 .links-app-copy {
@@ -1354,7 +1370,7 @@ body:has(#guia-container) .inner-content {
 .links-app-kicker {
   display: block;
   margin-bottom: .22rem;
-  color: var(--blue);
+  color: #d83a16;
   font-size: .68rem;
   font-weight: 900;
   letter-spacing: .13em;
@@ -1386,26 +1402,26 @@ body:has(#guia-container) .inner-content {
   gap: .28rem;
   min-height: 36px;
   padding: .42rem .75rem;
-  color: var(--navy);
-  background: var(--yellow);
+  color: #fff;
+  background: linear-gradient(135deg, #ff1818, #ff8f00);
   border-radius: 999px;
   font-size: .78rem;
   font-weight: 900;
   white-space: nowrap;
-  box-shadow: 0 10px 24px rgba(247, 201, 72, .2);
+  box-shadow: 0 10px 24px rgba(255, 94, 0, .22);
   transition: transform .2s ease, background .2s ease;
 }
 
 .links-app-card:hover,
 .links-app-card:focus-visible {
-  border-color: rgba(247, 201, 72, .88);
-  box-shadow: 0 24px 58px rgba(7, 59, 76, .16);
+  border-color: rgba(255, 143, 0, .75);
+  box-shadow: 0 24px 58px rgba(255, 94, 0, .15), 0 12px 30px rgba(7, 59, 76, .08);
   transform: translateY(-3px);
 }
 
 .links-app-card:hover .links-app-action,
 .links-app-card:focus-visible .links-app-action {
-  background: #ffd95b;
+  background: linear-gradient(135deg, #e91515, #ff9b00);
   transform: translateX(3px);
 }
 
