@@ -199,8 +199,23 @@ function insertAfterPreferredLink(ordered, link) {
 }
 
 function withFeaturedLinks(links) {
-  return normalizeShowcaseLinks(links)
-    .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0));
+  const normalized = normalizeShowcaseLinks(links);
+  const newsLink = normalized.find(link => sameDestination(link.url, NEWS_PAGE_LINK.url)) || NEWS_PAGE_LINK;
+  const groupLink = normalized.find(link => sameDestination(link.url, NEWS_GROUP_LINK.url) || link.tipo_destaque === "grupo_whatsapp") || NEWS_GROUP_LINK;
+  const appLink = normalized.find(link => sameDestination(link.url, APP_LINK.url) || link.tipo_destaque === "app") || APP_LINK;
+
+  const ordered = normalized.filter(link =>
+    !sameDestination(link.url, NEWS_PAGE_LINK.url)
+    && !sameDestination(link.url, NEWS_GROUP_LINK.url)
+    && link.tipo_destaque !== "grupo_whatsapp"
+    && !isAppDownloadLink(link)
+  );
+
+  ordered.splice(Math.min(1, ordered.length), 0, newsLink);
+  ordered.splice(Math.min(2, ordered.length), 0, groupLink);
+  insertAfterPreferredLink(ordered, appLink);
+
+  return ordered;
 }
 
 function normalizeShowcaseLinks(links = []) {
