@@ -522,14 +522,28 @@ async function writeLog(businessId, action, payload = {}) {
     notes: payload.notes || payload.reason || null,
     metadata: payload.metadata || {}
   });
-  if (error) throw error;
+  if (error) {
+    console.warn("Histórico de verificação não registrado.", {
+      code: error.code,
+      message: error.message
+    });
+    return { ok: false, error };
+  }
+  return { ok: true };
 }
 
 async function updateBusiness(id, values, logAction, logPayload = {}) {
   const { error } = await db.from("guia_comercial").update(values).eq("id", id);
-  if (error) throw error;
-  await writeLog(id, logAction, logPayload);
-  state.message = "Cadastro atualizado.";
+  if (error) {
+    if (error.code === "42703" || String(error.message || "").includes("verification_status")) {
+      throw new Error("A migration de Verificação do Guia ainda não parece estar aplicada no Supabase. Rode a migration 20260823_business_verification_workflow.sql antes de revisar cadastros.");
+    }
+    throw error;
+  }
+  const log = await writeLog(id, logAction, logPayload);
+  state.message = log.ok
+    ? "Cadastro atualizado."
+    : "Cadastro atualizado. O histórico de verificação não foi registrado; confira se a migration e as permissões do log estão aplicadas.";
   await loadItems();
 }
 
