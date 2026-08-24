@@ -8,9 +8,9 @@ const NEWS_GROUP_LINK = {
   id: "whatsapp-grupo-noticias",
   titulo: "Grupo de notícias no WhatsApp",
   url: "https://chat.whatsapp.com/H8uSnazUFAREgQZziiwmPf?s=cl&p=i&ilr=0",
-  featured: true,
-  label: "Grupo de notícias",
-  description: "Entre para receber avisos, notícias e informações importantes de Urânia direto no WhatsApp."
+  tipo_destaque: "grupo_whatsapp",
+  rotulo: "Grupo de notícias",
+  descricao: "Entre para receber avisos, notícias e informações importantes de Urânia direto no WhatsApp."
 };
 
 const NEWS_PAGE_LINK = {
@@ -25,9 +25,9 @@ const APP_LINK = {
   titulo: "Viva Ur\u00e2nia",
   url: "/app",
   iconType: "app",
-  featuredApp: true,
-  label: "O app da cidade",
-  description: "Guia, turismo, favoritos e informa\u00e7\u00f5es de Ur\u00e2nia na palma da sua m\u00e3o."
+  tipo_destaque: "app",
+  rotulo: "O app da cidade",
+  descricao: "Guia, turismo, favoritos e informa\u00e7\u00f5es de Ur\u00e2nia na palma da sua m\u00e3o."
 };
 const APP_DEFAULT_DESCRIPTION = "Guia, turismo, favoritos e informa\u00e7\u00f5es de Ur\u00e2nia na palma da sua m\u00e3o.";
 
@@ -71,6 +71,7 @@ const icons = {
 };
 
 function isWhatsappGroup(link) {
+  if (link.tipo_destaque === "grupo_whatsapp") return true;
   const title = normalize(link.titulo);
   const icon = normalize(link.icone);
   const url = normalize(link.url);
@@ -80,6 +81,7 @@ function isWhatsappGroup(link) {
 }
 
 function isAppDownloadLink(link) {
+  if (link.tipo_destaque === "app") return true;
   const title = normalize(link.titulo);
   const icon = normalize(link.icone);
   const url = normalize(link.url);
@@ -143,8 +145,8 @@ function sameDestination(a = "", b = "") {
 }
 
 function renderLink(link, index) {
-  if (link.featured || isWhatsappGroup(link)) return renderFeaturedLink(link, index);
-  if (link.featuredApp || isAppDownloadLink(link)) return renderAppLink(link, index);
+  if (isWhatsappGroup(link)) return renderFeaturedLink(link, index);
+  if (isAppDownloadLink(link)) return renderAppLink(link, index);
   return `
     <a href="${safeUrl(link.url)}" class="link-button" data-link-id="${escapeHtml(link.id)}" ${linkAttributes(link.url)} style="--link-delay:${index * 45}ms">
       <span class="link-button-main">
@@ -157,12 +159,14 @@ function renderLink(link, index) {
 }
 
 function renderAppLink(link, index) {
+  const label = link.rotulo || link.label || "Aplicativo";
+  const description = link.descricao || link.description || APP_DEFAULT_DESCRIPTION;
   return `
     <a href="${safeUrl(link.url)}" class="links-app-card" data-link-id="${escapeHtml(link.id)}" ${linkAttributes(link.url)} style="--link-delay:${index * 45}ms">
       <span class="links-app-copy">
-        <span class="links-app-kicker">${escapeHtml(link.label || "Aplicativo")}</span>
+        <span class="links-app-kicker">${escapeHtml(label)}</span>
         <strong>${escapeHtml(displayTitle(link) || "Baixe o app")}</strong>
-        <small>${escapeHtml(link.description || APP_DEFAULT_DESCRIPTION)}</small>
+        <small>${escapeHtml(description)}</small>
       </span>
       <span class="links-app-action">Baixar <span aria-hidden="true">&rarr;</span></span>
     </a>
@@ -170,14 +174,16 @@ function renderAppLink(link, index) {
 }
 
 function renderFeaturedLink(link, index) {
+  const label = link.rotulo || link.label || "Grupo oficial";
+  const description = link.descricao || link.description || "Receba avisos, novidades e publicações importantes de Urânia direto no celular.";
   return `
     <a href="${safeUrl(link.url)}" class="links-featured-card" data-link-id="${escapeHtml(link.id)}" target="_blank" rel="noopener noreferrer" style="--link-delay:${index * 45}ms">
       <span class="links-featured-glow" aria-hidden="true"></span>
       <span class="links-featured-icon">${icons.whatsapp}</span>
       <span class="links-featured-copy">
-        <span class="links-featured-kicker">${escapeHtml(link.label || "Grupo oficial")}</span>
+        <span class="links-featured-kicker">${escapeHtml(label)}</span>
         <strong>${escapeHtml(link.titulo || "Grupo de notícias")}</strong>
-        <small>${escapeHtml(link.description || "Receba avisos, novidades e publicações importantes de Urânia direto no celular.")}</small>
+        <small>${escapeHtml(description)}</small>
       </span>
       <span class="links-featured-action">Entrar agora <span aria-hidden="true">→</span></span>
     </a>
@@ -193,17 +199,24 @@ function insertAfterPreferredLink(ordered, link) {
 }
 
 function withFeaturedLinks(links) {
-  const appLink = links.find(isAppDownloadLink);
-  const withoutDuplicate = links.filter(link =>
-    !sameDestination(link.url, NEWS_GROUP_LINK.url)
-    && !sameDestination(link.url, NEWS_PAGE_LINK.url)
-    && !isAppDownloadLink(link)
-  );
-  const ordered = [...withoutDuplicate];
-  ordered.splice(Math.min(1, ordered.length), 0, NEWS_PAGE_LINK);
-  ordered.splice(Math.min(2, ordered.length), 0, NEWS_GROUP_LINK);
-  insertAfterPreferredLink(ordered, { ...(appLink || APP_LINK), featuredApp: true });
-  return ordered;
+  return normalizeShowcaseLinks(links)
+    .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0));
+}
+
+function normalizeShowcaseLinks(links = []) {
+  const normalized = links.map(link => ({ ...link }));
+  const hasNews = normalized.some(link => sameDestination(link.url, NEWS_PAGE_LINK.url));
+  const hasGroup = normalized.some(link => sameDestination(link.url, NEWS_GROUP_LINK.url) || link.tipo_destaque === "grupo_whatsapp");
+  const hasApp = normalized.some(link => sameDestination(link.url, APP_LINK.url) || link.tipo_destaque === "app");
+
+  if (!hasNews) normalized.push(NEWS_PAGE_LINK);
+  if (!hasGroup) normalized.push(NEWS_GROUP_LINK);
+  if (!hasApp) normalized.push(APP_LINK);
+
+  return normalized.map((link, index) => ({
+    ...link,
+    ordem: Number.isFinite(Number(link.ordem)) ? Number(link.ordem) : 1000 + index
+  }));
 }
 
 function readLinksCache() {
@@ -245,14 +258,28 @@ async function carregarLinks() {
   }
 
   try {
-    const links = await fetchPublicRows("links", {
-      select: "id,titulo,url,icone,ordem",
-      status: "eq.ativo",
-      order: "ordem.asc"
-    }, {
-      ttl: 600000,
-      timeout: 3500
-    });
+    let links;
+
+    try {
+      links = await fetchPublicRows("links", {
+        select: "id,titulo,url,icone,rotulo,descricao,tipo_destaque,ordem",
+        status: "eq.ativo",
+        order: "ordem.asc"
+      }, {
+        ttl: 600000,
+        timeout: 3500
+      });
+    } catch (newColumnsError) {
+      console.warn("Links com campos de vitrine indisponíveis, usando formato legado:", newColumnsError);
+      links = await fetchPublicRows("links", {
+        select: "id,titulo,url,icone,ordem",
+        status: "eq.ativo",
+        order: "ordem.asc"
+      }, {
+        ttl: 600000,
+        timeout: 3500
+      });
+    }
 
     saveLinksCache(links);
     renderLinks(links);
