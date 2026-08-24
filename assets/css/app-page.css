@@ -79,11 +79,11 @@ html{scroll-behavior:smooth}
 .viva-hero{
   position:relative;
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(330px,450px);
-  gap:clamp(2rem,6vw,5rem);
+  grid-template-columns:minmax(0,1.08fr) minmax(300px,390px);
+  gap:clamp(1.8rem,5vw,4rem);
   width:min(1180px,calc(100% - 32px));
   margin:0 auto;
-  padding:clamp(1.8rem,5vw,4rem) 0 clamp(3rem,7vw,6rem);
+  padding:clamp(1.6rem,4.5vw,3.4rem) 0 clamp(2.6rem,6vw,5rem);
   align-items:center;
 }
 .viva-hero:before{
@@ -150,8 +150,8 @@ html{scroll-behavior:smooth}
 .viva-button:hover,.viva-store:hover{transform:translateY(-2px)}
 .viva-button.primary{
   color:#fff;
-  background:linear-gradient(135deg,var(--viva-red),var(--viva-orange));
-  box-shadow:0 16px 38px rgba(255,73,0,.22);
+  background:linear-gradient(135deg,#ff4b2e,#ffa332);
+  box-shadow:0 14px 32px rgba(255,117,35,.18);
 }
 .viva-button.ghost{
   color:var(--viva-ink);
@@ -163,7 +163,7 @@ html{scroll-behavior:smooth}
 .viva-phone{
   position:relative;
   justify-self:center;
-  width:min(100%,390px);
+  width:min(100%,350px);
 }
 .viva-phone:before{
   content:"";
@@ -175,11 +175,11 @@ html{scroll-behavior:smooth}
 }
 .viva-phone-shell{
   position:relative;
-  min-height:690px;
-  padding:1.18rem;
+  min-height:610px;
+  padding:1rem;
   background:rgba(255,253,248,.9);
   border:1px solid rgba(255,255,255,.8);
-  border-radius:42px;
+  border-radius:38px;
   box-shadow:var(--viva-shadow);
   overflow:hidden;
 }
@@ -209,14 +209,14 @@ html{scroll-behavior:smooth}
   display:block;
   max-width:260px;
   color:var(--viva-ink);
-  font-size:2rem;
+  font-size:1.78rem;
   line-height:.98;
   letter-spacing:-.07em;
 }
 .viva-avatar{
   display:grid;
-  width:52px;
-  height:52px;
+  width:46px;
+  height:46px;
   place-items:center;
   color:#0b5f70;
   background:#eef9f9;
@@ -225,11 +225,11 @@ html{scroll-behavior:smooth}
 }
 .viva-search{
   display:grid;
-  grid-template-columns:50px minmax(0,1fr);
+  grid-template-columns:44px minmax(0,1fr);
   gap:.75rem;
   align-items:center;
   margin-bottom:1.25rem;
-  padding:.78rem;
+  padding:.68rem;
   background:#fff;
   border:1px solid var(--viva-line);
   border-radius:28px;
@@ -237,8 +237,8 @@ html{scroll-behavior:smooth}
 }
 .viva-search>span{
   display:grid;
-  width:50px;
-  height:50px;
+  width:44px;
+  height:44px;
   place-items:center;
   color:#0b6374;
   background:#f1fbfb;
@@ -274,7 +274,7 @@ html{scroll-behavior:smooth}
 }
 .viva-section-title strong{
   display:block;
-  font-size:1.55rem;
+  font-size:1.38rem;
   letter-spacing:-.06em;
 }
 .viva-section-title span{
@@ -302,12 +302,12 @@ html{scroll-behavior:smooth}
 .viva-company-card.compact{flex-basis:58%}
 .viva-company-image{
   display:grid;
-  min-height:150px;
+  min-height:128px;
   place-items:center;
   color:#fff;
 }
 .viva-company-image b{
-  font-size:2.1rem;
+  font-size:1.85rem;
   letter-spacing:-.08em;
 }
 .viva-gradient-dark{background:linear-gradient(135deg,#050505,#0b1720)}
@@ -349,7 +349,7 @@ html{scroll-behavior:smooth}
 .viva-moment strong{
   display:block;
   margin:.15rem 0 .75rem;
-  font-size:1.55rem;
+  font-size:1.35rem;
   letter-spacing:-.06em;
 }
 .viva-moment-image{
@@ -357,7 +357,7 @@ html{scroll-behavior:smooth}
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
-  min-height:170px;
+  min-height:140px;
   padding:1rem;
   color:#fff;
   background:linear-gradient(135deg,rgba(7,59,76,.7),rgba(255,138,0,.2)),url("/assets/AD3A1763-min (1).jpg") center/cover;
@@ -495,9 +495,10 @@ html{scroll-behavior:smooth}
 .viva-store{
   justify-content:flex-start;
   min-width:210px;
-  color:#fff;
-  background:linear-gradient(135deg,var(--viva-red),var(--viva-orange));
-  box-shadow:0 16px 34px rgba(255,73,0,.2);
+  color:var(--viva-ink);
+  background:linear-gradient(135deg,#fff8ec,#ffe0ad);
+  border-color:rgba(255,138,0,.24);
+  box-shadow:0 14px 30px rgba(255,138,0,.12);
 }
 .viva-store.secondary{
   color:var(--viva-ink);
@@ -548,14 +549,25 @@ html{scroll-behavior:smooth}
   padding:2rem 0 2.4rem;
   color:#64767c;
   font-size:.9rem;
+  border-top:1px solid rgba(7,59,76,.1);
 }
+.viva-footer-brand{
+  display:flex;
+  align-items:center;
+  gap:1rem;
+}
+.viva-footer-brand img{
+  width:170px;
+  height:auto;
+}
+.viva-footer-brand p{margin:.15rem 0 0;color:#64767c}
 .viva-footer span{font-weight:950;color:var(--viva-ink)}
 .viva-footer nav{display:flex;flex-wrap:wrap;gap:.9rem}
 .viva-footer a{text-decoration:none;font-weight:850}
 
 @media(max-width:980px){
   .viva-hero,.viva-download{grid-template-columns:1fr}
-  .viva-phone{width:min(100%,430px)}
+  .viva-phone{width:min(100%,390px)}
   .viva-feature-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:720px){
@@ -574,13 +586,13 @@ html{scroll-behavior:smooth}
   .viva-actions,.viva-store-row{flex-direction:column}
   .viva-button,.viva-store{width:100%}
   .viva-phone-shell{
-    min-height:620px;
+    min-height:560px;
     padding:1rem;
     border-radius:34px;
   }
   .viva-app-head strong{font-size:1.75rem}
   .viva-card-row{width:calc(100% + 4.2rem)}
-  .viva-company-image{min-height:130px}
+  .viva-company-image{min-height:118px}
   .viva-company-card{flex-basis:74%}
   .viva-strip{
     width:min(100% - 24px,1180px);
@@ -592,4 +604,5 @@ html{scroll-behavior:smooth}
   .viva-download{padding:1.2rem;border-radius:28px}
   .viva-final{grid-template-columns:1fr;text-align:left}
   .viva-footer{align-items:flex-start;flex-direction:column}
+  .viva-footer-brand{align-items:flex-start;flex-direction:column;gap:.55rem}
 }
