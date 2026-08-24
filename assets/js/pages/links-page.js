@@ -22,14 +22,14 @@ const NEWS_PAGE_LINK = {
 
 const APP_LINK = {
   id: "app-viva-urania",
-  titulo: "Baixe o app",
+  titulo: "Viva Ur\u00e2nia",
   url: "/app",
   iconType: "app",
   featuredApp: true,
-  label: "Viva Ur\u00e2nia",
-  description: "Guia, turismo, favoritos e informa\u00e7\u00f5es da cidade em uma experi\u00eancia pensada para o celular."
+  label: "O app da cidade",
+  description: "Guia, turismo, favoritos e informa\u00e7\u00f5es de Ur\u00e2nia na palma da sua m\u00e3o."
 };
-const APP_DEFAULT_DESCRIPTION = "Leve o Viva Ur\u00e2nia no celular e encontre guia, turismo e informa\u00e7\u00f5es da cidade.";
+const APP_DEFAULT_DESCRIPTION = "Guia, turismo, favoritos e informa\u00e7\u00f5es de Ur\u00e2nia na palma da sua m\u00e3o.";
 
 const FALLBACK_LINKS = [
   {
@@ -67,7 +67,7 @@ const icons = {
   youtube: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8.1a3 3 0 0 0-2.1-2.1C17 5.5 12 5.5 12 5.5s-5 0-6.9.5A3 3 0 0 0 3 8.1 31 31 0 0 0 2.5 12c0 1.3.1 2.6.5 3.9A3 3 0 0 0 5.1 18c1.9.5 6.9.5 6.9.5s5 0 6.9-.5a3 3 0 0 0 2.1-2.1c.4-1.3.5-2.6.5-3.9s-.1-2.6-.5-3.9ZM10.1 15V9l5.2 3-5.2 3Z"/></svg>',
   site: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17Zm6.3 7.5h-2.8a12 12 0 0 0-1.1-4.1 6.6 6.6 0 0 1 3.9 4.1ZM12 5.4c.6.9 1.3 2.7 1.5 5.6h-3c.2-2.9.9-4.7 1.5-5.6ZM5.7 13h2.8c.1 1.6.4 3 .8 4.1A6.6 6.6 0 0 1 5.7 13Zm2.8-2H5.7a6.6 6.6 0 0 1 3.6-4.1c-.4 1.1-.7 2.5-.8 4.1Zm3.5 7.6c-.6-.9-1.3-2.7-1.5-5.6h3c-.2 2.9-.9 4.7-1.5 5.6Zm2.7-1.5c.4-1.1.7-2.5.8-4.1h2.8a6.6 6.6 0 0 1-3.6 4.1Z"/></svg>',
   news: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11.5A2.5 2.5 0 0 1 19 7v10.5h.5a1 1 0 0 0 1-1V8h2v8.5a3 3 0 0 1-3 3H6A3.5 3.5 0 0 1 2.5 16V7A2.5 2.5 0 0 1 5 4.5Zm0 2a.5.5 0 0 0-.5.5v9A1.5 1.5 0 0 0 6 17.5h11V7a.5.5 0 0 0-.5-.5H5Zm1.2 2h8.7v2H6.2v-2Zm0 3.2h8.7v2H6.2v-2Zm0 3.2h5.2v2H6.2v-2Z"/></svg>',
-  app: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2.8h8A2.8 2.8 0 0 1 18.8 5v14A2.8 2.8 0 0 1 16 21.2H8A2.8 2.8 0 0 1 5.2 19V5A2.8 2.8 0 0 1 8 2.8Zm0 2A.8.8 0 0 0 7.2 5v14a.8.8 0 0 0 .8.8h8a.8.8 0 0 0 .8-.8V5a.8.8 0 0 0-.8-.8h-1.1l-.4.7a1 1 0 0 1-.9.5h-3.2a1 1 0 0 1-.9-.5l-.4-.7H8Zm2 11.6h4v1.6h-4v-1.6Zm2-9.1a4.2 4.2 0 0 1 4.2 4.2 4.2 4.2 0 0 1-8.4 0A4.2 4.2 0 0 1 12 7.3Zm0 2a2.2 2.2 0 0 0-2.2 2.2c0 .5.2 1 .5 1.4l3.1-3.1c-.4-.3-.9-.5-1.4-.5Zm1.7 1-3 3c.4.3.8.4 1.3.4a2.2 2.2 0 0 0 2.2-2.2c0-.4-.2-.9-.5-1.2Z"/></svg>'
+  app: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6.3" y="2.8" width="11.4" height="18.4" rx="2.4"/><path d="M10.2 5.7h3.6"/><path d="M9.1 9.2h5.8"/><path d="M9.1 12h4.2"/><path d="M9.1 14.8h5.8"/><circle cx="12" cy="18" r=".45" fill="currentColor" stroke="none"/></svg>'
 };
 
 function isWhatsappGroup(link) {
@@ -159,7 +159,6 @@ function renderLink(link, index) {
 function renderAppLink(link, index) {
   return `
     <a href="${safeUrl(link.url)}" class="links-app-card" data-link-id="${escapeHtml(link.id)}" ${linkAttributes(link.url)} style="--link-delay:${index * 45}ms">
-      <span class="links-app-visual">${icons.app}</span>
       <span class="links-app-copy">
         <span class="links-app-kicker">${escapeHtml(link.label || "Aplicativo")}</span>
         <strong>${escapeHtml(displayTitle(link) || "Baixe o app")}</strong>
