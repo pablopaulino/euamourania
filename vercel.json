@@ -84,6 +84,7 @@
     { "source": "/admin/colaboracoes", "destination": "/admin/index.html" },
     { "source": "/admin/guia", "destination": "/admin/index.html" },
     { "source": "/admin/guia-comercial", "destination": "/admin/index.html" },
+    { "source": "/admin/guia-verificacao", "destination": "/admin/index.html" },
     { "source": "/admin/turismo", "destination": "/admin/index.html" },
     { "source": "/admin/links", "destination": "/admin/index.html" },
     { "source": "/admin/agenda", "destination": "/admin/index.html" },
