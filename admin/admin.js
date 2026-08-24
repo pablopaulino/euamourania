@@ -41,6 +41,11 @@ const moduleRoutes = {
     hint: "Acompanhe cadastros comerciais que precisam ser conferidos periodicamente.",
     module: () => import("./guia-verificacao.js")
   },
+  turismo_verificacao: {
+    label: "Verificação de Turismo",
+    hint: "Acompanhe atrativos que precisam de conferência semestral.",
+    module: () => import("./turismo-verificacao.js")
+  },
   publicidade: {
     label: "Publicidade",
     hint: "Campanhas, posições, mídia e métricas dos anúncios internos do portal.",
@@ -69,6 +74,7 @@ const sidebarIconMap = {
   "Aprovações": "A",
   "Guia comercial": "G",
   "Verificação do Guia": "V",
+  "Verificação de Turismo": "VT",
   "Turismo": "T",
   "Links": "L",
   "Colaborações": "C",
@@ -94,6 +100,7 @@ const sidebarIconSvgMap = {
   "Aprovações": sidebarIconSvg(`<path d="M20 7 10 17l-5-5"/><path d="M4 5.5h9"/><path d="M4 18.5h12"/>`),
   "Guia comercial": sidebarIconSvg(`<path d="M4 10h16"/><path d="M5 10l1-5h12l1 5"/><path d="M6 10v9h12v-9"/><path d="M9 19v-5h6v5"/>`),
   "Verificação do Guia": sidebarIconSvg(`<path d="M20 7 10 17l-5-5"/><path d="M4 5.5h9"/><path d="M4 18.5h12"/>`),
+  "Verificação de Turismo": sidebarIconSvg(`<path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z"/><path d="m9 10.5 2 2 4-5"/><circle cx="12" cy="10" r="6.5"/>`),
   "Turismo": sidebarIconSvg(`<path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/>`),
   "Links": sidebarIconSvg(`<path d="M10 13a5 5 0 0 0 7.1 0l1.4-1.4a5 5 0 0 0-7.1-7.1L10.6 5"/><path d="M14 11a5 5 0 0 0-7.1 0l-1.4 1.4a5 5 0 0 0 7.1 7.1l.8-.8"/>`),
   "Colaborações": sidebarIconSvg(`<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M20.5 8v6"/><path d="M17.5 11h6"/>`),
@@ -118,6 +125,7 @@ const sidebarLabelsByKey = {
   aprovacoes: "Aprovações",
   guia_comercial: "Guia comercial",
   guia_verificacao: "Verificação do Guia",
+  turismo_verificacao: "Verificação de Turismo",
   turismo: "Turismo",
   links: "Links",
   colaboradores_voluntarios: "Colaborações",
@@ -709,6 +717,7 @@ async function dashboard() {
       ["Viva Urânia", `${empresasAtivas} empresas · ${pontosAtivos} atrativos`, `${eventosAtivos} evento(s) simples publicado(s)`, "guia_comercial"],
       ["Publicidade", `${campanhasAtivas} campanhas ativas`, `${campanhasVencendo} vencendo em até 7 dias`, "publicidade"],
       ["Comunicação", `${assinantes} assinantes`, `${colaboradoresNovos} colaborador(es) novo(s)`, "comunicacao"],
+      ["Verificação", "Guia 100d · Turismo 180d", "Rotina de revisão dos cadastros publicados", "turismo_verificacao"],
       ["Melhores", `${melhoresEdicoes} edição(ões)`, `${melhoresIndicados} indicado(s) ativos`, "melhores"]
     ];
     const qualityCards = [

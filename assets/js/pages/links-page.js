@@ -20,6 +20,17 @@ const NEWS_PAGE_LINK = {
   iconType: "news"
 };
 
+const APP_LINK = {
+  id: "app-viva-urania",
+  titulo: "Baixe o app",
+  url: "/app",
+  iconType: "app",
+  featuredApp: true,
+  label: "Viva Ur\u00e2nia",
+  description: "Guia, turismo, favoritos e informa\u00e7\u00f5es da cidade em uma experi\u00eancia pensada para o celular."
+};
+const APP_DEFAULT_DESCRIPTION = "Leve o Viva Ur\u00e2nia no celular e encontre guia, turismo e informa\u00e7\u00f5es da cidade.";
+
 const FALLBACK_LINKS = [
   {
     id: "site-principal",
@@ -29,6 +40,7 @@ const FALLBACK_LINKS = [
   },
   NEWS_PAGE_LINK,
   NEWS_GROUP_LINK,
+  APP_LINK,
   {
     id: "falar-com-equipe",
     titulo: "Falar com a Equipe",
@@ -54,7 +66,8 @@ const icons = {
   facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.4 21v-7.7h2.6l.4-3h-3V8.5c0-.9.3-1.5 1.6-1.5h1.6V4.3c-.8-.1-1.6-.2-2.4-.2-2.4 0-4 1.5-4 4.1v2.1H7.5v3h2.7V21h3.2Z"/></svg>',
   youtube: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8.1a3 3 0 0 0-2.1-2.1C17 5.5 12 5.5 12 5.5s-5 0-6.9.5A3 3 0 0 0 3 8.1 31 31 0 0 0 2.5 12c0 1.3.1 2.6.5 3.9A3 3 0 0 0 5.1 18c1.9.5 6.9.5 6.9.5s5 0 6.9-.5a3 3 0 0 0 2.1-2.1c.4-1.3.5-2.6.5-3.9s-.1-2.6-.5-3.9ZM10.1 15V9l5.2 3-5.2 3Z"/></svg>',
   site: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17Zm6.3 7.5h-2.8a12 12 0 0 0-1.1-4.1 6.6 6.6 0 0 1 3.9 4.1ZM12 5.4c.6.9 1.3 2.7 1.5 5.6h-3c.2-2.9.9-4.7 1.5-5.6ZM5.7 13h2.8c.1 1.6.4 3 .8 4.1A6.6 6.6 0 0 1 5.7 13Zm2.8-2H5.7a6.6 6.6 0 0 1 3.6-4.1c-.4 1.1-.7 2.5-.8 4.1Zm3.5 7.6c-.6-.9-1.3-2.7-1.5-5.6h3c-.2 2.9-.9 4.7-1.5 5.6Zm2.7-1.5c.4-1.1.7-2.5.8-4.1h2.8a6.6 6.6 0 0 1-3.6 4.1Z"/></svg>',
-  news: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11.5A2.5 2.5 0 0 1 19 7v10.5h.5a1 1 0 0 0 1-1V8h2v8.5a3 3 0 0 1-3 3H6A3.5 3.5 0 0 1 2.5 16V7A2.5 2.5 0 0 1 5 4.5Zm0 2a.5.5 0 0 0-.5.5v9A1.5 1.5 0 0 0 6 17.5h11V7a.5.5 0 0 0-.5-.5H5Zm1.2 2h8.7v2H6.2v-2Zm0 3.2h8.7v2H6.2v-2Zm0 3.2h5.2v2H6.2v-2Z"/></svg>'
+  news: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11.5A2.5 2.5 0 0 1 19 7v10.5h.5a1 1 0 0 0 1-1V8h2v8.5a3 3 0 0 1-3 3H6A3.5 3.5 0 0 1 2.5 16V7A2.5 2.5 0 0 1 5 4.5Zm0 2a.5.5 0 0 0-.5.5v9A1.5 1.5 0 0 0 6 17.5h11V7a.5.5 0 0 0-.5-.5H5Zm1.2 2h8.7v2H6.2v-2Zm0 3.2h8.7v2H6.2v-2Zm0 3.2h5.2v2H6.2v-2Z"/></svg>',
+  app: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2.8h8A2.8 2.8 0 0 1 18.8 5v14A2.8 2.8 0 0 1 16 21.2H8A2.8 2.8 0 0 1 5.2 19V5A2.8 2.8 0 0 1 8 2.8Zm0 2A.8.8 0 0 0 7.2 5v14a.8.8 0 0 0 .8.8h8a.8.8 0 0 0 .8-.8V5a.8.8 0 0 0-.8-.8h-1.1l-.4.7a1 1 0 0 1-.9.5h-3.2a1 1 0 0 1-.9-.5l-.4-.7H8Zm2 11.6h4v1.6h-4v-1.6Zm2-9.1a4.2 4.2 0 0 1 4.2 4.2 4.2 4.2 0 0 1-8.4 0A4.2 4.2 0 0 1 12 7.3Zm0 2a2.2 2.2 0 0 0-2.2 2.2c0 .5.2 1 .5 1.4l3.1-3.1c-.4-.3-.9-.5-1.4-.5Zm1.7 1-3 3c.4.3.8.4 1.3.4a2.2 2.2 0 0 0 2.2-2.2c0-.4-.2-.9-.5-1.2Z"/></svg>'
 };
 
 function isWhatsappGroup(link) {
@@ -66,9 +79,34 @@ function isWhatsappGroup(link) {
     || (title.includes("grupo") && (title.includes("whatsapp") || title.includes("noticia") || icon.includes("whatsapp")));
 }
 
+function isAppDownloadLink(link) {
+  const title = normalize(link.titulo);
+  const icon = normalize(link.icone);
+  const url = normalize(link.url);
+  return url === "/app"
+    || url.endsWith("/app")
+    || url.includes("play.google.com")
+    || url.includes("apps.apple.com")
+    || icon.includes("app")
+    || title.includes("baixe o app")
+    || title.includes("baixar app")
+    || title.includes("viva urania");
+}
+
+function isYoutubeLink(link) {
+  const value = `${normalize(link.titulo)} ${normalize(link.icone)} ${normalize(link.url)}`;
+  return value.includes("youtube") || value.includes("youtu.be");
+}
+
+function isInstagramLink(link) {
+  const value = `${normalize(link.titulo)} ${normalize(link.icone)} ${normalize(link.url)}`;
+  return value.includes("instagram");
+}
+
 function iconFor(link) {
   if (link.iconType && icons[link.iconType]) return icons[link.iconType];
   const value = `${normalize(displayTitle(link))} ${normalize(link.titulo)} ${normalize(link.icone)} ${normalize(link.url)}`;
+  if (isAppDownloadLink(link)) return icons.app;
   if (value.includes("whatsapp") || value.includes("wa.me") || value.includes("chat.whatsapp")) return icons.whatsapp;
   if (value.includes("instagram")) return icons.instagram;
   if (value.includes("facebook") || value.includes("fb.")) return icons.facebook;
@@ -106,6 +144,7 @@ function sameDestination(a = "", b = "") {
 
 function renderLink(link, index) {
   if (link.featured || isWhatsappGroup(link)) return renderFeaturedLink(link, index);
+  if (link.featuredApp || isAppDownloadLink(link)) return renderAppLink(link, index);
   return `
     <a href="${safeUrl(link.url)}" class="link-button" data-link-id="${escapeHtml(link.id)}" ${linkAttributes(link.url)} style="--link-delay:${index * 45}ms">
       <span class="link-button-main">
@@ -113,6 +152,20 @@ function renderLink(link, index) {
         <span>${escapeHtml(displayTitle(link))}</span>
       </span>
       <span class="link-button-arrow" aria-hidden="true">→</span>
+    </a>
+  `;
+}
+
+function renderAppLink(link, index) {
+  return `
+    <a href="${safeUrl(link.url)}" class="links-app-card" data-link-id="${escapeHtml(link.id)}" ${linkAttributes(link.url)} style="--link-delay:${index * 45}ms">
+      <span class="links-app-visual">${icons.app}</span>
+      <span class="links-app-copy">
+        <span class="links-app-kicker">${escapeHtml(link.label || "Aplicativo")}</span>
+        <strong>${escapeHtml(displayTitle(link) || "Baixe o app")}</strong>
+        <small>${escapeHtml(link.description || APP_DEFAULT_DESCRIPTION)}</small>
+      </span>
+      <span class="links-app-action">Baixar <span aria-hidden="true">&rarr;</span></span>
     </a>
   `;
 }
@@ -132,11 +185,25 @@ function renderFeaturedLink(link, index) {
   `;
 }
 
-function withNewsGroup(links) {
-  const withoutDuplicate = links.filter(link => !sameDestination(link.url, NEWS_GROUP_LINK.url) && !sameDestination(link.url, NEWS_PAGE_LINK.url));
+function insertAfterPreferredLink(ordered, link) {
+  const youtubeIndex = ordered.findIndex(isYoutubeLink);
+  const instagramIndex = ordered.findIndex(isInstagramLink);
+  const groupIndex = ordered.findIndex(isWhatsappGroup);
+  const insertAfter = youtubeIndex >= 0 ? youtubeIndex : instagramIndex >= 0 ? instagramIndex : groupIndex;
+  ordered.splice(insertAfter >= 0 ? insertAfter + 1 : Math.min(ordered.length, 4), 0, link);
+}
+
+function withFeaturedLinks(links) {
+  const appLink = links.find(isAppDownloadLink);
+  const withoutDuplicate = links.filter(link =>
+    !sameDestination(link.url, NEWS_GROUP_LINK.url)
+    && !sameDestination(link.url, NEWS_PAGE_LINK.url)
+    && !isAppDownloadLink(link)
+  );
   const ordered = [...withoutDuplicate];
   ordered.splice(Math.min(1, ordered.length), 0, NEWS_PAGE_LINK);
   ordered.splice(Math.min(2, ordered.length), 0, NEWS_GROUP_LINK);
+  insertAfterPreferredLink(ordered, { ...(appLink || APP_LINK), featuredApp: true });
   return ordered;
 }
 
@@ -156,7 +223,7 @@ function saveLinksCache(links) {
 }
 
 function renderLinks(links, { fromCache = false } = {}) {
-  const renderedLinks = links.length ? withNewsGroup(links) : FALLBACK_LINKS;
+  const renderedLinks = links.length ? withFeaturedLinks(links) : FALLBACK_LINKS;
   container.innerHTML = renderedLinks.map(renderLink).join("");
   status.hidden = true;
   container.dataset.loaded = fromCache ? "cache" : "fresh";

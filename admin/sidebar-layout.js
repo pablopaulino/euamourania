@@ -1,10 +1,11 @@
-const sidebarAdminRoutes = {
+﻿const sidebarAdminRoutes = {
   dashboard: "/admin",
   noticias: "/admin/noticias",
   aprovacoes: "/admin/aprovacoes",
   colaboradores_voluntarios: "/admin/colaboracoes",
   guia_comercial: "/admin/guia",
   guia_verificacao: "/admin/guia-verificacao",
+  turismo_verificacao: "/admin/turismo-verificacao",
   turismo: "/admin/turismo",
   links: "/admin/links",
   submissoes: "/admin/submissoes",
@@ -41,6 +42,7 @@ const sidebarHashToModule = {
   colaboradores_voluntarios: "colaboradores_voluntarios",
   guia_comercial: "guia_comercial",
   guia_verificacao: "guia_verificacao",
+  turismo_verificacao: "turismo_verificacao",
   turismo: "turismo",
   links: "links",
   eventos: "eventos",
@@ -92,27 +94,28 @@ const sharedSidebarIcons = {
 let sidebarIsRendering = false;
 
 const fullSidebarMenu = [
-  { label: "Visão geral", href: adminPathForModule("dashboard"), icon: "dashboard", module: "dashboard", view: "dashboard" },
-  { label: "Notícias", href: adminPathForModule("noticias"), icon: "news", module: "noticias", view: "noticias" },
-  { label: "Aprovações", href: adminPathForModule("aprovacoes"), icon: "approval", module: "noticias", id: "editorial-approvals-nav" },
-  { label: "Colaborações", href: adminPathForModule("colaboradores_voluntarios"), icon: "users", module: "colaboradores", view: "colaboradores_voluntarios" },
+  { label: "VisÃ£o geral", href: adminPathForModule("dashboard"), icon: "dashboard", module: "dashboard", view: "dashboard" },
+  { label: "NotÃ­cias", href: adminPathForModule("noticias"), icon: "news", module: "noticias", view: "noticias" },
+  { label: "AprovaÃ§Ãµes", href: adminPathForModule("aprovacoes"), icon: "approval", module: "noticias", id: "editorial-approvals-nav" },
+  { label: "ColaboraÃ§Ãµes", href: adminPathForModule("colaboradores_voluntarios"), icon: "users", module: "colaboradores", view: "colaboradores_voluntarios" },
   { label: "Guia comercial", href: adminPathForModule("guia_comercial"), icon: "guide", module: "guia_comercial", view: "guia_comercial" },
-  { label: "Verificação do Guia", href: adminPathForModule("guia_verificacao"), icon: "approval", module: "guia_comercial", view: "guia_verificacao" },
+  { label: "VerificaÃ§Ã£o do Guia", href: adminPathForModule("guia_verificacao"), icon: "approval", module: "guia_comercial", view: "guia_verificacao" },
   { label: "Turismo", href: adminPathForModule("turismo"), icon: "tourism", module: "turismo", view: "turismo" },
+  { label: "Verificação de Turismo", href: adminPathForModule("turismo_verificacao"), icon: "approval", module: "turismo", view: "turismo_verificacao" },
   { label: "Links", href: adminPathForModule("links"), icon: "links", module: "links", view: "links" },
-  { label: "Submissões públicas", href: adminPathForModule("submissoes"), icon: "users", module: "submissoes" },
+  { label: "SubmissÃµes pÃºblicas", href: adminPathForModule("submissoes"), icon: "users", module: "submissoes" },
   { label: "Agenda simples", href: adminPathForModule("eventos"), icon: "events", module: "eventos", view: "eventos" },
   { label: "Eventos principais", href: adminPathForModule("eventos_principais"), icon: "events", module: "eventos", view: "eventos_principais" },
-  { label: "Edições", href: adminPathForModule("eventos_edicoes"), icon: "news", module: "eventos", view: "eventos_edicoes" },
+  { label: "EdiÃ§Ãµes", href: adminPathForModule("eventos_edicoes"), icon: "news", module: "eventos", view: "eventos_edicoes" },
   { label: "Publicidade", href: adminPathForModule("publicidade"), icon: "ads", module: "publicidade" },
-  { label: "Comunicação", href: adminPathForModule("comunicacao"), icon: "mail", module: "comunicacao" },
-  { label: "Notificações do Viva Urânia", href: adminPathForModule("notificacoes"), icon: "bell", module: "notificacoes" },
-  { label: "Melhores de Urânia", href: adminPathForModule("melhores"), icon: "award", module: "melhores" },
+  { label: "ComunicaÃ§Ã£o", href: adminPathForModule("comunicacao"), icon: "mail", module: "comunicacao" },
+  { label: "NotificaÃ§Ãµes do Viva UrÃ¢nia", href: adminPathForModule("notificacoes"), icon: "bell", module: "notificacoes" },
+  { label: "Melhores de UrÃ¢nia", href: adminPathForModule("melhores"), icon: "award", module: "melhores" },
   { label: "Categorias", href: adminPathForModule("categorias"), icon: "tag", module: "categorias", view: "categorias" },
-  { label: "Audiência", href: adminPathForModule("audiencia"), icon: "dashboard", module: "insights", id: "audience-nav" },
-  { label: "Configurações", href: adminPathForModule("configuracoes_site"), icon: "settings", module: "configuracoes", view: "configuracoes_site" },
-  { label: "Usuários administrativos", href: adminPathForModule("usuarios"), icon: "users", module: "usuarios" },
-  { label: "Migrar conteúdo antigo", href: adminPathForModule("importacao"), icon: "upload", module: "importacao" }
+  { label: "AudiÃªncia", href: adminPathForModule("audiencia"), icon: "dashboard", module: "insights", id: "audience-nav" },
+  { label: "ConfiguraÃ§Ãµes", href: adminPathForModule("configuracoes_site"), icon: "settings", module: "configuracoes", view: "configuracoes_site" },
+  { label: "UsuÃ¡rios administrativos", href: adminPathForModule("usuarios"), icon: "users", module: "usuarios" },
+  { label: "Migrar conteÃºdo antigo", href: adminPathForModule("importacao"), icon: "upload", module: "importacao" }
 ];
 
 function currentSidebarTarget() {
@@ -229,7 +232,7 @@ function ensureSidebarShell() {
     toggle.id = "sidebar-toggle";
     toggle.className = "sidebar-toggle";
     toggle.type = "button";
-    toggle.innerHTML = `<span aria-hidden="true">‹</span>`;
+    toggle.innerHTML = `<span aria-hidden="true">â€¹</span>`;
     head.appendChild(toggle);
   }
 
@@ -241,7 +244,7 @@ function ensureSidebarShell() {
     toggle.setAttribute("aria-expanded", String(!collapsed));
     toggle.setAttribute("aria-label", collapsed ? "Expandir menu" : "Recolher menu");
     const icon = toggle.querySelector("span");
-    if (icon) icon.textContent = collapsed ? "›" : "‹";
+    if (icon) icon.textContent = collapsed ? "â€º" : "â€¹";
   };
 
   applyCollapsed(localStorage.getItem("euamourania:admin-sidebar") === "collapsed");

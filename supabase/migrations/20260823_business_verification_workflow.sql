@@ -143,4 +143,4 @@ with check (
 
 comment on table public.business_verification_logs is 'Histórico administrativo de verificação periódica dos cadastros do Guia Comercial.';
 comment on column public.guia_comercial.verification_status is 'Estado administrativo da verificação periódica do cadastro comercial.';
-comment on column public.guia_comercial.next_verification_at is 'Próxima data planejada para conferência do cadastro. Ciclo padrão: 90 dias.';
+comment on column public.guia_comercial.next_verification_at is 'Próxima data planejada para conferência do cadastro. Ciclo padrão: 100 dias.';

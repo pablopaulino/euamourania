@@ -1,16 +1,7 @@
 import { temPermissao } from "./auth.js";
-import {
-  getBusinessDataQuality,
-  matchesBusinessQualityFilter,
-  qualityFieldLabels,
-  qualityFilterLabels,
-  qualityPriorityScore,
-  qualityWarningLabels,
-  summarizeBusinessQuality
-} from "./business-quality.js";
 
-const VERIFICATION_CYCLE_DAYS = 100;
-const DUE_SOON_DAYS = 15;
+const VERIFICATION_CYCLE_DAYS = 180;
+const DUE_SOON_DAYS = 30;
 
 let app = null;
 let db = null;
@@ -21,19 +12,16 @@ let cleanupHandlers = [];
 const state = {
   items: [],
   filtered: [],
-  loading: true,
   message: "",
   filters: {
     search: "",
     status: "all",
     category: "all",
-    due: "all",
     method: "all",
     featured: "all",
-    hours: "all"
+    hours: "all",
+    location: "all"
   },
-  qualityFilter: "all",
-  qualitySearch: "",
   dialog: null
 };
 
@@ -106,19 +94,6 @@ function addDays(date, days) {
   return result;
 }
 
-function formatDate(value) {
-  if (!value) return "—";
-  try {
-    return new Intl.DateTimeFormat("pt-BR", {
-      dateStyle: "short",
-      timeStyle: "short",
-      timeZone: "America/Sao_Paulo"
-    }).format(new Date(value));
-  } catch {
-    return "—";
-  }
-}
-
 function dateOnly(value) {
   if (!value) return "—";
   try {
@@ -132,7 +107,24 @@ function dateOnly(value) {
 }
 
 function hasStructuredHours(item) {
-  return getBusinessDataQuality(item).hasStructuredHours;
+  return Boolean(item.opening_hours && typeof item.opening_hours === "object" && Object.keys(item.opening_hours).length);
+}
+
+function hasLocation(item) {
+  const hasAddress = Boolean(String(item.endereco || "").trim());
+  const latitude = Number(item.latitude);
+  const longitude = Number(item.longitude);
+  const hasCoordinates = Number.isFinite(latitude)
+    && Number.isFinite(longitude)
+    && latitude >= -90
+    && latitude <= 90
+    && longitude >= -180
+    && longitude <= 180;
+  return hasAddress || hasCoordinates || Boolean(String(item.mapa_url || "").trim());
+}
+
+function hasImage(item) {
+  return Boolean(String(item.imagem_url || "").trim());
 }
 
 function deriveVerificationStatus(item) {
@@ -157,41 +149,45 @@ function statusClass(status) {
 }
 
 function isFeatured(item) {
-  return Boolean(item.recomendado || item.destaque || item.destaque_home);
+  return Boolean(item.destaque || item.destaque_home || item.curadoria_euamourania);
 }
 
-function businessPhone(item) {
-  return item.whatsapp || item.telefone || "";
+function tourismPhone(item) {
+  return item.whatsapp || "";
 }
 
 function whatsappUrl(item) {
-  const raw = String(item.whatsapp || item.telefone || "").replace(/\D/g, "");
+  const raw = String(tourismPhone(item)).replace(/\D/g, "");
   if (!raw) return "";
   const phone = raw.startsWith("55") ? raw : `55${raw}`;
-  const message = encodeURIComponent(`Olá! Aqui é da equipe Eu Amo Urânia. Estamos conferindo os dados do Guia Comercial para manter as informações atualizadas. Pode confirmar se nome, endereço, telefone, horário e redes sociais do cadastro continuam corretos?`);
+  const message = encodeURIComponent("Olá! Aqui é da equipe Eu Amo Urânia. Estamos conferindo os dados de Turismo para manter as informações atualizadas. Pode confirmar se nome, endereço, horário, rota e informações do local continuam corretos?");
   return `https://wa.me/${phone}?text=${message}`;
 }
 
 function verificationMessage(item) {
-  return `Olá! Aqui é da equipe Eu Amo Urânia. Estamos conferindo os dados do Guia Comercial para manter as informações atualizadas.\n\nCadastro: ${item.nome || "empresa"}\n\nVocê pode confirmar se nome, endereço, telefone/WhatsApp, horário de funcionamento e redes sociais continuam corretos?`;
+  return `Olá! Aqui é da equipe Eu Amo Urânia. Estamos conferindo os dados de Turismo para manter as informações atualizadas.\n\nCadastro: ${item.nome || "ponto turístico"}\n\nVocê pode confirmar se nome, endereço, horário, rota, contato e descrição continuam corretos?`;
+}
+
+function categories() {
+  return [...new Set(state.items.map(item => item.categoria_nome || item.categoria || "Turismo").filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
 function applyFilters() {
   const search = normalize(state.filters.search);
   state.filtered = state.items.filter(item => {
     const derived = deriveVerificationStatus(item);
-    const haystack = normalize([item.nome, item.categoria_nome, item.endereco, item.whatsapp, item.telefone, item.instagram, item.site].filter(Boolean).join(" "));
+    const category = item.categoria_nome || item.categoria || "Turismo";
+    const haystack = normalize([item.nome, category, item.endereco, item.descricao, item.whatsapp, item.horario].filter(Boolean).join(" "));
     if (search && !haystack.includes(search)) return false;
     if (state.filters.status !== "all" && derived !== state.filters.status) return false;
-    if (state.filters.category !== "all" && item.categoria_nome !== state.filters.category) return false;
+    if (state.filters.category !== "all" && category !== state.filters.category) return false;
     if (state.filters.method !== "all" && item.verification_method !== state.filters.method) return false;
     if (state.filters.featured === "yes" && !isFeatured(item)) return false;
     if (state.filters.featured === "no" && isFeatured(item)) return false;
     if (state.filters.hours === "structured" && !hasStructuredHours(item)) return false;
     if (state.filters.hours === "missing" && hasStructuredHours(item)) return false;
-    if (state.filters.due === "overdue" && derived !== "pending") return false;
-    if (state.filters.due === "soon" && derived !== "due_soon") return false;
-    if (state.filters.due === "ok" && derived !== "verified") return false;
+    if (state.filters.location === "complete" && !hasLocation(item)) return false;
+    if (state.filters.location === "missing" && hasLocation(item)) return false;
     return true;
   }).sort((a, b) => {
     const order = { pending: 0, due_soon: 1, awaiting_contact: 2, needs_update: 3, inactive_suspected: 4, verified: 5, archived: 6 };
@@ -202,142 +198,35 @@ function applyFilters() {
   });
 }
 
-function categories() {
-  return [...new Set(state.items.map(item => item.categoria_nome).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
-}
-
 function metrics() {
   const active = state.items.filter(item => deriveVerificationStatus(item) !== "archived");
   return {
     pending: active.filter(item => deriveVerificationStatus(item) === "pending").length,
     dueSoon: active.filter(item => deriveVerificationStatus(item) === "due_soon").length,
-    awaiting: active.filter(item => deriveVerificationStatus(item) === "awaiting_contact").length,
-    missingHours: active.filter(item => !hasStructuredHours(item)).length
+    missingLocation: active.filter(item => !hasLocation(item)).length,
+    missingImage: active.filter(item => !hasImage(item)).length
   };
-}
-
-function qualityItems() {
-  const search = normalize(state.qualitySearch);
-  return state.items
-    .filter(item => deriveVerificationStatus(item) !== "archived")
-    .filter(item => matchesBusinessQualityFilter(item, state.qualityFilter))
-    .filter(item => {
-      if (!search) return true;
-      const haystack = normalize([item.nome, item.categoria_nome, item.endereco, item.whatsapp, item.telefone, item.instagram, item.site].filter(Boolean).join(" "));
-      return haystack.includes(search);
-    })
-    .map(item => ({ item, quality: getBusinessDataQuality(item), verificationStatus: deriveVerificationStatus(item) }))
-    .sort((a, b) => {
-      const priorityDiff = qualityPriorityScore(b.item, b.quality) - qualityPriorityScore(a.item, a.quality);
-      if (priorityDiff) return priorityDiff;
-      if (a.quality.score !== b.quality.score) return a.quality.score - b.quality.score;
-      return String(a.item.nome || "").localeCompare(String(b.item.nome || ""), "pt-BR");
-    });
 }
 
 function renderMetric(label, value, hint) {
   return `<div class="verification-metric"><span>${escapeHtml(label)}</span><strong>${value}</strong><small>${escapeHtml(hint)}</small></div>`;
 }
 
-function scoreClass(score) {
-  if (score >= 85) return "success";
-  if (score >= 70) return "warning";
-  return "danger";
-}
-
-function renderQualityFilterButton(filter, value) {
-  const selected = state.qualityFilter === filter;
-  return `
-    <button type="button" class="quality-filter-card ${selected ? "active" : ""}" data-quality-filter="${escapeHtml(filter)}">
-      <span>${escapeHtml(qualityFilterLabels[filter] || filter)}</span>
-      <strong>${value}</strong>
-    </button>`;
-}
-
-function renderQualityTags(quality) {
-  const missing = quality.missingFields
-    .filter(field => field !== "contact")
-    .map(field => qualityFieldLabels[field] || field);
-  const warnings = quality.warnings.map(warning => qualityWarningLabels[warning] || warning);
-  const tags = [...missing, ...warnings].slice(0, 6);
-  if (!tags.length) return `<span class="verification-pill success">Cadastro completo</span>`;
-  return tags.map(label => `<span class="verification-pill ${label.includes("incompleto") || label.includes("apenas") ? "warning" : "danger"}">${escapeHtml(label)}</span>`).join("");
-}
-
-function renderQualityRow({ item, quality, verificationStatus }) {
-  const combinedAlert = verificationStatus !== "verified" && quality.score < 85
-    ? `<span class="verification-pill warning">Revisão + qualidade</span>`
-    : "";
-  return `
-    <tr>
-      <td class="verification-business">
-        <strong>${escapeHtml(item.nome || "Sem nome")}</strong>
-        <small>${escapeHtml(item.categoria_nome || "Sem categoria")} · ${escapeHtml(item.status || "sem status")}</small>
-        <div class="verification-tags">${combinedAlert}${renderQualityTags(quality)}</div>
-      </td>
-      <td><span class="quality-score ${scoreClass(quality.score)}">${quality.score}</span></td>
-      <td>
-        <strong>${quality.hasStructuredHours ? "Sim" : "Não"}</strong>
-        <small>${quality.hasCompleteStructuredHours ? "Semana completa" : quality.hasStructuredHours ? "Precisa conferir dias" : "Sem horário estruturado"}</small>
-      </td>
-      <td><span class="verification-pill ${statusClass(verificationStatus)}">${escapeHtml(statusLabels[verificationStatus] || verificationStatus)}</span></td>
-      <td class="verification-row-actions">
-        <button type="button" class="primary" data-action="edit-business" data-id="${item.id}">Editar cadastro</button>
-        <button type="button" data-action="needs-update" data-id="${item.id}">Marcar para revisão</button>
-      </td>
-    </tr>`;
-}
-
-function renderQualityPanel() {
-  const summary = summarizeBusinessQuality(state.items);
-  const rows = qualityItems();
-  return `
-    <section class="verification-panel quality-panel">
-      <header class="verification-panel-header">
-        <div>
-          <p class="verification-section-eyebrow">Qualidade dos cadastros</p>
-          <h2>${summary.averageScore}% de completude média</h2>
-          <p>Diagnóstico não bloqueante: organiza o que está faltando sem impedir publicação nem substituir a verificação periódica.</p>
-        </div>
-        <button class="admin-button secondary" type="button" data-action="open-guide">Abrir Guia Comercial</button>
-      </header>
-      <div class="quality-filter-grid">
-        ${renderQualityFilterButton("all", summary.total)}
-        ${renderQualityFilterButton("missing_hours", summary.missingHours)}
-        ${renderQualityFilterButton("missing_address", summary.missingAddress)}
-        ${renderQualityFilterButton("missing_whatsapp", summary.missingWhatsapp)}
-        ${renderQualityFilterButton("missing_image", summary.missingImage)}
-        ${renderQualityFilterButton("missing_category", summary.missingCategory)}
-        ${renderQualityFilterButton("missing_description", summary.missingDescription)}
-        ${renderQualityFilterButton("missing_location", summary.missingLocation)}
-        ${renderQualityFilterButton("low_score", summary.lowScore)}
-        ${renderQualityFilterButton("complete", summary.complete)}
-      </div>
-      <div class="verification-filters quality-search">
-        <input data-quality-search value="${escapeHtml(state.qualitySearch)}" placeholder="Buscar empresa dentro do diagnóstico">
-      </div>
-      <div class="verification-table-wrap">
-        <table class="verification-table">
-          <thead><tr><th>Cadastro</th><th>Score</th><th>Horários</th><th>Verificação</th><th>Ações</th></tr></thead>
-          <tbody>${rows.length ? rows.map(renderQualityRow).join("") : `<tr><td colspan="5" class="verification-empty">Nenhum cadastro encontrado neste filtro de qualidade.</td></tr>`}</tbody>
-        </table>
-      </div>
-    </section>`;
-}
-
-function renderBusinessRow(item) {
+function renderTourismRow(item) {
   const derived = deriveVerificationStatus(item);
+  const category = item.categoria_nome || item.categoria || "Turismo";
   const tags = [
-    isFeatured(item) ? `<span class="verification-pill warning">★ Destaque</span>` : "",
-    hasStructuredHours(item) ? `<span class="verification-pill success">Horário estruturado</span>` : `<span class="verification-pill danger">Sem horário do app</span>`,
-    businessPhone(item) ? "" : `<span class="verification-pill danger">Sem contato direto</span>`
+    isFeatured(item) ? `<span class="verification-pill warning">★ Destaque/curadoria</span>` : "",
+    hasStructuredHours(item) ? `<span class="verification-pill success">Horário estruturado</span>` : `<span class="verification-pill warning">Horário simples</span>`,
+    hasLocation(item) ? `<span class="verification-pill success">Localização</span>` : `<span class="verification-pill danger">Sem localização</span>`,
+    hasImage(item) ? "" : `<span class="verification-pill danger">Sem imagem</span>`
   ].filter(Boolean).join("");
   const wa = whatsappUrl(item);
   return `
     <tr>
       <td class="verification-business">
         <strong>${escapeHtml(item.nome || "Sem nome")}</strong>
-        <small>${escapeHtml(item.categoria_nome || "Sem categoria")} · ${escapeHtml(item.endereco || "Endereço não informado")}</small>
+        <small>${escapeHtml(category)} · ${escapeHtml(item.endereco || "Endereço não informado")}</small>
         <div class="verification-tags">${tags}</div>
       </td>
       <td><span class="verification-pill ${statusClass(derived)}">${escapeHtml(statusLabels[derived] || derived)}</span></td>
@@ -359,7 +248,7 @@ function renderBusinessRow(item) {
         ${derived === "archived"
           ? `<button type="button" data-action="restore" data-id="${item.id}">Restaurar</button>`
           : `<button type="button" class="danger" data-open-dialog="archive" data-id="${item.id}">Arquivar</button>`}
-        <button type="button" data-action="open-guide">Ver cadastro</button>
+        <button type="button" data-action="edit-tourism" data-id="${item.id}">Ver cadastro</button>
       </td>
     </tr>`;
 }
@@ -373,13 +262,13 @@ function renderDialog() {
     return `
       <div class="verification-dialog-backdrop" data-dialog-backdrop>
         <form class="verification-dialog" data-dialog-form="verified">
-          <h3>Marcar como verificado</h3>
+          <h3>Marcar Turismo como verificado</h3>
           <p>${escapeHtml(item.nome)} terá nova verificação programada para ${VERIFICATION_CYCLE_DAYS} dias.</p>
           <label>Método
             <select name="method" required>${Object.entries(methodLabels).map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}</select>
           </label>
           <label>Observações internas
-            <textarea name="notes" rows="4" placeholder="Ex.: confirmado pelo WhatsApp, endereço e horários revisados."></textarea>
+            <textarea name="notes" rows="4" placeholder="Ex.: horário, endereço, rota e descrição conferidos."></textarea>
           </label>
           <label class="checkline"><input type="checkbox" name="confirmed" value="yes" required> Os principais dados foram conferidos.</label>
           <div class="verification-dialog-actions">
@@ -414,10 +303,10 @@ function renderDialog() {
   return `
     <div class="verification-dialog-backdrop" data-dialog-backdrop>
       <form class="verification-dialog" data-dialog-form="archive">
-        <h3>Arquivar cadastro</h3>
+        <h3>Arquivar Turismo</h3>
         <p>O cadastro deixa de aparecer publicamente, mas os dados e o histórico permanecem preservados.</p>
         <label>Motivo do arquivamento
-          <textarea name="reason" rows="4" required placeholder="Ex.: empresa sem atividade confirmada, pedido do responsável, duplicado..."></textarea>
+          <textarea name="reason" rows="4" required placeholder="Ex.: local desativado, duplicado, informação inválida..."></textarea>
         </label>
         <div class="verification-dialog-actions">
           <button type="button" class="admin-button secondary" data-close-dialog>Cancelar</button>
@@ -437,33 +326,33 @@ function render() {
       ${state.message ? `<div class="submissions-toast">${escapeHtml(state.message)}</div>` : ""}
       <div class="verification-hero">
         <div>
-          <p class="verification-eyebrow">Guia Comercial</p>
-          <h2>Verificação periódica de cadastros</h2>
-          <p>Ciclo padrão de ${VERIFICATION_CYCLE_DAYS} dias. A tela organiza vencidos, próximos vencimentos, tentativas de contato e cadastros que precisam de atualização.</p>
+          <p class="verification-eyebrow">Turismo</p>
+          <h2>Verificação periódica dos atrativos</h2>
+          <p>Ciclo padrão de ${VERIFICATION_CYCLE_DAYS} dias. Turismo muda menos que comércio, então o foco é conferir rota, imagem, horário, descrição e se o local continua ativo.</p>
         </div>
         <div class="verification-actions">
           <button class="admin-button secondary" type="button" data-refresh>Atualizar</button>
-          <button class="admin-button" type="button" data-action="open-guide">Abrir Guia Comercial</button>
+          <button class="admin-button" type="button" data-action="open-tourism">Abrir Turismo</button>
         </div>
       </div>
 
       <div class="verification-metrics">
         ${renderMetric("Pendentes", count.pending, "Vencidos ou nunca verificados")}
         ${renderMetric("Vence em breve", count.dueSoon, `${DUE_SOON_DAYS} dias`)}
-        ${renderMetric("Aguardando", count.awaiting, "Contato sem retorno")}
-        ${renderMetric("Sem horário app", count.missingHours, "Prioridade de qualidade")}
+        ${renderMetric("Sem localização", count.missingLocation, "Endereço, mapa ou coordenadas")}
+        ${renderMetric("Sem imagem", count.missingImage, "Impacta app e site")}
       </div>
 
       <section class="verification-panel">
         <header class="verification-panel-header">
           <div>
-            <p class="verification-section-eyebrow">Revisão de cadastros</p>
+            <p class="verification-section-eyebrow">Revisão de atrativos</p>
             <h2>${state.filtered.length} cadastro(s)</h2>
-            <p>Use os filtros para priorizar contatos, revisão de horários e cadastros comerciais em destaque.</p>
+            <p>Use os filtros para priorizar pontos turísticos com informação antiga, rota ausente, imagem faltando ou sinais de inatividade.</p>
           </div>
         </header>
         <div class="verification-filters">
-          <input data-filter="search" value="${escapeHtml(state.filters.search)}" placeholder="Buscar por nome, categoria, contato ou endereço">
+          <input data-filter="search" value="${escapeHtml(state.filters.search)}" placeholder="Buscar por nome, categoria, descrição ou endereço">
           <select data-filter="status">
             <option value="all">Todos os status</option>
             ${Object.entries(statusLabels).map(([value, label]) => `<option value="${value}" ${state.filters.status === value ? "selected" : ""}>${label}</option>`).join("")}
@@ -477,33 +366,36 @@ function render() {
             ${Object.entries(methodLabels).map(([value, label]) => `<option value="${value}" ${state.filters.method === value ? "selected" : ""}>${label}</option>`).join("")}
           </select>
           <select data-filter="featured">
-            <option value="all">Destaque: todos</option>
-            <option value="yes" ${state.filters.featured === "yes" ? "selected" : ""}>Somente destaque</option>
-            <option value="no" ${state.filters.featured === "no" ? "selected" : ""}>Sem destaque</option>
+            <option value="all">Destaque/curadoria: todos</option>
+            <option value="yes" ${state.filters.featured === "yes" ? "selected" : ""}>Somente destaque/curadoria</option>
+            <option value="no" ${state.filters.featured === "no" ? "selected" : ""}>Sem destaque/curadoria</option>
           </select>
           <select data-filter="hours">
             <option value="all">Horários: todos</option>
             <option value="structured" ${state.filters.hours === "structured" ? "selected" : ""}>Com horário do app</option>
             <option value="missing" ${state.filters.hours === "missing" ? "selected" : ""}>Sem horário do app</option>
           </select>
+          <select data-filter="location">
+            <option value="all">Localização: todos</option>
+            <option value="complete" ${state.filters.location === "complete" ? "selected" : ""}>Com localização</option>
+            <option value="missing" ${state.filters.location === "missing" ? "selected" : ""}>Sem localização</option>
+          </select>
         </div>
         <div class="verification-table-wrap">
           <table class="verification-table">
             <thead><tr><th>Cadastro</th><th>Status</th><th>Próxima revisão</th><th>Método</th><th>Ações</th></tr></thead>
-            <tbody>${state.filtered.length ? state.filtered.map(renderBusinessRow).join("") : `<tr><td colspan="5" class="verification-empty">Nenhum cadastro encontrado com estes filtros.</td></tr>`}</tbody>
+            <tbody>${state.filtered.length ? state.filtered.map(renderTourismRow).join("") : `<tr><td colspan="5" class="verification-empty">Nenhum cadastro encontrado com estes filtros.</td></tr>`}</tbody>
           </table>
         </div>
       </section>
-      ${renderQualityPanel()}
     </section>
     ${renderDialog()}`;
 }
 
 async function loadItems() {
-  state.loading = true;
-  app.innerHTML = `<section class="verification-shell loading">Carregando verificação do Guia…</section>`;
+  app.innerHTML = `<section class="verification-shell loading">Carregando verificação de Turismo…</section>`;
   const { data, error } = await db
-    .from("guia_comercial")
+    .from("turismo")
     .select("*")
     .order("nome", { ascending: true });
   if (error) throw error;
@@ -511,10 +403,10 @@ async function loadItems() {
   render();
 }
 
-async function writeLog(businessId, action, payload = {}) {
+async function writeLog(tourismId, action, payload = {}) {
   const actorId = context.access?.user?.id || context.access?.admin?.id || null;
-  const { error } = await db.from("business_verification_logs").insert({
-    business_id: businessId,
+  const { error } = await db.from("tourism_verification_logs").insert({
+    tourism_id: tourismId,
     actor_id: actorId,
     action,
     method: payload.method || null,
@@ -523,7 +415,7 @@ async function writeLog(businessId, action, payload = {}) {
     metadata: payload.metadata || {}
   });
   if (error) {
-    console.warn("Histórico de verificação não registrado.", {
+    console.warn("Histórico de verificação de Turismo não registrado.", {
       code: error.code,
       message: error.message
     });
@@ -532,17 +424,17 @@ async function writeLog(businessId, action, payload = {}) {
   return { ok: true };
 }
 
-async function updateBusiness(id, values, logAction, logPayload = {}) {
-  const { error } = await db.from("guia_comercial").update(values).eq("id", id);
+async function updateTourism(id, values, logAction, logPayload = {}) {
+  const { error } = await db.from("turismo").update(values).eq("id", id);
   if (error) {
     if (error.code === "42703" || String(error.message || "").includes("verification_status")) {
-      throw new Error("A migration de Verificação do Guia ainda não parece estar aplicada no Supabase. Rode a migration 20260823_business_verification_workflow.sql antes de revisar cadastros.");
+      throw new Error("A migration de Verificação de Turismo ainda não parece estar aplicada no Supabase. Rode a migration 20260823_tourism_verification_workflow.sql antes de revisar atrativos.");
     }
     throw error;
   }
   const log = await writeLog(id, logAction, logPayload);
   state.message = log.ok
-    ? "Cadastro atualizado."
+    ? "Cadastro de Turismo atualizado."
     : "Cadastro atualizado. O histórico de verificação não foi registrado; confira se a migration e as permissões do log estão aplicadas.";
   await loadItems();
 }
@@ -558,7 +450,7 @@ async function handleVerifiedSubmit(form) {
   const method = form.get("method");
   const notes = String(form.get("notes") || "").trim();
   state.dialog = null;
-  await updateBusiness(item.id, {
+  await updateTourism(item.id, {
     verification_status: "verified",
     last_verified_at: now.toISOString(),
     next_verification_at: addDays(now, VERIFICATION_CYCLE_DAYS).toISOString(),
@@ -576,7 +468,7 @@ async function handleContactSubmit(form) {
   const notes = String(form.get("notes") || "").trim();
   const verificationStatus = result === "no_response" ? "awaiting_contact" : result === "data_changed" ? "needs_update" : result === "inactive_signal" ? "inactive_suspected" : item.verification_status || "pending";
   state.dialog = null;
-  await updateBusiness(item.id, {
+  await updateTourism(item.id, {
     verification_status: verificationStatus,
     verification_method: method,
     verification_notes: notes || item.verification_notes || null,
@@ -590,7 +482,7 @@ async function handleArchiveSubmit(form) {
   if (!item) return;
   const reason = String(form.get("reason") || "").trim();
   state.dialog = null;
-  await updateBusiness(item.id, {
+  await updateTourism(item.id, {
     status: "arquivado",
     verification_status: "archived",
     archived_at: new Date().toISOString(),
@@ -606,20 +498,24 @@ async function quickAction(action, item) {
     render();
     return;
   }
-  if (action === "open-guide") {
-    context.navigate?.("guia_comercial");
+  if (action === "open-tourism") {
+    context.navigate?.("turismo");
+    return;
+  }
+  if (action === "edit-tourism") {
+    context.editResource?.("turismo", item.id) || context.navigate?.("turismo");
     return;
   }
   if (action === "needs-update") {
-    await updateBusiness(item.id, { verification_status: "needs_update" }, "needs_update", { notes: "Marcado pela equipe para atualização." });
+    await updateTourism(item.id, { verification_status: "needs_update" }, "needs_update", { notes: "Marcado pela equipe para atualização." });
     return;
   }
   if (action === "inactive") {
-    await updateBusiness(item.id, { verification_status: "inactive_suspected" }, "inactive_suspected", { notes: "Marcado pela equipe como possível inativo." });
+    await updateTourism(item.id, { verification_status: "inactive_suspected" }, "inactive_suspected", { notes: "Marcado pela equipe como possível inativo." });
     return;
   }
   if (action === "restore") {
-    await updateBusiness(item.id, {
+    await updateTourism(item.id, {
       status: "publicado",
       verification_status: "pending",
       archived_at: null,
@@ -631,12 +527,6 @@ async function quickAction(action, item) {
 
 function bindEvents() {
   app.addEventListener("input", event => {
-    const qualitySearch = event.target.closest("[data-quality-search]");
-    if (qualitySearch) {
-      state.qualitySearch = qualitySearch.value;
-      render();
-      return;
-    }
     const field = event.target.closest("[data-filter]");
     if (!field) return;
     state.filters[field.dataset.filter] = field.value;
@@ -654,11 +544,6 @@ function bindEvents() {
     const button = event.target.closest("button,[data-action]");
     if (!button) return;
     if (button.dataset.refresh !== undefined) return loadItems();
-    if (button.dataset.qualityFilter) {
-      state.qualityFilter = button.dataset.qualityFilter;
-      render();
-      return;
-    }
     if (button.dataset.closeDialog !== undefined || event.target.dataset.dialogBackdrop !== undefined) {
       state.dialog = null;
       render();
@@ -671,8 +556,7 @@ function bindEvents() {
     }
     if (button.dataset.action) {
       const item = state.items.find(row => row.id === button.dataset.id);
-      if (button.dataset.action === "open-guide") return context.navigate?.("guia_comercial");
-      if (button.dataset.action === "edit-business") return context.editResource?.("guia_comercial", button.dataset.id) || context.navigate?.("guia_comercial");
+      if (button.dataset.action === "open-tourism") return context.navigate?.("turismo");
       if (!item) return;
       try {
         await quickAction(button.dataset.action, item);
@@ -705,17 +589,23 @@ export async function mount(container, options = {}) {
   context = options;
   cleanupHandlers = [];
   ensureModuleStyle();
-  options.setTitle?.("Verificação do Guia", "Conferência periódica dos cadastros comerciais.");
-  container.innerHTML = `<section id="business-verification-app" class="verification-shell loading">Carregando…</section>`;
-  app = container.querySelector("#business-verification-app");
+  options.setTitle?.("Verificação de Turismo", "Conferência semestral dos atrativos e experiências.");
+  container.innerHTML = `<section id="tourism-verification-app" class="verification-shell loading">Carregando…</section>`;
+  app = container.querySelector("#tourism-verification-app");
   state.items = [];
   state.filtered = [];
   state.message = "";
   state.dialog = null;
-  state.qualitySearch = "";
-  state.qualityFilter = sessionStorage.getItem("euamourania:guide-quality-filter") || "all";
-  sessionStorage.removeItem("euamourania:guide-quality-filter");
-  if (!temPermissao(options.access?.admin, "guia_comercial", "ler")) {
+  Object.assign(state.filters, {
+    search: "",
+    status: "all",
+    category: "all",
+    method: "all",
+    featured: "all",
+    hours: "all",
+    location: "all"
+  });
+  if (!temPermissao(options.access?.admin, "turismo", "ler")) {
     app.innerHTML = `<section class="verification-panel"><div class="verification-empty">Você não tem permissão para acessar esta área.</div></section>`;
     return;
   }
@@ -726,9 +616,9 @@ export async function mount(container, options = {}) {
     app.innerHTML = `
       <section class="verification-panel">
         <div class="verification-empty">
-          <h2>Não foi possível carregar a verificação.</h2>
+          <h2>Não foi possível carregar a verificação de Turismo.</h2>
           <p>${escapeHtml(error.message || "Erro inesperado.")}</p>
-          <p>Se a migration ainda não foi executada, rode primeiro <code>supabase/migrations/20260823_business_verification_workflow.sql</code>.</p>
+          <p>Se a migration ainda não foi executada, rode primeiro <code>supabase/migrations/20260823_tourism_verification_workflow.sql</code>.</p>
           <button class="admin-button" type="button" data-refresh>Tentar novamente</button>
         </div>
       </section>`;
