@@ -79,7 +79,7 @@ html{scroll-behavior:smooth}
 .viva-hero{
   position:relative;
   display:grid;
-  grid-template-columns:minmax(0,1.08fr) minmax(300px,390px);
+  grid-template-columns:minmax(0,1.18fr) minmax(260px,330px);
   gap:clamp(1.8rem,5vw,4rem);
   width:min(1180px,calc(100% - 32px));
   margin:0 auto;
@@ -163,23 +163,23 @@ html{scroll-behavior:smooth}
 .viva-phone{
   position:relative;
   justify-self:center;
-  width:min(100%,350px);
+  width:min(100%,310px);
 }
 .viva-phone:before{
   content:"";
   position:absolute;
-  inset:8% -12% -7% 12%;
+  inset:10% -10% -10% 12%;
   background:linear-gradient(135deg,rgba(255,27,23,.22),rgba(255,138,0,.22));
   border-radius:42px;
   transform:rotate(4deg);
 }
 .viva-phone-shell{
   position:relative;
-  min-height:610px;
+  min-height:auto;
   padding:1rem;
   background:rgba(255,253,248,.9);
   border:1px solid rgba(255,255,255,.8);
-  border-radius:38px;
+  border-radius:30px;
   box-shadow:var(--viva-shadow);
   overflow:hidden;
 }
@@ -189,6 +189,7 @@ html{scroll-behavior:smooth}
   justify-content:space-between;
 }
 .viva-phone-status{
+  display:none;
   margin-bottom:1.4rem;
   color:#172f37;
   font-size:.8rem;
@@ -197,7 +198,7 @@ html{scroll-behavior:smooth}
 .viva-app-head{
   position:relative;
   gap:1rem;
-  margin-bottom:1.15rem;
+  margin-bottom:.9rem;
 }
 .viva-app-head small{
   display:block;
@@ -207,16 +208,16 @@ html{scroll-behavior:smooth}
 }
 .viva-app-head strong{
   display:block;
-  max-width:260px;
+  max-width:210px;
   color:var(--viva-ink);
-  font-size:1.78rem;
+  font-size:1.45rem;
   line-height:.98;
   letter-spacing:-.07em;
 }
 .viva-avatar{
   display:grid;
-  width:46px;
-  height:46px;
+  width:42px;
+  height:42px;
   place-items:center;
   color:#0b5f70;
   background:#eef9f9;
@@ -228,12 +229,18 @@ html{scroll-behavior:smooth}
   grid-template-columns:44px minmax(0,1fr);
   gap:.75rem;
   align-items:center;
-  margin-bottom:1.25rem;
+  margin-bottom:0;
   padding:.68rem;
   background:#fff;
   border:1px solid var(--viva-line);
   border-radius:28px;
   box-shadow:0 14px 32px rgba(7,59,76,.08);
+}
+.viva-section-title,
+.viva-card-row,
+.viva-moment,
+.viva-tabbar{
+  display:none;
 }
 .viva-search>span{
   display:grid;
@@ -567,7 +574,7 @@ html{scroll-behavior:smooth}
 
 @media(max-width:980px){
   .viva-hero,.viva-download{grid-template-columns:1fr}
-  .viva-phone{width:min(100%,390px)}
+  .viva-phone{width:min(100%,330px)}
   .viva-feature-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:720px){
@@ -586,11 +593,11 @@ html{scroll-behavior:smooth}
   .viva-actions,.viva-store-row{flex-direction:column}
   .viva-button,.viva-store{width:100%}
   .viva-phone-shell{
-    min-height:560px;
+    min-height:auto;
     padding:1rem;
-    border-radius:34px;
+    border-radius:28px;
   }
-  .viva-app-head strong{font-size:1.75rem}
+  .viva-app-head strong{font-size:1.38rem}
   .viva-card-row{width:calc(100% + 4.2rem)}
   .viva-company-image{min-height:118px}
   .viva-company-card{flex-basis:74%}
