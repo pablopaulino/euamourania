@@ -29,9 +29,16 @@ html{scroll-behavior:smooth}
   align-items:center;
   justify-content:space-between;
   gap:1rem;
-  width:min(1180px,calc(100% - 32px));
-  margin:0 auto;
-  padding:1rem 0;
+  width:100%;
+  box-sizing:border-box;
+  margin:0;
+  padding:1rem max(16px,calc((100vw - 1180px)/2));
+  background:
+    linear-gradient(90deg,rgba(255,247,238,.96),rgba(255,255,255,.9) 42%,rgba(255,241,222,.94)),
+    radial-gradient(circle at 8% 50%,rgba(255,27,23,.1),transparent 18rem),
+    radial-gradient(circle at 92% 50%,rgba(255,138,0,.13),transparent 18rem);
+  border-bottom:1px solid rgba(7,59,76,.08);
+  box-shadow:0 14px 36px rgba(7,59,76,.06);
   backdrop-filter:blur(16px);
 }
 .viva-brand{
@@ -552,8 +559,7 @@ html{scroll-behavior:smooth}
 }
 @media(max-width:720px){
   .viva-header{
-    width:min(100% - 24px,1180px);
-    padding:.8rem 0;
+    padding:.8rem 12px;
   }
   .viva-nav a:not(:last-child){display:none}
   .viva-nav a{padding:.6rem .75rem;font-size:.8rem}
