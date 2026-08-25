@@ -78,6 +78,13 @@ function categoryName(id) {
   return state.categories.find(item => item.id === id)?.name || "Sem categoria";
 }
 
+function sortContacts(a, b) {
+  return Number(b.is_featured) - Number(a.is_featured)
+    || Number(Boolean(a.is_emergency)) - Number(Boolean(b.is_emergency))
+    || a.sort_order - b.sort_order
+    || a.name.localeCompare(b.name, "pt-BR");
+}
+
 function filteredContacts() {
   const query = normalize(state.search);
   return state.contacts
@@ -91,7 +98,7 @@ function filteredContacts() {
       if (!query) return true;
       return normalize(`${contact.name} ${contact.phone} ${contact.description ?? ""} ${categoryName(contact.category_id)}`).includes(query);
     })
-    .sort((a, b) => Number(b.is_emergency) - Number(a.is_emergency) || Number(b.is_featured) - Number(a.is_featured) || a.sort_order - b.sort_order || a.name.localeCompare(b.name, "pt-BR"));
+    .sort(sortContacts);
 }
 
 function renderCategoryOptions(selectedId = "") {
@@ -187,16 +194,31 @@ function renderContactForm() {
 function renderCategoryForm() {
   if (!state.categoryForm) return "";
   const category = state.categoryForm === "new" ? {} : state.categories.find(item => item.id === state.categoryForm) || {};
+  const icon = category.icon || "call-outline";
   return `
     <form class="useful-category-form" data-category-form>
       <input type="hidden" name="id" value="${escapeHtml(category.id || "")}">
-      <label>Categoria<input name="name" required value="${escapeHtml(category.name || "")}"></label>
-      <label>Slug<input name="slug" value="${escapeHtml(category.slug || "")}"></label>
-      <label>Ícone Ionicons<input name="icon" placeholder="call-outline" value="${escapeHtml(category.icon || "")}"></label>
-      <label>Ordem<input name="sort_order" type="number" value="${escapeHtml(category.sort_order ?? 100)}"></label>
-      <label class="useful-inline"><input type="checkbox" name="is_active" ${category.id ? category.is_active ? "checked" : "" : "checked"}> Ativa</label>
-      <button class="admin-button" type="submit">Salvar categoria</button>
-      <button class="admin-button secondary" type="button" data-close-category-form>Cancelar</button>
+      <div class="useful-category-editor-head">
+        <span class="useful-category-preview" aria-hidden="true">${escapeHtml(icon)}</span>
+        <div>
+          <p class="eyebrow">${category.id ? "Editando categoria" : "Nova categoria"}</p>
+          <h4>${category.id ? escapeHtml(category.name) : "Grupo de contatos"}</h4>
+          <small>Organize como os telefones aparecem no app.</small>
+        </div>
+      </div>
+      <div class="useful-category-grid">
+        <label>Categoria<input name="name" required value="${escapeHtml(category.name || "")}"></label>
+        <label>Slug<input name="slug" value="${escapeHtml(category.slug || "")}"></label>
+        <label>Ícone Ionicons<input name="icon" placeholder="call-outline" value="${escapeHtml(category.icon || "")}"></label>
+        <label>Ordem<input name="sort_order" type="number" value="${escapeHtml(category.sort_order ?? 100)}"></label>
+      </div>
+      <div class="useful-category-footer">
+        <label class="useful-inline"><input type="checkbox" name="is_active" ${category.id ? category.is_active ? "checked" : "" : "checked"}> Categoria ativa</label>
+        <div>
+          <button class="admin-button secondary" type="button" data-close-category-form>Cancelar</button>
+          <button class="admin-button" type="submit">Salvar categoria</button>
+        </div>
+      </div>
     </form>`;
 }
 
@@ -249,7 +271,17 @@ function render() {
             <header><h3>Categorias</h3><button class="admin-button secondary" type="button" data-new-category>Nova</button></header>
             ${renderCategoryForm()}
             <div class="useful-category-list">
-              ${state.categories.map(category => `<button type="button" data-edit-category="${escapeHtml(category.id)}"><span>${escapeHtml(category.name)}</span><small>${category.is_active ? "Ativa" : "Oculta"}</small></button>`).join("")}
+              ${state.categories.map(category => `
+                <button type="button" data-edit-category="${escapeHtml(category.id)}">
+                  <span class="useful-category-list-main">
+                    <span class="useful-category-list-icon">${escapeHtml(category.icon || "call-outline")}</span>
+                    <span>
+                      <strong>${escapeHtml(category.name)}</strong>
+                      <small>Ordem ${escapeHtml(category.sort_order ?? 100)} · ${category.is_active ? "Ativa" : "Oculta"}</small>
+                    </span>
+                  </span>
+                  <span class="useful-category-edit">Editar</span>
+                </button>`).join("")}
             </div>
           </section>
           <section class="useful-panel">
@@ -265,7 +297,7 @@ async function loadData() {
   state.loading = true;
   const [categoriesResult, contactsResult, reportsResult] = await Promise.all([
     db.from("useful_contact_categories").select("*").order("sort_order", { ascending: true }).order("name", { ascending: true }),
-    db.from("useful_contacts").select("*").order("is_emergency", { ascending: false }).order("is_featured", { ascending: false }).order("sort_order", { ascending: true }).order("name", { ascending: true }),
+    db.from("useful_contacts").select("*").order("is_featured", { ascending: false }).order("is_emergency", { ascending: true }).order("sort_order", { ascending: true }).order("name", { ascending: true }),
     db.from("useful_contact_reports").select("*").order("created_at", { ascending: false }).limit(50)
   ]);
   if (categoriesResult.error) throw categoriesResult.error;
