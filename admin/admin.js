@@ -46,6 +46,11 @@ const moduleRoutes = {
     hint: "Acompanhe atrativos que precisam de conferência semestral.",
     module: () => import("./turismo-verificacao.js")
   },
+  telefones_uteis: {
+    label: "Telefones úteis",
+    hint: "Organize contatos importantes, urgências e serviços exibidos no aplicativo.",
+    module: () => import("./telefones-uteis.js")
+  },
   publicidade: {
     label: "Publicidade",
     hint: "Campanhas, posições, mídia e métricas dos anúncios internos do portal.",
@@ -75,6 +80,7 @@ const sidebarIconMap = {
   "Guia comercial": "G",
   "Verificação do Guia": "V",
   "Verificação de Turismo": "VT",
+  "Telefones úteis": "Tel",
   "Turismo": "T",
   "Links": "L",
   "Colaborações": "C",
@@ -126,6 +132,7 @@ const sidebarLabelsByKey = {
   guia_comercial: "Guia comercial",
   guia_verificacao: "Verificação do Guia",
   turismo_verificacao: "Verificação de Turismo",
+  telefones_uteis: "Telefones úteis",
   turismo: "Turismo",
   links: "Links",
   colaboradores_voluntarios: "Colaborações",
