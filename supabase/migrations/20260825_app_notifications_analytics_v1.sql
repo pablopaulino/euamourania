@@ -23,31 +23,46 @@ alter table public.analytics_eventos
   add column if not exists notification_id uuid references public.app_notificacoes(id) on delete set null;
 
 alter table public.analytics_eventos drop constraint if exists analytics_eventos_tipo_check;
-alter table public.analytics_eventos
-  add constraint analytics_eventos_tipo_check
-  check (tipo in (
-    'page_view',
-    'noticia_view',
-    'guia_view',
-    'evento_view',
-    'turismo_view',
-    'whatsapp_click',
-    'instagram_click',
-    'external_click',
-    'busca',
-    'app_open',
-    'empresa_view',
-    'empresa_whatsapp_click',
-    'empresa_phone_click',
-    'empresa_map_click',
-    'turismo_map_click',
-    'evento_view',
-    'noticia_view',
-    'favorite_add',
-    'favorite_remove',
-    'search',
-    'notification_open'
-  ));
+
+do $$
+declare
+  v_allowed text;
+begin
+  select string_agg(quote_literal(tipo), ', ' order by tipo)
+    into v_allowed
+  from (
+    select distinct tipo
+    from public.analytics_eventos
+    where tipo is not null
+    union
+    select unnest(array[
+      'page_view',
+      'noticia_view',
+      'guia_view',
+      'evento_view',
+      'turismo_view',
+      'whatsapp_click',
+      'instagram_click',
+      'external_click',
+      'busca',
+      'app_open',
+      'empresa_view',
+      'empresa_whatsapp_click',
+      'empresa_phone_click',
+      'empresa_map_click',
+      'turismo_map_click',
+      'favorite_add',
+      'favorite_remove',
+      'search',
+      'notification_open'
+    ])
+  ) allowed(tipo);
+
+  execute format(
+    'alter table public.analytics_eventos add constraint analytics_eventos_tipo_check check (tipo is null or tipo in (%s))',
+    v_allowed
+  );
+end $$;
 
 create index if not exists analytics_eventos_app_periodo_idx
   on public.analytics_eventos (criado_em desc, tipo)
