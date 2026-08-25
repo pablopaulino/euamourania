@@ -209,8 +209,13 @@ function openForm() {
       : "";
     form.elements.destino_id.value = "";
     form.elements.destino_valor.value = "";
-    form.elements.destino_label.value = type === "telefones_uteis" ? "Telefones úteis" : "Página inicial";
-    form.elements.caminho.value = destinationPath(type, "");
+    if (type === "telefones_uteis") {
+      form.elements.destino_label.value = "Telefones úteis";
+      form.elements.caminho.value = "/telefones-uteis";
+    } else {
+      form.elements.destino_label.value = "Página inicial";
+      form.elements.caminho.value = "/";
+    }
     preview.textContent = `Destino: ${form.elements.destino_label.value} · ${form.elements.caminho.value || "/"}`;
   };
   const applySelectedDestination = () => {

@@ -553,58 +553,58 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
    const savedTab=sessionStorage.getItem("audience-tab")||"overview",activeTab=["overview","content","acquisition","app","google","ads"].includes(savedTab)?savedTab:"overview";
    const tabButton=(id,label)=>`<button type="button" class="${activeTab===id?"active":""}" data-audience-tab-button="${id}" role="tab" aria-selected="${activeTab===id?"true":"false"}">${label}</button>`;
    const tabPanel=(id,html)=>`<section class="audience-tab-panel ${activeTab===id?"active":""}" data-audience-tab="${id}" role="tabpanel">${html}</section>`;
-   const periodLabel=isCustomRange?`${startString.split("-").reverse().join("/")} a ${endString.split("-").reverse().join("/")}`:`Ãšltimos ${periodDays} dias`;
+   const periodLabel=isCustomRange?`${startString.split("-").reverse().join("/")} a ${endString.split("-").reverse().join("/")}`:`Últimos ${periodDays} dias`;
    app.innerHTML=`<section class="audience-page-head">
-    <div><h2>AudiÃªncia</h2><p>Entenda como o pÃºblico encontra, consome e interage com o Eu Amo UrÃ¢nia.</p></div>
+    <div><h2>Audiência</h2><p>Entenda como o público encontra, consome e interage com o Eu Amo Urânia.</p></div>
     <div class="audience-filters">
-     <label><span>PerÃ­odo</span><select id="audience-period"><option value="7" ${!isCustomRange&&days===7?"selected":""}>7 dias</option><option value="30" ${!isCustomRange&&days===30?"selected":""}>30 dias</option><option value="90" ${!isCustomRange&&days===90?"selected":""}>90 dias</option><option value="custom" ${isCustomRange?"selected":""}>Personalizado</option></select></label>
-     <label data-custom-date ${isCustomRange?"":"hidden"}><span>InÃ­cio</span><input id="audience-start" type="date" value="${isoDate(start)}"></label>
+     <label><span>Período</span><select id="audience-period"><option value="7" ${!isCustomRange&&days===7?"selected":""}>7 dias</option><option value="30" ${!isCustomRange&&days===30?"selected":""}>30 dias</option><option value="90" ${!isCustomRange&&days===90?"selected":""}>90 dias</option><option value="custom" ${isCustomRange?"selected":""}>Personalizado</option></select></label>
+     <label data-custom-date ${isCustomRange?"":"hidden"}><span>Início</span><input id="audience-start" type="date" value="${isoDate(start)}"></label>
      <label data-custom-date ${isCustomRange?"":"hidden"}><span>Fim</span><input id="audience-end" type="date" value="${isoDate(end)}"></label>
      <div class="audience-filter-actions"><button class="admin-button secondary" id="audience-apply">Aplicar</button><button class="admin-button secondary" id="audience-export">Exportar CSV</button></div>
     </div>
    </section>
    <div class="audience-kpi-grid">${strategicMetrics.map(metricKpi).join("")}</div>
-   <nav class="audience-tabs" role="tablist" aria-label="SeÃ§Ãµes da audiÃªncia">
-    ${tabButton("overview","VisÃ£o geral")}
-    ${tabButton("content","ConteÃºdo")}
-    ${tabButton("acquisition","AquisiÃ§Ã£o")}
-    ${tabButton("app","Viva UrÃ¢nia")}
+   <nav class="audience-tabs" role="tablist" aria-label="Seções da audiência">
+    ${tabButton("overview","Visão geral")}
+    ${tabButton("content","Conteúdo")}
+    ${tabButton("acquisition","Aquisição")}
+    ${tabButton("app","Viva Urânia")}
     ${tabButton("google","Google")}
     ${tabButton("ads","Publicidade")}
    </nav>
    <div class="audience-tab-panels">
-    ${tabPanel("overview",`<section class="panel audience-chart-panel audience-chart-feature"><header class="panel-header"><div><p class="eyebrow">${esc(periodLabel)}</p><h2>EvoluÃ§Ã£o diÃ¡ria</h2><p>Picos e quedas ajudam a entender o efeito de publicaÃ§Ãµes, buscas e compartilhamentos.</p></div></header>${chart(series,Math.round((end-start)/864e5)+1<=7)}</section>
+    ${tabPanel("overview",`<section class="panel audience-chart-panel audience-chart-feature"><header class="panel-header"><div><p class="eyebrow">${esc(periodLabel)}</p><h2>Evolução diária</h2><p>Picos e quedas ajudam a entender o efeito de publicações, buscas e compartilhamentos.</p></div></header>${chart(series,Math.round((end-start)/864e5)+1<=7)}</section>
     <div class="audience-overview-grid">
-     <section class="panel audience-ranking-panel"><header class="panel-header"><div><h2>Ranking estratÃ©gico</h2><p>ConteÃºdos, empresas, turismo e eventos com maior movimento no perÃ­odo.</p></div></header>${audienceTable(["#","ConteÃºdo","Tipo","InteraÃ§Ãµes","ParticipaÃ§Ã£o",""],contentRows(content,contentTotal,8),"Sem conteÃºdos com interaÃ§Ã£o no perÃ­odo.")}</section>
-     <section class="panel audience-intel-panel"><header class="panel-header"><div><p class="eyebrow">Leitura rÃ¡pida</p><h2>O que merece atenÃ§Ã£o</h2></div></header><div class="audience-insights">${strategicInsights(summary,previous,series,content,data.buscas||[])}</div></section>
+     <section class="panel audience-ranking-panel"><header class="panel-header"><div><h2>Ranking estratégico</h2><p>Conteúdos, empresas, turismo e eventos com maior movimento no período.</p></div></header>${audienceTable(["#","Conteúdo","Tipo","Interações","Participação",""],contentRows(content,contentTotal,8),"Sem conteúdos com interação no período.")}</section>
+     <section class="panel audience-intel-panel"><header class="panel-header"><div><p class="eyebrow">Leitura rápida</p><h2>O que merece atenção</h2></div></header><div class="audience-insights">${strategicInsights(summary,previous,series,content,data.buscas||[])}</div></section>
     </div>`)}
     ${tabPanel("content",`<div class="audience-split-grid">
-     <section class="panel wide"><header class="panel-header"><div><h2>Desempenho por conteÃºdo</h2><p>Ranking consolidado entre notÃ­cias, guia, turismo, eventos e links.</p></div></header>${audienceTable(["#","ConteÃºdo","Tipo","InteraÃ§Ãµes","ParticipaÃ§Ã£o",""],contentRows(content,contentTotal,12),"Sem conteÃºdos no perÃ­odo.")}</section>
-     <section class="panel"><header class="panel-header"><div><h2>NotÃ­cias lidas</h2><p>Consolidado por URL e ID da matÃ©ria.</p></div></header>${audienceTable(["#","MatÃ©ria","InteraÃ§Ãµes"],simpleRows(news,"nome","total",8),"Sem notÃ­cias no perÃ­odo.")}</section>
-     <section class="panel"><header class="panel-header"><div><h2>Guia, turismo e eventos</h2><p>InteraÃ§Ãµes locais fora das notÃ­cias.</p></div></header>${audienceTable(["#","ConteÃºdo","InteraÃ§Ãµes"],simpleRows(localServices,"nome","total",8),"Sem interaÃ§Ãµes locais no perÃ­odo.")}</section>
+     <section class="panel wide"><header class="panel-header"><div><h2>Desempenho por conteúdo</h2><p>Ranking consolidado entre notícias, guia, turismo, eventos e links.</p></div></header>${audienceTable(["#","Conteúdo","Tipo","Interações","Participação",""],contentRows(content,contentTotal,12),"Sem conteúdos no período.")}</section>
+     <section class="panel"><header class="panel-header"><div><h2>Notícias lidas</h2><p>Consolidado por URL e ID da matéria.</p></div></header>${audienceTable(["#","Matéria","Interações"],simpleRows(news,"nome","total",8),"Sem notícias no período.")}</section>
+     <section class="panel"><header class="panel-header"><div><h2>Guia, turismo e eventos</h2><p>Interações locais fora das notícias.</p></div></header>${audienceTable(["#","Conteúdo","Interações"],simpleRows(localServices,"nome","total",8),"Sem interações locais no período.")}</section>
     </div>`)}
     ${tabPanel("acquisition",`<div class="audience-split-grid">
-     <section class="panel"><header class="panel-header"><h2>PÃ¡ginas mais acessadas</h2></header>${audienceTable(["#","PÃ¡gina","Acessos"],simpleRows(data.paginas,"pagina","total",10),"Sem pÃ¡ginas no perÃ­odo.")}</section>
+     <section class="panel"><header class="panel-header"><h2>Páginas mais acessadas</h2></header>${audienceTable(["#","Página","Acessos"],simpleRows(data.paginas,"pagina","total",10),"Sem páginas no período.")}</section>
      <section class="panel"><header class="panel-header"><h2>Origem dos acessos</h2></header>${barRows(data.origens,"origem","total",8)}</section>
      <section class="panel"><header class="panel-header"><h2>Dispositivos</h2></header>${barRows(data.dispositivos,"dispositivo","total",6)}</section>
-     <section class="panel"><header class="panel-header"><h2>Buscas internas</h2></header>${audienceTable(["#","Termo pesquisado","Buscas"],simpleRows(data.buscas,"termo","total",10),"Sem buscas no perÃ­odo.")}</section>
+     <section class="panel"><header class="panel-header"><h2>Buscas internas</h2></header>${audienceTable(["#","Termo pesquisado","Buscas"],simpleRows(data.buscas,"termo","total",10),"Sem buscas no período.")}</section>
     </div>`)}
     ${tabPanel("app",`<div class="audience-split-grid app-tab">${appPanels(appStats)}</div>`)}
     ${tabPanel("google",`<div class="audience-split-grid google-tab">${googlePanels(google)}</div>`)}
-    ${tabPanel("ads",`<div class="audience-mini-kpis"><article><span>ImpressÃµes</span><strong>${fmt(adsImpressions)}</strong></article><article><span>Cliques</span><strong>${fmt(adsClicks)}</strong></article><article><span>CTR mÃ©dio</span><strong>${adsCtr}</strong></article><article><span>Campanhas</span><strong>${fmt(adsRows.length)}</strong></article></div><section class="panel"><header class="panel-header"><div><h2>Campanhas publicitÃ¡rias</h2><p>Desempenho dos anÃºncios internos no perÃ­odo.</p></div></header>${audienceTable(["#","Campanha","ImpressÃµes","Cliques","CTR"],adsRows.slice(0,12).map((item,index)=>`<tr><td><span class="audience-position">${index+1}</span></td><td><strong class="audience-ellipsis">${esc(item.nome||"Campanha")}</strong></td><td>${fmt(item.impressoes)}</td><td>${fmt(item.cliques)}</td><td>${item.ctr||0}%</td></tr>`),"Sem campanhas no perÃ­odo.")}</section>`)}
+    ${tabPanel("ads",`<div class="audience-mini-kpis"><article><span>Impressões</span><strong>${fmt(adsImpressions)}</strong></article><article><span>Cliques</span><strong>${fmt(adsClicks)}</strong></article><article><span>CTR médio</span><strong>${adsCtr}</strong></article><article><span>Campanhas</span><strong>${fmt(adsRows.length)}</strong></article></div><section class="panel"><header class="panel-header"><div><h2>Campanhas publicitárias</h2><p>Desempenho dos anúncios internos no período.</p></div></header>${audienceTable(["#","Campanha","Impressões","Cliques","CTR"],adsRows.slice(0,12).map((item,index)=>`<tr><td><span class="audience-position">${index+1}</span></td><td><strong class="audience-ellipsis">${esc(item.nome||"Campanha")}</strong></td><td>${fmt(item.impressoes)}</td><td>${fmt(item.cliques)}</td><td>${item.ctr||0}%</td></tr>`),"Sem campanhas no período.")}</section>`)}
    </div>`;
  }catch(error){
-  app.innerHTML=`<div class="ads-card empty-state"><strong>NÃ£o foi possÃ­vel carregar a audiÃªncia</strong><p>${esc(error.message)}</p><p>Confirme se a migraÃ§Ã£o de fluxo editorial e audiÃªncia foi executada no Supabase.</p></div>`;
+  app.innerHTML=`<div class="ads-card empty-state"><strong>Não foi possível carregar a audiência</strong><p>${esc(error.message)}</p><p>Confirme se a migração de fluxo editorial e audiência foi executada no Supabase.</p></div>`;
  }
 }
 function exportAudience(){
  if(!audienceData)return;
- const rows=[["SeÃ§Ã£o","Item","Total"]];
- (audienceData.paginas||[]).forEach(item=>rows.push(["PÃ¡ginas",item.pagina,item.total]));
+ const rows=[["Seção","Item","Total"]];
+ (audienceData.paginas||[]).forEach(item=>rows.push(["Páginas",item.pagina,item.total]));
  (audienceData.origens||[]).forEach(item=>rows.push(["Origens",item.origem,item.total]));
  (audienceData.dispositivos||[]).forEach(item=>rows.push(["Dispositivos",item.dispositivo,item.total]));
  (audienceData.buscas||[]).forEach(item=>rows.push(["Buscas",item.termo,item.total]));
- (audienceData.recursos||[]).forEach(item=>rows.push(["ConteÃºdos",`${item.tipo}: ${item.nome}`,item.total]));
+ (audienceData.recursos||[]).forEach(item=>rows.push(["Conteúdos",`${item.tipo}: ${item.nome}`,item.total]));
  if(audienceData.app?.available){
  rows.push(["App","Aparelhos ativos",audienceData.app.ativos]);
   rows.push(["App","Aparelhos ativos no periodo",audienceData.app.ativosPeriodo]);
