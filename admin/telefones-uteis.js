@@ -34,7 +34,7 @@ function ensureModuleStyle() {
   if (document.querySelector('link[data-admin-module-style="telefones-uteis"]')) return;
   moduleStyle = document.createElement("link");
   moduleStyle.rel = "stylesheet";
-  moduleStyle.href = "telefones-uteis.css";
+  moduleStyle.href = "/admin/telefones-uteis.css";
   moduleStyle.dataset.adminModuleStyle = "telefones-uteis";
   document.head.append(moduleStyle);
   addCleanup(() => {

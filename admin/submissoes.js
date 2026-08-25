@@ -56,7 +56,7 @@ function ensureModuleStyle() {
   if (document.querySelector('link[data-admin-module-style="submissoes"]')) return;
   moduleStyle = document.createElement("link");
   moduleStyle.rel = "stylesheet";
-  moduleStyle.href = "submissoes.css";
+  moduleStyle.href = "/admin/submissoes.css";
   moduleStyle.dataset.adminModuleStyle = "submissoes";
   document.head.append(moduleStyle);
   addCleanup(() => {

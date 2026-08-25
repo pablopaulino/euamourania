@@ -87,6 +87,7 @@
     { "source": "/admin/guia-verificacao", "destination": "/admin/index.html" },
     { "source": "/admin/turismo", "destination": "/admin/index.html" },
     { "source": "/admin/turismo-verificacao", "destination": "/admin/index.html" },
+    { "source": "/admin/telefones-uteis", "destination": "/admin/index.html" },
     { "source": "/admin/links", "destination": "/admin/index.html" },
     { "source": "/admin/agenda", "destination": "/admin/index.html" },
     { "source": "/admin/eventos", "destination": "/admin/index.html" },
