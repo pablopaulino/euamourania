@@ -4,7 +4,6 @@ import { adminPathForView, adminViewFromLocation } from "./admin-routes.js";
 
 const enhanced=new WeakSet();
 const app=document.getElementById("app-content");
-const communication=document.getElementById("communication-app");
 let mediaRows=[];
 let libraryOpened=false;
 
@@ -417,7 +416,7 @@ async function removeMediaRows(rows){
 
 function enhance(){
  ensureStyles();ensureMediaNavigation();
- const communicationForm=communication?.querySelector("#news-form");
+ const communicationForm=document.getElementById("communication-app")?.querySelector("#news-form");
  if(communicationForm){
   attachUrlUpload(communicationForm.elements.imagem_url,"comunicacao/newsletters","wide");
   attachEditorUpload(communicationForm.querySelector("#editor"),"comunicacao/conteudo");

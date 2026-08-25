@@ -60,7 +60,7 @@ function addCleanup(target, event, handler, options) {
 }
 
 function ensureCommunicationStyles() {
-  ["comunicacao.css?v=20260717-newsletter-mensal", "comunicacao-fixes.css"].forEach(href => {
+  ["publicidade.css", "comunicacao.css?v=20260717-newsletter-mensal", "comunicacao-fixes.css"].forEach(href => {
     if (document.querySelector(`link[data-communication-style][href="${href}"]`)) return;
     const link = document.createElement("link");
     link.rel = "stylesheet";
