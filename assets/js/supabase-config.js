@@ -1,4 +1,4 @@
-﻿// Chaves publicÃ¡veis podem ficar no front-end. Nunca use secret/service_role aqui.
+﻿// Chaves publicáveis podem ficar no front-end. Nunca use secret/service_role aqui.
 export const SUPABASE_URL = "https://omhcpbphvtihqwdkbsbf.supabase.co";
 export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_m02B2sC8Ddh4fCtnvsGePg_TqwUanoM";
 export const TURNSTILE_SITE_KEY = "0x4AAAAAAD26Y5R0gI5oNxwX";

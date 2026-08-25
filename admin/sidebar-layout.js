@@ -94,28 +94,28 @@ const sharedSidebarIcons = {
 let sidebarIsRendering = false;
 
 const fullSidebarMenu = [
-  { label: "VisÃ£o geral", href: adminPathForModule("dashboard"), icon: "dashboard", module: "dashboard", view: "dashboard" },
-  { label: "NotÃ­cias", href: adminPathForModule("noticias"), icon: "news", module: "noticias", view: "noticias" },
-  { label: "AprovaÃ§Ãµes", href: adminPathForModule("aprovacoes"), icon: "approval", module: "noticias", id: "editorial-approvals-nav" },
-  { label: "ColaboraÃ§Ãµes", href: adminPathForModule("colaboradores_voluntarios"), icon: "users", module: "colaboradores", view: "colaboradores_voluntarios" },
+  { label: "Visão geral", href: adminPathForModule("dashboard"), icon: "dashboard", module: "dashboard", view: "dashboard" },
+  { label: "Notícias", href: adminPathForModule("noticias"), icon: "news", module: "noticias", view: "noticias" },
+  { label: "Aprovações", href: adminPathForModule("aprovacoes"), icon: "approval", module: "noticias", id: "editorial-approvals-nav" },
+  { label: "Colaborações", href: adminPathForModule("colaboradores_voluntarios"), icon: "users", module: "colaboradores", view: "colaboradores_voluntarios" },
   { label: "Guia comercial", href: adminPathForModule("guia_comercial"), icon: "guide", module: "guia_comercial", view: "guia_comercial" },
-  { label: "VerificaÃ§Ã£o do Guia", href: adminPathForModule("guia_verificacao"), icon: "approval", module: "guia_comercial", view: "guia_verificacao" },
+  { label: "Verificação do Guia", href: adminPathForModule("guia_verificacao"), icon: "approval", module: "guia_comercial", view: "guia_verificacao" },
   { label: "Turismo", href: adminPathForModule("turismo"), icon: "tourism", module: "turismo", view: "turismo" },
   { label: "Verificação de Turismo", href: adminPathForModule("turismo_verificacao"), icon: "approval", module: "turismo", view: "turismo_verificacao" },
   { label: "Links", href: adminPathForModule("links"), icon: "links", module: "links", view: "links" },
-  { label: "SubmissÃµes pÃºblicas", href: adminPathForModule("submissoes"), icon: "users", module: "submissoes" },
+  { label: "Submissões públicas", href: adminPathForModule("submissoes"), icon: "users", module: "submissoes" },
   { label: "Agenda simples", href: adminPathForModule("eventos"), icon: "events", module: "eventos", view: "eventos" },
   { label: "Eventos principais", href: adminPathForModule("eventos_principais"), icon: "events", module: "eventos", view: "eventos_principais" },
-  { label: "EdiÃ§Ãµes", href: adminPathForModule("eventos_edicoes"), icon: "news", module: "eventos", view: "eventos_edicoes" },
+  { label: "Edições", href: adminPathForModule("eventos_edicoes"), icon: "news", module: "eventos", view: "eventos_edicoes" },
   { label: "Publicidade", href: adminPathForModule("publicidade"), icon: "ads", module: "publicidade" },
-  { label: "ComunicaÃ§Ã£o", href: adminPathForModule("comunicacao"), icon: "mail", module: "comunicacao" },
-  { label: "NotificaÃ§Ãµes do Viva UrÃ¢nia", href: adminPathForModule("notificacoes"), icon: "bell", module: "notificacoes" },
-  { label: "Melhores de UrÃ¢nia", href: adminPathForModule("melhores"), icon: "award", module: "melhores" },
+  { label: "Comunicação", href: adminPathForModule("comunicacao"), icon: "mail", module: "comunicacao" },
+  { label: "Notificações do Viva Urânia", href: adminPathForModule("notificacoes"), icon: "bell", module: "notificacoes" },
+  { label: "Melhores de Urânia", href: adminPathForModule("melhores"), icon: "award", module: "melhores" },
   { label: "Categorias", href: adminPathForModule("categorias"), icon: "tag", module: "categorias", view: "categorias" },
-  { label: "AudiÃªncia", href: adminPathForModule("audiencia"), icon: "dashboard", module: "insights", id: "audience-nav" },
-  { label: "ConfiguraÃ§Ãµes", href: adminPathForModule("configuracoes_site"), icon: "settings", module: "configuracoes", view: "configuracoes_site" },
-  { label: "UsuÃ¡rios administrativos", href: adminPathForModule("usuarios"), icon: "users", module: "usuarios" },
-  { label: "Migrar conteÃºdo antigo", href: adminPathForModule("importacao"), icon: "upload", module: "importacao" }
+  { label: "Audiência", href: adminPathForModule("audiencia"), icon: "dashboard", module: "insights", id: "audience-nav" },
+  { label: "Configurações", href: adminPathForModule("configuracoes_site"), icon: "settings", module: "configuracoes", view: "configuracoes_site" },
+  { label: "Usuários administrativos", href: adminPathForModule("usuarios"), icon: "users", module: "usuarios" },
+  { label: "Migrar conteúdo antigo", href: adminPathForModule("importacao"), icon: "upload", module: "importacao" }
 ];
 
 function currentSidebarTarget() {

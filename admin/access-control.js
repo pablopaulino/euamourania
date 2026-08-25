@@ -2,32 +2,32 @@
 
 const viewModules={dashboard:"dashboard",noticias:"noticias",colaboradores_voluntarios:"colaboradores",guia_comercial:"guia_comercial",guia_verificacao:"guia_comercial",turismo:"turismo",turismo_verificacao:"turismo",telefones_uteis:"configuracoes",links:"links",eventos:"eventos",eventos_principais:"eventos",eventos_edicoes:"eventos",categorias:"categorias",insights:"insights",audiencia:"insights",configuracoes_site:"configuracoes",comunicacao:"comunicacao",notificacoes:"notificacoes",submissoes:"submissoes",publicidade:"publicidade",usuarios:"usuarios",importacao:"importacao",melhores:"melhores"};
 const navItems=[
-  ["dashboard","VisÃ£o geral","dashboard"],
-  ["noticias","NotÃ­cias","noticias"],
-  ["aprovacoes","AprovaÃ§Ãµes","noticias"],
-  ["colaboradores_voluntarios","ColaboraÃ§Ãµes","colaboradores"],
+  ["dashboard","Visão geral","dashboard"],
+  ["noticias","Notícias","noticias"],
+  ["aprovacoes","Aprovações","noticias"],
+  ["colaboradores_voluntarios","Colaborações","colaboradores"],
   ["guia_comercial","Guia comercial","guia_comercial"],
-  ["guia_verificacao","VerificaÃ§Ã£o do Guia","guia_comercial"],
+  ["guia_verificacao","Verificação do Guia","guia_comercial"],
   ["turismo","Turismo","turismo"],
   ["turismo_verificacao","Verificação de Turismo","turismo"],
   ["telefones_uteis","Telefones úteis","configuracoes"],
   ["links","Links","links"],
-  ["submissoes","SubmissÃµes pÃºblicas","submissoes"],
+  ["submissoes","Submissões públicas","submissoes"],
   ["eventos","Agenda simples","eventos"],
   ["eventos_principais","Eventos principais","eventos"],
-  ["eventos_edicoes","EdiÃ§Ãµes","eventos"],
+  ["eventos_edicoes","Edições","eventos"],
   ["publicidade","Publicidade","publicidade"],
-  ["comunicacao","ComunicaÃ§Ã£o","comunicacao"],
-  ["notificacoes","NotificaÃ§Ãµes do app","notificacoes"],
-  ["melhores","Melhores de UrÃ¢nia","melhores"],
+  ["comunicacao","Comunicação","comunicacao"],
+  ["notificacoes","Notificações do app","notificacoes"],
+  ["melhores","Melhores de Urânia","melhores"],
   ["categorias","Categorias","categorias"],
-  ["audiencia","AudiÃªncia","insights"],
-  ["configuracoes_site","ConfiguraÃ§Ãµes","configuracoes"],
-  ["usuarios","UsuÃ¡rios administrativos","usuarios"],
-  ["importacao","Migrar conteÃºdo antigo","importacao"]
+  ["audiencia","Audiência","insights"],
+  ["configuracoes_site","Configurações","configuracoes"],
+  ["usuarios","Usuários administrativos","usuarios"],
+  ["importacao","Migrar conteúdo antigo","importacao"]
 ];
 const eventosEdicoesNav = navItems.find(item => item[0] === "eventos_edicoes");
-if (eventosEdicoesNav) eventosEdicoesNav[1] = "EdiÃ§Ãµes";
+if (eventosEdicoesNav) eventosEdicoesNav[1] = "Edições";
 function currentAdminKey(){
   const routed=adminModuleFromLocation();
   if(routed)return routed;
