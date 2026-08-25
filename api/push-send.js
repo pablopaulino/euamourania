@@ -27,11 +27,20 @@ async function canSend(token){
   catch{return false}
 }
 function destination(notification){
+  if(notification.caminho&&isSafePath(notification.caminho))return notification.caminho;
   const value=String(notification.destino_valor||"").replace(/^\/+/,"");
   if(notification.destino_tipo==="empresa"&&value)return`/empresa/${value}`;
   if(notification.destino_tipo==="turismo"&&value)return`/turismo/${value}`;
   if(notification.destino_tipo==="evento"&&value)return`/eventos/${value}`;
+  if(notification.destino_tipo==="noticia"&&value)return`/noticias/${value}`;
+  if(notification.destino_tipo==="telefones_uteis")return"/telefones-uteis";
   return"/";
+}
+function isSafePath(path){
+  return /^(\/|\/empresa\/[a-z0-9-]+|\/turismo\/[a-z0-9-]+|\/eventos\/[a-z0-9-]+|\/noticias\/[a-z0-9-]+|\/telefones-uteis)$/i.test(String(path||""));
+}
+function deepLinkFor(path){
+  return `euamourania://${String(path||"/").replace(/^\/+/,"")}`;
 }
 async function sendBatch(messages){
   for(let attempt=0;attempt<3;attempt++){
@@ -73,6 +82,7 @@ module.exports=async(req,res)=>{
     if(!devices.length)throw Object.assign(new Error("Nenhum aparelho autorizou notificações para esse público."),{status:400});
 
     const path=destination(notification);
+    if(!isSafePath(path))throw Object.assign(new Error("Destino da notificação inválido."),{status:400});
     const messages=devices.map(device=>({
       to:device.expo_push_token,
       title:notification.titulo,
@@ -80,7 +90,14 @@ module.exports=async(req,res)=>{
       sound:"default",
       priority:"high",
       channelId:"novidades",
-      data:{path,notificationId:notification.id}
+      data:{
+        path,
+        deep_link:deepLinkFor(path),
+        notification_id:notification.id,
+        notificationId:notification.id,
+        destination_type:notification.destino_tipo||"home",
+        destination_id:notification.destino_id||""
+      }
     }));
     let accepted=0;
     const failures=[];
@@ -108,12 +125,13 @@ module.exports=async(req,res)=>{
       total_destinatarios:devices.length,
       total_aceitos:accepted,
       total_erros:failures.length,
+      erro_resumo:failures.length?`${failures.length} falha(s) no envio.`:null,
       enviado_em:new Date().toISOString()
     }});
     return res.status(200).json({ok:true,total:devices.length,accepted,errors:failures.length});
   }catch(error){
     console.error("push-send:", error?.message || error);
-    if(id)await rest(`app_notificacoes?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",token,body:{status:"falhou"}}).catch(()=>{});
+    if(id)await rest(`app_notificacoes?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",token,body:{status:"falhou",erro_resumo:String(error.message||"Falha no envio").slice(0,240)}}).catch(()=>{});
     return res.status(error.status||500).json({error:error.message||"Falha no envio das notificações."});
   }
 };

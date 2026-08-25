@@ -1,4 +1,4 @@
-import { exigirPermissao, sair, temPermissao } from "./auth.js";
+﻿import { exigirPermissao, sair, temPermissao } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 
 let app = null;
@@ -6,6 +6,7 @@ let db = null;
 let access = null;
 let notifications = [];
 let deviceCounts = { total: 0, android: 0, ios: 0 };
+let destinationOptions = { empresa: [], turismo: [], evento: [], noticia: [] };
 let cleanupHandlers = [];
 let moduleStyle = null;
 let context = {};
@@ -40,6 +41,54 @@ function toast(message, type = "success") {
 
 function statusLabel(status) {
   return ({ rascunho: "Rascunho", enviando: "Enviando", enviado: "Enviado", falhou: "Falhou", cancelado: "Cancelado" })[status] || status;
+}
+
+function destinationPath(type, slug) {
+  if (type === "empresa" && slug) return `/empresa/${slug}`;
+  if (type === "turismo" && slug) return `/turismo/${slug}`;
+  if (type === "evento" && slug) return `/eventos/${slug}`;
+  if (type === "noticia" && slug) return `/noticias/${slug}`;
+  if (type === "telefones_uteis") return "/telefones-uteis";
+  return "/";
+}
+
+function destinationLabel(item) {
+  if (item?.destino_label) return item.destino_label;
+  if (item?.destino_tipo === "telefones_uteis") return "Telefones úteis";
+  if (item?.destino_tipo === "home") return "Página inicial";
+  return item?.destino_valor || item?.caminho || "Página inicial";
+}
+
+function ctr(item) {
+  const accepted = Number(item.total_aceitos || 0);
+  const clicks = Number(item.cliques || 0);
+  if (!accepted) return "—";
+  return `${((clicks / accepted) * 100).toFixed(1).replace(".", ",")}%`;
+}
+
+async function fetchDestinationOptions() {
+  const configs = [
+    ["empresa", "guia_comercial", "id,nome,slug,status", "nome"],
+    ["turismo", "turismo", "id,nome,slug,status", "nome"],
+    ["evento", "eventos", "id,titulo,slug,status", "titulo"],
+    ["noticia", "noticias", "id,titulo,slug,status", "titulo"],
+  ];
+  const results = await Promise.allSettled(configs.map(async ([type, table, select, labelField]) => {
+    const { data, error } = await db.from(table).select(select).eq("status", "publicado").order(labelField, { ascending: true }).limit(120);
+    if (error) throw error;
+    return [type, (data || []).filter(item => item.slug).map(item => ({
+      id: item.id,
+      slug: item.slug,
+      label: item.nome || item.titulo,
+      path: destinationPath(type, item.slug),
+    }))];
+  }));
+  destinationOptions = { empresa: [], turismo: [], evento: [], noticia: [] };
+  results.forEach(result => {
+    if (result.status !== "fulfilled") return;
+    const [type, rows] = result.value;
+    destinationOptions[type] = rows;
+  });
 }
 
 function ensureModuleStyle() {
@@ -80,7 +129,8 @@ async function load() {
   app.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
   const [{ data: rows, error }, { data: tokens, error: tokenError }] = await Promise.all([
     db.from("app_notificacoes").select("*").order("criado_em", { ascending: false }).limit(100),
-    db.from("app_push_tokens").select("plataforma").eq("ativo", true)
+    db.from("app_push_tokens").select("plataforma").eq("ativo", true),
+    fetchDestinationOptions()
   ]);
   if (error || tokenError) {
     app.innerHTML = `<section class="push-card"><h3>Não foi possível carregar</h3><p>${esc(error?.message || tokenError?.message)}</p></section>`;
@@ -101,6 +151,19 @@ function render() {
   const sent = notifications.filter(item => item.status === "enviado").length;
   const accepted = notifications.reduce((sum, item) => sum + (item.total_aceitos || 0), 0);
   const canDelete = temPermissao(access.admin, "notificacoes", "excluir");
+  const rows = notifications.map(item => {
+    const path = item.caminho || destinationPath(item.destino_tipo, item.destino_valor);
+    return `<tr>
+        <td class="push-copy"><strong>${esc(item.titulo)}</strong><small>${esc(item.mensagem)}</small></td>
+        <td class="push-copy"><strong>${esc(destinationLabel(item))}</strong><small>${esc(path)}</small></td>
+        <td>${esc(item.plataforma)}</td>
+        <td><span class="status-pill ${esc(item.status)}">${esc(statusLabel(item.status))}</span></td>
+        <td>${item.total_aceitos || 0} aceitos${item.total_erros ? ` · ${item.total_erros} erros` : ""}</td>
+        <td>${item.cliques || 0}<small class="push-muted">CTR ${ctr(item)}</small></td>
+        <td>${fmt(item.enviado_em || item.criado_em)}</td>
+        <td><div class="push-row-actions">${["rascunho", "falhou"].includes(item.status) ? `<button class="admin-button" data-send="${item.id}" type="button">Enviar</button>` : ""}${canDelete ? `<button class="admin-button secondary" data-delete="${item.id}" type="button">Excluir</button>` : ""}</div></td>
+      </tr>`;
+  }).join("");
   app.innerHTML = `
     <section class="push-metrics">
       <article class="metric-card"><span>Aparelhos ativos</span><strong>${deviceCounts.total}</strong></article>
@@ -110,15 +173,8 @@ function render() {
     </section>
     <section class="push-card table-card">
       <div class="push-history-head"><h3>Histórico</h3>${canDelete && notifications.length ? '<button class="admin-button secondary" id="clear-history" type="button">Limpar histórico</button>' : ""}</div>
-      <table class="push-table"><thead><tr><th>Notificação</th><th>Público</th><th>Status</th><th>Resultado</th><th>Data</th><th>Ações</th></tr></thead>
-      <tbody>${notifications.map(item => `<tr>
-        <td class="push-copy"><strong>${esc(item.titulo)}</strong><small>${esc(item.mensagem)}</small></td>
-        <td>${esc(item.plataforma)}</td>
-        <td><span class="status-pill ${esc(item.status)}">${esc(statusLabel(item.status))}</span></td>
-        <td>${item.total_aceitos || 0} aceitos${item.total_erros ? ` · ${item.total_erros} erros` : ""}</td>
-        <td>${fmt(item.enviado_em || item.criado_em)}</td>
-        <td><div class="push-row-actions">${["rascunho", "falhou"].includes(item.status) ? `<button class="admin-button" data-send="${item.id}" type="button">Enviar</button>` : ""}${canDelete ? `<button class="admin-button secondary" data-delete="${item.id}" type="button">Excluir</button>` : ""}</div></td>
-      </tr>`).join("") || '<tr><td colspan="6">Nenhuma notificação criada.</td></tr>'}</tbody></table>
+      <table class="push-table"><thead><tr><th>Notificação</th><th>Destino</th><th>Público</th><th>Status</th><th>Resultado</th><th>Cliques</th><th>Data</th><th>Ações</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="8">Nenhuma notificação criada.</td></tr>'}</tbody></table>
     </section>`;
   bindClick("[data-send]", event => send(event.currentTarget.dataset.send, event.currentTarget));
   bindClick("[data-delete]", event => removeNotification(event.currentTarget.dataset.delete, event.currentTarget));
@@ -130,33 +186,83 @@ function openForm() {
   if (!app) return;
   app.innerHTML = `<section class="push-card"><h3>Nova notificação</h3>
     <form id="push-form" class="push-form">
-      <div class="push-notice full push-field">A mensagem será enviada somente após sua confirmação. Use textos objetivos e envie apenas informações relevantes.</div>
+      <div class="push-notice full push-field">A mensagem será enviada somente após sua confirmação. Escolha um destino real para a notificação abrir direto no app.</div>
       <div class="push-field full"><label>Título *</label><input name="titulo" maxlength="80" required placeholder="Ex.: Agenda do fim de semana"><small class="push-counter" id="title-count">0/80</small></div>
       <div class="push-field full"><label>Mensagem *</label><textarea name="mensagem" maxlength="220" required placeholder="Conte a novidade em poucas palavras."></textarea><small class="push-counter" id="body-count">0/220</small></div>
       <div class="push-field"><label>Público</label><select name="plataforma"><option value="todos">Android e iPhone</option><option value="android">Somente Android</option><option value="ios">Somente iPhone</option></select></div>
-      <div class="push-field"><label>Ao tocar, abrir</label><select name="destino_tipo"><option value="home">Página inicial</option><option value="empresa">Empresa</option><option value="turismo">Turismo</option><option value="evento">Evento</option></select></div>
-      <div class="push-field full" id="destination-field" hidden><label>Slug do conteúdo</label><input name="destino_valor" maxlength="160" placeholder="exemplo-do-conteudo"><small>Use o slug exibido na URL do conteúdo.</small></div>
+      <div class="push-field"><label>Ao tocar, abrir</label><select name="destino_tipo"><option value="home">Página inicial</option><option value="empresa">Empresa do guia</option><option value="turismo">Ponto turístico</option><option value="evento">Evento</option><option value="noticia">Notícia</option><option value="telefones_uteis">Telefones úteis</option></select></div>
+      <div class="push-field full" id="destination-field" hidden><label>Conteúdo</label><select id="destination-select"></select><small>Use um conteúdo publicado. A rota será criada automaticamente.</small></div>
+      <input type="hidden" name="destino_id"><input type="hidden" name="destino_valor"><input type="hidden" name="destino_label"><input type="hidden" name="caminho">
+      <div class="push-preview full" id="destination-preview">Destino: Página inicial</div>
       <div class="push-actions"><button type="button" class="admin-button secondary" id="cancel">Cancelar</button><button class="admin-button">Salvar rascunho</button></div>
     </form></section>`;
   const form = app.querySelector("#push-form");
   const destination = app.querySelector("#destination-field");
+  const destinationSelect = app.querySelector("#destination-select");
+  const preview = app.querySelector("#destination-preview");
+  const refreshDestination = () => {
+    const type = form.elements.destino_tipo.value;
+    const needsContent = ["empresa", "turismo", "evento", "noticia"].includes(type);
+    destination.hidden = !needsContent;
+    destinationSelect.innerHTML = needsContent
+      ? `<option value="">Selecione um conteúdo publicado</option>${(destinationOptions[type] || []).map(item => `<option value="${esc(item.id)}" data-slug="${esc(item.slug)}" data-label="${esc(item.label)}" data-path="${esc(item.path)}">${esc(item.label)}</option>`).join("")}`
+      : "";
+    form.elements.destino_id.value = "";
+    form.elements.destino_valor.value = "";
+    form.elements.destino_label.value = type === "telefones_uteis" ? "Telefones úteis" : "Página inicial";
+    form.elements.caminho.value = destinationPath(type, "");
+    preview.textContent = `Destino: ${form.elements.destino_label.value} · ${form.elements.caminho.value || "/"}`;
+  };
+  const applySelectedDestination = () => {
+    const option = destinationSelect.selectedOptions[0];
+    const type = form.elements.destino_tipo.value;
+    if (!option || !option.value) {
+      form.elements.destino_id.value = "";
+      form.elements.destino_valor.value = "";
+      form.elements.destino_label.value = "";
+      form.elements.caminho.value = "";
+      preview.textContent = "Selecione um conteúdo para continuar.";
+      return;
+    }
+    form.elements.destino_id.value = option.value;
+    form.elements.destino_valor.value = option.dataset.slug || "";
+    form.elements.destino_label.value = option.dataset.label || option.textContent || "";
+    form.elements.caminho.value = option.dataset.path || destinationPath(type, option.dataset.slug || "");
+    preview.textContent = `Destino: ${form.elements.destino_label.value} · ${form.elements.caminho.value}`;
+  };
   form.elements.titulo.addEventListener("input", () => {
     app.querySelector("#title-count").textContent = `${form.elements.titulo.value.length}/80`;
   });
   form.elements.mensagem.addEventListener("input", () => {
     app.querySelector("#body-count").textContent = `${form.elements.mensagem.value.length}/220`;
   });
-  form.elements.destino_tipo.addEventListener("change", () => {
-    destination.hidden = form.elements.destino_tipo.value === "home";
-  });
+  form.elements.destino_tipo.addEventListener("change", refreshDestination);
+  destinationSelect.addEventListener("change", applySelectedDestination);
   app.querySelector("#cancel").addEventListener("click", render);
+  refreshDestination();
   form.addEventListener("submit", async event => {
     event.preventDefault();
     const button = event.submitter;
     const values = Object.fromEntries(new FormData(form));
+    const needsContent = ["empresa", "turismo", "evento", "noticia"].includes(values.destino_tipo);
+    if (needsContent && !values.destino_id) {
+      toast("Selecione o conteúdo que será aberto ao tocar na notificação.", "error");
+      return;
+    }
     button.disabled = true;
     button.textContent = "Salvando…";
-    const { error } = await db.from("app_notificacoes").insert({ ...values, criado_por: access.user.id });
+    const payload = {
+      titulo: values.titulo,
+      mensagem: values.mensagem,
+      plataforma: values.plataforma,
+      destino_tipo: values.destino_tipo,
+      destino_id: values.destino_id || null,
+      destino_valor: values.destino_valor || null,
+      destino_label: values.destino_label || null,
+      caminho: values.caminho || destinationPath(values.destino_tipo, values.destino_valor),
+      criado_por: access.user.id,
+    };
+    const { error } = await db.from("app_notificacoes").insert(payload);
     if (error) {
       toast(error.message, "error");
       button.disabled = false;
@@ -167,9 +273,10 @@ function openForm() {
     await load();
   });
 }
-
 async function send(id, button) {
-  if (!confirm("Enviar esta notificação agora? Essa ação alcançará todos os aparelhos do público selecionado.")) return;
+  const item = notifications.find(notification => notification.id === id);
+  const estimated = item?.plataforma === "android" ? deviceCounts.android : item?.plataforma === "ios" ? deviceCounts.ios : deviceCounts.total;
+  if (!confirm(`Enviar esta notificação agora?\n\nPúblico estimado: ${estimated} aparelho(s)\nDestino: ${destinationLabel(item)}\n\nEssa ação não pode ser desfeita.`)) return;
   button.disabled = true;
   button.textContent = "Enviando…";
   try {
@@ -275,3 +382,6 @@ async function bootLegacyPage() {
 }
 
 bootLegacyPage();
+
+
+
