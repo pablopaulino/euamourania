@@ -27,6 +27,7 @@ const safeTrack = (tipo, metadados = {}) => {
 };
 
 const PARTNERS_LIMIT = 60;
+const PARTNERS_MINIMUM_VISIBLE = 15;
 const PARTNERS_AUTOSCROLL_INTERVAL = 4200;
 
 function detectPlatform() {
@@ -94,13 +95,13 @@ async function loadPartners() {
     const rows = await fetchPublicRows("guia_comercial", {
       select: "id,nome,slug,descricao,imagem_url,categoria_nome,recomendado",
       status: "eq.publicado",
-      recomendado: "eq.true",
       order: "recomendado.desc,nome.asc",
       limit: String(PARTNERS_LIMIT)
     }, { ttl: 180000 });
-    list.innerHTML = rows?.length ? rows.map(partnerCard).join("") : `<p class="partners-empty">Em breve, novos parceiros por aqui.</p>`;
-    bindTrackedLinks(list);
+    const partners = (rows || []).slice(0, Math.max(PARTNERS_MINIMUM_VISIBLE, rows?.length || 0));
+    list.innerHTML = partners.length ? partners.map(partnerCard).join("") : `<p class="partners-empty">Em breve, novos parceiros por aqui.</p>`;
     setupPartnersAutoscroll(list);
+    bindTrackedLinks(list);
   } catch (error) {
     console.warn("Parceiros do Viva Urânia:", error.message);
     list.innerHTML = `<p class="partners-empty">Não foi possível carregar os parceiros agora.</p>`;
@@ -109,9 +110,22 @@ async function loadPartners() {
 
 function setupPartnersAutoscroll(list) {
   const cards = [...list.querySelectorAll(".viva-partner-card")];
-  if (cards.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (
+    cards.length < 2
+    || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    || window.matchMedia("(max-width: 720px)").matches
+  ) return;
 
   list.classList.add("is-auto-scrolling");
+  cards.forEach(card => {
+    const clone = card.cloneNode(true);
+    clone.setAttribute("aria-hidden", "true");
+    clone.querySelectorAll("a").forEach(link => {
+      link.tabIndex = -1;
+      link.removeAttribute("data-app-page-link");
+    });
+    list.appendChild(clone);
+  });
 
   let paused = false;
   const setPaused = value => {
@@ -126,9 +140,9 @@ function setupPartnersAutoscroll(list) {
   };
   const move = () => {
     if (paused || list.scrollWidth <= list.clientWidth) return;
-    const nearEnd = list.scrollLeft + list.clientWidth >= list.scrollWidth - 12;
-    if (nearEnd) {
-      list.scrollTo({ left: 0, behavior: "smooth" });
+    const resetPoint = list.scrollWidth / 2;
+    if (list.scrollLeft >= resetPoint) {
+      list.scrollLeft = 0;
       return;
     }
     list.scrollBy({ left: getStep(), behavior: "smooth" });
