@@ -91,6 +91,7 @@ async function loadPartners() {
     const rows = await fetchPublicRows("guia_comercial", {
       select: "id,nome,slug,descricao,imagem_url,categoria_nome,recomendado",
       status: "eq.publicado",
+      recomendado: "eq.true",
       order: "recomendado.desc,nome.asc",
       limit: "8"
     }, { ttl: 180000 });
