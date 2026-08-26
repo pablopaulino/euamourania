@@ -26,6 +26,9 @@ const safeTrack = (tipo, metadados = {}) => {
   }).catch(() => {});
 };
 
+const PARTNERS_LIMIT = 60;
+const PARTNERS_AUTOSCROLL_INTERVAL = 4200;
+
 function detectPlatform() {
   const ua = navigator.userAgent || "";
   if (/android/i.test(ua)) return "android";
@@ -93,14 +96,52 @@ async function loadPartners() {
       status: "eq.publicado",
       recomendado: "eq.true",
       order: "recomendado.desc,nome.asc",
-      limit: "8"
+      limit: String(PARTNERS_LIMIT)
     }, { ttl: 180000 });
     list.innerHTML = rows?.length ? rows.map(partnerCard).join("") : `<p class="partners-empty">Em breve, novos parceiros por aqui.</p>`;
     bindTrackedLinks(list);
+    setupPartnersAutoscroll(list);
   } catch (error) {
     console.warn("Parceiros do Viva Urânia:", error.message);
     list.innerHTML = `<p class="partners-empty">Não foi possível carregar os parceiros agora.</p>`;
   }
+}
+
+function setupPartnersAutoscroll(list) {
+  const cards = [...list.querySelectorAll(".viva-partner-card")];
+  if (cards.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  list.classList.add("is-auto-scrolling");
+
+  let paused = false;
+  const setPaused = value => {
+    paused = value;
+  };
+  const getStep = () => {
+    const card = cards[0];
+    if (!card) return 280;
+    const styles = getComputedStyle(list);
+    const gap = Number.parseFloat(styles.columnGap || styles.gap || "0") || 0;
+    return card.getBoundingClientRect().width + gap;
+  };
+  const move = () => {
+    if (paused || list.scrollWidth <= list.clientWidth) return;
+    const nearEnd = list.scrollLeft + list.clientWidth >= list.scrollWidth - 12;
+    if (nearEnd) {
+      list.scrollTo({ left: 0, behavior: "smooth" });
+      return;
+    }
+    list.scrollBy({ left: getStep(), behavior: "smooth" });
+  };
+
+  const timer = window.setInterval(move, PARTNERS_AUTOSCROLL_INTERVAL);
+  list.addEventListener("mouseenter", () => setPaused(true));
+  list.addEventListener("mouseleave", () => setPaused(false));
+  list.addEventListener("focusin", () => setPaused(true));
+  list.addEventListener("focusout", () => setPaused(false));
+  list.addEventListener("touchstart", () => setPaused(true), { passive: true });
+  list.addEventListener("touchend", () => window.setTimeout(() => setPaused(false), 1800), { passive: true });
+  window.addEventListener("pagehide", () => window.clearInterval(timer), { once: true });
 }
 
 function setupSlides() {
