@@ -266,6 +266,12 @@ html{scroll-behavior:smooth}
 .viva-mini-card span{color:#0b6374;font-weight:900;font-size:.84rem}
 
 .viva-feature-strip{padding:0 0 clamp(1.9rem,4vw,3rem)}
+.viva-feature-strip,
+.viva-partners,
+.viva-experience,
+.viva-slides{
+  position:relative;
+}
 .viva-section-head{
   max-width:800px;
   margin-bottom:1.35rem;
@@ -320,12 +326,12 @@ html{scroll-behavior:smooth}
 .viva-partner-carousel{
   display:grid;
   grid-auto-flow:column;
-  grid-auto-columns:minmax(250px,1fr);
+  grid-auto-columns:minmax(260px,1fr);
   gap:1rem;
   overflow-x:auto;
   overscroll-behavior-x:contain;
   scroll-snap-type:x mandatory;
-  padding:.2rem .1rem 1rem;
+  padding:.25rem .15rem 1rem;
   scrollbar-width:thin;
 }
 .viva-partner-card,.viva-partner-skeleton{
@@ -336,6 +342,12 @@ html{scroll-behavior:smooth}
   border:1px solid var(--viva-line);
   border-radius:30px;
   box-shadow:0 18px 44px rgba(7,59,76,.08);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.viva-partner-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(255,210,74,.58);
+  box-shadow:0 24px 56px rgba(7,59,76,.11);
 }
 .viva-partner-card img{
   width:100%;
@@ -487,6 +499,14 @@ html{scroll-behavior:smooth}
   border-radius:34px;
   box-shadow:var(--viva-shadow);
 }
+.viva-download:before{
+  content:"";
+  width:52px;
+  height:6px;
+  align-self:start;
+  background:linear-gradient(90deg,var(--viva-red),var(--viva-orange),var(--viva-gold));
+  border-radius:999px;
+}
 .viva-store-row{margin-top:0}
 .viva-store{
   justify-content:flex-start;
@@ -515,26 +535,47 @@ html{scroll-behavior:smooth}
 .viva-store strong{display:block;font-size:1rem}
 
 .viva-footer{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
   gap:1rem;
-  padding:2rem 0 2.4rem;
+  align-items:center;
+  margin-top:2.5rem;
+  padding:1.15rem;
   color:#64767c;
   font-size:.9rem;
-  border-top:1px solid rgba(7,59,76,.1);
+  background:rgba(255,255,255,.68);
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:30px 30px 0 0;
+  box-shadow:0 -14px 44px rgba(7,59,76,.05);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
 }
 .viva-footer-brand{display:flex;align-items:center;gap:1rem}
 .viva-footer-brand img{width:170px;height:auto}
 .viva-footer-brand p{margin:.15rem 0 0;color:#64767c}
 .viva-footer span{font-weight:950;color:var(--viva-ink)}
-.viva-footer nav{display:flex;flex-wrap:wrap;gap:.9rem}
-.viva-footer a{text-decoration:none;font-weight:850}
+.viva-footer nav{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:.55rem;
+}
+.viva-footer a{
+  padding:.58rem .78rem;
+  text-decoration:none;
+  font-weight:850;
+  border:1px solid transparent;
+  border-radius:999px;
+}
+.viva-footer a:hover{
+  background:#fff;
+  border-color:var(--viva-line);
+}
 
 .partners-page .partners-hero{
   width:min(1180px,calc(100% - 32px));
   margin:0 auto;
-  padding:clamp(2.2rem,6vw,5rem) 0 1.5rem;
+  padding:clamp(2rem,5vw,4.4rem) 0 1.2rem;
 }
 .partners-page .partners-hero h1{
   max-width:780px;
@@ -544,6 +585,24 @@ html{scroll-behavior:smooth}
   letter-spacing:-.08em;
 }
 .partners-page .partners-hero p{max-width:720px;color:#5f7177;font-size:1.08rem;line-height:1.6}
+.partners-hero-notes{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.55rem;
+  margin-top:1rem;
+}
+.partners-hero-notes span{
+  display:inline-flex;
+  padding:.58rem .8rem;
+  background:rgba(255,255,255,.74);
+  border:1px solid var(--viva-line);
+  border-radius:999px;
+  color:#0b6374;
+  font-size:.78rem;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
 .partners-tools{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(180px,260px);
@@ -579,6 +638,12 @@ html{scroll-behavior:smooth}
   border:1px solid var(--viva-line);
   border-radius:30px;
   box-shadow:0 18px 44px rgba(7,59,76,.07);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.partner-list-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(255,210,74,.58);
+  box-shadow:0 24px 56px rgba(7,59,76,.11);
 }
 .partner-list-card img{width:100%;height:168px;object-fit:cover;background:#f2f8f8}
 .partner-list-card div{padding:1rem}
@@ -688,8 +753,9 @@ html{scroll-behavior:smooth}
   .viva-slide-track{grid-auto-columns:86%}
   .viva-slide{min-height:190px}
   .viva-download{padding:1.15rem;border-radius:28px}
-  .viva-footer{align-items:flex-start;flex-direction:column}
+  .viva-footer{grid-template-columns:1fr;align-items:flex-start;border-radius:26px 26px 0 0}
   .viva-footer-brand{align-items:flex-start;flex-direction:column;gap:.55rem}
+  .viva-footer nav{justify-content:flex-start}
   .partners-tools{grid-template-columns:1fr}
   .partners-grid{grid-template-columns:1fr}
   .partners-final{align-items:stretch;flex-direction:column}

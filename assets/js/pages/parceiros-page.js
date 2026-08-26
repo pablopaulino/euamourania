@@ -23,7 +23,7 @@ let rows = [];
 
 function track(tipo, metadados = {}) {
   registrarEventoSite(tipo, {
-    pagina: "/pt/parceiros",
+    pagina: "/app/parceiros",
     recursoTipo: "app_parceiros",
     metadados
   }).catch(() => {});
