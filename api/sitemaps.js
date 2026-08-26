@@ -126,6 +126,7 @@ module.exports = async (req, res) => {
       { path: "/eventos/", priority: "0.8", changefreq: "weekly" },
       { path: "/melhores-de-urania/", priority: "0.8", changefreq: "weekly" },
       { path: "/app", priority: "0.75", changefreq: "monthly" },
+      { path: "/pt/parceiros", priority: "0.7", changefreq: "weekly" },
       { path: "/divulgue", priority: "0.7", changefreq: "monthly" },
       { path: "/links/", priority: "0.6", changefreq: "monthly" },
       { path: "/colabore/", priority: "0.6", changefreq: "monthly" },
