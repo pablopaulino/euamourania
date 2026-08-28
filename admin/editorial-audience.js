@@ -397,21 +397,40 @@ async function listRows(table,select,build=query=>query){
  if(error)throw error;
  return data||[];
 }
+async function safeCountRows(table,build=query=>query){
+ try{return await countRows(table,build)}catch(error){console.warn(`Audiência do app: ${table} indisponível.`,error?.message||error);return 0}
+}
+async function safeListRows(table,select,build=query=>query){
+ try{return await listRows(table,select,build)}catch(error){console.warn(`Audiência do app: ${table} indisponível.`,error?.message||error);return []}
+}
+function isAppAudienceEvent(item){
+ const tipo=String(item?.tipo||"");
+ const pagina=String(item?.pagina||"");
+ const origem=String(item?.origem||"");
+ const dispositivo=String(item?.dispositivo||"").toLowerCase();
+ const meta=item?.metadados||{};
+ return dispositivo==="ios"||dispositivo==="android"||
+  origem==="app"||pagina==="/app"||pagina.startsWith("/app/")||
+  Boolean(item?.app_version)||Boolean(item?.anonymous_id)||
+  Boolean(item?.notification_id)||meta?.origem==="app"||
+  ["app_open","empresa_view","empresa_whatsapp_click","empresa_phone_click","empresa_map_click","turismo_view","turismo_map_click","evento_view","noticia_view","favorite_add","favorite_remove","search","notification_open"].includes(tipo);
+}
 async function appAudience(startString,endString){
- if(!temPermissao(access()?.admin,"notificacoes","ler")){
-  return{available:false,error:"Seu perfil nao possui permissao para consultar dados do app."};
+ const admin=access()?.admin;
+ if(!temPermissao(admin,"insights","ler")){
+  return{available:false,error:"Seu perfil nao possui permissao para consultar audiência."};
  }
  const startIso=`${startString}T00:00:00.000Z`,endIso=`${endString}T23:59:59.999Z`;
  try{
   const [ativos,ativosPeriodo,android,ios,tokens,notifications,failures,events]=await Promise.all([
-   countRows("app_push_tokens",query=>query.eq("ativo",true)),
-   countRows("app_push_tokens",query=>query.eq("ativo",true).gte("visto_em",startIso)),
-   countRows("app_push_tokens",query=>query.eq("ativo",true).eq("plataforma","android")),
-   countRows("app_push_tokens",query=>query.eq("ativo",true).eq("plataforma","ios")),
-   listRows("app_push_tokens","plataforma,app_version,locale,ativo,visto_em,criado_em",query=>query.eq("ativo",true).order("visto_em",{ascending:false}).limit(600)),
-   listRows("app_notificacoes","titulo,status,plataforma,total_destinatarios,total_aceitos,total_erros,cliques,enviado_em,criado_em",query=>query.gte("criado_em",startIso).lte("criado_em",endIso).order("criado_em",{ascending:false}).limit(80)),
-   countRows("app_push_falhas",query=>query.gte("criado_em",startIso).lte("criado_em",endIso)),
-   listRows("analytics_eventos","tipo,recurso_tipo,recurso_id,anonymous_id,sessao_hash,dispositivo,app_version,notification_id,metadados,criado_em",query=>query.in("dispositivo",["ios","android"]).gte("criado_em",startIso).lte("criado_em",endIso).order("criado_em",{ascending:false}).limit(2500))
+   safeCountRows("app_push_tokens",query=>query.eq("ativo",true)),
+   safeCountRows("app_push_tokens",query=>query.eq("ativo",true).gte("visto_em",startIso)),
+   safeCountRows("app_push_tokens",query=>query.eq("ativo",true).eq("plataforma","android")),
+   safeCountRows("app_push_tokens",query=>query.eq("ativo",true).eq("plataforma","ios")),
+   safeListRows("app_push_tokens","plataforma,app_version,locale,ativo,visto_em,criado_em",query=>query.eq("ativo",true).order("visto_em",{ascending:false}).limit(600)),
+   temPermissao(admin,"notificacoes","ler")?safeListRows("app_notificacoes","titulo,status,plataforma,total_destinatarios,total_aceitos,total_erros,cliques,enviado_em,criado_em",query=>query.gte("criado_em",startIso).lte("criado_em",endIso).order("criado_em",{ascending:false}).limit(80)):Promise.resolve([]),
+   temPermissao(admin,"notificacoes","ler")?safeCountRows("app_push_falhas",query=>query.gte("criado_em",startIso).lte("criado_em",endIso)):Promise.resolve(0),
+   safeListRows("analytics_eventos","tipo,pagina,recurso_tipo,recurso_id,anonymous_id,sessao_hash,origem,dispositivo,app_version,notification_id,metadados,criado_em",query=>query.gte("criado_em",startIso).lte("criado_em",endIso).order("criado_em",{ascending:false}).limit(5000))
   ]);
   const versions=new Map(),locales=new Map(),eventCounts=new Map(),contentCounts=new Map(),searches=new Map();
   const visitors=new Set(),sessions=new Set();
@@ -421,7 +440,7 @@ async function appAudience(startString,endString){
    const locale=item.locale||"Nao informado";
    locales.set(locale,(locales.get(locale)||0)+1);
   });
-  events.forEach(item=>{
+  events.filter(isAppAudienceEvent).forEach(item=>{
    eventCounts.set(item.tipo,(eventCounts.get(item.tipo)||0)+1);
    if(item.anonymous_id)visitors.add(item.anonymous_id);
    if(item.sessao_hash)sessions.add(item.sessao_hash);
