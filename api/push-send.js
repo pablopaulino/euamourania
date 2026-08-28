@@ -33,11 +33,13 @@ function destination(notification){
   if(notification.destino_tipo==="turismo"&&value)return`/turismo/${value}`;
   if(notification.destino_tipo==="evento"&&value)return`/eventos/${value}`;
   if(notification.destino_tipo==="noticia"&&value)return`/noticias/${value}`;
+  if(notification.destino_tipo==="melhores"&&value)return`/melhores/${value}`;
+  if(notification.destino_tipo==="melhores")return"/melhores";
   if(notification.destino_tipo==="telefones_uteis")return"/telefones-uteis";
   return"/";
 }
 function isSafePath(path){
-  return /^(\/|\/empresa\/[a-z0-9-]+|\/turismo\/[a-z0-9-]+|\/eventos\/[a-z0-9-]+|\/noticias\/[a-z0-9-]+|\/telefones-uteis)$/i.test(String(path||""));
+  return /^(\/|\/empresa\/[a-z0-9-]+|\/turismo\/[a-z0-9-]+|\/eventos\/[a-z0-9-]+(?:--[a-z0-9-]+)?|\/noticias\/[a-z0-9-]+|\/melhores(?:\/[0-9a-f-]{36})?|\/telefones-uteis)$/i.test(String(path||""));
 }
 function deepLinkFor(path){
   return `euamourania://${String(path||"/").replace(/^\/+/,"")}`;

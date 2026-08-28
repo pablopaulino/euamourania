@@ -6,7 +6,7 @@ let db = null;
 let access = null;
 let notifications = [];
 let deviceCounts = { total: 0, android: 0, ios: 0 };
-let destinationOptions = { empresa: [], turismo: [], evento: [], noticia: [] };
+let destinationOptions = { empresa: [], turismo: [], evento: [], noticia: [], melhores: [] };
 let cleanupHandlers = [];
 let moduleStyle = null;
 let context = {};
@@ -48,15 +48,30 @@ function destinationPath(type, slug) {
   if (type === "turismo" && slug) return `/turismo/${slug}`;
   if (type === "evento" && slug) return `/eventos/${slug}`;
   if (type === "noticia" && slug) return `/noticias/${slug}`;
+  if (type === "melhores" && slug) return `/melhores/${slug}`;
   if (type === "telefones_uteis") return "/telefones-uteis";
+  if (type === "melhores") return "/melhores";
   return "/";
 }
 
 function destinationLabel(item) {
   if (item?.destino_label) return item.destino_label;
   if (item?.destino_tipo === "telefones_uteis") return "Telefones úteis";
+  if (item?.destino_tipo === "melhores") return "Melhores de Urânia";
   if (item?.destino_tipo === "home") return "Página inicial";
   return item?.destino_valor || item?.caminho || "Página inicial";
+}
+
+function destinationTypeLabel(type) {
+  return ({
+    home: "Início",
+    empresa: "Empresa",
+    turismo: "Turismo",
+    evento: "Evento",
+    noticia: "Notícia",
+    melhores: "Melhores",
+    telefones_uteis: "Telefones úteis",
+  })[type] || type || "Início";
 }
 
 function ctr(item) {
@@ -67,13 +82,12 @@ function ctr(item) {
 }
 
 async function fetchDestinationOptions() {
-  const configs = [
+  const contentConfigs = [
     ["empresa", "guia_comercial", "id,nome,slug,status", "nome"],
     ["turismo", "turismo", "id,nome,slug,status", "nome"],
-    ["evento", "eventos", "id,titulo,slug,status", "titulo"],
     ["noticia", "noticias", "id,titulo,slug,status", "titulo"],
   ];
-  const results = await Promise.allSettled(configs.map(async ([type, table, select, labelField]) => {
+  const contentResults = await Promise.allSettled(contentConfigs.map(async ([type, table, select, labelField]) => {
     const { data, error } = await db.from(table).select(select).eq("status", "publicado").order(labelField, { ascending: true }).limit(120);
     if (error) throw error;
     return [type, (data || []).filter(item => item.slug).map(item => ({
@@ -83,12 +97,57 @@ async function fetchDestinationOptions() {
       path: destinationPath(type, item.slug),
     }))];
   }));
-  destinationOptions = { empresa: [], turismo: [], evento: [], noticia: [] };
-  results.forEach(result => {
+  destinationOptions = { empresa: [], turismo: [], evento: [], noticia: [], melhores: [] };
+  contentResults.forEach(result => {
     if (result.status !== "fulfilled") return;
     const [type, rows] = result.value;
     destinationOptions[type] = rows;
   });
+
+  const [simpleEvents, editionEvents, bestOfCampaigns] = await Promise.allSettled([
+    db.from("eventos").select("id,titulo,titulo_curto,slug,status,data_inicio").eq("status", "publicado").order("data_inicio", { ascending: true, nullsFirst: false }).limit(120),
+    db.from("eventos_edicoes").select("id,ano,titulo,titulo_curto,slug,status,data_inicio,eventos_principais!inner(nome,slug,ativo)").in("status", ["anunciado", "confirmado", "acontecendo", "encerrado"]).eq("eventos_principais.ativo", true).order("data_inicio", { ascending: true, nullsFirst: false }).limit(120),
+    db.from("app_melhores_campanhas").select("id,titulo,ativo,exibir_inicio,melhores_edicoes(nome,ano,status)").eq("ativo", true).order("exibir_inicio", { ascending: false, nullsFirst: false }).limit(80),
+  ]);
+
+  if (simpleEvents.status === "fulfilled" && !simpleEvents.value.error) {
+    destinationOptions.evento.push(...(simpleEvents.value.data || []).filter(item => item.slug).map(item => ({
+      id: item.id,
+      slug: item.slug,
+      label: item.titulo_curto || item.titulo,
+      detail: "Agenda simples",
+      path: destinationPath("evento", item.slug),
+    })));
+  }
+
+  if (editionEvents.status === "fulfilled" && !editionEvents.value.error) {
+    destinationOptions.evento.push(...(editionEvents.value.data || []).map(item => {
+      const parentSlug = item.eventos_principais?.slug;
+      const editionSlug = item.slug || (item.ano ? String(item.ano) : item.id);
+      const slug = parentSlug ? `${parentSlug}--${editionSlug}` : editionSlug;
+      return {
+        id: item.id,
+        slug,
+        label: item.titulo_curto || item.titulo || item.eventos_principais?.nome || "Edição de evento",
+        detail: `Edição especial${item.ano ? ` · ${item.ano}` : ""}`,
+        path: destinationPath("evento", slug),
+      };
+    }));
+  }
+
+  if (bestOfCampaigns.status === "fulfilled" && !bestOfCampaigns.value.error) {
+    destinationOptions.melhores = (bestOfCampaigns.value.data || []).map(item => {
+      const edition = item.melhores_edicoes;
+      const label = item.titulo || edition?.nome || `Melhores de Urânia ${edition?.ano || ""}`.trim();
+      return {
+        id: item.id,
+        slug: item.id,
+        label,
+        detail: edition?.status ? `Prêmio · ${edition.ano || ""} · ${edition.status.replaceAll("_", " ")}` : "Prêmio local",
+        path: destinationPath("melhores", item.id),
+      };
+    });
+  }
 }
 
 function ensureModuleStyle() {
@@ -149,13 +208,17 @@ async function load() {
 function render() {
   if (!app) return;
   const sent = notifications.filter(item => item.status === "enviado").length;
+  const drafts = notifications.filter(item => item.status === "rascunho").length;
   const accepted = notifications.reduce((sum, item) => sum + (item.total_aceitos || 0), 0);
+  const clicks = notifications.reduce((sum, item) => sum + (item.cliques || 0), 0);
+  const errors = notifications.reduce((sum, item) => sum + (item.total_erros || 0), 0);
+  const globalCtr = accepted ? `${((clicks / accepted) * 100).toFixed(1).replace(".", ",")}%` : "—";
   const canDelete = temPermissao(access.admin, "notificacoes", "excluir");
   const rows = notifications.map(item => {
     const path = item.caminho || destinationPath(item.destino_tipo, item.destino_valor);
     return `<tr>
         <td class="push-copy"><strong>${esc(item.titulo)}</strong><small>${esc(item.mensagem)}</small></td>
-        <td class="push-copy"><strong>${esc(destinationLabel(item))}</strong><small>${esc(path)}</small></td>
+        <td class="push-copy"><strong>${esc(destinationLabel(item))}</strong><small>${esc(destinationTypeLabel(item.destino_tipo))} · ${esc(path)}</small></td>
         <td>${esc(item.plataforma)}</td>
         <td><span class="status-pill ${esc(item.status)}">${esc(statusLabel(item.status))}</span></td>
         <td>${item.total_aceitos || 0} aceitos${item.total_erros ? ` · ${item.total_erros} erros` : ""}</td>
@@ -166,10 +229,14 @@ function render() {
   }).join("");
   app.innerHTML = `
     <section class="push-metrics">
-      <article class="metric-card"><span>Aparelhos ativos</span><strong>${deviceCounts.total}</strong></article>
+      <article class="metric-card"><span>Aparelhos ativos</span><strong>${deviceCounts.total}</strong><em>base atual</em></article>
       <article class="metric-card"><span>Android</span><strong>${deviceCounts.android}</strong></article>
       <article class="metric-card"><span>iPhone</span><strong>${deviceCounts.ios}</strong></article>
+      <article class="metric-card"><span>Rascunhos</span><strong>${drafts}</strong><em>aguardando envio</em></article>
       <article class="metric-card"><span>Envios aceitos</span><strong>${accepted}</strong><em>${sent} campanhas</em></article>
+      <article class="metric-card"><span>Cliques</span><strong>${clicks}</strong><em>CTR ${globalCtr}</em></article>
+      <article class="metric-card"><span>Falhas</span><strong>${errors}</strong><em>tokens ou Expo</em></article>
+      <article class="metric-card"><span>Destinos</span><strong>${Object.values(destinationOptions).reduce((sum, rows) => sum + rows.length, 0)}</strong><em>conteúdos conectados</em></article>
     </section>
     <section class="push-card table-card">
       <div class="push-history-head"><h3>Histórico</h3>${canDelete && notifications.length ? '<button class="admin-button secondary" id="clear-history" type="button">Limpar histórico</button>' : ""}</div>
@@ -184,28 +251,63 @@ function render() {
 
 function openForm() {
   if (!app) return;
-  app.innerHTML = `<section class="push-card"><h3>Nova notificação</h3>
+  app.innerHTML = `<section class="push-card push-composer-card"><div class="push-form-heading"><div><h3>Nova notificação</h3><p>Monte uma campanha curta, com destino real e prévia antes de salvar.</p></div><span class="push-pro-pill">Push profissional</span></div>
     <form id="push-form" class="push-form">
       <div class="push-notice full push-field">A mensagem será enviada somente após sua confirmação. Escolha um destino real para a notificação abrir direto no app.</div>
+      <div class="push-template-row full">
+        <button type="button" data-template-title="Novidade no Viva Urânia" data-template-body="Tem novidade publicada no aplicativo. Toque para conferir." data-template-type="home">Novidade geral</button>
+        <button type="button" data-template-title="Evento em Urânia" data-template-body="Confira os detalhes, data e local deste evento no app." data-template-type="evento">Evento</button>
+        <button type="button" data-template-title="Melhores de Urânia" data-template-body="Acompanhe a edição oficial do prêmio pelo aplicativo." data-template-type="melhores">Prêmio</button>
+        <button type="button" data-template-title="Nova notícia" data-template-body="Uma nova publicação importante acabou de chegar no Viva Urânia." data-template-type="noticia">Notícia</button>
+      </div>
       <div class="push-field full"><label>Título *</label><input name="titulo" maxlength="80" required placeholder="Ex.: Agenda do fim de semana"><small class="push-counter" id="title-count">0/80</small></div>
       <div class="push-field full"><label>Mensagem *</label><textarea name="mensagem" maxlength="220" required placeholder="Conte a novidade em poucas palavras."></textarea><small class="push-counter" id="body-count">0/220</small></div>
       <div class="push-field"><label>Público</label><select name="plataforma"><option value="todos">Android e iPhone</option><option value="android">Somente Android</option><option value="ios">Somente iPhone</option></select></div>
-      <div class="push-field"><label>Ao tocar, abrir</label><select name="destino_tipo"><option value="home">Página inicial</option><option value="empresa">Empresa do guia</option><option value="turismo">Ponto turístico</option><option value="evento">Evento</option><option value="noticia">Notícia</option><option value="telefones_uteis">Telefones úteis</option></select></div>
+      <div class="push-field"><label>Ao tocar, abrir</label><select name="destino_tipo"><option value="home">Página inicial</option><option value="empresa">Empresa do guia</option><option value="turismo">Ponto turístico</option><option value="evento">Evento ou edição</option><option value="noticia">Notícia</option><option value="melhores">Melhores de Urânia</option><option value="telefones_uteis">Telefones úteis</option></select></div>
       <div class="push-field full" id="destination-field" hidden><label>Conteúdo</label><select id="destination-select"></select><small>Use um conteúdo publicado. A rota será criada automaticamente.</small></div>
       <input type="hidden" name="destino_id"><input type="hidden" name="destino_valor"><input type="hidden" name="destino_label"><input type="hidden" name="caminho">
-      <div class="push-preview full" id="destination-preview">Destino: Página inicial</div>
+      <div class="push-composer-aside full">
+        <div class="push-preview" id="destination-preview">Destino: Página inicial</div>
+        <div class="phone-preview" aria-label="Prévia da notificação">
+          <div class="phone-preview-top"><span>Viva Urânia</span><small>agora</small></div>
+          <strong id="preview-title">Título da notificação</strong>
+          <p id="preview-body">A mensagem aparecerá aqui enquanto você escreve.</p>
+          <small id="preview-path">Abrirá: /</small>
+        </div>
+        <div class="push-audience-box">
+          <span>Público estimado</span>
+          <strong id="audience-estimate">${deviceCounts.total}</strong>
+          <small id="audience-detail">Android e iPhone com permissão ativa</small>
+        </div>
+      </div>
       <div class="push-actions"><button type="button" class="admin-button secondary" id="cancel">Cancelar</button><button class="admin-button">Salvar rascunho</button></div>
     </form></section>`;
   const form = app.querySelector("#push-form");
   const destination = app.querySelector("#destination-field");
   const destinationSelect = app.querySelector("#destination-select");
   const preview = app.querySelector("#destination-preview");
+  const previewTitle = app.querySelector("#preview-title");
+  const previewBody = app.querySelector("#preview-body");
+  const previewPath = app.querySelector("#preview-path");
+  const audienceEstimate = app.querySelector("#audience-estimate");
+  const audienceDetail = app.querySelector("#audience-detail");
+  const updatePreview = () => {
+    previewTitle.textContent = form.elements.titulo.value.trim() || "Título da notificação";
+    previewBody.textContent = form.elements.mensagem.value.trim() || "A mensagem aparecerá aqui enquanto você escreve.";
+    previewPath.textContent = `Abrirá: ${form.elements.caminho.value || "/"}`;
+  };
+  const updateAudience = () => {
+    const platform = form.elements.plataforma.value;
+    const count = platform === "android" ? deviceCounts.android : platform === "ios" ? deviceCounts.ios : deviceCounts.total;
+    audienceEstimate.textContent = count;
+    audienceDetail.textContent = platform === "android" ? "aparelhos Android ativos" : platform === "ios" ? "iPhones ativos" : "Android e iPhone com permissão ativa";
+  };
   const refreshDestination = () => {
     const type = form.elements.destino_tipo.value;
-    const needsContent = ["empresa", "turismo", "evento", "noticia"].includes(type);
+    const needsContent = ["empresa", "turismo", "evento", "noticia", "melhores"].includes(type);
     destination.hidden = !needsContent;
     destinationSelect.innerHTML = needsContent
-      ? `<option value="">Selecione um conteúdo publicado</option>${(destinationOptions[type] || []).map(item => `<option value="${esc(item.id)}" data-slug="${esc(item.slug)}" data-label="${esc(item.label)}" data-path="${esc(item.path)}">${esc(item.label)}</option>`).join("")}`
+      ? `<option value="">Selecione um conteúdo publicado</option>${(destinationOptions[type] || []).map(item => `<option value="${esc(item.id)}" data-slug="${esc(item.slug)}" data-label="${esc(item.label)}" data-path="${esc(item.path)}">${esc(item.label)}${item.detail ? ` — ${esc(item.detail)}` : ""}</option>`).join("")}`
       : "";
     form.elements.destino_id.value = "";
     form.elements.destino_valor.value = "";
@@ -217,6 +319,7 @@ function openForm() {
       form.elements.caminho.value = "/";
     }
     preview.textContent = `Destino: ${form.elements.destino_label.value} · ${form.elements.caminho.value || "/"}`;
+    updatePreview();
   };
   const applySelectedDestination = () => {
     const option = destinationSelect.selectedOptions[0];
@@ -234,22 +337,39 @@ function openForm() {
     form.elements.destino_label.value = option.dataset.label || option.textContent || "";
     form.elements.caminho.value = option.dataset.path || destinationPath(type, option.dataset.slug || "");
     preview.textContent = `Destino: ${form.elements.destino_label.value} · ${form.elements.caminho.value}`;
+    updatePreview();
   };
   form.elements.titulo.addEventListener("input", () => {
     app.querySelector("#title-count").textContent = `${form.elements.titulo.value.length}/80`;
+    updatePreview();
   });
   form.elements.mensagem.addEventListener("input", () => {
     app.querySelector("#body-count").textContent = `${form.elements.mensagem.value.length}/220`;
+    updatePreview();
   });
+  form.elements.plataforma.addEventListener("change", updateAudience);
   form.elements.destino_tipo.addEventListener("change", refreshDestination);
   destinationSelect.addEventListener("change", applySelectedDestination);
+  app.querySelectorAll("[data-template-title]").forEach(button => {
+    button.addEventListener("click", () => {
+      form.elements.titulo.value = button.dataset.templateTitle || "";
+      form.elements.mensagem.value = button.dataset.templateBody || "";
+      form.elements.destino_tipo.value = button.dataset.templateType || "home";
+      app.querySelector("#title-count").textContent = `${form.elements.titulo.value.length}/80`;
+      app.querySelector("#body-count").textContent = `${form.elements.mensagem.value.length}/220`;
+      refreshDestination();
+      updatePreview();
+    });
+  });
   app.querySelector("#cancel").addEventListener("click", render);
   refreshDestination();
+  updateAudience();
+  updatePreview();
   form.addEventListener("submit", async event => {
     event.preventDefault();
     const button = event.submitter;
     const values = Object.fromEntries(new FormData(form));
-    const needsContent = ["empresa", "turismo", "evento", "noticia"].includes(values.destino_tipo);
+    const needsContent = ["empresa", "turismo", "evento", "noticia", "melhores"].includes(values.destino_tipo);
     if (needsContent && !values.destino_id) {
       toast("Selecione o conteúdo que será aberto ao tocar na notificação.", "error");
       return;
