@@ -450,38 +450,47 @@ function bind(root) {
 
   root.querySelector("#initiative-form")?.addEventListener("submit", async event => {
     event.preventDefault();
+    const submitButton = event.currentTarget.querySelector('button[type="submit"]');
+    submitButton?.setAttribute("disabled", "disabled");
     const formData = new FormData(event.currentTarget);
     const titulo = value(formData, "titulo");
     const tipo = value(formData, "tipo");
     const existing = state.selected ? { ...state.selected } : {};
-    await salvarIniciativa({
-      ...existing,
-      id: state.selected?.id,
-      tipo,
-      iniciativa_pai_id: tipo === "projeto" ? "" : value(formData, "iniciativa_pai_id"),
-      titulo,
-      slug: value(formData, "slug") || gerarSlug(titulo),
-      resumo: value(formData, "resumo"),
-      descricao: value(formData, "descricao"),
-      imagem_capa_url: value(formData, "imagem_capa_url"),
-      status: value(formData, "status"),
-      responsavel_nome: value(formData, "responsavel_nome"),
-      telefone: value(formData, "telefone"),
-      whatsapp: value(formData, "whatsapp"),
-      email: value(formData, "email"),
-      instagram: value(formData, "instagram"),
-      site_url: value(formData, "site_url"),
-      inicio_em: value(formData, "inicio_em"),
-      termina_em: value(formData, "termina_em"),
-      destaque: formData.get("destaque") === "on",
-      exibir_na_listagem: formData.get("exibir_na_listagem") === "on"
-    });
-    if (!state.selected?.id) {
-      state.creating = false;
-      state.help = [];
+    try {
+      await salvarIniciativa({
+        ...existing,
+        id: state.selected?.id,
+        tipo,
+        iniciativa_pai_id: tipo === "projeto" ? null : value(formData, "iniciativa_pai_id"),
+        titulo,
+        slug: value(formData, "slug") || gerarSlug(titulo),
+        resumo: value(formData, "resumo"),
+        descricao: value(formData, "descricao"),
+        imagem_capa_url: value(formData, "imagem_capa_url"),
+        status: value(formData, "status"),
+        responsavel_nome: value(formData, "responsavel_nome"),
+        telefone: value(formData, "telefone"),
+        whatsapp: value(formData, "whatsapp"),
+        email: value(formData, "email"),
+        instagram: value(formData, "instagram"),
+        site_url: value(formData, "site_url"),
+        inicio_em: value(formData, "inicio_em"),
+        termina_em: value(formData, "termina_em"),
+        destaque: formData.get("destaque") === "on",
+        exibir_na_listagem: formData.get("exibir_na_listagem") === "on"
+      });
+      if (!state.selected?.id) {
+        state.creating = false;
+        state.help = [];
+      }
+      state.message = "Iniciativa salva.";
+      await load();
+    } catch (error) {
+      state.message = `Não foi possível salvar: ${error.message || "verifique os campos e tente novamente."}`;
+      render();
+    } finally {
+      submitButton?.removeAttribute("disabled");
     }
-    state.message = "Iniciativa salva.";
-    await load();
   });
 
   root.querySelector("#help-form")?.addEventListener("submit", async event => {
