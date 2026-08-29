@@ -6,6 +6,7 @@ import {
   excluirFormaAjuda
 } from "../assets/js/services/iniciativasService.js";
 import { gerarSlug } from "../assets/js/utils.js";
+import "./media-upload.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>"']/g, char => ({
   "&": "&amp;",
@@ -185,13 +186,13 @@ function form(item) {
           </div>
         </div>
         <div class="initiatives-form-grid">
-          <label>Tipo<select name="tipo">${typeOptions(item.tipo)}</select></label>
-          <label class="initiative-parent-field ${isProject ? "is-muted" : ""}">Vincular a um projeto<select name="iniciativa_pai_id">${parentOptions(item)}</select><small>Use apenas quando esta ação fizer parte de um projeto maior.</small></label>
+          <label>Natureza<select name="tipo">${typeOptions(item.tipo)}</select><small>Projeto é permanente. Ação é pontual ou vinculada a um projeto.</small></label>
+          <label class="initiative-parent-field ${isProject ? "is-hidden" : ""}">Vincular a um projeto<select name="iniciativa_pai_id">${parentOptions(item)}</select><small>Use apenas quando esta ação fizer parte de um projeto maior.</small></label>
           <label>Título<input required name="titulo" value="${esc(item.titulo)}"></label>
           <label>Slug<input required name="slug" value="${esc(item.slug)}"></label>
-          <label class="wide">Imagem de capa<input name="imagem_capa_url" value="${esc(item.imagem_capa_url)}" placeholder="URL ou caminho da imagem"></label>
-          <label class="wide">Resumo<textarea name="resumo" rows="3">${esc(item.resumo)}</textarea></label>
-          <label class="wide">Sobre<textarea name="descricao" rows="7">${esc(item.descricao)}</textarea></label>
+          <label class="wide initiative-image-field">Imagem de capa<input name="imagem_capa_url" value="${esc(item.imagem_capa_url)}" placeholder="Escolha da biblioteca, envie uma imagem ou cole o caminho" inputmode="url" data-type="image" data-cms-image="true" data-media-folder="iniciativas/capas" data-media-preset="wide"><small>Aceita biblioteca de mídia do CMS, upload ou link interno.</small></label>
+          <label class="wide">Resumo curto<textarea name="resumo" rows="3" placeholder="Uma frase objetiva para aparecer nos cards públicos.">${esc(item.resumo)}</textarea></label>
+          <label class="wide">Descrição completa<textarea name="descricao" rows="7" placeholder="Conte a história, objetivo, público atendido e como a comunidade pode participar.">${esc(item.descricao)}</textarea></label>
         </div>
       </section>
 
@@ -223,8 +224,8 @@ function form(item) {
         </div>
         <div class="initiatives-form-grid">
           <label>Status<select name="status">${statusOptions(item.status)}</select></label>
-          <label>Início<input type="datetime-local" name="inicio_em" value="${esc(normalizeDateTime(item.inicio_em))}"><small>${isProject ? "Opcional para projetos permanentes." : "Quando a ação começa."}</small></label>
-          <label>Encerramento<input type="datetime-local" name="termina_em" value="${esc(normalizeDateTime(item.termina_em))}"><small>${isProject ? "Deixe em branco para manter como permanente." : "Use quando a ação tiver prazo definido."}</small></label>
+          <label>Início<input type="datetime-local" name="inicio_em" value="${esc(normalizeDateTime(item.inicio_em))}"><small data-start-hint>${isProject ? "Opcional para projetos permanentes." : "Quando a ação começa."}</small></label>
+          <label>Encerramento<input type="datetime-local" name="termina_em" value="${esc(normalizeDateTime(item.termina_em))}"><small data-end-hint>${isProject ? "Deixe em branco para continuar permanente." : "Use quando a ação tiver prazo definido."}</small></label>
           <div class="initiatives-checks">
             <label><input type="checkbox" name="destaque" ${item.destaque ? "checked" : ""}> <span>Destacar</span></label>
             <label><input type="checkbox" name="exibir_na_listagem" ${item.exibir_na_listagem ? "checked" : ""}> <span>Exibir na listagem</span></label>
@@ -243,16 +244,18 @@ function dashboardPanel() {
   const published = state.items.filter(item => item.status === "publicado");
   const drafts = state.items.filter(item => item.status === "rascunho");
   const featured = state.items.filter(item => item.destaque);
+  const actions = state.items.filter(item => item.tipo === "acao");
+  const projects = state.items.filter(item => item.tipo === "projeto");
   const latest = state.items.slice(0, 5);
   return `
     <section class="initiatives-dashboard">
       <div class="initiatives-dashboard-hero">
         <div>
           <p class="eyebrow">Central de iniciativas</p>
-          <h3>Gerencie a vitrine da comunidade sem abrir o formulário direto.</h3>
-          <p>Escolha uma iniciativa da lista para editar ou cadastre uma nova quando precisar publicar um projeto permanente ou uma ação pontual.</p>
+          <h3>Projetos e ações da comunidade, organizados em um só lugar.</h3>
+          <p>Escolha uma iniciativa do acervo para editar ou cadastre uma nova quando precisar publicar um projeto permanente ou uma ação pontual.</p>
         </div>
-        <button class="admin-button" type="button" data-new-initiative>Cadastrar iniciativa</button>
+        <button class="admin-button" type="button" data-new-initiative>Nova iniciativa</button>
       </div>
 
       <div class="initiatives-dashboard-grid">
@@ -261,23 +264,23 @@ function dashboardPanel() {
           <span>publicadas no site</span>
         </article>
         <article>
-          <strong>${drafts.length}</strong>
-          <span>em rascunho</span>
+          <strong>${projects.length}</strong>
+          <span>projetos permanentes</span>
         </article>
         <article>
-          <strong>${featured.length}</strong>
-          <span>com destaque ativo</span>
+          <strong>${actions.length}</strong>
+          <span>ações pontuais</span>
         </article>
       </div>
 
       <div class="initiatives-quick-actions">
-        <button type="button" data-new-initiative>
-          <strong>Nova iniciativa</strong>
-          <span>Abrir cadastro limpo</span>
-        </button>
         <button type="button" data-select="${esc(latest[0]?.id || "")}" ${latest[0]?.id ? "" : "disabled"}>
           <strong>Editar recente</strong>
           <span>${latest[0]?.titulo ? esc(latest[0].titulo) : "Nenhuma iniciativa ainda"}</span>
+        </button>
+        <button type="button" data-select="${esc(drafts[0]?.id || "")}" ${drafts[0]?.id ? "" : "disabled"}>
+          <strong>Revisar rascunho</strong>
+          <span>${drafts[0]?.titulo ? esc(drafts[0].titulo) : "Nenhum rascunho pendente"}</span>
         </button>
         <a href="/iniciativas" target="_blank" rel="noopener">
           <strong>Ver página pública</strong>
@@ -362,20 +365,21 @@ function helps() {
 }
 
 function selectedSummary(item) {
-  const label = item.id ? "Editando iniciativa" : "Nova iniciativa";
-  const title = item.titulo || "Configure uma nova iniciativa";
+  const label = item.id ? "Editando iniciativa" : "Cadastro";
+  const title = item.titulo || "Nova iniciativa";
   const period = [formatDate(item.inicio_em), formatDate(item.termina_em)].filter(Boolean).join(" até ");
   return `
     <section class="initiatives-editor-head">
       <div>
         <p class="eyebrow">${label}</p>
         <h3>${esc(title)}</h3>
-        <p>${esc(item.resumo || "Use os campos abaixo para cadastrar uma iniciativa clara, confiável e fácil de apoiar.")}</p>
+        <p>${esc(item.resumo || "Preencha o cadastro com clareza. Depois de salvar, você poderá adicionar formas de ajuda quando fizer sentido.")}</p>
       </div>
       <div class="initiatives-editor-badges">
         <span>${esc(formatType(item.tipo))}</span>
         <span>${esc(formatStatus(item.status))}</span>
         ${period ? `<span>${esc(period)}</span>` : ""}
+        <button type="button" class="admin-button secondary compact" data-dashboard>Voltar</button>
       </div>
     </section>
   `;
@@ -392,9 +396,8 @@ function render() {
         <div>
           <p class="eyebrow">Comunidade</p>
           <h2>Iniciativas da Comunidade</h2>
-          <p>Cadastre projetos permanentes, ações independentes e formas de ajuda revisadas.</p>
+          <p>Organize projetos permanentes, ações pontuais e formas de ajuda que aparecem para o público.</p>
         </div>
-        <button id="new-initiative" class="admin-button" type="button">Nova iniciativa</button>
       </header>
       ${metrics()}
       ${state.message ? `<p class="form-message">${esc(state.message)}</p>` : ""}
@@ -410,13 +413,21 @@ function render() {
 }
 
 function bind(root) {
-  root.querySelectorAll("#new-initiative, [data-new-initiative]").forEach(button => button.addEventListener("click", () => {
+  root.querySelectorAll("[data-new-initiative]").forEach(button => button.addEventListener("click", () => {
     state.selected = null;
     state.creating = true;
     state.help = [];
     state.message = "";
     render();
   }));
+
+  root.querySelector("[data-dashboard]")?.addEventListener("click", () => {
+    state.selected = null;
+    state.creating = false;
+    state.help = [];
+    state.message = "";
+    render();
+  });
 
   root.querySelectorAll("[data-select]").forEach(button => button.addEventListener("click", async () => {
     if (!button.dataset.select) return;
@@ -431,7 +442,9 @@ function bind(root) {
     const isProject = event.currentTarget.value === "projeto";
     const parentField = root.querySelector(".initiative-parent-field");
     const parentSelect = parentField?.querySelector("select");
-    parentField?.classList.toggle("is-muted", isProject);
+    parentField?.classList.toggle("is-hidden", isProject);
+    root.querySelector("[data-start-hint]").textContent = isProject ? "Opcional para projetos permanentes." : "Quando a ação começa.";
+    root.querySelector("[data-end-hint]").textContent = isProject ? "Deixe em branco para continuar permanente." : "Use quando a ação tiver prazo definido.";
     if (isProject && parentSelect) parentSelect.value = "";
   });
 
