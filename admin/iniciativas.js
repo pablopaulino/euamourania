@@ -22,6 +22,7 @@ let cleanupHandlers = [];
 const state = {
   items: [],
   selected: null,
+  creating: false,
   help: [],
   message: ""
 };
@@ -166,12 +167,13 @@ function typeOptions(current) {
 function parentOptions(item) {
   const projects = state.items.filter(entry => entry.tipo === "projeto" && entry.id !== item.id);
   return `
-    <option value="">Ação independente</option>
+    <option value="">Sem projeto pai / iniciativa independente</option>
     ${projects.map(entry => `<option value="${entry.id}" ${entry.id === item.iniciativa_pai_id ? "selected" : ""}>${esc(entry.titulo)}</option>`).join("")}
   `;
 }
 
 function form(item) {
+  const isProject = item.tipo !== "acao";
   return `
     <form id="initiative-form" class="initiatives-form">
       <section class="initiative-editor-section">
@@ -184,7 +186,7 @@ function form(item) {
         </div>
         <div class="initiatives-form-grid">
           <label>Tipo<select name="tipo">${typeOptions(item.tipo)}</select></label>
-          <label>Projeto pai<select name="iniciativa_pai_id">${parentOptions(item)}</select></label>
+          <label class="initiative-parent-field ${isProject ? "is-muted" : ""}">Vincular a um projeto<select name="iniciativa_pai_id">${parentOptions(item)}</select><small>Use apenas quando esta ação fizer parte de um projeto maior.</small></label>
           <label>Título<input required name="titulo" value="${esc(item.titulo)}"></label>
           <label>Slug<input required name="slug" value="${esc(item.slug)}"></label>
           <label class="wide">Imagem de capa<input name="imagem_capa_url" value="${esc(item.imagem_capa_url)}" placeholder="URL ou caminho da imagem"></label>
@@ -221,11 +223,11 @@ function form(item) {
         </div>
         <div class="initiatives-form-grid">
           <label>Status<select name="status">${statusOptions(item.status)}</select></label>
-          <label>Início<input type="datetime-local" name="inicio_em" value="${esc(normalizeDateTime(item.inicio_em))}"></label>
-          <label>Encerramento<input type="datetime-local" name="termina_em" value="${esc(normalizeDateTime(item.termina_em))}"></label>
+          <label>Início<input type="datetime-local" name="inicio_em" value="${esc(normalizeDateTime(item.inicio_em))}"><small>${isProject ? "Opcional para projetos permanentes." : "Quando a ação começa."}</small></label>
+          <label>Encerramento<input type="datetime-local" name="termina_em" value="${esc(normalizeDateTime(item.termina_em))}"><small>${isProject ? "Deixe em branco para manter como permanente." : "Use quando a ação tiver prazo definido."}</small></label>
           <div class="initiatives-checks">
-            <label><input type="checkbox" name="destaque" ${item.destaque ? "checked" : ""}> Destacar</label>
-            <label><input type="checkbox" name="exibir_na_listagem" ${item.exibir_na_listagem ? "checked" : ""}> Exibir na listagem</label>
+            <label><input type="checkbox" name="destaque" ${item.destaque ? "checked" : ""}> <span>Destacar</span></label>
+            <label><input type="checkbox" name="exibir_na_listagem" ${item.exibir_na_listagem ? "checked" : ""}> <span>Exibir na listagem</span></label>
           </div>
         </div>
       </section>
@@ -234,6 +236,74 @@ function form(item) {
         <button class="admin-button" type="submit">Salvar iniciativa</button>
       </div>
     </form>
+  `;
+}
+
+function dashboardPanel() {
+  const published = state.items.filter(item => item.status === "publicado");
+  const drafts = state.items.filter(item => item.status === "rascunho");
+  const featured = state.items.filter(item => item.destaque);
+  const latest = state.items.slice(0, 5);
+  return `
+    <section class="initiatives-dashboard">
+      <div class="initiatives-dashboard-hero">
+        <div>
+          <p class="eyebrow">Central de iniciativas</p>
+          <h3>Gerencie a vitrine da comunidade sem abrir o formulário direto.</h3>
+          <p>Escolha uma iniciativa da lista para editar ou cadastre uma nova quando precisar publicar um projeto permanente ou uma ação pontual.</p>
+        </div>
+        <button class="admin-button" type="button" data-new-initiative>Cadastrar iniciativa</button>
+      </div>
+
+      <div class="initiatives-dashboard-grid">
+        <article>
+          <strong>${published.length}</strong>
+          <span>publicadas no site</span>
+        </article>
+        <article>
+          <strong>${drafts.length}</strong>
+          <span>em rascunho</span>
+        </article>
+        <article>
+          <strong>${featured.length}</strong>
+          <span>com destaque ativo</span>
+        </article>
+      </div>
+
+      <div class="initiatives-quick-actions">
+        <button type="button" data-new-initiative>
+          <strong>Nova iniciativa</strong>
+          <span>Abrir cadastro limpo</span>
+        </button>
+        <button type="button" data-select="${esc(latest[0]?.id || "")}" ${latest[0]?.id ? "" : "disabled"}>
+          <strong>Editar recente</strong>
+          <span>${latest[0]?.titulo ? esc(latest[0].titulo) : "Nenhuma iniciativa ainda"}</span>
+        </button>
+        <a href="/iniciativas" target="_blank" rel="noopener">
+          <strong>Ver página pública</strong>
+          <span>Conferir como aparece fora do painel</span>
+        </a>
+      </div>
+
+      <div class="initiatives-recent">
+        <div class="initiatives-card-head">
+          <div>
+            <p class="eyebrow">Leitura rápida</p>
+            <h3>Últimas iniciativas</h3>
+          </div>
+          <span>${latest.length}</span>
+        </div>
+        <div class="initiatives-recent-list">
+          ${latest.map(item => `
+            <button class="initiative-recent-item" type="button" data-select="${item.id}">
+              <span>${esc(formatType(item.tipo))}</span>
+              <strong>${esc(item.titulo || "Sem título")}</strong>
+              <small>${esc(formatStatus(item.status))}${item.destaque ? " · destaque" : ""}</small>
+            </button>
+          `).join("") || '<p class="initiatives-empty">Cadastre a primeira iniciativa para começar.</p>'}
+        </div>
+      </div>
+    </section>
   `;
 }
 
@@ -315,7 +385,7 @@ function render() {
   const root = app || document.querySelector("#app-content");
   if (!root) return;
   app = root;
-  const item = state.selected || blank();
+  const item = state.creating ? blank() : state.selected;
   root.innerHTML = `
     <section class="admin-page initiatives-admin-page">
       <header class="admin-page-header initiatives-page-header">
@@ -331,9 +401,7 @@ function render() {
       <div class="initiatives-layout">
         ${listItems()}
         <main class="initiatives-editor-card">
-          ${selectedSummary(item)}
-          ${form(item)}
-          ${helps()}
+          ${item ? `${selectedSummary(item)}${form(item)}${helps()}` : dashboardPanel()}
         </main>
       </div>
     </section>
@@ -342,30 +410,42 @@ function render() {
 }
 
 function bind(root) {
-  root.querySelector("#new-initiative")?.addEventListener("click", () => {
+  root.querySelectorAll("#new-initiative, [data-new-initiative]").forEach(button => button.addEventListener("click", () => {
     state.selected = null;
+    state.creating = true;
     state.help = [];
     state.message = "";
     render();
-  });
+  }));
 
   root.querySelectorAll("[data-select]").forEach(button => button.addEventListener("click", async () => {
+    if (!button.dataset.select) return;
     state.selected = state.items.find(item => item.id === button.dataset.select) || null;
+    state.creating = false;
     state.help = state.selected ? await listarFormasAjuda(state.selected.id) : [];
     state.message = "";
     render();
   }));
 
+  root.querySelector("#initiative-form select[name='tipo']")?.addEventListener("change", event => {
+    const isProject = event.currentTarget.value === "projeto";
+    const parentField = root.querySelector(".initiative-parent-field");
+    const parentSelect = parentField?.querySelector("select");
+    parentField?.classList.toggle("is-muted", isProject);
+    if (isProject && parentSelect) parentSelect.value = "";
+  });
+
   root.querySelector("#initiative-form")?.addEventListener("submit", async event => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const titulo = value(formData, "titulo");
+    const tipo = value(formData, "tipo");
     const existing = state.selected ? { ...state.selected } : {};
     await salvarIniciativa({
       ...existing,
       id: state.selected?.id,
-      tipo: value(formData, "tipo"),
-      iniciativa_pai_id: value(formData, "iniciativa_pai_id"),
+      tipo,
+      iniciativa_pai_id: tipo === "projeto" ? "" : value(formData, "iniciativa_pai_id"),
       titulo,
       slug: value(formData, "slug") || gerarSlug(titulo),
       resumo: value(formData, "resumo"),
@@ -383,6 +463,10 @@ function bind(root) {
       destaque: formData.get("destaque") === "on",
       exibir_na_listagem: formData.get("exibir_na_listagem") === "on"
     });
+    if (!state.selected?.id) {
+      state.creating = false;
+      state.help = [];
+    }
     state.message = "Iniciativa salva.";
     await load();
   });

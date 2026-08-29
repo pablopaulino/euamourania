@@ -182,6 +182,163 @@
   padding: 22px;
 }
 
+.initiatives-dashboard {
+  display: grid;
+  gap: 16px;
+}
+
+.initiatives-dashboard-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  border: 1px solid var(--initiative-line);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 210, 74, .26), transparent 32%),
+    linear-gradient(135deg, #f7fdfe, #fffdf8);
+}
+
+.initiatives-dashboard-hero h3 {
+  max-width: 760px;
+  margin: 4px 0 8px;
+  color: var(--initiative-ink);
+  font-size: clamp(1.45rem, 2vw, 2.15rem);
+  line-height: 1.06;
+}
+
+.initiatives-dashboard-hero p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--initiative-muted);
+  line-height: 1.55;
+}
+
+.initiatives-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.initiatives-dashboard-grid article {
+  padding: 17px 18px;
+  border: 1px solid var(--initiative-line);
+  border-radius: 20px;
+  background: #fff;
+}
+
+.initiatives-dashboard-grid strong {
+  display: block;
+  color: var(--initiative-ink);
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.initiatives-dashboard-grid span {
+  display: block;
+  margin-top: 8px;
+  color: var(--initiative-muted);
+  font-size: .78rem;
+  font-weight: 850;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.initiatives-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.initiatives-quick-actions button,
+.initiatives-quick-actions a {
+  display: grid;
+  gap: 4px;
+  min-height: 86px;
+  padding: 16px;
+  border: 1px solid var(--initiative-line);
+  border-radius: 20px;
+  background: #f8fcfd;
+  color: var(--initiative-ink);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.initiatives-quick-actions button:hover,
+.initiatives-quick-actions button:focus-visible,
+.initiatives-quick-actions a:hover,
+.initiatives-quick-actions a:focus-visible {
+  border-color: rgba(255, 210, 74, .9);
+  background: #fffdf6;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.initiatives-quick-actions button:disabled {
+  cursor: not-allowed;
+  opacity: .56;
+  transform: none;
+}
+
+.initiatives-quick-actions strong {
+  font-size: .98rem;
+}
+
+.initiatives-quick-actions span {
+  color: var(--initiative-muted);
+  font-size: .82rem;
+  line-height: 1.35;
+}
+
+.initiatives-recent {
+  border: 1px solid var(--initiative-line);
+  border-radius: 24px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.initiatives-recent-list {
+  display: grid;
+  gap: 8px;
+  padding: 0 18px 18px;
+}
+
+.initiative-recent-item {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--initiative-line);
+  border-radius: 16px;
+  background: #fbfeff;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.initiative-recent-item span {
+  color: var(--initiative-muted);
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.initiative-recent-item strong {
+  color: var(--initiative-ink);
+}
+
+.initiative-recent-item small {
+  color: var(--initiative-muted);
+  font-size: .78rem;
+  font-weight: 800;
+}
+
 .initiatives-editor-head {
   display: flex;
   align-items: flex-start;
@@ -294,6 +451,18 @@
   font-weight: 850;
 }
 
+.initiatives-form-grid label small {
+  margin-top: -2px;
+  color: var(--initiative-muted);
+  font-size: .73rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.initiative-parent-field.is-muted {
+  opacity: .72;
+}
+
 .initiatives-form-grid .wide {
   grid-column: 1 / -1;
 }
@@ -332,11 +501,22 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  align-items: end;
+  align-items: center;
+  align-self: end;
 }
 
 .initiatives-checks input {
-  width: auto;
+  width: 16px;
+  height: 16px;
+  accent-color: #f6be2c;
+}
+
+.initiatives-checks label {
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: #fff;
+  font-size: .78rem;
 }
 
 .initiatives-actions {
