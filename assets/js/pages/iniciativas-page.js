@@ -1,0 +1,4 @@
+import { listarIniciativas } from '../services/iniciativasService.js';
+const root = document.querySelector('#iniciativas-lista');
+const esc = (v='') => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+try { const items = await listarIniciativas(); root.innerHTML = items.length ? items.map(item => `<article class="card"><img src="${esc(item.imagem_capa_url || '/assets/images/placeholder.jpg')}" alt=""><p class="eyebrow">${item.tipo === 'projeto' ? 'Projeto permanente' : 'Ação da comunidade'}</p><h2>${esc(item.titulo)}</h2><p>${esc(item.resumo || '')}</p><a href="/iniciativas/${encodeURIComponent(item.slug)}">Conhecer iniciativa</a></article>`).join('') : '<p>Nenhuma iniciativa publicada no momento.</p>'; } catch { root.textContent = 'Não foi possível carregar as iniciativas.'; }

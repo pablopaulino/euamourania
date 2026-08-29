@@ -51,6 +51,11 @@ const moduleRoutes = {
     hint: "Organize contatos importantes, urgências e serviços exibidos no aplicativo.",
     module: () => import("./telefones-uteis.js")
   },
+  iniciativas: {
+    label: "Iniciativas da Comunidade",
+    hint: "Projetos, ações e formas de ajuda divulgadas pelo Viva Urânia.",
+    module: () => import("./iniciativas.js")
+  },
   publicidade: {
     label: "Publicidade",
     hint: "Campanhas, posições, mídia e métricas dos anúncios internos do portal.",
