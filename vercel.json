@@ -155,8 +155,8 @@
     { "source": "/guia/:slug", "destination": "/api/noticia?tipo=guia&slug=:slug" },
     { "source": "/turismo/:slug", "destination": "/api/noticia?tipo=turismo&slug=:slug" },
     { "source": "/turismo/:slug/", "destination": "/api/noticia?tipo=turismo&slug=:slug" },
-    { "source": "/iniciativas/:slug", "destination": "/api/iniciativa?slug=:slug" },
-    { "source": "/iniciativas/:slug/", "destination": "/api/iniciativa?slug=:slug" },
+    { "source": "/iniciativas/:slug", "destination": "/api/noticia?tipo=iniciativa&slug=:slug" },
+    { "source": "/iniciativas/:slug/", "destination": "/api/noticia?tipo=iniciativa&slug=:slug" },
     { "source": "/sitemap.xml", "destination": "/api/sitemaps?type=standard" },
     { "source": "/news-sitemap.xml", "destination": "/api/sitemaps?type=news" },
     { "source": "/rss.xml", "destination": "/api/rss" }
