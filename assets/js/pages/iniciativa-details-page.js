@@ -67,20 +67,34 @@ async function init() {
       url: location.href
     });
 
-    root.className = "container initiative-detail-content";
+    const image = item.imagem_capa_url || "/assets/compartilhamento-logo.png";
+    root.className = "";
     root.innerHTML = `
-      <article class="initiative-detail-section">
-        <a class="initiative-back-link" href="/iniciativas/">← Iniciativas da Comunidade</a>
-        ${item.imagem_capa_url ? `<figure class="initiative-detail-image"><img src="${esc(item.imagem_capa_url)}" alt="${esc(item.titulo)}" width="900" height="675"></figure>` : ""}
-        <span class="initiative-detail-type">${item.tipo === "projeto" ? "Projeto permanente" : "Ação da comunidade"}</span>
-        <h1>${esc(item.titulo)}</h1>
-        <p>${esc(item.resumo || "")}</p>
-        <h2>Sobre esta iniciativa</h2>
-        <p>${esc(item.descricao || "")}</p>
-      </article>
-      <aside class="initiative-detail-aside">
-        ${renderHelp(help)}
-      </aside>
+      <section class="initiative-detail-hero">
+        <div class="container">
+          <a class="initiative-back-link" href="/iniciativas/">← Iniciativas da Comunidade</a>
+          <div class="initiative-detail-grid">
+            <div class="initiative-detail-copy">
+              <span class="initiative-detail-type">${item.tipo === "projeto" ? "Projeto permanente" : "Ação da comunidade"}</span>
+              <h1>${esc(item.titulo)}</h1>
+              <p>${esc(item.resumo || "Iniciativa divulgada pelo Eu Amo Urânia para aproximar a comunidade.")}</p>
+            </div>
+            <figure class="initiative-detail-image">
+              <img src="${esc(image)}" alt="${esc(item.titulo)}" width="960" height="540" decoding="async" fetchpriority="high">
+            </figure>
+          </div>
+        </div>
+      </section>
+      <section class="container initiative-detail-content">
+        <article class="initiative-detail-section">
+          <p class="eyebrow">História e propósito</p>
+          <h2>Sobre esta iniciativa</h2>
+          <p>${esc(item.descricao || item.resumo || "Mais informações serão atualizadas em breve.")}</p>
+        </article>
+        <aside class="initiative-detail-aside">
+          ${renderHelp(help)}
+        </aside>
+      </section>
     `;
     root.addEventListener("click", async event => {
       const button = event.target.closest("[data-pix]");

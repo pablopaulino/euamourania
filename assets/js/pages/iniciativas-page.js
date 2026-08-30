@@ -16,6 +16,25 @@ const image = item => item.imagem_capa_url || "/assets/compartilhamento-logo.png
 let initiatives = [];
 let activeFilter = "all";
 
+function dateValue(item) {
+  const value = item.data_inicio || item.atualizado_em || item.criado_em || "";
+  const time = value ? new Date(value).getTime() : 0;
+  return Number.isFinite(time) ? time : 0;
+}
+
+function sortInitiatives(items) {
+  return [...items].sort((a, b) => {
+    const featured = Number(Boolean(b.destaque)) - Number(Boolean(a.destaque));
+    if (featured) return featured;
+    const orderA = Number.isFinite(Number(a.ordem)) ? Number(a.ordem) : 9999;
+    const orderB = Number.isFinite(Number(b.ordem)) ? Number(b.ordem) : 9999;
+    if (orderA !== orderB) return orderA - orderB;
+    const dateDiff = dateValue(b) - dateValue(a);
+    if (dateDiff) return dateDiff;
+    return String(a.titulo || "").localeCompare(String(b.titulo || ""), "pt-BR");
+  });
+}
+
 function card(item) {
   const destaque = item.destaque ? "<em>Destaque</em>" : "";
   return `
@@ -43,7 +62,7 @@ function render() {
     : initiatives.filter(item => item.tipo === activeFilter);
 
   root.innerHTML = visible.length
-    ? visible.map(card).join("")
+    ? sortInitiatives(visible).map(card).join("")
     : `<p class="initiatives-empty-state">Nenhuma iniciativa publicada nesta categoria no momento.</p>`;
 }
 
@@ -59,7 +78,7 @@ async function init() {
   if (!root) return;
   bindFilters();
   try {
-    initiatives = await listarIniciativas();
+    initiatives = sortInitiatives(await listarIniciativas());
     render();
   } catch (error) {
     console.warn("Iniciativas:", error.message);
