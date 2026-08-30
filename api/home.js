@@ -121,7 +121,8 @@ module.exports = async (req, res) => {
           { "@type": "ListItem", "position": 4, "name": "Turismo em Urânia", "url": `${domain}/turismo.html` },
           { "@type": "ListItem", "position": 5, "name": "Eventos em Urânia", "url": `${domain}/eventos/` },
           { "@type": "ListItem", "position": 6, "name": "Melhores de Urânia", "url": `${domain}/melhores-de-urania/` },
-          { "@type": "ListItem", "position": 7, "name": "Aplicativo Viva Urânia", "url": `${domain}/app` }
+          { "@type": "ListItem", "position": 7, "name": "Iniciativas da Comunidade", "url": `${domain}/iniciativas/` },
+          { "@type": "ListItem", "position": 8, "name": "Aplicativo Viva Urânia", "url": `${domain}/app` }
         ]
       },
       {
