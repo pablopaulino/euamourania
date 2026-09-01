@@ -28,6 +28,7 @@ function repairEncoding(value = "") {
 }
 
 const defaultValues = {
+  instagram_viva_urania: "@vivaurania",
   imagem_compartilhamento: "/assets/compartilhamento-logo.png",
   urania_hero_imagem: "/assets/AD3A1763-min (1).jpg",
   urania_historia_imagem: "/assets/3Q2A7854-min-min.jpg",
@@ -87,6 +88,7 @@ const groups = [
       ["whatsapp", "WhatsApp principal"],
       ["whatsapp_canal", "Canal do WhatsApp", "url"],
       ["instagram", "Instagram", "url"],
+      ["instagram_viva_urania", "Instagram do aplicativo Viva Urânia", "url"],
       ["facebook", "Facebook", "url"],
       ["youtube", "YouTube", "url"],
       ["tiktok", "TikTok", "url"],
