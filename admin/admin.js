@@ -51,6 +51,11 @@ const moduleRoutes = {
     hint: "Organize contatos importantes, urgências e serviços exibidos no aplicativo.",
     module: () => import("./telefones-uteis.js")
   },
+  motoristas: {
+    label: "Motoristas",
+    hint: "Contatos de motoristas particulares para corridas locais e viagens.",
+    module: () => import("./motoristas.js")
+  },
   iniciativas: {
     label: "Iniciativas da Comunidade",
     hint: "Projetos, ações e formas de ajuda divulgadas pelo Viva Urânia.",
@@ -138,6 +143,7 @@ const sidebarLabelsByKey = {
   guia_verificacao: "Verificação do Guia",
   turismo_verificacao: "Verificação de Turismo",
   telefones_uteis: "Telefones úteis",
+  motoristas: "Motoristas",
   turismo: "Turismo",
   links: "Links",
   colaboradores_voluntarios: "Colaborações",
