@@ -1,9 +1,10 @@
 import { fetchPublicRows } from "./publicDataService.js";
 
 export const APP_DOWNLOAD_PAGE_URL = "https://euamourania.com.br/app";
+export const GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=br.com.euamourania.app";
 
 export const APP_DOWNLOAD_CONFIG = Object.freeze({
-  googlePlayUrl: "",
+  googlePlayUrl: GOOGLE_PLAY_URL,
   appStoreUrl: "",
   appPageUrl: APP_DOWNLOAD_PAGE_URL
 });
