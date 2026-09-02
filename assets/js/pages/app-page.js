@@ -27,6 +27,11 @@ const safeTrack = (tipo, metadados = {}) => {
 };
 
 const PARTNERS_LIMIT = 24;
+const PARTNERS_MARQUEE_MINIMUM = 6;
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 function detectPlatform() {
   const ua = navigator.userAgent || "";
@@ -54,7 +59,10 @@ function bindSmoothAnchors() {
       if (!target) return;
       event.preventDefault();
       safeTrack("app_cta_click", { destino: anchor.getAttribute("href"), label: anchor.textContent.trim() });
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      const header = document.querySelector(".viva-header");
+      const offset = (header?.getBoundingClientRect().height || 0) + 18;
+      const top = target.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: prefersReducedMotion() ? "auto" : "smooth" });
     });
   });
 }
@@ -110,9 +118,12 @@ async function loadPartners() {
 
 function setupPartnersAutoscroll(list) {
   const cards = [...list.querySelectorAll(".viva-partner-card")];
+  if (cards.length < PARTNERS_MARQUEE_MINIMUM || prefersReducedMotion()) {
+    list.classList.add("is-static");
+    return;
+  }
   if (
     cards.length < 2
-    || window.matchMedia("(prefers-reduced-motion: reduce)").matches
   ) return;
 
   list.classList.add("is-auto-scrolling");
@@ -149,6 +160,67 @@ function setupPartnersAutoscroll(list) {
   list.addEventListener("touchend", () => window.setTimeout(() => setPaused(false), 1800), { passive: true });
   window.addEventListener("pagehide", stop, { once: true });
   rafId = window.requestAnimationFrame(tick);
+}
+
+function setupHeaderMotion() {
+  const header = document.querySelector(".viva-header");
+  if (!header) return;
+  const update = () => header.classList.toggle("is-scrolled", window.scrollY > 12);
+  update();
+  window.addEventListener("scroll", update, { passive: true });
+}
+
+function setupRevealMotion() {
+  if (prefersReducedMotion() || !("IntersectionObserver" in window)) return;
+  document.documentElement.classList.add("motion-ready");
+  const targets = [
+    ".viva-trust-strip span",
+    ".viva-section-head",
+    ".viva-ecosystem-grid article",
+    ".viva-app-screen",
+    ".viva-showcase-notes span",
+    ".viva-daily > *",
+    ".viva-smart-guide > *",
+    ".viva-tourism > *",
+    ".viva-business > *",
+    ".viva-partners > *",
+    ".viva-brand-story > *",
+    ".viva-download > *"
+  ].join(",");
+  const elements = [...document.querySelectorAll(targets)];
+  elements.forEach((element, index) => {
+    element.classList.add("motion-reveal");
+    element.style.setProperty("--reveal-delay", `${Math.min(index % 4, 3) * 70}ms`);
+  });
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("is-visible");
+      observer.unobserve(entry.target);
+    });
+  }, { threshold: 0.14, rootMargin: "0px 0px -8% 0px" });
+  elements.forEach(element => observer.observe(element));
+}
+
+function setupTourismDepth() {
+  if (prefersReducedMotion() || window.matchMedia("(max-width: 720px)").matches) return;
+  const image = document.querySelector(".viva-tourism img");
+  if (!image) return;
+  let ticking = false;
+  const update = () => {
+    const rect = image.getBoundingClientRect();
+    const progress = ((rect.top + rect.height / 2) - window.innerHeight / 2) / window.innerHeight;
+    const offset = Math.max(-8, Math.min(8, progress * -10));
+    image.style.transform = `translateY(${offset}px)`;
+    ticking = false;
+  };
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(update);
+  };
+  update();
+  window.addEventListener("scroll", onScroll, { passive: true });
 }
 
 function setupSlides() {
@@ -199,6 +271,9 @@ async function init() {
 
   bindTrackedLinks();
   bindSmoothAnchors();
+  setupHeaderMotion();
+  setupRevealMotion();
+  setupTourismDepth();
   setupSlides();
   loadPartners();
 }
