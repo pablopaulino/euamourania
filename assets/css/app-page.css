@@ -1917,6 +1917,104 @@ html{scroll-behavior:smooth}
   color:#073b4c;
   background:transparent;
 }
+.viva-footer{
+  width:min(1180px,calc(100% - 32px));
+  display:grid;
+  grid-template-columns:minmax(280px,.8fr) minmax(0,1.2fr);
+  align-items:start;
+  gap:clamp(1.5rem,4vw,3.5rem);
+  margin:clamp(1.2rem,3vw,2.6rem) auto 0;
+  padding:1.6rem 0 2.2rem;
+  color:#073b4c;
+  background:transparent;
+  border-top:1px solid rgba(7,59,76,.11);
+  border-radius:0;
+  box-shadow:none;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+.viva-footer-brand{
+  display:grid;
+  gap:.7rem;
+  align-items:start;
+}
+.viva-footer-brand img{
+  width:176px;
+  height:auto;
+  border-radius:0;
+  box-shadow:none;
+}
+.viva-footer-brand span{
+  display:block;
+  margin:0;
+  color:#073b4c;
+  font-size:1rem;
+  font-weight:950;
+  letter-spacing:-.025em;
+}
+.viva-footer-brand p{
+  max-width:360px;
+  margin:0;
+  color:#61747a;
+  font-size:.92rem;
+  line-height:1.5;
+}
+.viva-footer-links{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(120px,1fr));
+  gap:1rem clamp(1rem,3vw,2rem);
+  justify-content:stretch!important;
+}
+.viva-footer-links div{
+  display:grid;
+  align-content:start;
+  gap:.42rem;
+}
+.viva-footer-links strong{
+  margin-bottom:.1rem;
+  color:#0a4657;
+  font-size:.68rem;
+  font-weight:950;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+.viva-footer-links a{
+  width:max-content;
+  max-width:100%;
+  padding:.08rem 0;
+  color:#61747a;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  font-size:.9rem;
+  font-weight:750;
+  text-decoration:none;
+}
+.viva-footer-links a:hover{
+  color:#073b4c;
+  background:transparent;
+}
+@media(max-width:980px){
+  .viva-footer{
+    grid-template-columns:1fr;
+  }
+  .viva-footer-links{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+@media(max-width:720px){
+  .viva-footer{
+    width:min(100% - 24px,1180px);
+    padding-bottom:1.5rem;
+  }
+  .viva-footer-brand img{
+    width:154px;
+  }
+  .viva-footer-links{
+    grid-template-columns:1fr;
+  }
+}
 @media(max-width:980px){
   .viva-download > div{
     grid-template-columns:1fr;
