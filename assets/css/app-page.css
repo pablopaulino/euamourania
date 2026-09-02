@@ -2015,6 +2015,89 @@ html{scroll-behavior:smooth}
     grid-template-columns:1fr;
   }
 }
+
+/* Parceiros: foto quadrada + nome abaixo + scroll contínuo */
+.viva-partner-carousel{
+  --partner-gap:1rem;
+  gap:var(--partner-gap);
+  align-items:stretch;
+  padding:.35rem .08rem 1rem;
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);
+}
+.viva-partner-card,.viva-partner-skeleton{
+  flex:0 0 clamp(150px,14vw,190px);
+  min-height:0;
+  overflow:visible;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+.viva-partner-card a{
+  min-height:0;
+  gap:.62rem;
+  padding:0;
+  text-align:center;
+}
+.viva-partner-logo{
+  width:100%;
+  height:auto;
+  aspect-ratio:1;
+  overflow:hidden;
+  background:#fff;
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:28px;
+  box-shadow:0 18px 42px rgba(7,59,76,.08);
+}
+.viva-partner-card img{
+  display:block;
+  width:100%;
+  height:100%;
+  padding:0;
+  object-fit:cover;
+  object-position:center;
+}
+.viva-partner-body strong{
+  display:block;
+  color:#073b4c;
+  font-size:.95rem;
+  font-weight:950;
+  line-height:1.12;
+  letter-spacing:-.035em;
+}
+.viva-partner-body small{
+  display:none;
+}
+.viva-partner-card:hover{
+  transform:translateY(-4px);
+  box-shadow:none;
+}
+.viva-partner-card:hover .viva-partner-logo{
+  border-color:rgba(255,210,74,.72);
+  box-shadow:0 24px 58px rgba(7,59,76,.12);
+}
+.viva-partner-carousel.is-auto-scrolling .viva-partner-card{
+  will-change:transform;
+}
+@media(max-width:720px){
+  .viva-partner-carousel{
+    --partner-gap:.75rem;
+    overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+    mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+  }
+  .viva-partner-card,.viva-partner-skeleton{
+    flex-basis:138px;
+  }
+  .viva-partner-logo{
+    border-radius:24px;
+  }
+  .viva-partner-body strong{
+    font-size:.86rem;
+  }
+}
 @media(max-width:980px){
   .viva-download > div{
     grid-template-columns:1fr;

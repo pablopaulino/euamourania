@@ -27,7 +27,6 @@ const safeTrack = (tipo, metadados = {}) => {
 };
 
 const PARTNERS_LIMIT = 24;
-const PARTNERS_MARQUEE_MINIMUM = 6;
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -118,16 +117,13 @@ async function loadPartners() {
 
 function setupPartnersAutoscroll(list) {
   const cards = [...list.querySelectorAll(".viva-partner-card")];
-  if (cards.length < PARTNERS_MARQUEE_MINIMUM || prefersReducedMotion()) {
+  if (cards.length < 2 || prefersReducedMotion()) {
     list.classList.add("is-static");
     return;
   }
-  if (
-    cards.length < 2
-  ) return;
 
   list.classList.add("is-auto-scrolling");
-  cards.forEach(card => {
+  const addCloneSet = () => cards.forEach(card => {
     const clone = card.cloneNode(true);
     clone.setAttribute("aria-hidden", "true");
     clone.querySelectorAll("a").forEach(link => {
@@ -136,6 +132,13 @@ function setupPartnersAutoscroll(list) {
     });
     list.appendChild(clone);
   });
+  addCloneSet();
+
+  let cloneRuns = 1;
+  while (list.scrollWidth < list.clientWidth * 2 && cloneRuns < 5) {
+    addCloneSet();
+    cloneRuns += 1;
+  }
 
   let paused = false;
   let rafId = 0;
