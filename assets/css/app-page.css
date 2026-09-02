@@ -12,6 +12,488 @@
   --viva-shadow:0 26px 70px rgba(7,59,76,.13);
 }
 
+/* Landing Viva Urânia — refinamento editorial */
+.viva-store-hint{
+  margin:.8rem 0 0!important;
+  color:#7a5a3a!important;
+  font-size:.86rem!important;
+  font-weight:800;
+}
+
+.viva-hero{
+  min-height:min(780px,calc(100vh - 78px));
+  grid-template-columns:minmax(0,1fr) minmax(300px,.58fr);
+  padding-block:clamp(3rem,7vw,6.4rem);
+  isolation:isolate;
+}
+
+.viva-hero:before{
+  left:auto;
+  right:18%;
+  top:8%;
+  width:22rem;
+  height:22rem;
+  background:
+    radial-gradient(circle at 35% 35%,rgba(255,255,255,.9),transparent 34%),
+    linear-gradient(135deg,rgba(255,27,23,.12),rgba(255,138,0,.24));
+  filter:blur(1px);
+  opacity:.9;
+  z-index:-1;
+}
+
+.viva-hero:after{
+  content:"";
+  position:absolute;
+  left:-12%;
+  bottom:10%;
+  width:18rem;
+  height:18rem;
+  border-radius:999px;
+  background:radial-gradient(circle,rgba(7,59,76,.12),transparent 64%);
+  z-index:-1;
+}
+
+.viva-hero-copy{max-width:740px}
+.viva-hero h1{
+  max-width:720px;
+  margin:.9rem 0 1.1rem;
+  font-size:clamp(4rem,8.4vw,7.7rem);
+  line-height:.86;
+  letter-spacing:-.095em;
+}
+
+.viva-hero p{
+  max-width:680px;
+  font-size:clamp(1.04rem,1.35vw,1.28rem);
+}
+
+.viva-phone-showcase{
+  width:min(360px,74vw);
+  transform:rotate(1.5deg);
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.94),rgba(255,246,236,.9)),
+    radial-gradient(circle at 18% 8%,rgba(255,138,0,.18),transparent 12rem);
+  box-shadow:0 42px 100px rgba(7,59,76,.2);
+}
+
+.viva-phone-showcase img{max-height:680px}
+
+.viva-trust-strip{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:.7rem;
+  width:min(1180px,calc(100% - 32px));
+  margin:0 auto clamp(1.6rem,4vw,3.6rem);
+}
+
+.viva-trust-strip span{
+  display:flex;
+  min-height:72px;
+  align-items:center;
+  justify-content:center;
+  padding:.9rem 1rem;
+  color:#0a4657;
+  background:rgba(255,255,255,.74);
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:24px;
+  box-shadow:0 16px 36px rgba(7,59,76,.055);
+  font-size:.84rem;
+  font-weight:950;
+  letter-spacing:.04em;
+  text-align:center;
+  text-transform:uppercase;
+}
+
+.viva-feature-strip{padding:clamp(2.5rem,5vw,4.8rem) 0}
+.viva-ecosystem-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:.9rem;
+  margin-top:1.8rem;
+}
+
+.viva-ecosystem-grid article{
+  min-height:255px;
+  padding:1.25rem;
+  overflow:hidden;
+  background:rgba(255,255,255,.8);
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:32px;
+  box-shadow:0 22px 56px rgba(7,59,76,.07);
+}
+
+.viva-ecosystem-grid article:nth-child(even){background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(238,249,249,.72))}
+.viva-icon{
+  display:grid;
+  width:48px;
+  height:48px;
+  place-items:center;
+  color:#073b4c;
+  background:#fff5d1;
+  border:1px solid rgba(255,210,74,.62);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(7,59,76,.07);
+}
+
+.viva-icon svg{
+  width:25px;
+  height:25px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.viva-ecosystem-grid strong{
+  display:block;
+  margin:1.2rem 0 .55rem;
+  color:#073b4c;
+  font-size:1.38rem;
+  line-height:1.04;
+  letter-spacing:-.055em;
+}
+
+.viva-ecosystem-grid p{
+  margin:0;
+  color:#61747a;
+  font-size:.95rem;
+  line-height:1.48;
+}
+
+.viva-experience{
+  width:100%;
+  padding:clamp(3rem,6vw,6rem) max(16px,calc((100vw - 1180px)/2));
+  box-sizing:border-box;
+  background:
+    radial-gradient(circle at 85% 20%,rgba(255,210,74,.22),transparent 22rem),
+    linear-gradient(180deg,rgba(237,248,248,.42),rgba(255,253,248,.95));
+}
+
+.viva-experience>.viva-section-head,.viva-experience>.viva-app-showcase{
+  width:min(1180px,100%);
+  margin-inline:auto;
+}
+
+.viva-app-showcase{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(240px,.72fr) minmax(190px,.42fr) minmax(220px,.52fr);
+  gap:1rem;
+  align-items:center;
+  margin-top:2rem;
+}
+
+.viva-app-screen{
+  position:relative;
+  margin:0;
+  padding:.68rem;
+  overflow:hidden;
+  background:linear-gradient(145deg,#fff,#fff6ea);
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:38px;
+  box-shadow:0 32px 80px rgba(7,59,76,.14);
+}
+
+.viva-app-screen.main{max-width:360px;justify-self:end}
+.viva-app-screen.offset{max-width:245px;transform:translateY(44px) rotate(2deg)}
+.viva-app-screen img{
+  display:block;
+  width:100%;
+  max-height:650px;
+  object-fit:cover;
+  object-position:top center;
+  border-radius:30px;
+}
+.viva-app-screen.offset img{max-height:480px}
+.viva-app-screen figcaption{
+  position:absolute;
+  left:1.2rem;
+  bottom:1.2rem;
+  padding:.46rem .68rem;
+  color:#073b4c;
+  background:rgba(255,255,255,.86);
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:999px;
+  font-size:.72rem;
+  font-weight:950;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  backdrop-filter:blur(14px);
+}
+
+.viva-showcase-notes{display:grid;gap:.72rem}
+.viva-showcase-notes span{
+  display:flex;
+  align-items:center;
+  min-height:58px;
+  padding:.9rem 1rem;
+  background:#fff;
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:22px;
+  box-shadow:0 16px 38px rgba(7,59,76,.055);
+  font-weight:950;
+}
+
+.viva-daily,.viva-smart-guide,.viva-tourism,.viva-business,.viva-brand-story{
+  display:grid;
+  grid-template-columns:minmax(0,.84fr) minmax(0,1fr);
+  gap:clamp(1.2rem,4vw,3.5rem);
+  align-items:center;
+}
+
+.viva-daily{padding-top:clamp(2.8rem,6vw,5.2rem)}
+.viva-daily h2,.viva-smart-guide h2,.viva-tourism h2,.viva-business h2,.viva-brand-story h2{
+  margin:.55rem 0 .8rem;
+  color:#073b4c;
+  font-size:clamp(2.35rem,5.2vw,4.6rem);
+  line-height:.92;
+  letter-spacing:-.075em;
+}
+
+.viva-daily p,.viva-smart-guide p,.viva-tourism p,.viva-business p,.viva-brand-story p{
+  margin:0;
+  color:#61747a;
+  font-size:1.04rem;
+  line-height:1.58;
+}
+
+.viva-question-cloud{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.7rem;
+  align-content:center;
+  padding:1.1rem;
+  background:rgba(255,255,255,.58);
+  border:1px solid rgba(7,59,76,.08);
+  border-radius:34px;
+}
+.viva-question-cloud span{
+  display:inline-flex;
+  padding:.78rem 1rem;
+  background:#fff;
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:999px;
+  box-shadow:0 12px 28px rgba(7,59,76,.055);
+  font-weight:850;
+}
+
+.viva-smart-guide{
+  width:min(1180px,calc(100% - 32px));
+  padding:clamp(1.5rem,4vw,2.6rem);
+  box-sizing:border-box;
+  background:radial-gradient(circle at 100% 0%,rgba(255,138,0,.16),transparent 18rem),linear-gradient(135deg,#073b4c,#0a5d6a);
+  border-radius:42px;
+  box-shadow:0 34px 90px rgba(7,59,76,.18);
+}
+.viva-smart-guide .viva-kicker,.viva-smart-guide h2,.viva-smart-guide p{color:#fff}
+.viva-smart-guide p{color:rgba(255,255,255,.76)}
+.viva-search-demo{
+  display:grid;
+  gap:.55rem;
+  padding:1.3rem;
+  color:#073b4c;
+  background:rgba(255,255,255,.94);
+  border:1px solid rgba(255,255,255,.4);
+  border-radius:30px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 22px 60px rgba(0,0,0,.12);
+}
+.viva-search-demo span{
+  color:#9b3d00;
+  font-size:.72rem;
+  font-weight:950;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.viva-search-demo strong{
+  font-size:clamp(1.7rem,3.5vw,3.1rem);
+  line-height:.98;
+  letter-spacing:-.065em;
+}
+.viva-search-demo small{color:#61747a;font-size:.95rem;line-height:1.45}
+
+.viva-tourism{
+  padding:clamp(1rem,3vw,1.4rem);
+  background:rgba(255,255,255,.74);
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:42px;
+  box-shadow:0 22px 62px rgba(7,59,76,.075);
+}
+.viva-tourism img{
+  width:100%;
+  height:min(420px,42vw);
+  object-fit:cover;
+  border-radius:32px;
+  box-shadow:0 20px 50px rgba(7,59,76,.11);
+}
+.viva-tourism .viva-link-button{margin-top:1.1rem}
+
+.viva-business{
+  width:100%;
+  padding:clamp(3rem,6vw,6rem) max(16px,calc((100vw - 1180px)/2));
+  box-sizing:border-box;
+  background:radial-gradient(circle at 18% 12%,rgba(255,210,74,.18),transparent 22rem),linear-gradient(180deg,rgba(255,248,236,.88),rgba(255,253,248,.98));
+}
+.viva-business-copy,.viva-business-panel{width:100%;max-width:590px}
+.viva-business-copy{justify-self:end}
+.viva-business-panel{
+  display:grid;
+  grid-template-columns:160px minmax(0,1fr);
+  gap:.9rem;
+  align-items:center;
+  padding:1rem;
+  background:rgba(255,255,255,.82);
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:36px;
+  box-shadow:0 24px 62px rgba(7,59,76,.08);
+}
+.viva-business-panel figure{
+  margin:0;
+  padding:.42rem;
+  overflow:hidden;
+  background:#fff7ed;
+  border:1px solid rgba(255,210,74,.5);
+  border-radius:28px;
+}
+.viva-business-panel img{
+  display:block;
+  width:100%;
+  max-height:320px;
+  object-fit:cover;
+  object-position:top center;
+  border-radius:22px;
+}
+.viva-business-benefits{display:grid;gap:.55rem}
+.viva-business-benefits article{
+  padding:.75rem .85rem;
+  background:#f7fbfb;
+  border:1px solid rgba(7,59,76,.08);
+  border-radius:20px;
+}
+.viva-business-benefits strong,.viva-business-benefits span{display:block}
+.viva-business-benefits strong{font-size:.92rem;letter-spacing:-.025em}
+.viva-business-benefits span{margin-top:.2rem;color:#61747a;font-size:.82rem;line-height:1.35}
+
+.viva-partners{padding-top:clamp(3rem,6vw,5rem)}
+.viva-partner-carousel{margin-top:1.2rem}
+.viva-brand-story{
+  padding:clamp(1.3rem,3vw,2rem);
+  background:radial-gradient(circle at 0% 0%,rgba(255,27,23,.08),transparent 16rem),rgba(255,255,255,.76);
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:42px;
+  box-shadow:0 22px 62px rgba(7,59,76,.07);
+}
+.viva-brand-pair{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:1.1rem;
+  min-height:210px;
+  padding:1.2rem;
+  background:#fff;
+  border:1px solid rgba(7,59,76,.08);
+  border-radius:32px;
+}
+.viva-brand-pair img:first-child{max-width:190px;height:auto}
+.viva-brand-pair img:last-child{border-radius:18px;box-shadow:0 14px 30px rgba(255,27,23,.12)}
+.viva-brand-pair span{color:#a96a18;font-size:2rem;font-weight:950}
+
+.viva-download{
+  display:grid;
+  grid-template-columns:minmax(190px,.38fr) minmax(0,1fr);
+  gap:clamp(1.2rem,4vw,3rem);
+  align-items:center;
+  margin-top:clamp(2.5rem,6vw,5rem);
+  padding:clamp(1.2rem,4vw,2.3rem);
+  background:radial-gradient(circle at 12% 10%,rgba(255,210,74,.22),transparent 18rem),linear-gradient(135deg,#073b4c,#0c6876);
+  border-radius:46px;
+  box-shadow:0 34px 90px rgba(7,59,76,.18);
+}
+.viva-download .viva-kicker,.viva-download h2,.viva-download p{color:#fff}
+.viva-download p{color:rgba(255,255,255,.76)}
+.viva-download-phone{
+  display:block;
+  width:min(220px,100%);
+  margin:0 auto;
+  padding:.42rem;
+  overflow:hidden;
+  background:rgba(255,255,255,.95);
+  border:1px solid rgba(255,255,255,.5);
+  border-radius:32px;
+  box-shadow:0 26px 60px rgba(0,0,0,.16);
+}
+.viva-download-phone img{
+  display:block;
+  width:100%;
+  max-height:390px;
+  object-fit:cover;
+  object-position:top center;
+  border-radius:26px;
+}
+.viva-store.secondary.is-disabled{background:rgba(255,255,255,.72);border-color:rgba(255,255,255,.34)}
+
+.viva-footer{
+  grid-template-columns:minmax(230px,.35fr) minmax(0,1fr);
+  gap:1.5rem;
+  margin-top:1.2rem;
+  padding:1.3rem 0 1.8rem;
+}
+.viva-footer-brand{align-items:center}
+.viva-footer-brand img{border-radius:18px;box-shadow:0 12px 28px rgba(255,27,23,.1)}
+.viva-footer nav{justify-content:flex-end}
+
+@media(prefers-reduced-motion:no-preference){
+  .viva-phone-showcase,.viva-app-screen,.viva-download-phone{transition:transform .24s ease,box-shadow .24s ease}
+  .viva-phone-showcase:hover,.viva-app-screen:hover,.viva-download-phone:hover{transform:translateY(-4px) rotate(0deg)}
+}
+
+@media(max-width:980px){
+  .viva-hero{min-height:0;grid-template-columns:1fr}
+  .viva-trust-strip,.viva-ecosystem-grid{grid-template-columns:repeat(2,1fr)}
+  .viva-app-showcase{grid-template-columns:minmax(0,1fr) minmax(0,.72fr)}
+  .viva-showcase-notes{grid-column:1/-1;grid-template-columns:repeat(2,1fr)}
+  .viva-daily,.viva-smart-guide,.viva-tourism,.viva-business,.viva-brand-story,.viva-download{grid-template-columns:1fr}
+  .viva-business-copy{justify-self:start;max-width:760px}
+  .viva-business-panel{max-width:none}
+  .viva-footer{grid-template-columns:1fr}
+  .viva-footer nav{justify-content:flex-start}
+}
+
+@media(max-width:720px){
+  .viva-nav a:nth-child(n+3):not(:last-child){display:none}
+  .viva-hero{padding-top:1.8rem;padding-bottom:2rem}
+  .viva-hero h1{font-size:clamp(3.15rem,16vw,4.75rem);letter-spacing:-.09em}
+  .viva-store-hint{font-size:.8rem!important}
+  .viva-phone-showcase{width:min(260px,76vw);transform:none}
+  .viva-phone-showcase img{max-height:430px}
+  .viva-trust-strip{grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1.4rem}
+  .viva-trust-strip span{min-height:56px;padding:.68rem .72rem;border-radius:18px;font-size:.68rem}
+  .viva-ecosystem-grid{grid-template-columns:1fr}
+  .viva-ecosystem-grid article{min-height:0;padding:1rem;border-radius:26px}
+  .viva-ecosystem-grid strong{margin:.85rem 0 .4rem;font-size:1.18rem}
+  .viva-experience{padding-block:2.5rem}
+  .viva-app-showcase{grid-template-columns:1fr}
+  .viva-app-screen.main,.viva-app-screen.offset{max-width:min(300px,82vw);justify-self:center;transform:none}
+  .viva-app-screen.offset{display:none}
+  .viva-showcase-notes{grid-template-columns:1fr 1fr;gap:.5rem}
+  .viva-showcase-notes span{min-height:46px;padding:.7rem;border-radius:18px;font-size:.84rem}
+  .viva-daily h2,.viva-smart-guide h2,.viva-tourism h2,.viva-business h2,.viva-brand-story h2{font-size:clamp(2.25rem,11vw,3.25rem)}
+  .viva-question-cloud{padding:.7rem;border-radius:26px}
+  .viva-question-cloud span{width:100%;box-sizing:border-box;justify-content:flex-start;border-radius:18px;font-size:.88rem}
+  .viva-smart-guide{width:min(100% - 24px,1180px);border-radius:30px}
+  .viva-tourism{border-radius:30px}
+  .viva-tourism img{height:230px;border-radius:24px}
+  .viva-business{padding-block:2.8rem}
+  .viva-business-panel{grid-template-columns:1fr;border-radius:28px}
+  .viva-business-panel figure{display:none}
+  .viva-brand-story{border-radius:30px}
+  .viva-brand-pair{min-height:150px;flex-wrap:wrap}
+  .viva-brand-pair img:first-child{max-width:160px}
+  .viva-download{border-radius:32px}
+  .viva-download-phone{display:none}
+  .viva-footer{padding-inline:0}
+}
+
 html{scroll-behavior:smooth}
 .app-page{
   min-height:100vh;
@@ -1005,3 +1487,82 @@ html{scroll-behavior:smooth}
   .partners-grid{grid-template-columns:1fr}
   .partners-final{align-items:stretch;flex-direction:column}
 }
+
+/* Overrides finais da landing /app */
+.viva-store-hint{margin:.8rem 0 0!important;color:#7a5a3a!important;font-size:.86rem!important;font-weight:800}
+.viva-hero{min-height:min(780px,calc(100vh - 78px));grid-template-columns:minmax(0,1fr) minmax(300px,.58fr);padding-block:clamp(3rem,7vw,6.4rem);isolation:isolate}
+.viva-hero:before{left:auto;right:18%;top:8%;width:22rem;height:22rem;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.9),transparent 34%),linear-gradient(135deg,rgba(255,27,23,.12),rgba(255,138,0,.24));filter:blur(1px);opacity:.9;z-index:-1}
+.viva-hero:after{content:"";position:absolute;left:-12%;bottom:10%;width:18rem;height:18rem;border-radius:999px;background:radial-gradient(circle,rgba(7,59,76,.12),transparent 64%);z-index:-1}
+.viva-hero-copy{max-width:740px}
+.viva-hero h1{max-width:720px;margin:.9rem 0 1.1rem;font-size:clamp(4rem,8.4vw,7.7rem);line-height:.86;letter-spacing:-.095em}
+.viva-hero p{max-width:680px;font-size:clamp(1.04rem,1.35vw,1.28rem)}
+.viva-phone-showcase{width:min(360px,74vw);transform:rotate(1.5deg);background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(255,246,236,.9)),radial-gradient(circle at 18% 8%,rgba(255,138,0,.18),transparent 12rem);box-shadow:0 42px 100px rgba(7,59,76,.2)}
+.viva-phone-showcase img{max-height:680px}
+.viva-trust-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;width:min(1180px,calc(100% - 32px));margin:0 auto clamp(1.6rem,4vw,3.6rem)}
+.viva-trust-strip span{display:flex;min-height:72px;align-items:center;justify-content:center;padding:.9rem 1rem;color:#0a4657;background:rgba(255,255,255,.74);border:1px solid rgba(7,59,76,.1);border-radius:24px;box-shadow:0 16px 36px rgba(7,59,76,.055);font-size:.84rem;font-weight:950;letter-spacing:.04em;text-align:center;text-transform:uppercase}
+.viva-feature-strip{padding:clamp(2.5rem,5vw,4.8rem) 0}
+.viva-ecosystem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-top:1.8rem}
+.viva-ecosystem-grid article{min-height:255px;padding:1.25rem;overflow:hidden;background:rgba(255,255,255,.8);border:1px solid rgba(7,59,76,.1);border-radius:32px;box-shadow:0 22px 56px rgba(7,59,76,.07)}
+.viva-ecosystem-grid article:nth-child(even){background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(238,249,249,.72))}
+.viva-icon{display:grid;width:48px;height:48px;place-items:center;color:#073b4c;background:#fff5d1;border:1px solid rgba(255,210,74,.62);border-radius:18px;box-shadow:0 10px 24px rgba(7,59,76,.07)}
+.viva-icon svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.viva-ecosystem-grid strong{display:block;margin:1.2rem 0 .55rem;color:#073b4c;font-size:1.38rem;line-height:1.04;letter-spacing:-.055em}
+.viva-ecosystem-grid p{margin:0;color:#61747a;font-size:.95rem;line-height:1.48}
+.viva-experience{width:100%;padding:clamp(3rem,6vw,6rem) max(16px,calc((100vw - 1180px)/2));box-sizing:border-box;background:radial-gradient(circle at 85% 20%,rgba(255,210,74,.22),transparent 22rem),linear-gradient(180deg,rgba(237,248,248,.42),rgba(255,253,248,.95))}
+.viva-experience>.viva-section-head,.viva-experience>.viva-app-showcase{width:min(1180px,100%);margin-inline:auto}
+.viva-app-showcase{position:relative;display:grid;grid-template-columns:minmax(240px,.72fr) minmax(190px,.42fr) minmax(220px,.52fr);gap:1rem;align-items:center;margin-top:2rem}
+.viva-app-screen{position:relative;margin:0;padding:.68rem;overflow:hidden;background:linear-gradient(145deg,#fff,#fff6ea);border:1px solid rgba(7,59,76,.1);border-radius:38px;box-shadow:0 32px 80px rgba(7,59,76,.14)}
+.viva-app-screen.main{max-width:360px;justify-self:end}
+.viva-app-screen.offset{max-width:245px;transform:translateY(44px) rotate(2deg)}
+.viva-app-screen img{display:block;width:100%;max-height:650px;object-fit:cover;object-position:top center;border-radius:30px}
+.viva-app-screen.offset img{max-height:480px}
+.viva-app-screen figcaption{position:absolute;left:1.2rem;bottom:1.2rem;padding:.46rem .68rem;color:#073b4c;background:rgba(255,255,255,.86);border:1px solid rgba(7,59,76,.1);border-radius:999px;font-size:.72rem;font-weight:950;text-transform:uppercase;letter-spacing:.08em;backdrop-filter:blur(14px)}
+.viva-showcase-notes{display:grid;gap:.72rem}
+.viva-showcase-notes span{display:flex;align-items:center;min-height:58px;padding:.9rem 1rem;background:#fff;border:1px solid rgba(7,59,76,.1);border-radius:22px;box-shadow:0 16px 38px rgba(7,59,76,.055);font-weight:950}
+.viva-daily,.viva-smart-guide,.viva-tourism,.viva-business,.viva-brand-story{display:grid;grid-template-columns:minmax(0,.84fr) minmax(0,1fr);gap:clamp(1.2rem,4vw,3.5rem);align-items:center}
+.viva-daily{padding-top:clamp(2.8rem,6vw,5.2rem)}
+.viva-daily h2,.viva-smart-guide h2,.viva-tourism h2,.viva-business h2,.viva-brand-story h2{margin:.55rem 0 .8rem;color:#073b4c;font-size:clamp(2.35rem,5.2vw,4.6rem);line-height:.92;letter-spacing:-.075em}
+.viva-daily p,.viva-smart-guide p,.viva-tourism p,.viva-business p,.viva-brand-story p{margin:0;color:#61747a;font-size:1.04rem;line-height:1.58}
+.viva-question-cloud{display:flex;flex-wrap:wrap;gap:.7rem;align-content:center;padding:1.1rem;background:rgba(255,255,255,.58);border:1px solid rgba(7,59,76,.08);border-radius:34px}
+.viva-question-cloud span{display:inline-flex;padding:.78rem 1rem;background:#fff;border:1px solid rgba(7,59,76,.1);border-radius:999px;box-shadow:0 12px 28px rgba(7,59,76,.055);font-weight:850}
+.viva-smart-guide{width:min(1180px,calc(100% - 32px));padding:clamp(1.5rem,4vw,2.6rem);box-sizing:border-box;background:radial-gradient(circle at 100% 0%,rgba(255,138,0,.16),transparent 18rem),linear-gradient(135deg,#073b4c,#0a5d6a);border-radius:42px;box-shadow:0 34px 90px rgba(7,59,76,.18)}
+.viva-smart-guide .viva-kicker,.viva-smart-guide h2,.viva-smart-guide p{color:#fff}
+.viva-smart-guide p{color:rgba(255,255,255,.76)}
+.viva-search-demo{display:grid;gap:.55rem;padding:1.3rem;color:#073b4c;background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.4);border-radius:30px;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 22px 60px rgba(0,0,0,.12)}
+.viva-search-demo span{color:#9b3d00;font-size:.72rem;font-weight:950;letter-spacing:.12em;text-transform:uppercase}
+.viva-search-demo strong{font-size:clamp(1.7rem,3.5vw,3.1rem);line-height:.98;letter-spacing:-.065em}
+.viva-search-demo small{color:#61747a;font-size:.95rem;line-height:1.45}
+.viva-tourism{padding:clamp(1rem,3vw,1.4rem);background:rgba(255,255,255,.74);border:1px solid rgba(7,59,76,.1);border-radius:42px;box-shadow:0 22px 62px rgba(7,59,76,.075)}
+.viva-tourism img{width:100%;height:min(420px,42vw);object-fit:cover;border-radius:32px;box-shadow:0 20px 50px rgba(7,59,76,.11)}
+.viva-tourism .viva-link-button{margin-top:1.1rem}
+.viva-business{width:100%;padding:clamp(3rem,6vw,6rem) max(16px,calc((100vw - 1180px)/2));box-sizing:border-box;background:radial-gradient(circle at 18% 12%,rgba(255,210,74,.18),transparent 22rem),linear-gradient(180deg,rgba(255,248,236,.88),rgba(255,253,248,.98))}
+.viva-business-copy,.viva-business-panel{width:100%;max-width:590px}
+.viva-business-copy{justify-self:end}
+.viva-business-panel{display:grid;grid-template-columns:160px minmax(0,1fr);gap:.9rem;align-items:center;padding:1rem;background:rgba(255,255,255,.82);border:1px solid rgba(7,59,76,.1);border-radius:36px;box-shadow:0 24px 62px rgba(7,59,76,.08)}
+.viva-business-panel figure{margin:0;padding:.42rem;overflow:hidden;background:#fff7ed;border:1px solid rgba(255,210,74,.5);border-radius:28px}
+.viva-business-panel img{display:block;width:100%;max-height:320px;object-fit:cover;object-position:top center;border-radius:22px}
+.viva-business-benefits{display:grid;gap:.55rem}
+.viva-business-benefits article{padding:.75rem .85rem;background:#f7fbfb;border:1px solid rgba(7,59,76,.08);border-radius:20px}
+.viva-business-benefits strong,.viva-business-benefits span{display:block}
+.viva-business-benefits strong{font-size:.92rem;letter-spacing:-.025em}
+.viva-business-benefits span{margin-top:.2rem;color:#61747a;font-size:.82rem;line-height:1.35}
+.viva-partners{padding-top:clamp(3rem,6vw,5rem)}
+.viva-partner-carousel{margin-top:1.2rem}
+.viva-brand-story{padding:clamp(1.3rem,3vw,2rem);background:radial-gradient(circle at 0% 0%,rgba(255,27,23,.08),transparent 16rem),rgba(255,255,255,.76);border:1px solid rgba(7,59,76,.1);border-radius:42px;box-shadow:0 22px 62px rgba(7,59,76,.07)}
+.viva-brand-pair{display:flex;align-items:center;justify-content:center;gap:1.1rem;min-height:210px;padding:1.2rem;background:#fff;border:1px solid rgba(7,59,76,.08);border-radius:32px}
+.viva-brand-pair img:first-child{max-width:190px;height:auto}
+.viva-brand-pair img:last-child{border-radius:18px;box-shadow:0 14px 30px rgba(255,27,23,.12)}
+.viva-brand-pair span{color:#a96a18;font-size:2rem;font-weight:950}
+.viva-download{display:grid;grid-template-columns:minmax(190px,.38fr) minmax(0,1fr);gap:clamp(1.2rem,4vw,3rem);align-items:center;margin-top:clamp(2.5rem,6vw,5rem);padding:clamp(1.2rem,4vw,2.3rem);background:radial-gradient(circle at 12% 10%,rgba(255,210,74,.22),transparent 18rem),linear-gradient(135deg,#073b4c,#0c6876);border-radius:46px;box-shadow:0 34px 90px rgba(7,59,76,.18)}
+.viva-download .viva-kicker,.viva-download h2,.viva-download p{color:#fff}
+.viva-download p{color:rgba(255,255,255,.76)}
+.viva-download-phone{display:block;width:min(220px,100%);margin:0 auto;padding:.42rem;overflow:hidden;background:rgba(255,255,255,.95);border:1px solid rgba(255,255,255,.5);border-radius:32px;box-shadow:0 26px 60px rgba(0,0,0,.16)}
+.viva-download-phone img{display:block;width:100%;max-height:390px;object-fit:cover;object-position:top center;border-radius:26px}
+.viva-store.secondary.is-disabled{background:rgba(255,255,255,.72);border-color:rgba(255,255,255,.34)}
+.viva-footer{grid-template-columns:minmax(230px,.35fr) minmax(0,1fr);gap:1.5rem;margin-top:1.2rem;padding:1.3rem 0 1.8rem}
+.viva-footer-brand{align-items:center}
+.viva-footer-brand img{border-radius:18px;box-shadow:0 12px 28px rgba(255,27,23,.1)}
+.viva-footer nav{justify-content:flex-end}
+@media(prefers-reduced-motion:no-preference){.viva-phone-showcase,.viva-app-screen,.viva-download-phone{transition:transform .24s ease,box-shadow .24s ease}.viva-phone-showcase:hover,.viva-app-screen:hover,.viva-download-phone:hover{transform:translateY(-4px) rotate(0deg)}}
+@media(max-width:980px){.viva-hero{min-height:0;grid-template-columns:1fr}.viva-trust-strip,.viva-ecosystem-grid{grid-template-columns:repeat(2,1fr)}.viva-app-showcase{grid-template-columns:minmax(0,1fr) minmax(0,.72fr)}.viva-showcase-notes{grid-column:1/-1;grid-template-columns:repeat(2,1fr)}.viva-daily,.viva-smart-guide,.viva-tourism,.viva-business,.viva-brand-story,.viva-download{grid-template-columns:1fr}.viva-business-copy{justify-self:start;max-width:760px}.viva-business-panel{max-width:none}.viva-footer{grid-template-columns:1fr}.viva-footer nav{justify-content:flex-start}}
+@media(max-width:720px){.viva-nav a:nth-child(n+3):not(:last-child){display:none}.viva-hero{padding-top:1.8rem;padding-bottom:2rem}.viva-hero h1{font-size:clamp(3.15rem,16vw,4.75rem);letter-spacing:-.09em}.viva-store-hint{font-size:.8rem!important}.viva-phone-showcase{width:min(260px,76vw);transform:none}.viva-phone-showcase img{max-height:430px}.viva-trust-strip{grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1.4rem}.viva-trust-strip span{min-height:56px;padding:.68rem .72rem;border-radius:18px;font-size:.68rem}.viva-ecosystem-grid{grid-template-columns:1fr}.viva-ecosystem-grid article{min-height:0;padding:1rem;border-radius:26px}.viva-ecosystem-grid strong{margin:.85rem 0 .4rem;font-size:1.18rem}.viva-experience{padding-block:2.5rem}.viva-app-showcase{grid-template-columns:1fr}.viva-app-screen.main,.viva-app-screen.offset{max-width:min(300px,82vw);justify-self:center;transform:none}.viva-app-screen.offset{display:none}.viva-showcase-notes{grid-template-columns:1fr 1fr;gap:.5rem}.viva-showcase-notes span{min-height:46px;padding:.7rem;border-radius:18px;font-size:.84rem}.viva-daily h2,.viva-smart-guide h2,.viva-tourism h2,.viva-business h2,.viva-brand-story h2{font-size:clamp(2.25rem,11vw,3.25rem)}.viva-question-cloud{padding:.7rem;border-radius:26px}.viva-question-cloud span{width:100%;box-sizing:border-box;justify-content:flex-start;border-radius:18px;font-size:.88rem}.viva-smart-guide{width:min(100% - 24px,1180px);border-radius:30px}.viva-tourism{border-radius:30px}.viva-tourism img{height:230px;border-radius:24px}.viva-business{padding-block:2.8rem}.viva-business-panel{grid-template-columns:1fr;border-radius:28px}.viva-business-panel figure{display:none}.viva-brand-story{border-radius:30px}.viva-brand-pair{min-height:150px;flex-wrap:wrap}.viva-brand-pair img:first-child{max-width:160px}.viva-download{border-radius:32px}.viva-download-phone{display:none}.viva-footer{padding-inline:0}}
