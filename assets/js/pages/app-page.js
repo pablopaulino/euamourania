@@ -27,8 +27,6 @@ const safeTrack = (tipo, metadados = {}) => {
 };
 
 const PARTNERS_LIMIT = 24;
-const PARTNERS_MINIMUM_VISIBLE = 15;
-const PARTNERS_AUTOSCROLL_INTERVAL = 4200;
 
 function detectPlatform() {
   const ua = navigator.userAgent || "";
@@ -40,7 +38,6 @@ function detectPlatform() {
 function setStoreLink(link, url, fallbackLabel) {
   if (!link) return;
   const hasUrl = Boolean(url);
-  link.hidden = !hasUrl;
   link.href = hasUrl ? url : "#download";
   link.setAttribute("aria-disabled", hasUrl ? "false" : "true");
   link.classList.toggle("is-disabled", !hasUrl);
@@ -75,13 +72,14 @@ function partnerCard(item) {
   const url = `/guia/${encodeURIComponent(item.slug || item.id)}`;
   return `<article class="viva-partner-card">
     <a href="${url}" data-app-page-link aria-label="Conhecer ${escapeHtml(item.nome)}">
-      <img src="${safeImage(item.imagem_url)}" alt="${escapeHtml(item.nome)}" width="420" height="260" loading="lazy" decoding="async">
+      <span class="viva-partner-logo">
+        <img src="${safeImage(item.imagem_url)}" alt="${escapeHtml(item.nome)}" width="180" height="180" loading="lazy" decoding="async">
+      </span>
+      <span class="viva-partner-body">
+        <strong>${escapeHtml(item.nome)}</strong>
+        <small>Destaque no Guia</small>
+      </span>
     </a>
-    <div class="viva-partner-body">
-      <small>${escapeHtml(item.categoria_nome || "Guia Comercial")}</small>
-      <strong>${escapeHtml(item.nome)}</strong>
-      ${item.descricao ? `<p>${escapeHtml(item.descricao)}</p>` : ""}
-    </div>
   </article>`;
 }
 
@@ -94,12 +92,13 @@ async function loadPartners() {
   }
   try {
     const rows = await fetchPublicRows("guia_comercial", {
-      select: "id,nome,slug,descricao,imagem_url,categoria_nome,recomendado",
+      select: "id,nome,slug,imagem_url,recomendado",
       status: "eq.publicado",
-      order: "recomendado.desc,nome.asc",
+      recomendado: "eq.true",
+      order: "nome.asc",
       limit: String(PARTNERS_LIMIT)
     }, { ttl: 300000, timeout: 5000 });
-    const partners = (rows || []).slice(0, Math.max(PARTNERS_MINIMUM_VISIBLE, rows?.length || 0));
+    const partners = rows || [];
     list.innerHTML = partners.length ? partners.map(partnerCard).join("") : `<p class="partners-empty">Em breve, novos parceiros por aqui.</p>`;
     setupPartnersAutoscroll(list);
     bindTrackedLinks(list);
@@ -114,7 +113,6 @@ function setupPartnersAutoscroll(list) {
   if (
     cards.length < 2
     || window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    || window.matchMedia("(max-width: 720px)").matches
   ) return;
 
   list.classList.add("is-auto-scrolling");
@@ -129,34 +127,28 @@ function setupPartnersAutoscroll(list) {
   });
 
   let paused = false;
+  let rafId = 0;
+  const speed = window.matchMedia("(max-width: 720px)").matches ? 0.22 : 0.34;
   const setPaused = value => {
     paused = value;
   };
-  const getStep = () => {
-    const card = cards[0];
-    if (!card) return 280;
-    const styles = getComputedStyle(list);
-    const gap = Number.parseFloat(styles.columnGap || styles.gap || "0") || 0;
-    return card.getBoundingClientRect().width + gap;
-  };
-  const move = () => {
-    if (paused || list.scrollWidth <= list.clientWidth) return;
-    const resetPoint = list.scrollWidth / 2;
-    if (list.scrollLeft >= resetPoint) {
-      list.scrollLeft = 0;
-      return;
+  const tick = () => {
+    if (!paused && list.scrollWidth > list.clientWidth) {
+      const resetPoint = list.scrollWidth / 2;
+      list.scrollLeft = list.scrollLeft >= resetPoint ? 0 : list.scrollLeft + speed;
     }
-    list.scrollBy({ left: getStep(), behavior: "smooth" });
+    rafId = window.requestAnimationFrame(tick);
   };
+  const stop = () => window.cancelAnimationFrame(rafId);
 
-  const timer = window.setInterval(move, PARTNERS_AUTOSCROLL_INTERVAL);
   list.addEventListener("mouseenter", () => setPaused(true));
   list.addEventListener("mouseleave", () => setPaused(false));
   list.addEventListener("focusin", () => setPaused(true));
   list.addEventListener("focusout", () => setPaused(false));
   list.addEventListener("touchstart", () => setPaused(true), { passive: true });
   list.addEventListener("touchend", () => window.setTimeout(() => setPaused(false), 1800), { passive: true });
-  window.addEventListener("pagehide", () => window.clearInterval(timer), { once: true });
+  window.addEventListener("pagehide", stop, { once: true });
+  rafId = window.requestAnimationFrame(tick);
 }
 
 function setupSlides() {
@@ -183,27 +175,27 @@ async function init() {
   safeTrack("app_page_view", { plataforma_detectada: platform });
 
   const config = await getAppDownloadConfig();
-  const googleLink = document.querySelector("[data-google-play]");
-  const appStoreLink = document.querySelector("[data-app-store]");
+  const googleLinks = [...document.querySelectorAll("[data-google-play]")];
+  const appStoreLinks = [...document.querySelectorAll("[data-app-store]")];
 
-  setStoreLink(googleLink, config.googlePlayUrl, "Google Play em configuração");
-  setStoreLink(appStoreLink, config.appStoreUrl, "App Store em breve");
+  googleLinks.forEach(link => setStoreLink(link, config.googlePlayUrl, "Google Play em configuração"));
+  appStoreLinks.forEach(link => setStoreLink(link, config.appStoreUrl, "App Store em breve"));
 
-  googleLink?.addEventListener("click", event => {
-    if (googleLink.getAttribute("aria-disabled") === "true") {
+  googleLinks.forEach(link => link.addEventListener("click", event => {
+    if (link.getAttribute("aria-disabled") === "true") {
       event.preventDefault();
       return;
     }
-    safeTrack("app_google_play_click", { destino: googleLink.href, plataforma_detectada: platform });
-  });
+    safeTrack("app_google_play_click", { destino: link.href, plataforma_detectada: platform });
+  }));
 
-  appStoreLink?.addEventListener("click", event => {
-    if (appStoreLink.getAttribute("aria-disabled") === "true") {
+  appStoreLinks.forEach(link => link.addEventListener("click", event => {
+    if (link.getAttribute("aria-disabled") === "true") {
       event.preventDefault();
       return;
     }
-    safeTrack("app_app_store_click", { destino: appStoreLink.href, plataforma_detectada: platform });
-  });
+    safeTrack("app_app_store_click", { destino: link.href, plataforma_detectada: platform });
+  }));
 
   bindTrackedLinks();
   bindSmoothAnchors();
