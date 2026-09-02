@@ -24,6 +24,7 @@ html{scroll-behavior:smooth}
   font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 .app-page a{color:inherit}
+.app-page [hidden]{display:none!important}
 .viva-header{
   position:sticky;
   top:0;
@@ -72,6 +73,12 @@ html{scroll-behavior:smooth}
   font-weight:900;
 }
 .viva-nav a:hover{background:#fff2df}
+
+.app-page .viva-header{
+  background:
+    linear-gradient(90deg,rgba(255,247,238,.72),rgba(255,255,255,.48) 44%,rgba(245,252,252,.66)),
+    radial-gradient(circle at 10% 50%,rgba(255,138,0,.12),transparent 16rem);
+}
 
 .viva-hero,.viva-feature-strip,.viva-section,.viva-download,.viva-footer{
   width:min(1180px,calc(100% - 32px));
@@ -152,14 +159,76 @@ html{scroll-behavior:smooth}
 .viva-button:hover,.viva-store:hover,.viva-link-button:hover{transform:translateY(-2px)}
 .viva-button.primary{
   color:#fff;
-  background:linear-gradient(135deg,#ff452f,#ff9e27);
-  box-shadow:0 14px 32px rgba(255,117,35,.18);
+  background:linear-gradient(135deg,#063b4c,#0b6876);
+  box-shadow:0 14px 32px rgba(7,59,76,.18);
 }
 .viva-button.ghost,.viva-link-button{
   color:var(--viva-ink);
   background:rgba(255,255,255,.76);
   border-color:var(--viva-line);
   box-shadow:0 14px 34px rgba(7,59,76,.08);
+}
+
+.viva-phone-showcase{
+  position:relative;
+  width:min(360px,82vw);
+  margin:0 auto;
+  padding:.72rem;
+  border:1px solid rgba(7,59,76,.11);
+  border-radius:42px;
+  background:linear-gradient(145deg,#fff,#fff6ec);
+  box-shadow:0 30px 80px rgba(7,59,76,.16);
+}
+
+.viva-phone-showcase:before{
+  content:"";
+  position:absolute;
+  inset:1.05rem;
+  border:1px solid rgba(255,255,255,.45);
+  border-radius:34px;
+  pointer-events:none;
+}
+
+.viva-phone-showcase:after{
+  content:"";
+  position:absolute;
+  right:-2.8rem;
+  bottom:7%;
+  width:9rem;
+  height:9rem;
+  border-radius:999px;
+  background:linear-gradient(135deg,rgba(255,27,23,.16),rgba(255,210,74,.35));
+  filter:blur(2px);
+  z-index:-1;
+}
+
+.viva-phone-showcase img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:680px;
+  object-fit:cover;
+  object-position:top center;
+  border-radius:32px;
+}
+
+.viva-phone-note{
+  position:absolute;
+  left:1.45rem;
+  bottom:1.45rem;
+  z-index:2;
+  display:inline-flex;
+  padding:.48rem .7rem;
+  color:#073b4c;
+  background:rgba(255,255,255,.82);
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:999px;
+  box-shadow:0 12px 28px rgba(7,59,76,.12);
+  font-size:.72rem;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  backdrop-filter:blur(14px);
 }
 
 .viva-showcase{
@@ -322,26 +391,66 @@ html{scroll-behavior:smooth}
 }
 .viva-feature-pills strong{font-size:.86rem;line-height:1.08}
 
+.viva-feature-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:.9rem 1.1rem;
+  margin-top:1.25rem;
+}
+
+.viva-feature-list article{
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr);
+  gap:.9rem;
+  align-items:start;
+  padding:.4rem 0 1rem;
+  border-bottom:1px solid rgba(7,59,76,.09);
+}
+
+.viva-feature-list article > span{
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  border-radius:16px;
+  background:#fff4da;
+  box-shadow:0 10px 24px rgba(7,59,76,.06);
+}
+
+.viva-feature-list strong{
+  display:block;
+  margin-bottom:.22rem;
+  color:var(--viva-ink);
+  font-size:1.08rem;
+  letter-spacing:-.035em;
+}
+
+.viva-feature-list p{
+  margin:0;
+  color:#62777e;
+  line-height:1.52;
+}
+
 .viva-section{padding:clamp(2.2rem,5vw,4.6rem) 0}
 .viva-partner-carousel{
   display:grid;
   grid-auto-flow:column;
-  grid-auto-columns:minmax(260px,1fr);
-  gap:1rem;
+  grid-auto-columns:minmax(220px,260px);
+  gap:.72rem;
   overflow-x:auto;
   overscroll-behavior-x:contain;
   scroll-snap-type:x mandatory;
-  padding:.25rem .15rem 1rem;
+  padding:.18rem .12rem .8rem;
   scrollbar-width:thin;
 }
 .viva-partner-card,.viva-partner-skeleton{
   scroll-snap-align:start;
   overflow:hidden;
-  min-height:252px;
+  min-height:188px;
   background:#fff;
   border:1px solid var(--viva-line);
-  border-radius:30px;
-  box-shadow:0 18px 44px rgba(7,59,76,.08);
+  border-radius:24px;
+  box-shadow:0 14px 34px rgba(7,59,76,.07);
   transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
 }
 .viva-partner-card:hover{
@@ -351,32 +460,34 @@ html{scroll-behavior:smooth}
 }
 .viva-partner-card img{
   width:100%;
-  height:136px;
+  height:96px;
   object-fit:cover;
   background:#f4fbfb;
 }
-.viva-partner-body{padding:1rem}
+.viva-partner-body{padding:.68rem .78rem .78rem}
 .viva-partner-body small{
   display:inline-flex;
-  margin-bottom:.45rem;
+  margin-bottom:.32rem;
   color:#0b6374;
-  font-size:.68rem;
+  font-size:.62rem;
   font-weight:950;
   letter-spacing:.14em;
   text-transform:uppercase;
 }
 .viva-partner-body strong{
   display:block;
-  font-size:1.2rem;
+  font-size:1rem;
   letter-spacing:-.04em;
+  line-height:1.08;
 }
 .viva-partner-body p{
   display:-webkit-box;
-  margin:.45rem 0 0;
+  margin:.28rem 0 0;
   overflow:hidden;
   color:#66777c;
-  line-height:1.45;
-  -webkit-line-clamp:2;
+  font-size:.82rem;
+  line-height:1.32;
+  -webkit-line-clamp:1;
   -webkit-box-orient:vertical;
 }
 .viva-partner-skeleton{background:linear-gradient(100deg,#fff 0%,#f3f8f8 45%,#fff 82%);animation:vivaShimmer 1.4s infinite}
@@ -414,12 +525,16 @@ html{scroll-behavior:smooth}
 .viva-experience-card.wide{
   grid-row:span 3;
   display:grid;
+  grid-template-columns:minmax(170px,.56fr) minmax(0,1fr);
+  align-items:end;
   padding:.8rem;
 }
 .viva-experience-card.wide img{
   width:100%;
-  aspect-ratio:16/10;
+  max-height:420px;
+  aspect-ratio:9/16;
   object-fit:cover;
+  object-position:top center;
   border-radius:22px;
 }
 .viva-experience-card.wide div{padding:1rem}
@@ -439,6 +554,44 @@ html{scroll-behavior:smooth}
   letter-spacing:-.05em;
 }
 .viva-experience-card p{margin:0;color:#61747a;line-height:1.55}
+
+.viva-community{
+  display:grid;
+  grid-template-columns:minmax(0,.9fr) minmax(320px,1fr);
+  gap:clamp(1.2rem,4vw,3rem);
+  align-items:center;
+  padding:clamp(1.1rem,3vw,1.5rem);
+  border:1px solid rgba(7,59,76,.1);
+  border-radius:36px;
+  background:
+    radial-gradient(circle at 0% 0%,rgba(255,210,74,.18),transparent 18rem),
+    rgba(255,255,255,.72);
+  box-shadow:0 22px 58px rgba(7,59,76,.08);
+}
+
+.viva-community h2{
+  margin:.4rem 0 .75rem;
+  color:var(--viva-ink);
+  font-size:clamp(2.2rem,4.6vw,4.2rem);
+  line-height:.96;
+  letter-spacing:-.08em;
+}
+
+.viva-community p{
+  margin:0;
+  color:#61747a;
+  font-size:1.04rem;
+  line-height:1.7;
+}
+
+.viva-community img{
+  display:block;
+  width:100%;
+  aspect-ratio:16/10;
+  object-fit:cover;
+  border-radius:28px;
+  box-shadow:0 18px 46px rgba(7,59,76,.12);
+}
 
 .viva-slides{
   overflow:hidden;
@@ -498,8 +651,8 @@ html{scroll-behavior:smooth}
   margin-top:clamp(1.8rem,4vw,3.4rem);
   padding:clamp(1.25rem,3vw,2.2rem);
   background:
-    radial-gradient(circle at 94% 12%,rgba(255,210,74,.25),transparent 9rem),
-    linear-gradient(135deg,#fff,#fff4e4);
+    radial-gradient(circle at 94% 12%,rgba(255,210,74,.18),transparent 9rem),
+    linear-gradient(135deg,#fff,#f5fbfb);
   border:1px solid rgba(255,138,0,.22);
   border-radius:34px;
   box-shadow:var(--viva-shadow);
@@ -517,9 +670,9 @@ html{scroll-behavior:smooth}
   justify-content:flex-start;
   min-width:210px;
   color:var(--viva-ink);
-  background:linear-gradient(135deg,#fff9f0,#ffedc8);
-  border-color:rgba(255,138,0,.24);
-  box-shadow:0 14px 30px rgba(255,138,0,.12);
+  background:#fff;
+  border-color:rgba(7,59,76,.13);
+  box-shadow:0 14px 30px rgba(7,59,76,.08);
 }
 .viva-store.secondary{
   background:#fff;
@@ -699,8 +852,10 @@ html{scroll-behavior:smooth}
   .viva-hero,.viva-download{grid-template-columns:1fr}
   .viva-showcase{min-height:500px}
   .viva-feature-pills{grid-template-columns:repeat(3,1fr)}
+  .viva-feature-list{grid-template-columns:1fr}
   .viva-experience-grid{grid-template-columns:1fr}
   .viva-experience-card.wide{grid-row:auto}
+  .viva-community{grid-template-columns:1fr}
   .partners-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:720px){
@@ -723,12 +878,26 @@ html{scroll-behavior:smooth}
   }
   .viva-hero h1{
     margin:.72rem 0 .76rem;
-    font-size:clamp(2.72rem,12.5vw,3.85rem);
+    font-size:clamp(2.55rem,12vw,3.65rem);
     line-height:.94;
   }
   .viva-hero p{font-size:1rem;line-height:1.55}
   .viva-actions,.viva-store-row{flex-direction:column}
   .viva-button,.viva-store{width:100%}
+  .viva-phone-showcase{
+    width:min(300px,86vw);
+    padding:.52rem;
+    border-radius:34px;
+  }
+  .viva-phone-showcase img{
+    max-height:540px;
+    border-radius:27px;
+  }
+  .viva-phone-note{
+    left:1rem;
+    bottom:1rem;
+    font-size:.62rem;
+  }
   .viva-showcase{display:none}
   .viva-screen-main{
     width:auto;
@@ -761,18 +930,45 @@ html{scroll-behavior:smooth}
   }
   .viva-feature-pills span{width:30px;height:30px}
   .viva-feature-pills strong{font-size:.8rem}
+  .viva-feature-list{
+    gap:.25rem;
+    margin-top:.8rem;
+  }
+  .viva-feature-list article{
+    grid-template-columns:38px minmax(0,1fr);
+    gap:.72rem;
+    padding:.85rem 0;
+  }
+  .viva-feature-list article > span{
+    width:38px;
+    height:38px;
+    border-radius:14px;
+  }
   .viva-partners{padding-top:1.35rem}
   .viva-section-head.row{
     align-items:flex-start;
     flex-direction:column;
   }
   .viva-section h2,.viva-download h2{font-size:clamp(2rem,10vw,3rem)}
-  .viva-partner-carousel{grid-auto-columns:82%}
+  .viva-partner-carousel{grid-auto-columns:72%}
   .viva-partner-cta{
     align-items:stretch;
     flex-direction:column;
   }
   .viva-experience-card{min-height:auto}
+  .viva-experience-card.wide{
+    grid-template-columns:1fr;
+  }
+  .viva-experience-card.wide img{
+    max-height:520px;
+  }
+  .viva-community{
+    padding:1rem;
+    border-radius:28px;
+  }
+  .viva-community h2{
+    font-size:clamp(2rem,10vw,3rem);
+  }
   .viva-slide-track{grid-auto-columns:86%}
   .viva-slide{min-height:190px}
   .viva-download{padding:1.15rem;border-radius:28px}

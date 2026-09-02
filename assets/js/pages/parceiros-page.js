@@ -74,8 +74,9 @@ async function init() {
     rows = await fetchPublicRows("guia_comercial", {
       select: "id,nome,slug,descricao,imagem_url,categoria_nome,recomendado",
       status: "eq.publicado",
-      order: "recomendado.desc,nome.asc"
-    }, { ttl: 180000 });
+      order: "recomendado.desc,nome.asc",
+      limit: "200"
+    }, { ttl: 300000, timeout: 6000 });
     fillCategories();
     render();
   } catch (error) {

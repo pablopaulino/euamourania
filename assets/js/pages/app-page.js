@@ -26,7 +26,7 @@ const safeTrack = (tipo, metadados = {}) => {
   }).catch(() => {});
 };
 
-const PARTNERS_LIMIT = 60;
+const PARTNERS_LIMIT = 24;
 const PARTNERS_MINIMUM_VISIBLE = 15;
 const PARTNERS_AUTOSCROLL_INTERVAL = 4200;
 
@@ -40,6 +40,7 @@ function detectPlatform() {
 function setStoreLink(link, url, fallbackLabel) {
   if (!link) return;
   const hasUrl = Boolean(url);
+  link.hidden = !hasUrl;
   link.href = hasUrl ? url : "#download";
   link.setAttribute("aria-disabled", hasUrl ? "false" : "true");
   link.classList.toggle("is-disabled", !hasUrl);
@@ -97,7 +98,7 @@ async function loadPartners() {
       status: "eq.publicado",
       order: "recomendado.desc,nome.asc",
       limit: String(PARTNERS_LIMIT)
-    }, { ttl: 180000 });
+    }, { ttl: 300000, timeout: 5000 });
     const partners = (rows || []).slice(0, Math.max(PARTNERS_MINIMUM_VISIBLE, rows?.length || 0));
     list.innerHTML = partners.length ? partners.map(partnerCard).join("") : `<p class="partners-empty">Em breve, novos parceiros por aqui.</p>`;
     setupPartnersAutoscroll(list);
