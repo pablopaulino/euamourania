@@ -1566,3 +1566,20 @@ html{scroll-behavior:smooth}
 @media(prefers-reduced-motion:no-preference){.viva-phone-showcase,.viva-app-screen,.viva-download-phone{transition:transform .24s ease,box-shadow .24s ease}.viva-phone-showcase:hover,.viva-app-screen:hover,.viva-download-phone:hover{transform:translateY(-4px) rotate(0deg)}}
 @media(max-width:980px){.viva-hero{min-height:0;grid-template-columns:1fr}.viva-trust-strip,.viva-ecosystem-grid{grid-template-columns:repeat(2,1fr)}.viva-app-showcase{grid-template-columns:minmax(0,1fr) minmax(0,.72fr)}.viva-showcase-notes{grid-column:1/-1;grid-template-columns:repeat(2,1fr)}.viva-daily,.viva-smart-guide,.viva-tourism,.viva-business,.viva-brand-story,.viva-download{grid-template-columns:1fr}.viva-business-copy{justify-self:start;max-width:760px}.viva-business-panel{max-width:none}.viva-footer{grid-template-columns:1fr}.viva-footer nav{justify-content:flex-start}}
 @media(max-width:720px){.viva-nav a:nth-child(n+3):not(:last-child){display:none}.viva-hero{padding-top:1.8rem;padding-bottom:2rem}.viva-hero h1{font-size:clamp(3.15rem,16vw,4.75rem);letter-spacing:-.09em}.viva-store-hint{font-size:.8rem!important}.viva-phone-showcase{width:min(221px,65vw);transform:none}.viva-phone-showcase img{max-height:366px}.viva-trust-strip{grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1.4rem}.viva-trust-strip span{min-height:56px;padding:.68rem .72rem;border-radius:18px;font-size:.68rem}.viva-ecosystem-grid{grid-template-columns:1fr}.viva-ecosystem-grid article{min-height:0;padding:1rem;border-radius:26px}.viva-ecosystem-grid strong{margin:.85rem 0 .4rem;font-size:1.18rem}.viva-experience{padding-block:2.5rem}.viva-app-showcase{grid-template-columns:1fr}.viva-app-screen.main,.viva-app-screen.offset{max-width:min(300px,82vw);justify-self:center;transform:none}.viva-app-screen.offset{display:none}.viva-showcase-notes{grid-template-columns:1fr 1fr;gap:.5rem}.viva-showcase-notes span{min-height:46px;padding:.7rem;border-radius:18px;font-size:.84rem}.viva-daily h2,.viva-smart-guide h2,.viva-tourism h2,.viva-business h2,.viva-brand-story h2{font-size:clamp(2.25rem,11vw,3.25rem)}.viva-question-cloud{padding:.7rem;border-radius:26px}.viva-question-cloud span{width:100%;box-sizing:border-box;justify-content:flex-start;border-radius:18px;font-size:.88rem}.viva-smart-guide{width:min(100% - 24px,1180px);border-radius:30px}.viva-tourism{border-radius:30px}.viva-tourism img{height:230px;border-radius:24px}.viva-business{padding-block:2.8rem}.viva-business-panel{grid-template-columns:1fr;border-radius:28px}.viva-business-panel figure{display:none}.viva-brand-story{border-radius:30px}.viva-brand-pair{min-height:150px;flex-wrap:wrap}.viva-brand-pair img:first-child{max-width:160px}.viva-download{border-radius:32px}.viva-download-phone{display:none}.viva-footer{padding-inline:0}}
+
+/* Screenshots reais da seção Experiência */
+.viva-app-showcase{grid-template-columns:repeat(3,minmax(0,1fr));align-items:start}
+.viva-app-screen,.viva-app-screen.main,.viva-app-screen.offset{width:100%;max-width:300px;justify-self:center;transform:none}
+.viva-app-screen img,.viva-app-screen.offset img{max-height:590px}
+.viva-showcase-notes{grid-column:1/-1;grid-template-columns:repeat(4,1fr)}
+@media(max-width:980px){
+  .viva-app-showcase{grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .viva-app-screen,.viva-app-screen.main,.viva-app-screen.offset{max-width:240px}
+  .viva-app-screen img,.viva-app-screen.offset img{max-height:470px}
+}
+@media(max-width:720px){
+  .viva-app-showcase{grid-template-columns:1fr}
+  .viva-app-screen,.viva-app-screen.main,.viva-app-screen.offset{display:block;max-width:min(290px,82vw)}
+  .viva-app-screen img,.viva-app-screen.offset img{max-height:560px}
+  .viva-showcase-notes{grid-template-columns:1fr 1fr}
+}
