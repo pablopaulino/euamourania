@@ -79,8 +79,7 @@ module.exports=async(req,res)=>{
     if(!["rascunho","falhou"].includes(notification.status))return res.status(409).json({error:"Esta notificação já foi processada."});
 
     await rest(`app_notificacoes?id=eq.${id}`,{method:"PATCH",token,body:{status:"enviando",total_erros:0,total_aceitos:0,total_destinatarios:0}});
-    const platformFilter=notification.plataforma==="todos"?"":`&plataforma=eq.${notification.plataforma}`;
-    const devices=await rest(`app_push_tokens?ativo=eq.true${platformFilter}&select=id,expo_push_token&order=visto_em.desc`,{token});
+    const devices=await rest("rpc/app_push_tokens_para_notificacao",{method:"POST",token,body:{p_notificacao_id:notification.id}});
     if(!devices.length)throw Object.assign(new Error("Nenhum aparelho autorizou notificações para esse público."),{status:400});
 
     const path=destination(notification);

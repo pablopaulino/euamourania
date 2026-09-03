@@ -74,6 +74,18 @@ function destinationTypeLabel(type) {
   })[type] || type || "Início";
 }
 
+function topicLabel(topic) {
+  return ({
+    geral: "Informação geral",
+    agenda_eventos: "Agenda e eventos",
+    noticias: "Notícias importantes",
+    descobertas: "Descobertas em Urânia",
+    comunidade: "Comunidade",
+    melhores: "Melhores de Urânia",
+    parceiros_ofertas: "Novidades de parceiros",
+  })[topic] || "Informação geral";
+}
+
 function ctr(item) {
   const accepted = Number(item.total_aceitos || 0);
   const clicks = Number(item.cliques || 0);
@@ -218,7 +230,7 @@ function render() {
     const path = item.caminho || destinationPath(item.destino_tipo, item.destino_valor);
     return `<tr>
         <td class="push-copy"><strong>${esc(item.titulo)}</strong><small>${esc(item.mensagem)}</small></td>
-        <td class="push-copy"><strong>${esc(destinationLabel(item))}</strong><small>${esc(destinationTypeLabel(item.destino_tipo))} · ${esc(path)}</small></td>
+        <td class="push-copy"><strong>${esc(destinationLabel(item))}</strong><small>${esc(destinationTypeLabel(item.destino_tipo))} · ${esc(topicLabel(item.tema))} · ${esc(path)}</small></td>
         <td>${esc(item.plataforma)}</td>
         <td><span class="status-pill ${esc(item.status)}">${esc(statusLabel(item.status))}</span></td>
         <td>${item.total_aceitos || 0} aceitos${item.total_erros ? ` · ${item.total_erros} erros` : ""}</td>
@@ -263,6 +275,7 @@ function openForm() {
       <div class="push-field full"><label>Título *</label><input name="titulo" maxlength="80" required placeholder="Ex.: Agenda do fim de semana"><small class="push-counter" id="title-count">0/80</small></div>
       <div class="push-field full"><label>Mensagem *</label><textarea name="mensagem" maxlength="220" required placeholder="Conte a novidade em poucas palavras."></textarea><small class="push-counter" id="body-count">0/220</small></div>
       <div class="push-field"><label>Público</label><select name="plataforma"><option value="todos">Android e iPhone</option><option value="android">Somente Android</option><option value="ios">Somente iPhone</option></select></div>
+      <div class="push-field"><label>Interesse</label><select name="tema"><option value="geral">Informação geral (todos)</option><option value="agenda_eventos">Agenda e eventos</option><option value="noticias">Notícias importantes</option><option value="descobertas">Descobertas em Urânia</option><option value="comunidade">Comunidade</option><option value="melhores">Melhores de Urânia</option><option value="parceiros_ofertas">Novidades de parceiros</option></select><small>O envio respeita as escolhas feitas em Meu Viva.</small></div>
       <div class="push-field"><label>Ao tocar, abrir</label><select name="destino_tipo"><option value="home">Página inicial</option><option value="empresa">Empresa do guia</option><option value="turismo">Ponto turístico</option><option value="evento">Evento ou edição</option><option value="noticia">Notícia</option><option value="melhores">Melhores de Urânia</option><option value="telefones_uteis">Telefones úteis</option></select></div>
       <div class="push-field full" id="destination-field" hidden><label>Conteúdo</label><select id="destination-select"></select><small>Use um conteúdo publicado. A rota será criada automaticamente.</small></div>
       <input type="hidden" name="destino_id"><input type="hidden" name="destino_valor"><input type="hidden" name="destino_label"><input type="hidden" name="caminho">
@@ -277,7 +290,7 @@ function openForm() {
         <div class="push-audience-box">
           <span>Público estimado</span>
           <strong id="audience-estimate">${deviceCounts.total}</strong>
-          <small id="audience-detail">Android e iPhone com permissão ativa</small>
+          <small id="audience-detail">Estimativa antes do filtro por interesse</small>
         </div>
       </div>
       <div class="push-actions"><button type="button" class="admin-button secondary" id="cancel">Cancelar</button><button class="admin-button">Salvar rascunho</button></div>
@@ -380,6 +393,7 @@ function openForm() {
       titulo: values.titulo,
       mensagem: values.mensagem,
       plataforma: values.plataforma,
+      tema: values.tema,
       destino_tipo: values.destino_tipo,
       destino_id: values.destino_id || null,
       destino_valor: values.destino_valor || null,
@@ -400,8 +414,7 @@ function openForm() {
 }
 async function send(id, button) {
   const item = notifications.find(notification => notification.id === id);
-  const estimated = item?.plataforma === "android" ? deviceCounts.android : item?.plataforma === "ios" ? deviceCounts.ios : deviceCounts.total;
-  if (!confirm(`Enviar esta notificação agora?\n\nPúblico estimado: ${estimated} aparelho(s)\nDestino: ${destinationLabel(item)}\n\nEssa ação não pode ser desfeita.`)) return;
+  if (!confirm(`Enviar esta notificação agora?\n\nInteresse: ${topicLabel(item?.tema)}\nO público final respeitará a plataforma e as escolhas em Meu Viva.\nDestino: ${destinationLabel(item)}\n\nEssa ação não pode ser desfeita.`)) return;
   button.disabled = true;
   button.textContent = "Enviando…";
   try {
