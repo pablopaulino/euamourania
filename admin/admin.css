@@ -105,6 +105,14 @@
 .weekly-copy-prev{min-height:30px;padding:.34rem .6rem;font-size:.74rem}
 @media(max-width:920px){.weekly-periods{grid-template-columns:1fr}.weekly-period{grid-template-columns:1fr 1fr}.weekly-period>span{grid-column:1/-1}.weekly-24h,.weekly-closed,.weekly-copy-prev{grid-column:1/-1}}
 
+.simple-event-form.is-recurring-event{align-items:start}
+.simple-event-form.is-recurring-event [name="recorrencia_tipo"]{border-color:rgba(247,201,72,.72);background:#fffaf0}
+.simple-event-form.is-recurring-event .event-date-field{padding:.9rem;border:1px solid rgba(7,59,76,.1);border-radius:16px;background:linear-gradient(180deg,#fff,#f8fbfc);box-shadow:0 10px 24px rgba(7,59,76,.045)}
+.simple-event-form.is-recurring-event .event-date-field small{color:var(--muted);font-size:.78rem;font-weight:650;line-height:1.4}
+.simple-event-form.is-recurring-event .event-repeat-until-field{grid-column:1/-1;margin-top:-.35rem;padding:.72rem .85rem;border:1px dashed rgba(7,59,76,.18);border-radius:14px;background:#fbfdfd;color:var(--muted)}
+.simple-event-form.is-recurring-event .event-repeat-until-field input{min-height:40px;padding:.6rem .75rem}
+.simple-event-form.is-recurring-event .event-repeat-until-field small{color:var(--muted);font-size:.76rem;font-weight:650;line-height:1.35}
+
 .cms-gallery-field{border:1px solid rgba(7,59,76,.1);border-radius:20px;padding:1rem;background:linear-gradient(180deg,#fff,#f7fbfc);box-shadow:0 10px 26px rgba(7,59,76,.045)}
 .cms-gallery-field legend{padding:0 .35rem;color:var(--navy);font-weight:900;letter-spacing:.01em}
 .cms-gallery-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin:.2rem 0 .35rem}

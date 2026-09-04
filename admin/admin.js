@@ -966,6 +966,133 @@ async function carregarSelectEventosPrincipais() {
   }
 }
 
+const SIMPLE_EVENT_RECURRENCES = new Set(["semanal", "mensal", "anual"]);
+
+function simpleEventIsRecurring(value) {
+  return SIMPLE_EVENT_RECURRENCES.has(String(value || ""));
+}
+
+function extractTimeFromDateTime(value) {
+  const raw = String(value || "");
+  const match = raw.match(/T(\d{2}:\d{2})/);
+  if (match) return match[1];
+  if (/^\d{2}:\d{2}/.test(raw)) return raw.slice(0, 5);
+  return "";
+}
+
+function setFieldCaption(input, label) {
+  const wrapper = input?.closest?.("label");
+  if (!wrapper) return;
+  const textNode = Array.from(wrapper.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+  if (textNode) textNode.textContent = label;
+  else wrapper.insertAdjacentText("afterbegin", label);
+}
+
+function setFieldHint(input, text) {
+  const wrapper = input?.closest?.("label");
+  if (!wrapper) return;
+  let hint = wrapper.querySelector("[data-simple-event-hint]");
+  if (!text) {
+    hint?.remove();
+    return;
+  }
+  if (!hint) {
+    hint = document.createElement("small");
+    hint.dataset.simpleEventHint = "true";
+    wrapper.append(hint);
+  }
+  hint.textContent = text;
+}
+
+function setupSimpleEventRecurrenceForm(container) {
+  if (currentResourceTable !== "eventos") return;
+  const form = container.querySelector("#resource-form");
+  if (!form) return;
+  const recurrenceInput = form.elements.recorrencia_tipo;
+  const startInput = form.elements.data_inicio;
+  const endInput = form.elements.data_fim;
+  const repeatUntilInput = form.elements.recorrencia_ate;
+  if (!recurrenceInput || !startInput || !endInput) return;
+
+  form.classList.add("simple-event-form");
+  endInput.dataset.datetimeValue = endInput.value || "";
+  startInput.closest("label")?.classList.add("event-date-field");
+  endInput.closest("label")?.classList.add("event-date-field");
+  repeatUntilInput?.closest("label")?.classList.add("event-repeat-until-field");
+
+  const apply = () => {
+    const recurring = simpleEventIsRecurring(recurrenceInput.value);
+    form.classList.toggle("is-recurring-event", recurring);
+    setFieldCaption(recurrenceInput, "Tipo de repetição");
+    if (recurring) {
+      setFieldCaption(startInput, "Primeira data e horário de início");
+      setFieldHint(startInput, "Use a primeira ocorrência. O site repete automaticamente conforme a frequência escolhida.");
+      setFieldCaption(endInput, "Horário de término");
+      setFieldHint(endInput, "Opcional. Informe só a hora em que o evento costuma terminar.");
+      if (endInput.type !== "time") {
+        endInput.dataset.datetimeValue = endInput.value || endInput.dataset.datetimeValue || "";
+        endInput.type = "time";
+      }
+      endInput.value = extractTimeFromDateTime(endInput.dataset.datetimeValue || endInput.value);
+      endInput.removeAttribute("required");
+      if (repeatUntilInput) {
+        setFieldCaption(repeatUntilInput, "Fim da repetição");
+        setFieldHint(repeatUntilInput, "Opcional e normalmente vazio. Use apenas se a repetição tiver prazo para encerrar.");
+        repeatUntilInput.closest("label")?.classList.toggle("hidden", !repeatUntilInput.value);
+      }
+    } else {
+      setFieldCaption(startInput, "Início");
+      setFieldHint(startInput, "");
+      setFieldCaption(endInput, "Fim");
+      setFieldHint(endInput, "");
+      if (endInput.type !== "datetime-local") {
+        const datePart = String(startInput.value || "").slice(0, 10);
+        const timePart = extractTimeFromDateTime(endInput.value);
+        endInput.type = "datetime-local";
+        endInput.value = endInput.dataset.datetimeValue || (datePart && timePart ? `${datePart}T${timePart}` : "");
+      }
+      if (repeatUntilInput) {
+        setFieldCaption(repeatUntilInput, "Repetir até");
+        setFieldHint(repeatUntilInput, "");
+        repeatUntilInput.closest("label")?.classList.remove("hidden");
+      }
+    }
+  };
+
+  recurrenceInput.addEventListener("change", apply);
+  startInput.addEventListener("change", () => {
+    if (simpleEventIsRecurring(recurrenceInput.value) && endInput.value) {
+      endInput.dataset.datetimeValue = `${String(startInput.value || "").slice(0, 10)}T${endInput.value}`;
+    }
+  });
+  endInput.addEventListener("input", () => {
+    if (simpleEventIsRecurring(recurrenceInput.value)) {
+      const datePart = String(startInput.value || "").slice(0, 10);
+      endInput.dataset.datetimeValue = datePart && endInput.value ? `${datePart}T${endInput.value}` : "";
+    }
+  });
+  apply();
+}
+
+function normalizeSimpleEventPayload(form, message) {
+  const recurrence = form.elements.recorrencia_tipo?.value || "nenhuma";
+  if (!simpleEventIsRecurring(recurrence)) return null;
+  const startValue = form.elements.data_inicio?.value || "";
+  const endValue = form.elements.data_fim?.value || "";
+  const datePart = startValue.slice(0, 10);
+  if (endValue && !datePart) {
+    message.textContent = "Informe a primeira data do evento antes do horário de término.";
+    form.elements.data_inicio?.focus();
+    return false;
+  }
+  const dataFim = endValue ? `${datePart}T${extractTimeFromDateTime(endValue)}` : null;
+  return {
+    recorrencia_tipo: recurrence,
+    data_fim: dataFim,
+    recorrencia_ate: form.elements.recorrencia_ate?.value || null
+  };
+}
+
 async function salvarEvento2Form(event) {
   if(event.target.id!=="resource-form"||!["eventos_principais","eventos_edicoes"].includes(currentResourceTable))return;
   event.preventDefault();event.stopImmediatePropagation();
@@ -1017,9 +1144,67 @@ async function editForm(table,id) {
   const editorField=config.fields.find(f=>f[2]==="editor");
   if(editorField){quill=new Quill("#editor",{theme:"snow",modules:{toolbar:[["bold","italic","blockquote"],[{header:[2,3,false]}],[{list:"ordered"},{list:"bullet"}],["link","image","video"],["clean"]]}});quill.root.innerHTML=row[editorField[0]]||"";}
   await carregarSelectEventosPrincipais();
+  setupSimpleEventRecurrenceForm(app);
   const sourceName=config.fields.some(f=>f[0]==="titulo")?"titulo":config.fields.some(f=>f[0]==="nome")?"nome":null;
   if(sourceName&&config.fields.some(f=>f[0]==="slug")){const source=app.querySelector(`[name="${sourceName}"]`),slugInput=app.querySelector('[name="slug"]');source.addEventListener("input",()=>{if(!id||!slugInput.dataset.edited)slugInput.value=gerarSlug(source.value)});slugInput.addEventListener("input",()=>slugInput.dataset.edited="true");}
-  document.getElementById("resource-form").addEventListener("submit",async event=>{event.preventDefault();const message=document.getElementById("form-message");message.textContent="Salvando...";const form=new FormData(event.currentTarget),payload={id};for(const field of config.fields){const [name,label,type]=field;if(type==="editor")payload[name]=quill.root.innerHTML;else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="gallery-urls")payload[name]=collectGalleryUrls(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";else if(type==="number"){try{payload[name]=parseAdminNumber(form.get(name))}catch{message.textContent=`Informe um número válido em ${label}.`;event.currentTarget.elements[name]?.focus();return}}else if(type==="tags")payload[name]=String(form.get(name)||"").split(",").map(item=>item.trim()).filter(Boolean);else{const value=form.get(name)||null;if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.currentTarget.elements[name]?.focus();return}if(["galeria_historica","galeria","videos","links_uteis","patrocinadores"].includes(name)){try{payload[name]=value?JSON.parse(value):[]}catch{message.textContent=`O campo ${label} precisa ser um JSON válido. Use [] quando não houver itens.`;event.currentTarget.elements[name]?.focus();return}}else payload[name]=value}}if(table==="noticias"&&payload.status==="publicado"&&!payload.publicado_em)payload.publicado_em=new Date().toISOString();try{await salvarRegistro(table,payload);await resourceList(table)}catch(error){message.textContent=error.message;}});
+  document.getElementById("resource-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const message = document.getElementById("form-message");
+    message.textContent = "Salvando...";
+    const recurringEventPayload = table === "eventos" ? normalizeSimpleEventPayload(event.currentTarget, message) : null;
+    if (recurringEventPayload === false) return;
+    const form = new FormData(event.currentTarget);
+    const payload = { id };
+    for (const field of config.fields) {
+      const [name, label, type] = field;
+      if (recurringEventPayload && Object.prototype.hasOwnProperty.call(recurringEventPayload, name)) {
+        payload[name] = recurringEventPayload[name];
+      } else if (type === "editor") {
+        payload[name] = quill.root.innerHTML;
+      } else if (type === "weekly-hours") {
+        payload[name] = collectWeeklyHours(form, name);
+      } else if (type === "gallery-urls") {
+        payload[name] = collectGalleryUrls(form, name);
+      } else if (type === "boolean") {
+        payload[name] = form.get(name) === "true";
+      } else if (type === "number") {
+        try {
+          payload[name] = parseAdminNumber(form.get(name));
+        } catch {
+          message.textContent = `Informe um número válido em ${label}.`;
+          event.currentTarget.elements[name]?.focus();
+          return;
+        }
+      } else if (type === "tags") {
+        payload[name] = String(form.get(name) || "").split(",").map(item => item.trim()).filter(Boolean);
+      } else {
+        const value = form.get(name) || null;
+        if (type === "url" && !validSiteReference(value)) {
+          message.textContent = `Informe um link completo ou caminho interno válido em ${label}.`;
+          event.currentTarget.elements[name]?.focus();
+          return;
+        }
+        if (["galeria_historica", "galeria", "videos", "links_uteis", "patrocinadores"].includes(name)) {
+          try {
+            payload[name] = value ? JSON.parse(value) : [];
+          } catch {
+            message.textContent = `O campo ${label} precisa ser um JSON válido. Use [] quando não houver itens.`;
+            event.currentTarget.elements[name]?.focus();
+            return;
+          }
+        } else {
+          payload[name] = value;
+        }
+      }
+    }
+    if (table === "noticias" && payload.status === "publicado" && !payload.publicado_em) payload.publicado_em = new Date().toISOString();
+    try {
+      await salvarRegistro(table, payload);
+      await resourceList(table);
+    } catch (error) {
+      message.textContent = error.message;
+    }
+  });
 }
 
 function shellToast(message, type = "success") {
