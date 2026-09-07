@@ -55,3 +55,9 @@
 @media(max-width:1180px){.news-admin-metrics.editorial{grid-template-columns:repeat(3,minmax(0,1fr))}.news-editorial-card{grid-template-columns:1fr}.news-editorial-card .news-title-main{grid-template-columns:104px minmax(0,1fr)}.news-editorial-card .news-actions{grid-template-columns:repeat(3,minmax(0,1fr))}.news-editorial-card .news-actions button:first-child{grid-column:auto}}
 @media(max-width:760px){.news-admin-metrics{grid-template-columns:1fr 1fr}.news-admin-metrics.editorial{grid-template-columns:1fr 1fr}.news-admin-toolbar{grid-template-columns:1fr}.news-admin-head-actions{width:100%;justify-content:stretch}.news-admin-head-actions .admin-button{flex:1 1 160px}.news-admin-table{min-width:980px}.news-title-main{min-width:0}.news-editorial-card .news-title-main{grid-template-columns:92px minmax(0,1fr)}.news-editorial-card .news-thumb{width:92px;min-height:104px}.news-card-meta{grid-template-columns:1fr}.news-editorial-card .news-actions{grid-template-columns:1fr}}
 @media(max-width:520px){.news-admin-metrics{grid-template-columns:1fr}.news-admin-panel{padding:1rem}.news-admin-table-wrap{margin-inline:-.35rem;border-radius:14px}}
+
+/* A ação principal destas listagens vive na barra superior do Admin Shell. */
+.cms-section-head > .admin-button[data-cat-new],
+.news-admin-head-actions {
+  display: none;
+}

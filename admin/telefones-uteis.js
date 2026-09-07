@@ -247,7 +247,6 @@ function render() {
           <h2>Telefones úteis</h2>
           <p>Organize contatos importantes, urgências e serviços que aparecem no aplicativo.</p>
         </div>
-        <button class="admin-button" type="button" data-new-contact>Novo telefone</button>
       </header>
       ${state.message ? `<p class="form-message">${escapeHtml(state.message)}</p>` : ""}
       ${renderMetrics()}
@@ -446,6 +445,10 @@ export async function mount(container, options = {}) {
     app.innerHTML = `<section class="panel"><p class="form-message">Você não tem permissão para acessar Telefones úteis.</p></section>`;
     return;
   }
+  options.setPrimaryAction?.("Novo telefone", () => {
+    state.form = "new";
+    render();
+  });
   bindEvents();
   try {
     await loadData();
@@ -455,6 +458,7 @@ export async function mount(container, options = {}) {
 }
 
 export function unmount() {
+  context.setPrimaryAction?.(null);
   cleanupHandlers.forEach(handler => handler());
   cleanupHandlers = [];
   app = null;

@@ -3,6 +3,7 @@ import { gerarSlug } from '../assets/js/utils.js';
 
 let app = null;
 let style = null;
+let moduleContext = {};
 const state = { items: [], selected: null, creating: false, message: '' };
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -54,7 +55,7 @@ function render() {
 function dashboard() {
   const latest = state.items.slice(0, 4);
   return `<section class="drivers-dashboard">
-    <div class="drivers-dashboard-hero"><div><p class="eyebrow">Central de mobilidade</p><h3>Contatos rápidos para a cidade, organizados em um só lugar.</h3><p>Selecione um cadastro ao lado para editar ou adicione um novo motorista quando precisar ampliar a lista do aplicativo.</p></div><button class="admin-button" type="button" data-new>Novo motorista</button></div>
+    <div class="drivers-dashboard-hero"><div><p class="eyebrow">Central de mobilidade</p><h3>Contatos rápidos para a cidade, organizados em um só lugar.</h3><p>Selecione um cadastro ao lado para editar ou adicione um novo motorista quando precisar ampliar a lista do aplicativo.</p></div></div>
     <div class="drivers-recent"><div class="drivers-recent-head"><div><p class="eyebrow">Leitura rápida</p><h3>Cadastros recentes</h3></div><span>${latest.length}</span></div><div class="drivers-recent-list">${latest.map(driver => `<button type="button" data-select="${driver.id}"><span>${driver.ativo ? 'Publicado' : 'Oculto'}</span><strong>${esc(driver.nome)}</strong><small>${esc(availability[driver.disponibilidade] || availability.consulte)}</small></button>`).join('') || '<p class="drivers-empty">Cadastre o primeiro motorista para começar.</p>'}</div></div>
   </section>`;
 }
@@ -83,5 +84,5 @@ function bind(root) {
   });
 }
 
-export async function mount(container) { app = container || document.querySelector('#app-content'); ensureStyle(); await load(); }
-export function unmount() { style?.remove(); style = null; app = null; }
+export async function mount(container, context = {}) { app = container || document.querySelector('#app-content'); moduleContext = context; ensureStyle(); context.setPrimaryAction?.('Novo motorista', () => { state.selected = null; state.creating = true; state.message = ''; render(); }); await load(); }
+export function unmount() { moduleContext.setPrimaryAction?.(null); moduleContext = {}; style?.remove(); style = null; app = null; }

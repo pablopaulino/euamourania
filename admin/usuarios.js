@@ -95,7 +95,7 @@ function roleSummary(role) {
 
 function renderShell(container) {
   container.classList.add("ads-main");
-  container.innerHTML = `<div class="ads-content"><div class="ads-heading"><div><h2>Equipe e permissões</h2><p>Crie contas individuais e atribua somente o acesso necessário.</p></div><button class="admin-button" id="new-user">+ Novo usuário</button></div><div id="users-app"><div class="skeleton"></div></div></div>`;
+  container.innerHTML = `<div class="ads-content"><div class="ads-heading"><div><h2>Equipe e permissões</h2><p>Crie contas individuais e atribua somente o acesso necessário.</p></div></div><div id="users-app"><div class="skeleton"></div></div></div>`;
 }
 
 function render() {
@@ -193,10 +193,10 @@ async function initModule(context = {}) {
   mounted = true;
   runId += 1;
   moduleContext.setTitle?.("Usuários administrativos", "Equipe, papéis e permissões de acesso ao CMS.");
+  moduleContext.setPrimaryAction?.("Novo usuário", () => form());
   document.title = "Usuários administrativos | Eu Amo Urânia";
   const adminUser = document.getElementById("admin-user");
   if (adminUser) adminUser.textContent = access.admin?.nome || access.user?.email || "";
-  addListener($("#new-user"), "click", () => form());
   addListener(app, "click", handleUsersClick);
   await load();
 }
@@ -212,6 +212,7 @@ export async function mount(container, context = {}) {
 }
 
 export function unmount() {
+  moduleContext.setPrimaryAction?.(null);
   mounted = false;
   cleanupHandlers.splice(0).forEach(handler => {
     try { handler(); } catch (error) { console.warn("Falha ao desmontar Usuários:", error); }

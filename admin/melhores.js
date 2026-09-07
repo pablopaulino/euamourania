@@ -139,7 +139,6 @@ function renderShell(container) {
             apuração, auditoria, resultados e textos oficiais em um só lugar.
           </p>
         </div>
-        <button class="admin-button" id="new-edition">Nova edição</button>
       </section>
 
       <div class="awards-tabs" role="tablist">
@@ -519,7 +518,6 @@ async function loadEditions() {
       <article class="awards-card">
         <div class="awards-panel-head">
           <div><h3>Edições</h3><p>Crie uma edição por ano e configure períodos, pesos e regulamento.</p></div>
-          <button class="admin-button" data-new-edition>Nova edição</button>
         </div>
         <div class="awards-table-wrap">
           <table class="awards-table">
@@ -1699,6 +1697,7 @@ async function init(context = {}) {
   if (!access || !isMounted(initRun)) return;
   moduleContext.access = access;
   moduleContext.setTitle?.("Melhores de Urânia", "Gerencie edições anuais, categorias e indicados da premiação oficial do portal.");
+  moduleContext.setPrimaryAction?.("Nova edição", () => editionForm());
   document.title = "Melhores de Urânia | Eu Amo Urânia CMS";
   const adminUser = document.querySelector("#admin-user");
   if (adminUser) adminUser.textContent = access.admin.nome || access.user.email;
@@ -1885,6 +1884,7 @@ export async function mount(container, context = {}) {
 }
 
 export function unmount() {
+  moduleContext.setPrimaryAction?.(null);
   mounted = false;
   runId += 1;
   cleanupHandlers.splice(0).forEach(clean => {

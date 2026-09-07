@@ -79,7 +79,6 @@ function renderShell(container) {
         <h2>Central de Comunicação</h2>
         <p>Assinantes, newsletters e resultados em um só lugar.</p>
       </div>
-      <button class="admin-button" id="new-newsletter" type="button">+ Nova newsletter</button>
     </div>
     <div class="ads-tabs">
       <button class="ads-tab active" data-communication-view="dashboard" type="button">Visão geral</button>
@@ -351,7 +350,6 @@ async function newsletters() {
         </div>
         <div class="newsletter-head-actions">
           <button class="admin-button secondary" data-generate-monthly>Gerar resumo mensal</button>
-          <button class="admin-button" id="add-news">Nova newsletter</button>
         </div>
       </div>
       <div class="table-wrap">
@@ -362,7 +360,6 @@ async function newsletters() {
       </div>
     </section>
   `;
-  document.getElementById("add-news").onclick = () => newsletterForm();
 }
 
 async function newsletterForm(id) {
@@ -486,7 +483,6 @@ function bindCommunicationEvents(){
   };
   addCleanup(button, "click", handler);
  });
- addCleanup(root.getElementById?.("new-newsletter") || root.querySelector("#new-newsletter"), "click", () => newsletterForm());
 
  const appClickHandler = async event => {
   const button = event.target.closest("button");
@@ -564,6 +560,7 @@ export async function mount(container, context = {}) {
   renderShell(container);
   app = container.querySelector("#communication-app");
   context.setTitle?.("Comunicação", "Assinantes, newsletters e resultados em um só lugar.");
+  context.setPrimaryAction?.("Nova newsletter", () => newsletterForm());
   document.title = "Comunicação | Eu Amo Urânia";
   bindCommunicationEvents();
   enhanceCommunicationRows();
@@ -571,6 +568,7 @@ export async function mount(container, context = {}) {
 }
 
 export function unmount() {
+  moduleContext.setPrimaryAction?.(null);
   cleanupHandlers.splice(0).forEach(clean => {
     try { clean(); } catch {}
   });

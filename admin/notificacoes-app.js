@@ -183,7 +183,6 @@ function renderShellFrame(container) {
           <h2>Central de notificações</h2>
           <p>Envie novidades para quem autorizou notificações no aplicativo.</p>
         </div>
-        <button class="admin-button" id="new-notification" type="button">+ Nova notificação</button>
       </div>
       <div id="push-app"><div class="skeleton"></div><div class="skeleton"></div></div>
     </div>`;
@@ -480,9 +479,7 @@ async function initModule(container, moduleContext = {}) {
   }
   renderShellFrame(container);
   app = container.querySelector("#push-app");
-  const newButton = container.querySelector("#new-notification");
-  newButton?.addEventListener("click", openForm);
-  addCleanup(() => newButton?.removeEventListener("click", openForm));
+  moduleContext.setPrimaryAction?.("Nova notificação", openForm);
   await load();
 }
 
@@ -494,6 +491,7 @@ export async function mount(container, moduleContext = {}) {
 }
 
 export function unmount() {
+  context.setPrimaryAction?.(null);
   cleanupHandlers.forEach(handler => {
     try { handler(); } catch (error) { console.warn("Falha ao desmontar notificações:", error); }
   });

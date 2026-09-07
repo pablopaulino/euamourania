@@ -8,6 +8,11 @@
   margin: 0;
 }
 
+.advantages-dashboard .dashboard-hero-actions,
+.advantages-dashboard .advantages-panel-head > .admin-button[data-new] {
+  display: none;
+}
+
 .advantages-hero,
 .advantages-list-panel,
 .advantages-kpi,

@@ -172,7 +172,6 @@ function renderShell(container) {
   container.innerHTML = `<div class="ads-content">
     <div class="ads-heading">
       <div><h2>Central de campanhas</h2><p>Gerencie anúncios, períodos, posições e resultados em um só lugar.</p></div>
-      <button class="admin-button" id="new-campaign">+ Nova campanha</button>
     </div>
     <div class="ads-tabs" role="tablist">
       <button class="ads-tab active" data-tab="dashboard">Visão geral</button>
@@ -188,7 +187,7 @@ function renderShell(container) {
 function enhanceCommercialArea() {
   const heading = $(".ads-heading");
   if (heading && !$("#add-subscriber")) {
-    heading.querySelector("#new-campaign")?.insertAdjacentHTML("beforebegin", '<button class="admin-button secondary" id="add-subscriber">+ Assinante</button>');
+    heading.insertAdjacentHTML("beforeend", '<button class="admin-button secondary" id="add-subscriber">+ Assinante</button>');
   }
   const tabs = $(".ads-tabs");
   if (tabs && !tabs.querySelector('[data-tab="subscriptions"]')) {
@@ -600,7 +599,6 @@ function bindEvents() {
   addListener($("#logout"),"click",sair);
   addListener($("#mobile-menu"),"click",()=>document.getElementById("sidebar")?.classList.toggle("open"));
   $$(".ads-tab").forEach(t=>addListener(t,"click",()=>switchView(t.dataset.tab)));
-  addListener($("#new-campaign"),"click",()=>openForm());
   addListener($("#add-subscriber"),"click",()=>openSubscriptionForm());
   addListener($("#add-subscriber-inline"),"click",()=>openSubscriptionForm());
   addListener($("#cancel-subscription-form"),"click",()=>switchView("subscriptions"));
@@ -641,8 +639,6 @@ function applyPermissions() {
   const canCreate = can("criar");
   const canEdit = can("editar");
   const canDelete = can("excluir");
-  const newButton = $("#new-campaign");
-  if (newButton) newButton.hidden = !canCreate;
   const addSubscriber = $("#add-subscriber");
   const addSubscriberInline = $("#add-subscriber-inline");
   if (addSubscriber) addSubscriber.hidden = !canCreate && !canEdit;
@@ -668,6 +664,7 @@ async function initModule(container, context = {}) {
   runId += 1;
   root = container || document;
   moduleContext.setTitle?.("Publicidade", "Campanhas, posições, mídia e métricas dos anúncios internos do portal.");
+  if (can("criar")) moduleContext.setPrimaryAction?.("Nova campanha", () => openForm());
   document.title = "Publicidade | Eu Amo Urânia";
   enhanceCommercialArea();
   enhanceCreativeForm();
@@ -687,6 +684,7 @@ export async function mount(container, context = {}) {
 }
 
 export function unmount() {
+  moduleContext.setPrimaryAction?.(null);
   mounted = false;
   cleanupHandlers.splice(0).forEach(handler => {
     try { handler(); } catch (error) { console.warn("Falha ao desmontar Publicidade:", error); }

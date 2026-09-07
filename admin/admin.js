@@ -24,6 +24,7 @@ let currentResourceTable = null;
 let currentResourceId = null;
 let painelAccess = null;
 let activeMountedModule = null;
+let shellPrimaryActionCleanup = null;
 
 const moduleRoutes = {
   comunicacao: {
@@ -1485,11 +1486,28 @@ function setShellTitle(label, hintText, options = {}) {
   if (title) title.textContent = label || "Painel";
   if (pageTitleIcon) pageTitleIcon.innerHTML = renderAdminModuleIcon(moduleKey);
   if (pageContext) pageContext.textContent = options.contextLabel || moduleMeta.group || "Painel";
+  shellPrimaryActionCleanup?.();
+  shellPrimaryActionCleanup = null;
   if (pagePrimaryAction) pagePrimaryAction.innerHTML = options.actionHtml || "";
   if (pageHint) {
     pageHint.textContent = hintText || "Acompanhe os principais dados do portal e escolha um módulo no menu para gerenciar conteúdo, publicidade, comunicação e configurações.";
   }
   document.title = `${label || "Painel"} | Eu Amo Urânia`;
+}
+
+function setShellPrimaryAction(label, handler) {
+  shellPrimaryActionCleanup?.();
+  shellPrimaryActionCleanup = null;
+  if (!pagePrimaryAction) return;
+  pagePrimaryAction.innerHTML = "";
+  if (!label || typeof handler !== "function") return;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "admin-button";
+  button.textContent = label;
+  button.addEventListener("click", handler);
+  pagePrimaryAction.append(button);
+  shellPrimaryActionCleanup = () => button.removeEventListener("click", handler);
 }
 
 function clearMountedModule() {
@@ -1537,6 +1555,7 @@ async function mountShellModule(view, options = {}) {
       access: painelAccess,
       toast: shellToast,
       setTitle: setShellTitle,
+      setPrimaryAction: setShellPrimaryAction,
       navigate: nextView => navigateToView(nextView),
       editResource: (table, id) => editForm(table, id)
     });
@@ -1790,7 +1809,8 @@ window.addEventListener("admin:external-module",event=>{
   const moduleMeta = getAdminModule(view);
   setShellTitle(event.detail?.label || moduleMeta.label || "Painel", event.detail?.hint || moduleMeta.description, {
     moduleKey: view,
-    contextLabel: event.detail?.contextLabel || moduleMeta.group
+    contextLabel: event.detail?.contextLabel || moduleMeta.group,
+    actionHtml: event.detail?.actionHtml || ""
   });
 });
 import("./editorial-audience.js").catch(error=>console.error("Módulos editorial/audiência:",error));

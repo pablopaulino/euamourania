@@ -19,6 +19,7 @@ const esc = (value = "") => String(value ?? "").replace(/[&<>"']/g, char => ({
 let app = null;
 let moduleStyle = null;
 let cleanupHandlers = [];
+let moduleContext = {};
 
 const state = {
   items: [],
@@ -255,7 +256,6 @@ function dashboardPanel() {
           <h3>Projetos e ações da comunidade, organizados em um só lugar.</h3>
           <p>Escolha uma iniciativa do acervo para editar ou cadastre uma nova quando precisar publicar um projeto permanente ou uma ação pontual.</p>
         </div>
-        <button class="admin-button" type="button" data-new-initiative>Nova iniciativa</button>
       </div>
 
       <div class="initiatives-dashboard-grid">
@@ -517,13 +517,23 @@ function bind(root) {
   }));
 }
 
-export async function mount(container) {
+export async function mount(container, context = {}) {
   app = container || document.querySelector("#app-content");
+  moduleContext = context;
+  context.setPrimaryAction?.("Nova iniciativa", () => {
+    state.selected = null;
+    state.creating = true;
+    state.help = [];
+    state.message = "";
+    render();
+  });
   ensureModuleStyle();
   await load();
 }
 
 export function unmount() {
+  moduleContext.setPrimaryAction?.(null);
+  moduleContext = {};
   cleanupHandlers.forEach(handler => handler());
   cleanupHandlers = [];
   app = null;
