@@ -1552,6 +1552,28 @@ body[data-admin-shell="true"] .ads-pagination button:hover {
   background: var(--admin-surface-hover);
 }
 
+body[data-admin-shell="true"] .cms-actions button,
+body[data-admin-shell="true"] .cms-actions a,
+body[data-admin-shell="true"] .ads-actions button,
+body[data-admin-shell="true"] .awards-actions button,
+body[data-admin-shell="true"] .row-actions button,
+body[data-admin-shell="true"] .verification-row-actions button,
+body[data-admin-shell="true"] .verification-copy,
+body[data-admin-shell="true"] .dialog-actions button,
+body[data-admin-shell="true"] .form-actions button {
+  min-height: 32px;
+  padding: .42rem .72rem;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 760;
+  line-height: 1;
+}
+
+body[data-admin-shell="true"] .verification-row-actions {
+  gap: 6px;
+  min-width: 0;
+}
+
 @media (max-width: 860px) {
   .admin-topbar-title-row {
     grid-template-columns: 36px minmax(0, 1fr);

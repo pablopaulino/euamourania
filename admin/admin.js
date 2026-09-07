@@ -1784,10 +1784,13 @@ window.addEventListener("admin:external-module",event=>{
   if (!view) return;
   currentView = view;
   activeModuleKey = view;
-  app.dataset.layout = "module";
+  app.dataset.layout = event.detail?.layout || "module";
   setActiveNav(view);
   const moduleMeta = getAdminModule(view);
-  setShellTitle(moduleMeta.label || "Painel", moduleMeta.description, { moduleKey: view });
+  setShellTitle(event.detail?.label || moduleMeta.label || "Painel", event.detail?.hint || moduleMeta.description, {
+    moduleKey: view,
+    contextLabel: event.detail?.contextLabel || moduleMeta.group
+  });
 });
 import("./editorial-audience.js").catch(error=>console.error("Módulos editorial/audiência:",error));
 import("./category-fields.js").catch(error=>console.error("Categorias dos conteúdos:",error));
