@@ -951,9 +951,18 @@ select:focus {
   grid-template-columns: 38px minmax(0, 1fr);
   gap: 12px;
   align-items: start;
+  justify-items: start;
+  text-align: left;
   padding: 16px 18px;
   background: rgba(255, 255, 255, .55);
   border-bottom: 1px solid var(--admin-divider);
+}
+
+.admin-form-section-head > div {
+  width: 100%;
+  min-width: 0;
+  justify-self: start;
+  text-align: left;
 }
 
 .admin-form-section-head > span {
@@ -974,6 +983,7 @@ select:focus {
   font-size: 1.05rem;
   font-weight: 720;
   letter-spacing: -.035em;
+  text-align: left;
 }
 
 .admin-form-section-head p {
@@ -981,6 +991,7 @@ select:focus {
   color: var(--admin-text-secondary);
   font-size: .85rem;
   line-height: 1.42;
+  text-align: left;
 }
 
 .resource-form-grid {
@@ -996,6 +1007,7 @@ select:focus {
   color: var(--admin-text-secondary);
   font-size: .78rem;
   font-weight: 680;
+  text-align: left;
 }
 
 .resource-form-grid .full-row,
@@ -1427,7 +1439,7 @@ body[data-admin-shell="true"] .audience-page-head {
   justify-items: stretch;
   gap: clamp(24px, 5vw, 80px);
   margin: 0 0 18px;
-  padding-inline: clamp(18px, 3vw, 38px);
+  padding-inline: 0;
   text-align: left;
 }
 
@@ -1458,7 +1470,47 @@ body[data-admin-shell="true"] .audience-kpi-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(12px, 1.5vw, 20px);
   margin: 0 0 18px;
-  padding-inline: clamp(18px, 3vw, 38px);
+  padding-inline: 0;
+}
+
+body[data-admin-shell="true"] .admin-main :is(
+  .cms-section-head,
+  .panel-header,
+  .ads-heading,
+  .awards-panel-head,
+  .commercial-section-head,
+  .advantages-panel-head,
+  .drivers-editor-head,
+  .admin-form-section-head
+) {
+  text-align: left;
+}
+
+body[data-admin-shell="true"] .admin-main :is(
+  .cms-section-head,
+  .panel-header,
+  .ads-heading,
+  .awards-panel-head,
+  .commercial-section-head,
+  .advantages-panel-head,
+  .drivers-editor-head,
+  .admin-form-section-head
+) > div {
+  min-width: 0;
+  text-align: left;
+}
+
+body[data-admin-shell="true"] .admin-main :is(
+  .cms-section-head,
+  .panel-header,
+  .ads-heading,
+  .awards-panel-head,
+  .commercial-section-head,
+  .advantages-panel-head,
+  .drivers-editor-head,
+  .admin-form-section-head
+) :is(h2, h3, p) {
+  text-align: left;
 }
 
 body[data-admin-shell="true"] .audience-kpi {

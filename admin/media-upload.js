@@ -20,7 +20,7 @@ function ensureStyles(){
  if(document.querySelector('link[data-cms-media]'))return;
  const link=document.createElement("link");
  link.rel="stylesheet";link.dataset.cmsMedia="true";
- link.href=new URL("./media-upload.css?v=20260907-media-inline-actions",import.meta.url).href;
+ link.href=new URL("./media-upload.css?v=20260907-primary-media-preview",import.meta.url).href;
  document.head.append(link);
 }
 
