@@ -324,6 +324,49 @@ export function attachUrlUpload(input,folder,preset){
  });
 }
 
+export function attachUrlListUpload(textarea,folder,preset){
+ if(!textarea||enhanced.has(textarea))return;
+ enhanced.add(textarea);
+ const controls=document.createElement("div");
+ controls.className="cms-media-upload cms-media-upload-list";
+ controls.innerHTML='<div class="cms-media-actions"><label class="cms-media-button">Enviar e editar<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></label><button type="button" class="cms-media-button" data-open-library>Adicionar da biblioteca</button></div><span class="cms-media-state">Adicione imagens novas ou reutilize arquivos da biblioteca, uma URL por linha.</span>';
+ textarea.insertAdjacentElement("afterend",controls);
+ const picker=controls.querySelector('input[type="file"]');
+ const uploadButton=controls.querySelector(".cms-media-button");
+ const libraryButton=controls.querySelector("[data-open-library]");
+ const status=controls.querySelector(".cms-media-state");
+ const appendUrl=url=>{
+  const current=String(textarea.value||"").split(/\r?\n/).map(item=>item.trim()).filter(Boolean);
+  if(!current.includes(url))current.push(url);
+  textarea.value=current.join("\n");
+  textarea.dispatchEvent(new Event("input",{bubbles:true}));
+  textarea.dispatchEvent(new Event("change",{bubbles:true}));
+ };
+ picker.addEventListener("change",async()=>{
+  const file=picker.files?.[0];if(!file)return;
+  uploadButton.classList.add("busy");status.className="cms-media-state";status.textContent="Editando imagem…";
+  try{
+   const result=await processAndUpload(file,folder,preset);
+   if(!result){status.textContent="Envio cancelado.";return}
+   appendUrl(result.url);
+   status.className="cms-media-state success";status.textContent="Imagem editada, enviada e adicionada à galeria.";
+  }catch(error){
+   status.className="cms-media-state error";status.textContent=error.message||"Não foi possível adicionar a imagem.";
+  }finally{
+   uploadButton.classList.remove("busy");picker.value="";
+  }
+ });
+ libraryButton.addEventListener("click",async()=>{
+  libraryButton.classList.add("busy");status.textContent="Carregando biblioteca…";
+  try{
+   await openLibraryPicker({folder,preset,onSelect:url=>{
+    appendUrl(url);status.className="cms-media-state success";status.textContent="Imagem da biblioteca adicionada à galeria.";
+   }});
+  }catch(error){status.className="cms-media-state error";status.textContent=error.message||"Não foi possível abrir a biblioteca."}
+  finally{libraryButton.classList.remove("busy")}
+ });
+}
+
 function attachEditorUpload(editorElement,folder){
  if(!editorElement||editorElement.dataset.mediaUpload)return;
  editorElement.dataset.mediaUpload="true";
@@ -429,20 +472,48 @@ function enhance(){
  }
  const resourceForm=app?.querySelector("#resource-form");
  if(resourceForm){
-  const table=adminViewFromLocation()||location.hash.slice(1),folder={guia_comercial:"guia",turismo:"turismo",eventos:"eventos",eventos_principais:"eventos/principais",eventos_edicoes:"eventos/edicoes"}[table];
+  const table=resourceForm.dataset.resourceTable||adminViewFromLocation()||location.hash.slice(1),folder={guia_comercial:"guia",turismo:"turismo",eventos:"eventos",eventos_principais:"eventos/principais",eventos_edicoes:"eventos/edicoes",noticias:"noticias",banners:"banners"}[table];
   if(folder){
    attachUrlUpload(resourceForm.elements.imagem_url,folder,"card");
    attachUrlUpload(resourceForm.elements.imagem_capa_url,folder,"wide");
    attachUrlUpload(resourceForm.elements.cartaz_url,folder,"classic");
    attachUrlUpload(resourceForm.elements.banner_url,folder,"wide");
+   attachUrlUpload(resourceForm.elements.seo_imagem,`${folder}/compartilhamento`,"social");
+   attachUrlListUpload(resourceForm.elements.galeria_historica,`${folder}/galeria`,"card");
+   attachUrlListUpload(resourceForm.elements.galeria,`${folder}/galeria`,"card");
    if(table==="turismo")attachEditorUpload(resourceForm.querySelector("#editor"),`${folder}/conteudo`);
    if(table==="eventos_principais"||table==="eventos_edicoes")attachEditorUpload(resourceForm.querySelector("#editor"),`${folder}/conteudo`);
   }
  }
- app?.querySelectorAll('input[data-cms-image="true"]').forEach(input=>{
-  attachUrlUpload(input,input.dataset.mediaFolder||"configuracoes/imagens",input.dataset.mediaPreset||"wide");
+ app?.querySelectorAll('input[data-cms-image="true"], input[name*="imagem"], input[name*="foto"], input[name*="logo"], input[name*="capa"], input[name*="cartaz"], input[name*="banner"]').forEach(input=>{
+  if(input.type==="file"||/video/i.test(input.name||""))return;
+  const config=inferMediaConfig(input);
+  attachUrlUpload(input,config.folder,config.preset);
+ });
+ app?.querySelectorAll('textarea[data-cms-gallery="true"], textarea[name*="galeria"]').forEach(textarea=>{
+  const config=inferMediaConfig(textarea);
+  attachUrlListUpload(textarea,config.folder,config.preset);
  });
  if((adminViewFromLocation()==="midia"||location.hash==="#midia")&&!libraryOpened&&obterAcessoAtual()?.admin?.funcao==="super_admin")renderMediaLibrary();
+}
+
+function inferMediaConfig(element){
+ const name=String(element?.name||"").toLowerCase();
+ const resourceForm=element?.closest?.("#resource-form");
+ const table=resourceForm?.dataset.resourceTable||adminViewFromLocation()||location.hash.slice(1)||"";
+ const base={
+  noticias:"noticias",
+  guia_comercial:"guia",
+  turismo:"turismo",
+  eventos:"eventos",
+  eventos_principais:"eventos/principais",
+  eventos_edicoes:"eventos/edicoes",
+  banners:"banners",
+  configuracoes_site:"configuracoes/imagens"
+ }[table]||element?.dataset?.mediaFolder||"configuracoes/imagens";
+ const preset=element?.dataset?.mediaPreset
+  ||(name.includes("seo")?"social":name.includes("logo")?"square":name.includes("banner")||name.includes("capa")?"wide":name.includes("cartaz")?"classic":"card");
+ return{folder:element?.dataset?.mediaFolder||base,preset};
 }
 
 document.addEventListener("click",async event=>{

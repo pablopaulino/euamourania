@@ -1286,7 +1286,7 @@ function fieldHtmlCorrigido([name,label,type,required], value) {
   if(type==="weekly-hours") return weeklyHoursHtml(name,label,value);
   if(type==="gallery-urls") return galleryUrlsHtml(name,label,value);
   if(type==="textarea") return `<label class="${full}">${label}<textarea name="${name}" ${req}>${escapeHtml(inputValue(value,type))}</textarea></label>`;
-  if(type==="url-list") return `<label class="${full}">${label}<textarea name="${name}" placeholder="Cole uma URL de imagem por linha">${escapeHtml(listValue(value))}</textarea><small>Use uma imagem por linha para montar a galeria.</small></label>`;
+  if(type==="url-list") return `<label class="${full}">${label}<textarea name="${name}" placeholder="Cole uma URL de imagem por linha" data-cms-gallery="true" data-media-folder="${escapeHtml(mediaFolderForTable(currentResourceTable))}" data-media-preset="card">${escapeHtml(listValue(value))}</textarea><small>Use uma imagem por linha para montar a galeria.</small></label>`;
   if(type==="line-list") return `<label class="${full}">${label}<textarea name="${name}" placeholder="Digite um item por linha">${escapeHtml(listValue(value))}</textarea><small>Digite um item por linha. Exemplo: nome do patrocinador, link útil ou vídeo.</small></label>`;
   if(type==="boolean"){const checked=value===undefined&&name==="ativo"?true:Boolean(value);return `<label>${label}<select name="${name}"><option value="false" ${!checked?"selected":""}>Não</option><option value="true" ${checked?"selected":""}>Sim</option></select></label>`}
   if(type==="tags") return `<label class="${full}">${label}<input type="text" name="${name}" value="${escapeHtml(Array.isArray(value)?value.join(", "):inputValue(value,type))}" placeholder="pautas, fotos, eventos"><small>Separe por vírgula.</small></label>`;
@@ -1315,6 +1315,18 @@ function mediaAttributesForField(name) {
     : fieldName.includes("cartaz") ? "classic"
     : "card";
   return ` data-cms-image="true" data-media-folder="${escapeHtml(folderBase)}" data-media-preset="${preset}"`;
+}
+
+function mediaFolderForTable(table) {
+  return {
+    noticias: "noticias",
+    guia_comercial: "guia",
+    turismo: "turismo",
+    eventos: "eventos",
+    eventos_principais: "eventos/principais",
+    eventos_edicoes: "eventos/edicoes",
+    banners: "banners"
+  }[table] || "configuracoes/imagens";
 }
 
 function resourceFieldSection(field) {
@@ -1377,7 +1389,7 @@ async function editForm(table,id) {
   });
   app.innerHTML=`
     <section class="admin-page admin-form-page">
-      <form id="resource-form" class="resource-form admin-resource-form">
+      <form id="resource-form" class="resource-form admin-resource-form" data-resource-table="${escapeHtml(table)}">
         ${renderResourceFormSections(config, row, table)}
         <footer class="form-actions admin-form-actions">
           <p id="form-message" class="form-message"></p>
