@@ -231,7 +231,7 @@ body[data-admin-shell="true"] :focus-visible {
 
 .admin-main {
   min-width: 0;
-  padding: 26px clamp(22px, 4vw, 54px) 46px;
+  padding: 0 clamp(22px, 4vw, 54px) 46px;
 }
 
 .admin-topbar {
@@ -240,10 +240,10 @@ body[data-admin-shell="true"] :focus-visible {
   z-index: 70;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
+  align-items: center;
   gap: 18px;
-  margin: -26px calc(clamp(22px, 4vw, 54px) * -1) 22px;
-  padding: 22px clamp(22px, 4vw, 54px) 16px;
+  margin: 0 calc(clamp(22px, 4vw, 54px) * -1) 30px;
+  padding: 22px clamp(22px, 4vw, 54px) 18px;
   background: rgba(245, 245, 247, .78);
   border-bottom: 1px solid rgba(17, 24, 39, .055);
   backdrop-filter: blur(24px) saturate(1.45);
@@ -255,18 +255,20 @@ body[data-admin-shell="true"] :focus-visible {
 
 .admin-topbar-title-row {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-columns: 50px minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .admin-topbar-icon {
-  width: 42px;
-  height: 42px;
-  color: var(--admin-text);
-  background: rgba(255, 255, 255, .78);
-  border-color: var(--admin-border);
-  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  color: var(--admin-accent);
+  background: rgba(242, 103, 34, .105);
+  border-color: rgba(242, 103, 34, .2);
+  border-radius: 16px;
 }
 
 .admin-topbar-icon .admin-module-icon {
@@ -277,8 +279,8 @@ body[data-admin-shell="true"] :focus-visible {
 }
 
 .admin-topbar-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 .admin-page-context {
