@@ -1445,6 +1445,17 @@ body[data-admin-shell="true"] .audience-tabs {
   margin-inline: auto;
 }
 
+body[data-admin-shell="true"] .editorial-panel .cms-section-head,
+body[data-admin-shell="true"] .editorial-panel .cms-section-head > div,
+body[data-admin-shell="true"] .editorial-panel .cms-section-head h2,
+body[data-admin-shell="true"] .editorial-panel .cms-section-head p {
+  text-align: left;
+}
+
+body[data-admin-shell="true"] .editorial-panel .cms-section-head > div {
+  justify-self: start;
+}
+
 body[data-admin-shell="true"] .audience-tab-panels,
 body[data-admin-shell="true"] .audience-tab-panel {
   width: 100%;
