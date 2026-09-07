@@ -170,6 +170,67 @@ const sidebarLabelsByKey = {
   "audience-nav": "Audiência"
 };
 
+const adminNavigationGroups = [
+  {
+    label: "Operação",
+    items: [
+      { view: "dashboard", label: "Visão geral", module: "dashboard" },
+      { view: "audiencia", label: "Audiência", module: "insights", id: "audience-nav", external: true }
+    ]
+  },
+  {
+    label: "Conteúdo",
+    items: [
+      { view: "noticias", label: "Notícias", module: "noticias" },
+      { view: "aprovacoes", label: "Aprovações", module: "noticias", id: "editorial-approvals-nav", external: true },
+      { view: "eventos", label: "Agenda simples", module: "eventos" },
+      { view: "eventos_principais", label: "Eventos principais", module: "eventos" },
+      { view: "eventos_edicoes", label: "Edições", module: "eventos" },
+      { view: "categorias", label: "Categorias", module: "categorias" }
+    ]
+  },
+  {
+    label: "Viva Urânia",
+    items: [
+      { view: "guia_comercial", label: "Guia comercial", module: "guia_comercial" },
+      { view: "guia_verificacao", label: "Verificação do Guia", module: "guia_comercial" },
+      { view: "turismo", label: "Turismo", module: "turismo" },
+      { view: "turismo_verificacao", label: "Verificação de Turismo", module: "turismo" },
+      { view: "telefones_uteis", label: "Telefones úteis", module: "configuracoes" },
+      { view: "motoristas", label: "Motoristas", module: "configuracoes" },
+      { view: "iniciativas", label: "Iniciativas da Comunidade", module: "configuracoes" },
+      { view: "vantagens", label: "Viva Vantagens", module: "guia_comercial" },
+      { view: "links", label: "Links", module: "links" }
+    ]
+  },
+  {
+    label: "Comercial",
+    items: [
+      { view: "publicidade", label: "Publicidade", module: "publicidade" },
+      { view: "melhores", label: "Melhores de Urânia", module: "melhores" }
+    ]
+  },
+  {
+    label: "Comunicação",
+    items: [
+      { view: "comunicacao", label: "Comunicação", module: "comunicacao" },
+      { view: "notificacoes", label: "Notificações do app", module: "notificacoes" },
+      { view: "colaboradores_voluntarios", label: "Colaborações", module: "colaboradores" },
+      { view: "submissoes", label: "Submissões públicas", module: "submissoes" }
+    ]
+  },
+  {
+    label: "Sistema",
+    items: [
+      { view: "configuracoes_site", label: "Configurações", module: "configuracoes" },
+      { view: "usuarios", label: "Usuários", module: "usuarios" },
+      { view: "importacao", label: "Importar JSON", module: "importacao" }
+    ]
+  }
+];
+
+const adminNavigationItems = adminNavigationGroups.flatMap(group => group.items.map(item => ({ ...item, group: group.label })));
+
 function getSidebarButtonLabel(button) {
   const key = button.dataset.view || button.dataset.module || button.id || "";
   const currentLabel = button.querySelector(".admin-nav-label")?.textContent?.trim();
@@ -187,6 +248,27 @@ function decorateSidebarButton(button) {
 
 function refreshSidebarNavigation() {
   document.querySelectorAll(".admin-nav button").forEach(decorateSidebarButton);
+}
+
+function renderAdminNavigation() {
+  const nav = document.querySelector(".admin-nav");
+  if (!nav) return;
+  nav.dataset.fixed = "1";
+  nav.dataset.grouped = "1";
+  nav.innerHTML = adminNavigationGroups.map(group => `
+    <section class="admin-nav-group" aria-label="${escapeHtml(group.label)}">
+      <p class="admin-nav-group-label">${escapeHtml(group.label)}</p>
+      <div class="admin-nav-group-items">
+        ${group.items.map(item => {
+          const attrs = [`type="button"`, `data-module="${escapeHtml(item.module)}"`, `data-label="${escapeHtml(item.label)}"`, `data-group="${escapeHtml(group.label)}"`];
+          if (!item.external) attrs.push(`data-view="${escapeHtml(item.view)}"`);
+          if (item.id) attrs.push(`id="${escapeHtml(item.id)}"`);
+          return `<button ${attrs.join(" ")}>${escapeHtml(item.label)}</button>`;
+        }).join("")}
+      </div>
+    </section>
+  `).join("");
+  refreshSidebarNavigation();
 }
 
 const resources = {
@@ -243,6 +325,63 @@ const listValue = value => Array.isArray(value) ?value.map(item => item?.url || 
 const parseUrlList = value => String(value || "").split(/\r?\n/).map(item => item.trim()).filter(Boolean).map(url => ({ url }));
 const parseLineList = value => String(value || "").split(/\r?\n/).map(item => item.trim()).filter(Boolean).map(nome => ({ nome }));
 const EXTRA_GALLERY_LIMIT = 4;
+function adminModuleMeta(view) {
+  return adminNavigationItems.find(item => item.view === view)
+    || { label: resources[view]?.label || "Módulo", group: "Painel" };
+}
+function resourceDescription(table) {
+  return {
+    noticias: "Gerencie matérias, rascunhos, SEO e publicação editorial do portal.",
+    guia_comercial: "Organize empresas do Guia Comercial e os dados exibidos no Viva Urânia.",
+    turismo: "Gerencie atrativos, imagens, localização e informações turísticas públicas.",
+    links: "Edite a vitrine de links oficiais, destaques e atalhos exibidos ao público.",
+    colaboradores_voluntarios: "Acompanhe pessoas interessadas em colaborar com iniciativas locais.",
+    eventos: "Cadastre eventos simples exibidos na agenda pública e no aplicativo.",
+    eventos_principais: "Organize eventos tradicionais, recorrentes e permanentes da cidade.",
+    eventos_edicoes: "Gerencie edições, programação, cartazes e histórico dos eventos principais.",
+    categorias: "Padronize categorias usadas em notícias, guia, turismo e eventos.",
+    configuracoes_site: "Ajuste configurações globais, textos e chaves usadas pelo portal.",
+    banners: "Gerencie banners e chamadas visuais usadas nos espaços públicos."
+  }[table] || `Gerencie os registros de ${resources[table]?.label || table}.`;
+}
+function resourceActionLabel(table) {
+  return {
+    noticias: "Nova notícia",
+    guia_comercial: "Cadastrar empresa",
+    turismo: "Adicionar local",
+    links: "Novo link",
+    colaboradores_voluntarios: "Nova colaboração",
+    eventos: "Novo evento",
+    eventos_principais: "Novo evento principal",
+    eventos_edicoes: "Nova edição",
+    categorias: "Nova categoria",
+    configuracoes_site: "Nova configuração",
+    banners: "Novo banner"
+  }[table] || "Novo cadastro";
+}
+function resourceRowSearch(row, config) {
+  return [
+    row?.[config.title],
+    row?.status,
+    row?.categoria_nome,
+    row?.autor,
+    row?.slug,
+    row?.local,
+    row?.nome,
+    row?.titulo,
+    row?.cidade
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+function resourceRowStatus(row) {
+  if (row?.status) return row.status;
+  if (row?.ativo === true) return "ativo";
+  if (row?.ativo === false) return "inativo";
+  return "";
+}
+function resourceUpdatedAt(row) {
+  const value = row?.atualizado_em || row?.criado_em || row?.publicado_em || row?.data_inicio;
+  return value ?new Date(value).toLocaleDateString("pt-BR") : "—";
+}
 const normalizeGalleryUrls = value => Array.isArray(value) ?value.map(item => typeof item === "string" ?item : item?.url || item?.imagem_url).filter(Boolean).slice(0,EXTRA_GALLERY_LIMIT) : [];
 function galleryUrlsHtml(name,label,value){
   const urls=normalizeGalleryUrls(value);
@@ -763,6 +902,14 @@ async function dashboard() {
     const eventEditionRows = recentEventEditions.map(item => ({ title: item.titulo || `Edição ${item.ano}`, detail: `${item.eventos_principais?.nome || "Evento"} · ${item.ano} · ${fmtDate(item.data_inicio || item.atualizado_em)}`, badge: item.status || "edição" }));
     const campaignRows = endingCampaigns.map(item => ({ title: item.nome || "Campanha", detail: `${item.empresa_anunciante || "Anunciante"} · vence em ${fmtDate(item.data_fim)}`, badge: item.status || "ativo", badgeClass: "ativo" }));
     const collaboratorRows = recentCollaborators.map(item => ({ title: item.nome || "Colaborador voluntário", detail: `${item.cidade || "Cidade não informada"} · ${(item.interesses || []).slice(0, 3).join(", ") || "sem interesses"} · ${fmtDate(item.criado_em)}`, badge: item.status || "novo", badgeClass: item.status || "" }));
+    const quickActions = [
+      ["Nova notícia", "Editorial", "Publicar ou salvar rascunho", "noticias", "new"],
+      ["Novo evento", "Agenda", "Criar item da agenda pública", "eventos", "new"],
+      ["Cadastrar empresa", "Guia", "Adicionar negócio ao ecossistema", "guia_comercial", "new"],
+      ["Adicionar local", "Turismo", "Cadastrar ponto turístico", "turismo", "new"],
+      ["Enviar notificação", "App", "Abrir comunicação push", "notificacoes", "view"],
+      ["Nova publicidade", "Comercial", "Abrir gestão de campanhas", "publicidade", "view"]
+    ];
 
     app.innerHTML = `
       <section class="ops-dashboard">
@@ -785,6 +932,22 @@ async function dashboard() {
 
         <section class="ops-kpi-grid" aria-label="Indicadores principais">
           ${primaryMetrics.map(([kicker, value, label, detail]) => `<article class="ops-kpi"><span>${kicker}</span><strong>${value}</strong><h3>${label}</h3><p>${detail}</p></article>`).join("")}
+        </section>
+
+        <section class="ops-section panel ops-quick-panel">
+          <header class="ops-section-header">
+            <div>
+              <p class="eyebrow">Ações rápidas</p>
+              <h2>O que você provavelmente quer fazer agora</h2>
+            </div>
+          </header>
+          <div class="ops-quick-grid">
+            ${quickActions.map(([label, group, detail, target, mode]) => `<button class="ops-quick-action" ${mode === "new" ?`data-new="${target}"` :`data-view="${target}"`}>
+              <span>${escapeHtml(group)}</span>
+              <strong>${escapeHtml(label)}</strong>
+              <small>${escapeHtml(detail)}</small>
+            </button>`).join("")}
+          </div>
         </section>
 
         <section class="ops-section panel ops-attention">
@@ -900,10 +1063,81 @@ async function dashboard() {
 }
 
 async function resourceList(table) {
-  const config=resources[table]; title.textContent=config.label; app.innerHTML='<div class="loading">Carregando...</div>';
+  const config=resources[table];
+  const meta = adminModuleMeta(table);
+  setShellTitle(config.label, resourceDescription(table));
+  app.innerHTML='<div class="loading">Carregando...</div>';
   try {
     const rows=await listarTabela(table,{ordem:config.order,crescente:config.ascending||false});
-    app.innerHTML=`<section class="panel"><header class="panel-header"><h2>${config.label}</h2><button class="admin-button" data-new="${table}">Novo cadastro</button></header><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Status</th><th>Atualização</th><th>Ações</th></tr></thead><tbody>${rows.length?rows.map(row=>`<tr><td><strong>${escapeHtml(row[config.title]||"Sem título")}</strong></td><td><span class="status-pill ${escapeHtml(row.status||"")}">${escapeHtml(row.status||"—")}</span></td><td>${row.atualizado_em?new Date(row.atualizado_em).toLocaleDateString("pt-BR"):"—"}</td><td><div class="row-actions"><button data-edit="${table}" data-id="${row.id}">Editar</button><button data-delete="${table}" data-id="${row.id}">Excluir</button></div></td></tr>`).join(""):'<tr><td colspan="4">Nenhum registro.</td></tr>'}</tbody></table></div></section>`;
+    const statuses = [...new Set(rows.map(resourceRowStatus).filter(Boolean))].sort((a,b) => a.localeCompare(b, "pt-BR"));
+    app.innerHTML=`
+      <section class="admin-page">
+        <header class="admin-page-header panel">
+          <div>
+            <p class="admin-breadcrumb">${escapeHtml(meta.group)} / ${escapeHtml(config.label)}</p>
+            <h2>${escapeHtml(config.label)}</h2>
+            <p>${escapeHtml(resourceDescription(table))}</p>
+          </div>
+          <button class="admin-button" data-new="${table}">${escapeHtml(resourceActionLabel(table))}</button>
+        </header>
+        <section class="panel admin-list-panel">
+          <div class="admin-filterbar">
+            <label class="admin-search-field"><span>Buscar</span><input id="resource-search" type="search" autocomplete="off" placeholder="Nome, status, categoria ou local"></label>
+            <label class="admin-status-field"><span>Status</span><select id="resource-status"><option value="">Todos</option>${statuses.map(status => `<option value="${escapeHtml(status)}">${escapeHtml(status)}</option>`).join("")}</select></label>
+            <span class="admin-filter-count" id="resource-count">${rows.length} registro(s)</span>
+          </div>
+          ${rows.length ?`
+            <div class="table-wrap admin-data-table-wrap">
+              <table class="admin-data-table">
+                <thead><tr><th>Registro</th><th>Status</th><th>Atualização</th><th>Ações</th></tr></thead>
+                <tbody>
+                  ${rows.map(row=>{
+                    const status = resourceRowStatus(row);
+                    const titleValue = row[config.title] || "Sem título";
+                    const subtitle = [row.categoria_nome, row.slug, row.local, row.cidade].filter(Boolean).slice(0, 2).join(" · ");
+                    return `<tr data-admin-row data-search="${escapeHtml(resourceRowSearch(row, config))}" data-status="${escapeHtml(status)}">
+                      <td class="admin-title-cell"><strong>${escapeHtml(titleValue)}</strong>${subtitle ?`<small>${escapeHtml(subtitle)}</small>` : ""}</td>
+                      <td><span class="status-pill ${escapeHtml(status)}">${escapeHtml(status || "—")}</span></td>
+                      <td>${resourceUpdatedAt(row)}</td>
+                      <td><div class="admin-row-actions"><button type="button" data-edit="${table}" data-id="${row.id}">Editar</button><button type="button" class="danger" data-delete="${table}" data-id="${row.id}">Excluir</button></div></td>
+                    </tr>`;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
+            <div class="admin-empty-state compact" data-filter-empty hidden>
+              <strong>Nenhum resultado encontrado.</strong>
+              <span>Revise a busca ou remova o filtro de status.</span>
+            </div>
+          ` :`
+            <div class="admin-empty-state">
+              <strong>Nenhum registro ainda.</strong>
+              <span>Comece criando o primeiro item deste módulo.</span>
+              <button class="admin-button" data-new="${table}">${escapeHtml(resourceActionLabel(table))}</button>
+            </div>
+          `}
+        </section>
+      </section>`;
+    const searchInput = app.querySelector("#resource-search");
+    const statusSelect = app.querySelector("#resource-status");
+    const countLabel = app.querySelector("#resource-count");
+    const filterEmpty = app.querySelector("[data-filter-empty]");
+    const applyResourceFilter = () => {
+      const term = searchInput?.value.trim().toLowerCase() || "";
+      const selectedStatus = statusSelect?.value || "";
+      let visible = 0;
+      app.querySelectorAll("[data-admin-row]").forEach(row => {
+        const matchesTerm = !term || row.dataset.search?.includes(term);
+        const matchesStatus = !selectedStatus || row.dataset.status === selectedStatus;
+        const show = Boolean(matchesTerm && matchesStatus);
+        row.hidden = !show;
+        if (show) visible += 1;
+      });
+      if (countLabel) countLabel.textContent = `${visible} de ${rows.length} registro(s)`;
+      if (filterEmpty) filterEmpty.hidden = visible !== 0 || rows.length === 0;
+    };
+    searchInput?.addEventListener("input", applyResourceFilter);
+    statusSelect?.addEventListener("change", applyResourceFilter);
   } catch(error) { app.innerHTML=`<p class="form-message">${escapeHtml(error.message)}</p>`; }
 }
 
@@ -1139,12 +1373,79 @@ function fieldHtmlCorrigido([name,label,type,required], value) {
   return `<label class="${full}">${label}<input type="${inputType}"${urlAttributes} name="${name}" value="${escapeHtml(inputValue(value,type))}" ${req}></label>`;
 }
 
+function resourceFieldSection(field) {
+  const [name, , type] = field;
+  if (["status","active-status","boolean","event-recurrence","event-simple-recurrence","event-edition-status","category-type","link-feature-type"].includes(type) || /^(destaque|ativo|recomendado|status|ordem|publicado|data_|recorrencia|aceite|curadoria)/.test(name)) return "publication";
+  if (["url","editor","textarea","gallery-urls","url-list","line-list"].includes(type) || /(imagem|galeria|conteudo|descricao|resumo|seo|legenda|videos|patrocinadores|palavras)/.test(name)) return "content";
+  if (/(whatsapp|telefone|email|instagram|facebook|site|endereco|mapa|latitude|longitude|horario|opening_hours|local|organizador|website)/.test(name)) return "contact";
+  return "basic";
+}
+
+function resourceSectionLabels(table) {
+  const defaults = {
+    basic: ["Identificação", "Nome, título e dados essenciais do registro."],
+    content: ["Conteúdo e mídia", "Textos, imagens, galerias e informações exibidas ao público."],
+    contact: ["Contato e localização", "Canais de contato, endereço, mapa e horários."],
+    publication: ["Publicação e controle", "Status, destaque, ordem e regras de exibição."]
+  };
+  if (table === "configuracoes_site") {
+    return {
+      basic: ["Configuração", "Chave, valor e tipo usados pelo portal."],
+      content: ["Conteúdo", "Textos ou valores longos da configuração."],
+      contact: defaults.contact,
+      publication: defaults.publication
+    };
+  }
+  return defaults;
+}
+
+function renderResourceFormSections(config, row, table) {
+  const labels = resourceSectionLabels(table);
+  const groups = config.fields.reduce((acc, field) => {
+    const section = resourceFieldSection(field);
+    acc[section] = acc[section] || [];
+    acc[section].push(field);
+    return acc;
+  }, {});
+  return ["basic", "content", "contact", "publication"].filter(key => groups[key]?.length).map((key, index) => {
+    const [heading, description] = labels[key];
+    return `<section class="panel admin-form-section">
+      <header class="admin-form-section-head">
+        <span>${String(index + 1).padStart(2, "0")}</span>
+        <div><h3>${escapeHtml(heading)}</h3><p>${escapeHtml(description)}</p></div>
+      </header>
+      <div class="resource-form-grid">${groups[key].map(field=>fieldHtmlCorrigido(field,row[field[0]])).join("")}</div>
+    </section>`;
+  }).join("");
+}
+
 async function editForm(table,id) {
   const config=resources[table]; let row={};
   currentResourceTable=table;currentResourceId=id||null;
   if(id){const {data,error}=await getSupabase().from(table).select("*").eq("id",id).single();if(error)throw error;row=data;}
-  title.textContent=`${id?"Editar":"Novo"} · ${config.label}`;
-  app.innerHTML=`<section class="panel"><form id="resource-form" class="resource-form">${config.fields.map(field=>fieldHtmlCorrigido(field,row[field[0]])).join("")}<div class="form-actions"><button type="button" class="admin-button secondary" data-cancel="${table}">Cancelar</button><button class="admin-button" type="submit">Salvar</button></div><p id="form-message" class="form-message full-row"></p></form></section>`;
+  const meta = adminModuleMeta(table);
+  const action = id ? "Editar" : "Novo";
+  setShellTitle(`${action} · ${config.label}`, `Atualize ${config.label.toLowerCase()} mantendo o padrão do painel.`);
+  app.innerHTML=`
+    <section class="admin-page admin-form-page">
+      <header class="admin-page-header panel">
+        <div>
+          <p class="admin-breadcrumb">${escapeHtml(meta.group)} / ${escapeHtml(config.label)} / ${escapeHtml(action)}</p>
+          <h2>${escapeHtml(id ? `Editar ${row[config.title] || config.label}` : resourceActionLabel(table))}</h2>
+          <p>${escapeHtml(resourceDescription(table))}</p>
+        </div>
+      </header>
+      <form id="resource-form" class="resource-form admin-resource-form">
+        ${renderResourceFormSections(config, row, table)}
+        <footer class="form-actions admin-form-actions">
+          <p id="form-message" class="form-message"></p>
+          <div>
+            <button type="button" class="admin-button secondary" data-cancel="${table}">Cancelar</button>
+            <button class="admin-button" type="submit">Salvar</button>
+          </div>
+        </footer>
+      </form>
+    </section>`;
   normalizeCoordinateInputs(app);
   const editorField=config.fields.find(f=>f[2]==="editor");
   if(editorField){quill=new Quill("#editor",{theme:"snow",modules:{toolbar:[["bold","italic","blockquote"],[{header:[2,3,false]}],[{list:"ordered"},{list:"bullet"}],["link","image","video"],["clean"]]}});quill.root.innerHTML=row[editorField[0]]||"";}
@@ -1294,6 +1595,7 @@ async function navigateToView(view, options = {}) {
 
 async function handleClick(event) {
   const button=event.target.closest("button,[data-view]");if(!button)return;
+  if(button.dataset.openCommandPalette){event.preventDefault();return openCommandPalette();}
   if(button.dataset.retryModule){event.preventDefault();return mountShellModule(button.dataset.retryModule,{replace:true});}
   if(button.dataset.view){
     event.preventDefault();
@@ -1306,7 +1608,126 @@ async function handleClick(event) {
   if(button.dataset.delete&&confirm("Excluir este registro?Esta ação não pode ser desfeita.")){await excluirRegistro(button.dataset.delete,button.dataset.id);return resourceList(button.dataset.delete);}
 }
 
+let commandPalette = null;
+let commandSearch = null;
+let commandResults = null;
+let commandSelectedIndex = 0;
+
+function adminCommandItems() {
+  const visibleTargets = new Set([...document.querySelectorAll(".admin-nav button:not([hidden])")].map(button => button.dataset.view || button.id).filter(Boolean));
+  const navigation = adminNavigationItems
+    .filter(item => visibleTargets.has(item.view) || (item.id && visibleTargets.has(item.id)))
+    .map(item => ({
+      type: "Módulo",
+      title: item.label,
+      detail: item.group,
+      run: () => item.external && item.id ? document.getElementById(item.id)?.click() : navigateToView(item.view)
+    }));
+  return navigation;
+}
+
+function closeCommandPalette() {
+  commandPalette?.setAttribute("hidden", "");
+  commandSearch?.blur();
+}
+
+function runCommand(index) {
+  const item = commandResults?._commands?.[Number(index)];
+  if (!item) return;
+  closeCommandPalette();
+  item.run();
+}
+
+function updateCommandSelection(nextIndex) {
+  const buttons = [...commandResults?.querySelectorAll("[data-command-index]") || []];
+  if (!buttons.length) {
+    commandSelectedIndex = 0;
+    return;
+  }
+  commandSelectedIndex = Math.max(0, Math.min(nextIndex, buttons.length - 1));
+  buttons.forEach((button, index) => {
+    const selected = index === commandSelectedIndex;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-selected", selected ? "true" : "false");
+  });
+  buttons[commandSelectedIndex]?.scrollIntoView({ block: "nearest" });
+}
+
+function renderCommandResults() {
+  if (!commandResults || !commandSearch) return;
+  const term = commandSearch.value.trim().toLowerCase();
+  const items = adminCommandItems().filter(item => `${item.title} ${item.detail} ${item.type}`.toLowerCase().includes(term)).slice(0, 10);
+  commandResults._commands = items;
+  commandResults.innerHTML = items.length ? items.map((item, index) => `
+    <button type="button" role="option" data-command-index="${index}" aria-selected="${index === 0 ? "true" : "false"}" class="${index === 0 ? "is-selected" : ""}">
+      <span>${escapeHtml(item.type)}</span>
+      <strong>${escapeHtml(item.title)}</strong>
+      <small>${escapeHtml(item.detail)}</small>
+    </button>
+  `).join("") : '<p class="admin-command-empty">Nenhum módulo encontrado.</p>';
+  updateCommandSelection(0);
+}
+
+function openCommandPalette() {
+  if (!commandPalette) setupCommandPalette();
+  commandPalette?.removeAttribute("hidden");
+  renderCommandResults();
+  setTimeout(() => commandSearch?.focus(), 0);
+}
+
+function setupCommandPalette() {
+  if (commandPalette) return;
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="admin-command-palette" id="admin-command-palette" hidden>
+      <button class="admin-command-backdrop" type="button" data-close-command aria-label="Fechar busca"></button>
+      <section class="admin-command-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-command-title">
+        <div class="admin-command-search">
+          <span aria-hidden="true">⌘K</span>
+          <input id="admin-command-search" type="search" autocomplete="off" placeholder="Buscar módulo..." aria-labelledby="admin-command-title" aria-controls="admin-command-results">
+        </div>
+        <h2 id="admin-command-title" class="sr-only">Busca rápida do painel</h2>
+        <div class="admin-command-results" id="admin-command-results" role="listbox"></div>
+      </section>
+    </div>
+  `);
+  commandPalette = document.getElementById("admin-command-palette");
+  commandSearch = document.getElementById("admin-command-search");
+  commandResults = document.getElementById("admin-command-results");
+  commandSearch?.addEventListener("input", () => {
+    commandSelectedIndex = 0;
+    renderCommandResults();
+  });
+  commandPalette?.addEventListener("click", event => {
+    if (event.target.closest("[data-close-command]")) closeCommandPalette();
+    const command = event.target.closest("[data-command-index]");
+    if (command) runCommand(command.dataset.commandIndex);
+  });
+  commandSearch?.addEventListener("keydown", event => {
+    if (!commandPalette || commandPalette.hasAttribute("hidden")) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      updateCommandSelection(commandSelectedIndex + 1);
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      updateCommandSelection(commandSelectedIndex - 1);
+    }
+    if (event.key === "Enter") {
+      event.preventDefault();
+      runCommand(commandSelectedIndex);
+    }
+  });
+  document.addEventListener("keydown", event => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      openCommandPalette();
+    }
+    if (event.key === "Escape" && commandPalette && !commandPalette.hasAttribute("hidden")) closeCommandPalette();
+  });
+}
+
 function setupSidebarControls() {
+  renderAdminNavigation();
   const buttons = [...document.querySelectorAll(".admin-nav button")];
   buttons.forEach(decorateSidebarButton);
 
@@ -1346,12 +1767,14 @@ function setupSidebarControls() {
 }
 
 async function init(){
+  renderAdminNavigation();
   const access=await exigirAdministrador();if(!access)return;
   painelAccess = access;
   if(!access.configurado){app.innerHTML='<p class="form-message">Configure assets/js/supabase-config.js para ativar o painel.</p>';return;}
   document.getElementById("admin-user").textContent=access.admin.nome||access.user.email;
   document.getElementById("logout").addEventListener("click",sair);
   setupSidebarControls();
+  setupCommandPalette();
   document.addEventListener("click",handleClick);
   currentView=normalizeLegacyAdminRoute()||"dashboard";
   await navigateToView(currentView,{replace:true});

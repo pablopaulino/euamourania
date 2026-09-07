@@ -25,9 +25,9 @@ function ensureNavigation(){
   const link=document.createElement("link");link.rel="stylesheet";link.href="editorial-audience.css";document.head.append(link);
  }
  const approvals=document.getElementById("editorial-approvals-nav");
- if(approvals){approvals.dataset.module="noticias";approvals.type="button";approvals.textContent="Aprovações";}
+ if(approvals){approvals.dataset.module="noticias";approvals.type="button";if(!approvals.querySelector(".admin-nav-label"))approvals.textContent="Aprovações";}
  const audience=document.getElementById("audience-nav");
- if(audience){audience.dataset.module="insights";audience.type="button";audience.textContent="Audiência";}
+ if(audience){audience.dataset.module="insights";audience.type="button";if(!audience.querySelector(".admin-nav-label"))audience.textContent="Audiência";}
 }
 ensureNavigation();
 
@@ -87,7 +87,7 @@ async function renderApprovals(){
   app.innerHTML=`<section class="panel editorial-panel">
    <div class="cms-section-head"><div><h2>Fila de aprovação</h2><p>Revise matérias, solicite ajustes ou aprove a publicação.</p></div><span class="approval-counter">${pending} aguardando</span></div>
    <div class="cms-toolbar-v2">
-    <input id="approval-search" type="search" placeholder="Pesquisar matériaâ¬¦">
+    <input id="approval-search" type="search" placeholder="Pesquisar matéria…">
     <select id="approval-status"><option value="">Todos os status</option><option value="pendente">Aguardando revisão</option><option value="ajustes_solicitados">Ajustes solicitados</option><option value="aprovado">Aprovadas</option><option value="cancelado">Canceladas</option></select>
     <select id="approval-author"><option value="">Todos os autores</option>${authors.map(author=>`<option>${esc(author)}</option>`).join("")}</select>
     <input id="approval-date" type="date" aria-label="Filtrar por data de envio">
@@ -477,7 +477,7 @@ function appStatusLabel(status){
 }
 function appPanels(data){
  if(!data?.available){
-  return`<section class="panel wide app-audience-panel unavailable"><header class="panel-header"><div><p class="eyebrow">Viva Urânia</p><h2>Audiência do app</h2><p>Os dados do aplicativo ficam separados dos eventos do site.</p></div></header><div class="empty-state">${esc(data?.error||"Dados do app indisponiveis no momento.")}</div></section>`;
+  return`<section class="panel wide app-audience-panel unavailable"><header class="panel-header"><div><p class="eyebrow">Viva Urânia</p><h2>Audiência do app</h2><p>Os dados do aplicativo ficam separados dos eventos do site.</p></div></header><div class="empty-state">${esc(data?.error||"Dados do app indisponíveis no momento.")}</div></section>`;
  }
  const delivery=data.recipients?Math.round((data.accepted/data.recipients)*100):0;
  const pushCtr=data.accepted?`${((data.clicks/data.accepted)*100).toFixed(1).replace(".",",")}%`:"—";

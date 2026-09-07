@@ -237,7 +237,7 @@ function ensureSidebarShell() {
     toggle.id = "sidebar-toggle";
     toggle.className = "sidebar-toggle";
     toggle.type = "button";
-    toggle.innerHTML = `<span aria-hidden="true">â€¹</span>`;
+    toggle.innerHTML = `<span aria-hidden="true">‹</span>`;
     head.appendChild(toggle);
   }
 
@@ -249,7 +249,7 @@ function ensureSidebarShell() {
     toggle.setAttribute("aria-expanded", String(!collapsed));
     toggle.setAttribute("aria-label", collapsed ? "Expandir menu" : "Recolher menu");
     const icon = toggle.querySelector("span");
-    if (icon) icon.textContent = collapsed ? "â€º" : "â€¹";
+    if (icon) icon.textContent = collapsed ? "›" : "‹";
   };
 
   applyCollapsed(localStorage.getItem("euamourania:admin-sidebar") === "collapsed");

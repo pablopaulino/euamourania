@@ -134,7 +134,7 @@ function renderGuidePreview(errors = []) {
     return;
   }
   const categories = new Set(importState.itens.map(item => item.categoria_nome));
-  preview.innerHTML = `<div class="guide-import-stats"><span>${importState.itens.length} empresa(s)</span><span>${categories.size} categoria(s)</span><span>Duplicados serão atualizados pelo slug</span></div><div class="table-wrap guide-preview"><table><thead><tr><th>Empresa</th><th>Categoria</th><th>Status</th><th>Contato</th></tr></thead><tbody>${importState.itens.map(item => `<tr><td><strong>${esc(item.nome)}</strong><small>${esc(item.slug)}</small></td><td>${esc(item.categoria_nome)}</td><td><span class="status-pill ${esc(item.status)}">${esc(item.status)}</span></td><td>${esc(item.whatsapp || item.telefone || "â€”")}</td></tr>`).join("")}</tbody></table></div>`;
+  preview.innerHTML = `<div class="guide-import-stats"><span>${importState.itens.length} empresa(s)</span><span>${categories.size} categoria(s)</span><span>Duplicados serão atualizados pelo slug</span></div><div class="table-wrap guide-preview"><table><thead><tr><th>Empresa</th><th>Categoria</th><th>Status</th><th>Contato</th></tr></thead><tbody>${importState.itens.map(item => `<tr><td><strong>${esc(item.nome)}</strong><small>${esc(item.slug)}</small></td><td>${esc(item.categoria_nome)}</td><td><span class="status-pill ${esc(item.status)}">${esc(item.status)}</span></td><td>${esc(item.whatsapp || item.telefone || "—")}</td></tr>`).join("")}</tbody></table></div>`;
   run.disabled = !importState.itens.length;
   run.textContent = `Importar ${importState.itens.length} empresa(s)`;
 }
