@@ -1390,6 +1390,61 @@ body[data-admin-shell="true"] .audience-kpi small.down {
   color: var(--admin-danger);
 }
 
+body[data-admin-shell="true"] .audience-page-head {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 500px);
+  align-items: end;
+  justify-items: stretch;
+  gap: clamp(24px, 5vw, 80px);
+  margin: 0 0 18px;
+  padding-inline: clamp(18px, 3vw, 38px);
+  text-align: left;
+}
+
+body[data-admin-shell="true"] .audience-page-head > div:first-child {
+  justify-self: start;
+  max-width: 760px;
+  text-align: left;
+}
+
+body[data-admin-shell="true"] .audience-page-head h2 {
+  color: var(--admin-text);
+  text-align: left;
+}
+
+body[data-admin-shell="true"] .audience-page-head p {
+  max-width: 720px;
+  color: var(--admin-text-secondary);
+  text-align: left;
+}
+
+body[data-admin-shell="true"] .audience-filters {
+  justify-self: end;
+  width: min(100%, 500px);
+}
+
+body[data-admin-shell="true"] .audience-kpi-grid {
+  width: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(12px, 1.5vw, 20px);
+  margin: 0 0 18px;
+  padding-inline: clamp(18px, 3vw, 38px);
+}
+
+body[data-admin-shell="true"] .audience-kpi {
+  min-height: 132px;
+  padding: clamp(18px, 2vw, 26px);
+  border-radius: 22px;
+}
+
+body[data-admin-shell="true"] .audience-kpi strong {
+  font-size: clamp(2rem, 3.4vw, 3.15rem);
+}
+
+body[data-admin-shell="true"] .audience-tabs {
+  margin-inline: auto;
+}
+
 body[data-admin-shell="true"] .awards-toolbar,
 body[data-admin-shell="true"] .ads-toolbar {
   background: rgba(255, 255, 255, .58);
@@ -1449,5 +1504,24 @@ body[data-admin-shell="true"] .ads-pagination button:hover {
 
   .admin-page-primary-action .admin-button {
     width: 100%;
+  }
+
+  body[data-admin-shell="true"] .audience-page-head,
+  body[data-admin-shell="true"] .audience-kpi-grid {
+    padding-inline: 0;
+  }
+
+  body[data-admin-shell="true"] .audience-page-head {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  body[data-admin-shell="true"] .audience-filters {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  body[data-admin-shell="true"] .audience-kpi-grid {
+    grid-template-columns: 1fr;
   }
 }
