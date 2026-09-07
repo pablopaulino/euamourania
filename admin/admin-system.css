@@ -1257,11 +1257,14 @@ body[data-admin-shell="true"] .admin-page-wide {
 
 body[data-admin-shell="true"] .admin-list-panel {
   justify-self: stretch;
+  padding: clamp(18px, 2vw, 28px);
 }
 
 body[data-admin-shell="true"] .admin-filterbar {
   grid-template-columns: minmax(360px, 1fr) minmax(180px, 260px) auto;
   margin-bottom: 18px;
+  border: 1px solid var(--admin-border);
+  border-radius: 20px;
 }
 
 body[data-admin-shell="true"] .admin-data-table {
@@ -1269,7 +1272,13 @@ body[data-admin-shell="true"] .admin-data-table {
 }
 
 body[data-admin-shell="true"] .admin-filterbar + .admin-data-table-wrap {
-  margin-top: 18px;
+  margin-top: 0;
+}
+
+body[data-admin-shell="true"] .admin-data-table-wrap {
+  border: 1px solid var(--admin-border);
+  border-radius: 20px;
+  overflow: auto;
 }
 
 body[data-admin-shell="true"] .admin-data-table thead th {
@@ -1284,6 +1293,8 @@ body[data-admin-shell="true"] .admin-data-table tbody td {
 
 body[data-admin-shell="true"] .admin-data-table-wrap + .admin-empty-state.compact {
   margin-top: 18px;
+  border: 1px dashed var(--admin-border);
+  border-radius: 20px;
 }
 
 body[data-admin-shell="true"] .admin-form-page {
