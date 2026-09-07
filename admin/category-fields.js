@@ -68,7 +68,7 @@ async function enhanceCategoryField(form){
  if(error){console.error("Categorias:",error);form.dataset.categoryField="error";return}
  const selected=config.idField?record.data?.[config.idField]||"":categories?.find(item=>item.nome===record.data?.[config.nameField])?.id||"";
  const field=document.createElement("label");
- field.innerHTML=`Categoria<select name="cms_categoria_id"><option value="">Sem categoria</option>${(categories||[]).map(item=>`<option value="${item.id}" ${item.id===selected?"selected":""}>${escapeHtml(item.nome)}</option>`).join("")}</select><small>O menor número em “Ordem” aparece primeiro nos filtros públicos.</small>`;
+ field.innerHTML=`Categoria<select name="cms_categoria_id"><option value="">Sem categoria</option>${(categories||[]).map(item=>`<option value="${item.id}" ${item.id===selected?"selected":""}>${escapeHtml(item.nome)}</option>`).join("")}</select>`;
  const legacy=form.querySelector('[name="categoria_nome"]')?.closest("label")||form.querySelector('[name="categoria"]')?.closest("label");
  if(legacy)legacy.replaceWith(field);
  else{

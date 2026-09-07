@@ -20,7 +20,7 @@ function ensureStyles(){
  if(document.querySelector('link[data-cms-media]'))return;
  const link=document.createElement("link");
  link.rel="stylesheet";link.dataset.cmsMedia="true";
- link.href=new URL("./media-upload.css?v=20260907-media-gallery",import.meta.url).href;
+ link.href=new URL("./media-upload.css?v=20260907-media-inline-actions",import.meta.url).href;
  document.head.append(link);
 }
 
@@ -270,8 +270,11 @@ export function attachUrlUpload(input,folder,preset){
  enhanced.add(input);
  const controls=document.createElement("div");
  controls.className="cms-media-upload";
- controls.innerHTML='<div class="cms-media-actions"><label class="cms-media-button">Enviar e editar<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></label><button type="button" class="cms-media-button" data-open-library>Escolher da biblioteca</button><button type="button" class="cms-media-button" data-repeat-crop hidden>Criar outro formato</button></div><span class="cms-media-state">Envie uma imagem nova ou reutilize uma que já está na biblioteca.</span><div class="cms-media-preview"></div>';
- input.insertAdjacentElement("afterend",controls);
+ controls.innerHTML='<div class="cms-media-actions"><label class="cms-media-button">Enviar e editar<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></label><button type="button" class="cms-media-button" data-open-library>Escolher da biblioteca</button><button type="button" class="cms-media-button" data-repeat-crop hidden>Criar outro formato</button></div><span class="cms-media-state" aria-live="polite"></span><div class="cms-media-preview"></div>';
+ const row=document.createElement("div");
+ row.className="cms-media-input-row";
+ input.insertAdjacentElement("beforebegin",row);
+ row.append(input,controls);
  const picker=controls.querySelector('input[type="file"]');
  const button=controls.querySelector(".cms-media-button");
  const status=controls.querySelector(".cms-media-state");
@@ -329,7 +332,7 @@ export function attachUrlListUpload(textarea,folder,preset){
  enhanced.add(textarea);
  const controls=document.createElement("div");
  controls.className="cms-media-upload cms-media-upload-list";
- controls.innerHTML='<div class="cms-media-actions"><label class="cms-media-button">Enviar e editar<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></label><button type="button" class="cms-media-button" data-open-library>Adicionar da biblioteca</button></div><span class="cms-media-state">Adicione imagens novas ou reutilize arquivos da biblioteca, uma URL por linha.</span>';
+ controls.innerHTML='<div class="cms-media-actions"><label class="cms-media-button">Enviar e editar<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></label><button type="button" class="cms-media-button" data-open-library>Adicionar da biblioteca</button></div><span class="cms-media-state" aria-live="polite"></span>';
  textarea.insertAdjacentElement("afterend",controls);
  const picker=controls.querySelector('input[type="file"]');
  const uploadButton=controls.querySelector(".cms-media-button");
