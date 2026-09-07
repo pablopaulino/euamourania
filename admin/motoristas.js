@@ -15,7 +15,7 @@ const blank = () => ({ nome: '', slug: '', descricao: 'Motorista particular', te
 function ensureStyle() {
   if (document.querySelector('[data-admin-module-style="motoristas"]')) return;
   style = document.createElement('link');
-  style.rel = 'stylesheet'; style.href = '/admin/motoristas.css'; style.dataset.adminModuleStyle = 'motoristas';
+  style.rel = 'stylesheet'; style.href = '/admin/motoristas.css?v=20260907-neutral-dashboard'; style.dataset.adminModuleStyle = 'motoristas';
   document.head.append(style);
 }
 
@@ -30,12 +30,21 @@ function render() {
   if (!root) return;
   app = root;
   const item = state.creating ? blank() : state.selected;
+  const active = state.items.filter(driver => driver.ativo).length;
+  const featured = state.items.filter(driver => driver.ativo && driver.destaque).length;
+  const available = state.items.filter(driver => driver.ativo && driver.disponibilidade !== 'indisponivel').length;
   root.innerHTML = `
     <section class="admin-page drivers-admin-page">
-      <header class="admin-page-header drivers-header"><div><p class="eyebrow">Mobilidade</p><h2>Motoristas</h2><p>Organize contatos de motoristas particulares para corridas locais e viagens.</p></div><button class="admin-button" type="button" data-new>Novo motorista</button></header>
+      <header class="admin-page-header drivers-header"><div><p class="eyebrow">Mobilidade</p><h2>Motoristas</h2><p>Organize contatos de motoristas particulares para corridas locais e viagens.</p></div></header>
+      <div class="drivers-metrics">
+        <article><strong>${state.items.length}</strong><span>cadastros</span></article>
+        <article><strong>${active}</strong><span>publicados</span></article>
+        <article><strong>${available}</strong><span>disponíveis</span></article>
+        <article><strong>${featured}</strong><span>em destaque</span></article>
+      </div>
       ${state.message ? `<p class="form-message">${esc(state.message)}</p>` : ''}
       <div class="drivers-layout">
-        <aside class="drivers-list-card"><div class="drivers-list-head"><strong>Cadastros</strong><span>${state.items.length}</span></div><div class="drivers-list">${state.items.map(item => `<button type="button" class="driver-item ${state.selected?.id === item.id ? 'active' : ''}" data-select="${item.id}"><span class="driver-item-icon">🚗</span><span><strong>${esc(item.nome)}</strong><small>${esc(availability[item.disponibilidade] || availability.consulte)}${item.ativo ? '' : ' · oculto'}</small></span>${item.destaque ? '<em>Destaque</em>' : ''}</button>`).join('') || '<p class="drivers-empty">Nenhum motorista cadastrado.</p>'}</div></aside>
+        <aside class="drivers-list-card"><div class="drivers-list-head"><div><p class="eyebrow">Cadastros</p><strong>Motoristas</strong></div><span>${state.items.length}</span></div><div class="drivers-list">${state.items.map(item => `<button type="button" class="driver-item ${state.selected?.id === item.id ? 'active' : ''}" data-select="${item.id}"><span class="driver-item-icon">${esc((item.nome || 'M').trim().charAt(0).toUpperCase())}</span><span><strong>${esc(item.nome)}</strong><small>${esc(availability[item.disponibilidade] || availability.consulte)}${item.ativo ? '' : ' · oculto'}</small></span>${item.destaque ? '<em>Destaque</em>' : ''}</button>`).join('') || '<p class="drivers-empty">Nenhum motorista cadastrado.</p>'}</div></aside>
         <main class="drivers-editor">${item ? editor(item) : dashboard()}</main>
       </div>
     </section>`;
@@ -43,7 +52,11 @@ function render() {
 }
 
 function dashboard() {
-  return `<section class="drivers-dashboard"><span class="drivers-dashboard-icon">🚗</span><h3>Contatos rápidos para a cidade.</h3><p>Cadastre motoristas particulares, defina a ordem de exibição e publique somente os contatos revisados.</p><button class="admin-button" type="button" data-new>Cadastrar primeiro motorista</button></section>`;
+  const latest = state.items.slice(0, 4);
+  return `<section class="drivers-dashboard">
+    <div class="drivers-dashboard-hero"><div><p class="eyebrow">Central de mobilidade</p><h3>Contatos rápidos para a cidade, organizados em um só lugar.</h3><p>Selecione um cadastro ao lado para editar ou adicione um novo motorista quando precisar ampliar a lista do aplicativo.</p></div><button class="admin-button" type="button" data-new>Novo motorista</button></div>
+    <div class="drivers-recent"><div class="drivers-recent-head"><div><p class="eyebrow">Leitura rápida</p><h3>Cadastros recentes</h3></div><span>${latest.length}</span></div><div class="drivers-recent-list">${latest.map(driver => `<button type="button" data-select="${driver.id}"><span>${driver.ativo ? 'Publicado' : 'Oculto'}</span><strong>${esc(driver.nome)}</strong><small>${esc(availability[driver.disponibilidade] || availability.consulte)}</small></button>`).join('') || '<p class="drivers-empty">Cadastre o primeiro motorista para começar.</p>'}</div></div>
+  </section>`;
 }
 
 function editor(item) {

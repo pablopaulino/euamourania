@@ -1513,6 +1513,42 @@ body[data-admin-shell="true"] .admin-main :is(
   text-align: left;
 }
 
+/* Base neutra: módulos compartilham superfícies brancas; cor fica em ações e status. */
+body[data-admin-shell="true"] #app-content :is(
+  .panel,
+  .metric-card,
+  .dashboard-kpi,
+  .dashboard-hero,
+  .admin-form-section,
+  .admin-list-panel,
+  .audience-kpi,
+  .audience-chart-feature,
+  .app-audience-panel,
+  .useful-hero,
+  .useful-panel,
+  .useful-form-panel,
+  .useful-main,
+  .useful-metrics article,
+  .drivers-list-card,
+  .drivers-editor,
+  .drivers-metrics article,
+  .drivers-dashboard-hero,
+  .drivers-recent,
+  .advantages-list-panel,
+  .advantages-kpi,
+  .advantages-editor-head,
+  .advantages-form-section,
+  .initiatives-metrics article,
+  .initiatives-sidebar-card,
+  .initiatives-editor-card,
+  .initiative-help-card,
+  .initiatives-dashboard-hero,
+  .initiatives-recent
+) {
+  background-color: var(--admin-surface, #fff) !important;
+  background-image: none !important;
+}
+
 body[data-admin-shell="true"] .audience-kpi {
   min-height: 132px;
   padding: clamp(18px, 2vw, 26px);
