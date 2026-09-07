@@ -1282,7 +1282,8 @@ else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else i
 document.addEventListener("submit",salvarEvento2Form,true);
 
 function fieldHtmlCorrigido([name,label,type,required], value) {
-  const req=required?"required":"", full=["textarea","editor","url-list","line-list","weekly-hours","gallery-urls"].includes(type)?"full-row":"";
+  const isPrimaryMediaField = type === "url" && /^(imagem_url|imagem_capa_url)$/.test(String(name || ""));
+  const req=required?"required":"", full=["textarea","editor","url-list","line-list","weekly-hours","gallery-urls"].includes(type)||isPrimaryMediaField?"full-row":"";
   if(type==="editor") return `<label class="${full}">${label}<div id="editor"></div><input type="hidden" name="${name}"></label>`;
   if(type==="weekly-hours") return weeklyHoursHtml(name,label,value);
   if(type==="gallery-urls") return galleryUrlsHtml(name,label,value);

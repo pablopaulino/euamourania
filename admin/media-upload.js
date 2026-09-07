@@ -271,10 +271,15 @@ export function attachUrlUpload(input,folder,preset){
  const controls=document.createElement("div");
  controls.className="cms-media-upload";
  controls.innerHTML='<div class="cms-media-actions"><label class="cms-media-button">Enviar e editar<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></label><button type="button" class="cms-media-button" data-open-library>Escolher da biblioteca</button><button type="button" class="cms-media-button" data-repeat-crop hidden>Criar outro formato</button></div><span class="cms-media-state" aria-live="polite"></span><div class="cms-media-preview"></div>';
- const row=document.createElement("div");
- row.className="cms-media-input-row";
- input.insertAdjacentElement("beforebegin",row);
- row.append(input,controls);
+ const isPrimaryImage=/^(imagem_url|imagem_capa_url)$/.test(input.name||"")&&!input.closest(".cms-gallery-field");
+ if(isPrimaryImage){
+  const row=document.createElement("div");
+  row.className="cms-media-input-row";
+  input.insertAdjacentElement("beforebegin",row);
+  row.append(input,controls);
+ }else{
+  input.insertAdjacentElement("afterend",controls);
+ }
  const picker=controls.querySelector('input[type="file"]');
  const button=controls.querySelector(".cms-media-button");
  const status=controls.querySelector(".cms-media-state");
