@@ -1261,10 +1261,29 @@ body[data-admin-shell="true"] .admin-list-panel {
 
 body[data-admin-shell="true"] .admin-filterbar {
   grid-template-columns: minmax(360px, 1fr) minmax(180px, 260px) auto;
+  margin-bottom: 18px;
 }
 
 body[data-admin-shell="true"] .admin-data-table {
   min-width: 980px;
+}
+
+body[data-admin-shell="true"] .admin-filterbar + .admin-data-table-wrap {
+  margin-top: 18px;
+}
+
+body[data-admin-shell="true"] .admin-data-table thead th {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+body[data-admin-shell="true"] .admin-data-table tbody td {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+body[data-admin-shell="true"] .admin-data-table-wrap + .admin-empty-state.compact {
+  margin-top: 18px;
 }
 
 body[data-admin-shell="true"] .admin-form-page {
