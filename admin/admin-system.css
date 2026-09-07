@@ -253,6 +253,43 @@ body[data-admin-shell="true"] :focus-visible {
   min-width: 0;
 }
 
+.admin-topbar-title-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-topbar-icon {
+  width: 42px;
+  height: 42px;
+  color: var(--admin-text);
+  background: rgba(255, 255, 255, .78);
+  border-color: var(--admin-border);
+  border-radius: 14px;
+}
+
+.admin-topbar-icon .admin-module-icon {
+  width: auto;
+  height: auto;
+  background: transparent;
+  border: 0;
+}
+
+.admin-topbar-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.admin-page-context {
+  margin: 0 0 4px;
+  color: var(--admin-text-muted);
+  font-size: .68rem;
+  font-weight: 760;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
 .admin-topbar h1 {
   margin: 0;
   color: var(--admin-text);
@@ -274,6 +311,10 @@ body[data-admin-shell="true"] :focus-visible {
   display: flex;
   align-items: center;
   gap: 9px;
+}
+
+.admin-page-primary-action:empty {
+  display: none;
 }
 
 .admin-button,
@@ -385,7 +426,7 @@ select:focus {
 
 .ops-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(150px, 190px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: end;
   padding: 4px 2px 8px;
@@ -419,23 +460,6 @@ select:focus {
   color: var(--admin-text-secondary);
   font-size: 1rem;
   line-height: 1.52;
-}
-
-.ops-health-card {
-  display: grid;
-  justify-items: start;
-  min-height: 128px;
-  padding: 18px;
-  background: #fff;
-  border: 1px solid var(--admin-border);
-  border-radius: 24px;
-  box-shadow: var(--admin-shadow-sm);
-}
-
-.ops-health-card strong {
-  color: var(--admin-text);
-  font-size: 2.35rem;
-  letter-spacing: -.055em;
 }
 
 .ops-kpi-grid {
@@ -736,6 +760,22 @@ select:focus {
 .admin-page {
   display: grid;
   gap: 18px;
+}
+
+#app-content {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+}
+
+#app-content[data-layout="form"] {
+  max-width: 1120px;
+}
+
+#app-content[data-layout="dashboard"],
+#app-content[data-layout="wide"],
+#app-content[data-layout="module"] {
+  max-width: 1600px;
 }
 
 .admin-page-header {
@@ -1159,5 +1199,210 @@ select:focus {
   .admin-form-actions > div {
     align-items: stretch;
     flex-direction: column;
+  }
+}
+
+/* Lapidação global pós-prova visual: mantém os módulos no mesmo sistema visual. */
+body[data-admin-shell="true"] .admin-nav button,
+body[data-admin-shell="true"] .admin-nav a {
+  color: var(--admin-text-secondary);
+}
+
+body[data-admin-shell="true"] .admin-nav button.active,
+body[data-admin-shell="true"] .admin-nav a.active {
+  color: var(--admin-text);
+  background: rgba(255, 255, 255, .92);
+  border-color: var(--admin-border);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+body[data-admin-shell="true"] .admin-nav button.active .admin-nav-icon,
+body[data-admin-shell="true"] .admin-nav a.active .admin-nav-icon {
+  color: var(--admin-accent-strong);
+}
+
+body[data-admin-shell="true"] .admin-shell.sidebar-collapsed .admin-nav-icon {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-shell="true"] .admin-shell.sidebar-collapsed .admin-nav button,
+body[data-admin-shell="true"] .admin-shell.sidebar-collapsed .admin-nav a {
+  border-radius: 14px;
+}
+
+body[data-admin-shell="true"] .admin-shell.sidebar-collapsed .admin-nav button.active::before,
+body[data-admin-shell="true"] .admin-shell.sidebar-collapsed .admin-nav a.active::before {
+  left: -4px;
+}
+
+body[data-admin-shell="true"] .audience-tabs,
+body[data-admin-shell="true"] .awards-tabs,
+body[data-admin-shell="true"] .ads-tabs {
+  display: flex;
+  gap: 3px;
+  width: max-content;
+  max-width: 100%;
+  margin-bottom: 18px;
+  padding: 4px;
+  overflow-x: auto;
+  background: rgba(239, 240, 242, .82);
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  box-shadow: none;
+  scrollbar-width: none;
+}
+
+body[data-admin-shell="true"] .audience-tabs::-webkit-scrollbar,
+body[data-admin-shell="true"] .awards-tabs::-webkit-scrollbar,
+body[data-admin-shell="true"] .ads-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+body[data-admin-shell="true"] .audience-tabs button,
+body[data-admin-shell="true"] .awards-tab,
+body[data-admin-shell="true"] .ads-tab {
+  min-height: 34px;
+  padding: .45rem .78rem;
+  color: var(--admin-text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  font-size: .82rem;
+  font-weight: 650;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+
+body[data-admin-shell="true"] .audience-tabs button:hover,
+body[data-admin-shell="true"] .awards-tab:hover,
+body[data-admin-shell="true"] .ads-tab:hover {
+  color: var(--admin-text);
+  background: rgba(255, 255, 255, .55);
+  transform: none;
+}
+
+body[data-admin-shell="true"] .audience-tabs button.active,
+body[data-admin-shell="true"] .awards-tab.active,
+body[data-admin-shell="true"] .ads-tab.active {
+  color: var(--admin-text);
+  background: #fff;
+  border-color: transparent;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .08);
+}
+
+body[data-admin-shell="true"] .audience-kpi::after,
+body[data-admin-shell="true"] .audience-chart-feature::before,
+body[data-admin-shell="true"] .audience-metrics.pro .metric-card::after,
+body[data-admin-shell="true"] .app-audience-panel::after,
+body[data-admin-shell="true"] .awards-hero::after {
+  display: none !important;
+}
+
+body[data-admin-shell="true"] .audience-kpi,
+body[data-admin-shell="true"] .audience-chart-feature,
+body[data-admin-shell="true"] .audience-metrics.pro .metric-card,
+body[data-admin-shell="true"] .app-audience-panel,
+body[data-admin-shell="true"] .awards-hero,
+body[data-admin-shell="true"] .awards-card,
+body[data-admin-shell="true"] .ads-card,
+body[data-admin-shell="true"] .metric-card {
+  background: var(--admin-surface);
+  border-color: var(--admin-border);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+body[data-admin-shell="true"] .awards-hero {
+  padding: 18px 20px;
+  background: var(--admin-surface);
+}
+
+body[data-admin-shell="true"] .audience-kpi strong,
+body[data-admin-shell="true"] .audience-section-title h2,
+body[data-admin-shell="true"] .awards-hero h2,
+body[data-admin-shell="true"] .awards-card h3,
+body[data-admin-shell="true"] .ads-heading h2,
+body[data-admin-shell="true"] .ads-card h3 {
+  color: var(--admin-text);
+}
+
+body[data-admin-shell="true"] .audience-kpi span,
+body[data-admin-shell="true"] .audience-kpi small:not(.up):not(.down),
+body[data-admin-shell="true"] .awards-hero p,
+body[data-admin-shell="true"] .awards-signature,
+body[data-admin-shell="true"] .ads-heading p {
+  color: var(--admin-text-secondary);
+}
+
+body[data-admin-shell="true"] .audience-kpi small.up,
+body[data-admin-shell="true"] .metric-card em {
+  color: var(--admin-success);
+}
+
+body[data-admin-shell="true"] .audience-kpi small.down {
+  color: var(--admin-danger);
+}
+
+body[data-admin-shell="true"] .awards-toolbar,
+body[data-admin-shell="true"] .ads-toolbar {
+  background: rgba(255, 255, 255, .58);
+  border-color: var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+}
+
+body[data-admin-shell="true"] .awards-table-wrap,
+body[data-admin-shell="true"] .ads-table-wrap {
+  border-color: var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+}
+
+body[data-admin-shell="true"] .awards-table th,
+body[data-admin-shell="true"] .ads-table th,
+body[data-admin-shell="true"] .audience-table th {
+  color: var(--admin-text-muted);
+  background: transparent;
+}
+
+body[data-admin-shell="true"] .awards-table td,
+body[data-admin-shell="true"] .ads-table td,
+body[data-admin-shell="true"] .audience-table td {
+  color: var(--admin-text-secondary);
+  border-color: var(--admin-divider);
+}
+
+body[data-admin-shell="true"] .awards-actions button,
+body[data-admin-shell="true"] .icon-button,
+body[data-admin-shell="true"] .ads-pagination button {
+  color: var(--admin-text);
+  background: var(--admin-surface-secondary);
+  border-color: transparent;
+  border-radius: 999px;
+}
+
+body[data-admin-shell="true"] .awards-actions button:hover,
+body[data-admin-shell="true"] .icon-button:hover,
+body[data-admin-shell="true"] .ads-pagination button:hover {
+  background: var(--admin-surface-hover);
+}
+
+@media (max-width: 860px) {
+  .admin-topbar-title-row {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .admin-topbar-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+  }
+
+  .admin-page-primary-action {
+    width: 100%;
+  }
+
+  .admin-page-primary-action .admin-button {
+    width: 100%;
   }
 }

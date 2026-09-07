@@ -14,7 +14,11 @@ const sidebarToggle = document.getElementById("sidebar-toggle");
 const sidebarBackdrop = document.getElementById("sidebar-backdrop");
 const mobileMenuButton = document.getElementById("mobile-menu");
 const pageHint = document.getElementById("page-hint");
+const pageTitleIcon = document.getElementById("page-title-icon");
+const pageContext = document.getElementById("page-context");
+const pagePrimaryAction = document.getElementById("page-primary-action");
 let currentView = "dashboard";
+let activeModuleKey = "dashboard";
 let quill;
 let currentResourceTable = null;
 let currentResourceId = null;
@@ -595,7 +599,9 @@ async function dashboardBase() {
 }
 
 async function dashboard() {
-  title.textContent = "Visão geral";
+  activeModuleKey = "dashboard";
+  app.dataset.layout = "dashboard";
+  setShellTitle("Visão geral", getAdminModule("dashboard").description, { moduleKey: "dashboard" });
   app.innerHTML = '<div class="loading">Carregando central de operação...</div>';
   const supabase = getSupabase();
   const now = new Date();
@@ -608,8 +614,9 @@ async function dashboard() {
   const nextSevenDays = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   const hour = now.getHours();
   const saudacao = hour < 12 ?"Bom dia" : hour < 18 ?"Boa tarde" : "Boa noite";
-  const rawName = painelAccess?.admin?.nome || painelAccess?.user?.user_metadata?.name || painelAccess?.user?.email || "";
-  const firstName = String(rawName).split(/\s|@/).filter(Boolean)[0] || "";
+  const rawName = painelAccess?.admin?.nome || painelAccess?.user?.user_metadata?.name || "";
+  const firstNameCandidate = String(rawName).split(/\s|@/).filter(Boolean)[0] || "";
+  const firstName = ["eu", "admin", "usuario", "usuário"].includes(firstNameCandidate.toLowerCase()) ? "" : firstNameCandidate;
   const fmtDate = value => value ?new Date(value).toLocaleDateString("pt-BR") : "sem data";
   const fmtNumber = value => Number(value || 0).toLocaleString("pt-BR");
   const pct = (part, total) => total ?`${Math.round((Number(part || 0) / Number(total || 1)) * 100)}%` : "0%";
@@ -728,6 +735,7 @@ async function dashboard() {
     const portalScore = Math.max(0, 100 - (aprovacoes * 8) - (rascunhos * 3) - (campanhasVencendo * 6) - (colaboradoresNovos * 4) - (eventSubmissionsPending * 3) - (businessSubmissionsPending * 3) - (campanhasAtivas ?0 : 10));
     const targetAttrs = target => `data-view="${escapeHtml(target)}"`;
     const primaryMetrics = [
+      ["Saúde", `${portalScore}%`, "saúde da operação", importantAlerts.length ?`${importantAlerts.length} área(s) pedindo atenção` : "Rotina sem alerta importante"],
       ["Hoje", fmtNumber(viewsHoje), "interações registradas", "Fonte: analytics_eventos"],
       ["7 dias", fmtNumber(views7d), "movimento recente", `${fmtNumber(uniqueVisitors)} visitante(s) identificáveis`],
       ["Editorial", fmtNumber(publicadas), "notícias publicadas", `${rascunhos} rascunho(s) · ${agendadas} agendada(s)`],
@@ -832,11 +840,6 @@ async function dashboard() {
               <button class="admin-button" data-new="noticias">Nova notícia</button>
               <button class="admin-button secondary" ${targetAttrs("audiencia")}>Ver audiência</button>
             </div>
-          </div>
-          <div class="ops-health-card" aria-label="Saúde operacional">
-            <span>Saúde da operação</span>
-            <strong>${portalScore}%</strong>
-            <small>${importantAlerts.length ?`${importantAlerts.length} área(s) pedindo atenção` : "Rotina sem alerta importante"}</small>
           </div>
         </section>
 
@@ -988,24 +991,19 @@ async function dashboard() {
 async function resourceList(table) {
   const config=resources[table];
   const meta = adminModuleMeta(table);
-  setShellTitle(config.label, resourceDescription(table));
+  activeModuleKey = table;
+  app.dataset.layout = "wide";
+  setShellTitle(config.label, meta.description || resourceDescription(table), {
+    moduleKey: table,
+    contextLabel: meta.group,
+    actionHtml: `<button class="admin-button" data-new="${table}">${escapeHtml(resourceActionLabel(table))}</button>`
+  });
   app.innerHTML='<div class="loading">Carregando...</div>';
   try {
     const rows=await listarTabela(table,{ordem:config.order,crescente:config.ascending||false});
     const statuses = [...new Set(rows.map(resourceRowStatus).filter(Boolean))].sort((a,b) => a.localeCompare(b, "pt-BR"));
     app.innerHTML=`
-      <section class="admin-page">
-        <header class="admin-page-header panel">
-          <div class="admin-page-title-row">
-            ${renderAdminModuleIcon(table, "admin-page-icon")}
-            <div>
-              <p class="admin-breadcrumb">${escapeHtml(meta.group)} / ${escapeHtml(config.label)}</p>
-              <h2>${escapeHtml(config.label)}</h2>
-              <p>${escapeHtml(resourceDescription(table))}</p>
-            </div>
-          </div>
-          <button class="admin-button" data-new="${table}">${escapeHtml(resourceActionLabel(table))}</button>
-        </header>
+      <section class="admin-page admin-page-wide">
         <section class="panel admin-list-panel">
           <div class="admin-filterbar">
             <label class="admin-search-field"><span>Buscar</span><input id="resource-search" type="search" autocomplete="off" placeholder="Nome, status, categoria ou local"></label>
@@ -1348,22 +1346,17 @@ function renderResourceFormSections(config, row, table) {
 async function editForm(table,id) {
   const config=resources[table]; let row={};
   currentResourceTable=table;currentResourceId=id||null;
+  activeModuleKey = table;
+  app.dataset.layout = "form";
   if(id){const {data,error}=await getSupabase().from(table).select("*").eq("id",id).single();if(error)throw error;row=data;}
   const meta = adminModuleMeta(table);
   const action = id ? "Editar" : "Novo";
-  setShellTitle(`${action} · ${config.label}`, `Atualize ${config.label.toLowerCase()} mantendo o padrão do painel.`);
+  setShellTitle(id ? `Editar ${config.label}` : resourceActionLabel(table), resourceDescription(table), {
+    moduleKey: table,
+    contextLabel: `${meta.group} / ${config.label}`
+  });
   app.innerHTML=`
     <section class="admin-page admin-form-page">
-      <header class="admin-page-header panel">
-        <div class="admin-page-title-row">
-          ${renderAdminModuleIcon(table, "admin-page-icon")}
-          <div>
-            <p class="admin-breadcrumb">${escapeHtml(meta.group)} / ${escapeHtml(config.label)} / ${escapeHtml(action)}</p>
-            <h2>${escapeHtml(id ? `Editar ${row[config.title] || config.label}` : resourceActionLabel(table))}</h2>
-            <p>${escapeHtml(resourceDescription(table))}</p>
-          </div>
-        </div>
-      </header>
       <form id="resource-form" class="resource-form admin-resource-form">
         ${renderResourceFormSections(config, row, table)}
         <footer class="form-actions admin-form-actions">
@@ -1452,8 +1445,13 @@ function shellToast(message, type = "success") {
   setTimeout(() => element.remove(), 3500);
 }
 
-function setShellTitle(label, hintText) {
+function setShellTitle(label, hintText, options = {}) {
+  const moduleKey = options.moduleKey || activeModuleKey || currentView || "dashboard";
+  const moduleMeta = getAdminModule(moduleKey);
   if (title) title.textContent = label || "Painel";
+  if (pageTitleIcon) pageTitleIcon.innerHTML = renderAdminModuleIcon(moduleKey);
+  if (pageContext) pageContext.textContent = options.contextLabel || moduleMeta.group || "Painel";
+  if (pagePrimaryAction) pagePrimaryAction.innerHTML = options.actionHtml || "";
   if (pageHint) {
     pageHint.textContent = hintText || "Acompanhe os principais dados do portal e escolha um módulo no menu para gerenciar conteúdo, publicidade, comunicação e configurações.";
   }
@@ -1469,8 +1467,12 @@ function clearMountedModule() {
 
 function setActiveNav(view) {
   refreshSidebarNavigation();
+  activeModuleKey = adminNavigationItems.some(item => item.view === view) ? view : "dashboard";
   document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button => {
-    button.classList.toggle("active", button.dataset.view === view || button.dataset.module === view);
+    const isActive = button.dataset.view === activeModuleKey;
+    button.classList.toggle("active", isActive);
+    if (isActive) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
   });
 }
 
@@ -1480,9 +1482,11 @@ async function mountShellModule(view, options = {}) {
   const moduleMeta = getAdminModule(view);
   clearMountedModule();
   currentView = view;
+  activeModuleKey = view;
+  app.dataset.layout = "module";
   currentResourceTable = null;
   currentResourceId = null;
-  setShellTitle(moduleMeta.label || route.label, moduleMeta.description || route.hint);
+  setShellTitle(moduleMeta.label || route.label, moduleMeta.description || route.hint, { moduleKey: view });
   setActiveNav(view);
   const targetPath = adminPathForView(view);
   if (location.pathname !== targetPath) {
@@ -1513,6 +1517,8 @@ async function navigateToView(view, options = {}) {
   if (moduleRoutes[view]) return mountShellModule(view, options);
   clearMountedModule();
   currentView = view || "dashboard";
+  activeModuleKey = currentView;
+  app.dataset.layout = currentView === "dashboard" ? "dashboard" : "wide";
   setActiveNav(currentView);
   const targetPath = adminPathForView(currentView);
   if (location.pathname !== targetPath) {

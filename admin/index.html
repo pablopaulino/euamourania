@@ -90,7 +90,13 @@
             Menu
           </button>
           <div class="admin-topbar-context">
-            <h1 id="page-title">Visão geral</h1>
+            <div class="admin-topbar-title-row">
+              <span id="page-title-icon" class="admin-page-icon admin-topbar-icon" aria-hidden="true"></span>
+              <div>
+                <p id="page-context" class="admin-page-context">Operação</p>
+                <h1 id="page-title">Visão geral</h1>
+              </div>
+            </div>
             <p id="page-hint" class="admin-page-hint">
               Acompanhe os principais dados do portal e escolha um módulo no
               menu para gerenciar conteúdo, publicidade, comunicação e
@@ -98,6 +104,7 @@
             </p>
           </div>
           <div class="admin-topbar-actions">
+            <span id="page-primary-action" class="admin-page-primary-action"></span>
             <button class="admin-command-trigger" type="button" data-open-command-palette>
               <span>Buscar no painel</span>
               <kbd>Ctrl K</kbd>
