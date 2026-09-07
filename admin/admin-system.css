@@ -1445,6 +1445,30 @@ body[data-admin-shell="true"] .audience-tabs {
   margin-inline: auto;
 }
 
+body[data-admin-shell="true"] .audience-tab-panels,
+body[data-admin-shell="true"] .audience-tab-panel {
+  width: 100%;
+  min-width: 0;
+}
+
+body[data-admin-shell="true"] [data-audience-tab="ads"].active {
+  display: grid;
+  width: 100%;
+  justify-items: stretch;
+}
+
+body[data-admin-shell="true"] [data-audience-tab="ads"] .audience-mini-kpis,
+body[data-admin-shell="true"] [data-audience-tab="ads"] > .panel {
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
+}
+
+body[data-admin-shell="true"] [data-audience-tab="ads"] .audience-mini-kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(12px, 1.5vw, 20px);
+}
+
 body[data-admin-shell="true"] .awards-toolbar,
 body[data-admin-shell="true"] .ads-toolbar {
   background: rgba(255, 255, 255, .58);
@@ -1522,6 +1546,10 @@ body[data-admin-shell="true"] .ads-pagination button:hover {
   }
 
   body[data-admin-shell="true"] .audience-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-admin-shell="true"] [data-audience-tab="ads"] .audience-mini-kpis {
     grid-template-columns: 1fr;
   }
 }

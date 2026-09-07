@@ -1749,7 +1749,17 @@ window.addEventListener("popstate",()=>{
   if(view==="audiencia"||view==="aprovacoes"){clearMountedModule();return;}
   navigateToView(view,{replace:true});
 });
-window.addEventListener("admin:external-module",()=>clearMountedModule());
+window.addEventListener("admin:external-module",event=>{
+  clearMountedModule();
+  const view = event.detail?.view || event.detail?.moduleKey;
+  if (!view) return;
+  currentView = view;
+  activeModuleKey = view;
+  app.dataset.layout = "module";
+  setActiveNav(view);
+  const moduleMeta = getAdminModule(view);
+  setShellTitle(moduleMeta.label || "Painel", moduleMeta.description, { moduleKey: view });
+});
 import("./editorial-audience.js").catch(error=>console.error("Módulos editorial/audiência:",error));
 import("./category-fields.js").catch(error=>console.error("Categorias dos conteúdos:",error));
 import("./media-upload.js").catch(error=>console.error("Upload de imagens:",error));

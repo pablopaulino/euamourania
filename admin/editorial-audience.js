@@ -51,6 +51,7 @@ function isSuperAdmin(){
 function setActive(id,title,hash){
  pageTitle.textContent=title;
  const view=String(hash||"").replace(/^#/,"");
+ window.dispatchEvent(new CustomEvent("admin:external-module",{detail:{view}}));
  const targetPath=adminPathForView(view);
  if(location.pathname!==targetPath)history.pushState({adminView:view},"",targetPath);
  document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button=>button.classList.toggle("active",button.id===id));
@@ -689,8 +690,8 @@ document.addEventListener("click",event=>{
  }
  if(button.dataset.newsEdit)currentNewsId=button.dataset.newsEdit;
  if(button.hasAttribute("data-news-new"))currentNewsId=null;
- if(button.id==="editorial-approvals-nav"||button.id==="dashboard-approvals"){event.preventDefault();event.stopImmediatePropagation();window.dispatchEvent(new CustomEvent("admin:external-module",{detail:{view:"aprovacoes"}}));renderApprovals();return}
-  if(button.id==="audience-nav"||button.id==="dashboard-audience"){event.preventDefault();event.stopImmediatePropagation();window.dispatchEvent(new CustomEvent("admin:external-module",{detail:{view:"audiencia"}}));renderAudience();return}
+ if(button.id==="editorial-approvals-nav"||button.id==="dashboard-approvals"){event.preventDefault();event.stopImmediatePropagation();renderApprovals();return}
+  if(button.id==="audience-nav"||button.id==="dashboard-audience"){event.preventDefault();event.stopImmediatePropagation();renderAudience();return}
   if(button.dataset.audienceTabButton){
    const tab=button.dataset.audienceTabButton;
    document.querySelectorAll("[data-audience-tab-button]").forEach(item=>{item.classList.toggle("active",item===button);item.setAttribute("aria-selected",item===button?"true":"false")});
