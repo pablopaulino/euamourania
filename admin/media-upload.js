@@ -499,7 +499,8 @@ function enhance(){
   }
  }
  app?.querySelectorAll('input[data-cms-image="true"], input[name*="imagem"], input[name*="foto"], input[name*="logo"], input[name*="capa"], input[name*="cartaz"], input[name*="banner"]').forEach(input=>{
-  if(input.type==="file"||/video/i.test(input.name||""))return;
+  const fieldName=String(input.name||"").toLowerCase();
+  if(input.type==="file"||/video|legenda|credito|crédito|alt_text|texto_alt/i.test(fieldName))return;
   const config=inferMediaConfig(input);
   attachUrlUpload(input,config.folder,config.preset);
  });

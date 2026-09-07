@@ -1815,4 +1815,4 @@ window.addEventListener("admin:external-module",event=>{
 });
 import("./editorial-audience.js").catch(error=>console.error("Módulos editorial/audiência:",error));
 import("./category-fields.js").catch(error=>console.error("Categorias dos conteúdos:",error));
-import("./media-upload.js").catch(error=>console.error("Upload de imagens:",error));
+import("./media-upload.js?v=20260907-news-media-fields").catch(error=>console.error("Upload de imagens:",error));

@@ -114,6 +114,13 @@ function enhanceNewsForm(form) {
   form.classList.add("news-editor-pro");
   form.closest(".panel")?.classList.add("news-editor-panel");
 
+  const primaryImage = field(form, "imagem_url");
+  [primaryImage, field(form, "seo_imagem")].forEach((input) => {
+    const helper = [...(input?.closest(".cms-field")?.children || [])]
+      .find((element) => element.tagName === "SMALL" && element.textContent?.trim().startsWith("Aceita link completo"));
+    helper?.remove();
+  });
+
   const intro = document.createElement("div");
   intro.className = "news-editor-intro";
   intro.innerHTML = `<div>
