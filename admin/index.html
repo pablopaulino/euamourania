@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/admin/cms-v2.css" />
     <link rel="stylesheet" href="/admin/cms-redesign.css" />
     <link rel="stylesheet" href="/admin/sidebar-layout.css" />
+    <link rel="stylesheet" href="/admin/admin-system.css?v=20260907-admin-system" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css"
@@ -85,10 +86,10 @@
       </aside>
       <main class="admin-main">
         <header class="admin-topbar">
-          <div>
-            <button id="mobile-menu" class="admin-button secondary mobile-menu">
-              Menu
-            </button>
+          <button id="mobile-menu" class="admin-button secondary mobile-menu" aria-label="Abrir menu">
+            Menu
+          </button>
+          <div class="admin-topbar-context">
             <h1 id="page-title">Visão geral</h1>
             <p id="page-hint" class="admin-page-hint">
               Acompanhe os principais dados do portal e escolha um módulo no

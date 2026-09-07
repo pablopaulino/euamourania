@@ -1,36 +1,12 @@
+import { ADMIN_MODULES } from "./admin-modules.js";
+
 const trimSlash = value => String(value || "").replace(/\/+$/, "") || "/admin";
 
-export const ADMIN_INDEX_ROUTES = {
-  dashboard: "/admin",
-  noticias: "/admin/noticias",
-  aprovacoes: "/admin/aprovacoes",
-  colaboradores_voluntarios: "/admin/colaboracoes",
-  guia_comercial: "/admin/guia",
-  guia_verificacao: "/admin/guia-verificacao",
-  turismo_verificacao: "/admin/turismo-verificacao",
-  telefones_uteis: "/admin/telefones-uteis",
-  motoristas: "/admin/motoristas",
-  vantagens: "/admin/vantagens",
-  iniciativas: "/admin/iniciativas",
-  turismo: "/admin/turismo",
-  links: "/admin/links",
-  eventos: "/admin/agenda",
-  eventos_principais: "/admin/eventos-principais",
-  eventos_edicoes: "/admin/edicoes",
-  categorias: "/admin/categorias",
-  audiencia: "/admin/audiencia",
-  insights: "/admin/audiencia",
-  configuracoes_site: "/admin/configuracoes",
-  midia: "/admin/midia",
-  banners: "/admin/banners",
-  comunicacao: "/admin/comunicacao",
-  notificacoes: "/admin/viva-urania",
-  submissoes: "/admin/submissoes",
-  publicidade: "/admin/publicidade",
-  usuarios: "/admin/usuarios",
-  importacao: "/admin/importacao",
-  melhores: "/admin/melhores"
-};
+export const ADMIN_INDEX_ROUTES = Object.fromEntries(Object.entries(ADMIN_MODULES).map(([key, module]) => [key, module.route]));
+
+ADMIN_INDEX_ROUTES.insights = ADMIN_INDEX_ROUTES.audiencia;
+ADMIN_INDEX_ROUTES.midia = "/admin/midia";
+ADMIN_INDEX_ROUTES.banners = "/admin/banners";
 
 export const ADMIN_PAGE_ROUTES = {};
 
@@ -57,34 +33,8 @@ const PATH_TO_PAGE = Object.entries(ADMIN_PAGE_ROUTES).reduce((acc, [key, path])
   "/admin/migrar.html": "importacao"
 });
 
-const HASH_TO_VIEW = {
-  dashboard: "dashboard",
-  noticias: "noticias",
-  aprovacoes: "aprovacoes",
-  colaboradores_voluntarios: "colaboradores_voluntarios",
-  guia_comercial: "guia_comercial",
-  guia_verificacao: "guia_verificacao",
-  turismo_verificacao: "turismo_verificacao",
-  telefones_uteis: "telefones_uteis",
-  motoristas: "motoristas",
-  vantagens: "vantagens",
-  iniciativas: "iniciativas",
-  turismo: "turismo",
-  links: "links",
-  eventos: "eventos",
-  eventos_principais: "eventos_principais",
-  eventos_edicoes: "eventos_edicoes",
-  categorias: "categorias",
-  audiencia: "audiencia",
-  insights: "audiencia",
-  configuracoes_site: "configuracoes_site",
-  midia: "midia",
-  banners: "banners",
-  publicidade: "publicidade",
-  usuarios: "usuarios",
-  importacao: "importacao",
-  melhores: "melhores"
-};
+const HASH_TO_VIEW = Object.fromEntries(Object.keys(ADMIN_INDEX_ROUTES).map(key => [key, key]));
+HASH_TO_VIEW.insights = "audiencia";
 
 export function adminHashToView(hash = "") {
   const key = String(hash || "").replace(/^#/, "");

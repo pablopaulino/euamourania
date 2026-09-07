@@ -4,6 +4,7 @@ import { listarTabela, salvarRegistro, excluirRegistro } from "../assets/js/serv
 import { gerarSlug } from "../assets/js/utils.js";
 import { adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js";
 import { summarizeBusinessQuality } from "./business-quality.js";
+import { ADMIN_MODULE_LIST, adminModulesForNavigation, getAdminModule, renderAdminModuleIcon } from "./admin-modules.js";
 
 const app = document.getElementById("app-content");
 const title = document.getElementById("page-title");
@@ -88,153 +89,14 @@ const moduleRoutes = {
   }
 };
 
-const sidebarIconMap = {
-  "Visão geral": "H",
-  "Notícias": "N",
-  "Aprovações": "A",
-  "Guia comercial": "G",
-  "Verificação do Guia": "V",
-  "Verificação de Turismo": "VT",
-  "Telefones úteis": "Tel",
-  "Turismo": "T",
-  "Links": "L",
-  "Colaborações": "C",
-  "Submissões públicas": "S",
-  "Agenda simples": "A",
-  "Eventos principais": "E",
-  "Edições": "Ed",
-  "Publicidade": "P",
-  "Comunicação": "C",
-  "Notificações do app": "N",
-  "Melhores de Urânia": "M",
-  "Categorias": "#",
-  "Audiência": "A",
-  "Configurações": "C",
-  "Usuários": "U",
-  "Importar JSON": "{}"
-};
-
-const sidebarIconSvg = paths => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false">${paths}</svg>`;
-const sidebarIconSvgMap = {
-  "Visão geral": sidebarIconSvg(`<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-5h5v5"/>`),
-  "Notícias": sidebarIconSvg(`<path d="M4 5.5h11.5a2.5 2.5 0 0 1 2.5 2.5v10.5H6.5A2.5 2.5 0 0 1 4 16V5.5Z"/><path d="M18 8h2v8.5a2 2 0 0 1-2 2"/><path d="M7.5 9h6"/><path d="M7.5 12h6"/><path d="M7.5 15h4"/>`),
-  "Aprovações": sidebarIconSvg(`<path d="M20 7 10 17l-5-5"/><path d="M4 5.5h9"/><path d="M4 18.5h12"/>`),
-  "Guia comercial": sidebarIconSvg(`<path d="M4 10h16"/><path d="M5 10l1-5h12l1 5"/><path d="M6 10v9h12v-9"/><path d="M9 19v-5h6v5"/>`),
-  "Verificação do Guia": sidebarIconSvg(`<path d="M20 7 10 17l-5-5"/><path d="M4 5.5h9"/><path d="M4 18.5h12"/>`),
-  "Verificação de Turismo": sidebarIconSvg(`<path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z"/><path d="m9 10.5 2 2 4-5"/><circle cx="12" cy="10" r="6.5"/>`),
-  "Turismo": sidebarIconSvg(`<path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/>`),
-  "Links": sidebarIconSvg(`<path d="M10 13a5 5 0 0 0 7.1 0l1.4-1.4a5 5 0 0 0-7.1-7.1L10.6 5"/><path d="M14 11a5 5 0 0 0-7.1 0l-1.4 1.4a5 5 0 0 0 7.1 7.1l.8-.8"/>`),
-  "Colaborações": sidebarIconSvg(`<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M20.5 8v6"/><path d="M17.5 11h6"/>`),
-  "Submissões públicas": sidebarIconSvg(`<path d="M4 4h16v12H5.5L4 19.5V4Z"/><path d="M8 8h8"/><path d="M8 11.5h5"/>`),
-  "Agenda simples": sidebarIconSvg(`<path d="M7 3v4"/><path d="M17 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/>`),
-  "Eventos principais": sidebarIconSvg(`<path d="M7 3v4"/><path d="M17 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="m12 13 1.1 2.2 2.4.35-1.75 1.7.42 2.4L12 18.5l-2.17 1.15.42-2.4-1.75-1.7 2.4-.35L12 13Z"/>`),
-  "Edições": sidebarIconSvg(`<path d="M7 7h13v13H7z"/><path d="M4 4h13v13"/><path d="M10 11h7"/><path d="M10 15h5"/>`),
-  "Publicidade": sidebarIconSvg(`<path d="m4 14 4-2 9-5v10l-9-5-4-2v4Z"/><path d="M8 14v5"/><path d="M18 9.5c1 .8 1.5 1.7 1.5 2.5s-.5 1.7-1.5 2.5"/>`),
-  "Comunicação": sidebarIconSvg(`<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/>`),
-  "Notificações do app": sidebarIconSvg(`<path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>`),
-  "Melhores de Urânia": sidebarIconSvg(`<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M5 6H3v2a4 4 0 0 0 4 4"/><path d="M19 6h2v2a4 4 0 0 1-4 4"/>`),
-  "Categorias": sidebarIconSvg(`<path d="M20.5 10.5 13.5 3.5H6l-2.5 2.5v7.5l7 7a2 2 0 0 0 2.8 0l7.2-7.2a2 2 0 0 0 0-2.8Z"/><circle cx="8.5" cy="8.5" r="1"/>`),
-  "Audiência": sidebarIconSvg(`<path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-3"/>`),
-  "Configurações": sidebarIconSvg(`<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.9l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.9-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.9.34l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.9 1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.9l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.9.34h.02A1.7 1.7 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.02a1.7 1.7 0 0 0 1.9-.34l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.9v.02A1.7 1.7 0 0 0 20.91 10H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/>`),
-  "Usuários": sidebarIconSvg(`<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M17 11l2 2 4-4"/>`),
-  "Importar JSON": sidebarIconSvg(`<path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5Z"/><path d="M12 12v5"/><path d="m9.5 14.5 2.5-2.5 2.5 2.5"/>`)
-};
-
-const sidebarLabelsByKey = {
-  dashboard: "Visão geral",
-  noticias: "Notícias",
-  aprovacoes: "Aprovações",
-  guia_comercial: "Guia comercial",
-  guia_verificacao: "Verificação do Guia",
-  turismo_verificacao: "Verificação de Turismo",
-  telefones_uteis: "Telefones úteis",
-  motoristas: "Motoristas",
-  turismo: "Turismo",
-  links: "Links",
-  colaboradores_voluntarios: "Colaborações",
-  submissoes: "Submissões públicas",
-  eventos: "Agenda simples",
-  eventos_principais: "Eventos principais",
-  eventos_edicoes: "Edições",
-  publicidade: "Publicidade",
-  comunicacao: "Comunicação",
-  notificacoes: "Notificações do app",
-  melhores: "Melhores de Urânia",
-  categorias: "Categorias",
-  audiencia: "Audiência",
-  insights: "Audiência",
-  configuracoes_site: "Configurações",
-  usuarios: "Usuários",
-  importacao: "Importar JSON",
-  "editorial-approvals-nav": "Aprovações",
-  "audience-nav": "Audiência"
-};
-
-const adminNavigationGroups = [
-  {
-    label: "Operação",
-    items: [
-      { view: "dashboard", label: "Visão geral", module: "dashboard" },
-      { view: "audiencia", label: "Audiência", module: "insights", id: "audience-nav", external: true }
-    ]
-  },
-  {
-    label: "Conteúdo",
-    items: [
-      { view: "noticias", label: "Notícias", module: "noticias" },
-      { view: "aprovacoes", label: "Aprovações", module: "noticias", id: "editorial-approvals-nav", external: true },
-      { view: "eventos", label: "Agenda simples", module: "eventos" },
-      { view: "eventos_principais", label: "Eventos principais", module: "eventos" },
-      { view: "eventos_edicoes", label: "Edições", module: "eventos" },
-      { view: "categorias", label: "Categorias", module: "categorias" }
-    ]
-  },
-  {
-    label: "Viva Urânia",
-    items: [
-      { view: "guia_comercial", label: "Guia comercial", module: "guia_comercial" },
-      { view: "guia_verificacao", label: "Verificação do Guia", module: "guia_comercial" },
-      { view: "turismo", label: "Turismo", module: "turismo" },
-      { view: "turismo_verificacao", label: "Verificação de Turismo", module: "turismo" },
-      { view: "telefones_uteis", label: "Telefones úteis", module: "configuracoes" },
-      { view: "motoristas", label: "Motoristas", module: "configuracoes" },
-      { view: "iniciativas", label: "Iniciativas da Comunidade", module: "configuracoes" },
-      { view: "vantagens", label: "Viva Vantagens", module: "guia_comercial" },
-      { view: "links", label: "Links", module: "links" }
-    ]
-  },
-  {
-    label: "Comercial",
-    items: [
-      { view: "publicidade", label: "Publicidade", module: "publicidade" },
-      { view: "melhores", label: "Melhores de Urânia", module: "melhores" }
-    ]
-  },
-  {
-    label: "Comunicação",
-    items: [
-      { view: "comunicacao", label: "Comunicação", module: "comunicacao" },
-      { view: "notificacoes", label: "Notificações do app", module: "notificacoes" },
-      { view: "colaboradores_voluntarios", label: "Colaborações", module: "colaboradores" },
-      { view: "submissoes", label: "Submissões públicas", module: "submissoes" }
-    ]
-  },
-  {
-    label: "Sistema",
-    items: [
-      { view: "configuracoes_site", label: "Configurações", module: "configuracoes" },
-      { view: "usuarios", label: "Usuários", module: "usuarios" },
-      { view: "importacao", label: "Importar JSON", module: "importacao" }
-    ]
-  }
-];
-
-const adminNavigationItems = adminNavigationGroups.flatMap(group => group.items.map(item => ({ ...item, group: group.label })));
+const adminNavigationGroups = adminModulesForNavigation();
+const adminNavigationItems = ADMIN_MODULE_LIST;
 
 function getSidebarButtonLabel(button) {
   const key = button.dataset.view || button.dataset.module || button.id || "";
   const currentLabel = button.querySelector(".admin-nav-label")?.textContent?.trim();
-  return sidebarLabelsByKey[key] || button.dataset.label || currentLabel || button.textContent.trim().replace(/\s+/g, " ");
+  const moduleMeta = getAdminModule(key);
+  return moduleMeta.label || button.dataset.label || currentLabel || button.textContent.trim().replace(/\s+/g, " ");
 }
 
 function decorateSidebarButton(button) {
@@ -243,7 +105,11 @@ function decorateSidebarButton(button) {
   button.dataset.label = label;
   button.title = label;
   if (button.querySelector(".admin-nav-icon") && button.querySelector(".admin-nav-label")?.textContent?.trim() === label) return;
-  button.innerHTML = `<span class="admin-nav-icon" aria-hidden="true">${sidebarIconSvgMap[label] || sidebarIconSvgMap["Visão geral"]}</span><span class="admin-nav-label">${escapeHtml(label)}</span>`;
+  const view = button.dataset.view
+    || (button.id === "audience-nav" ? "audiencia" : "")
+    || (button.id === "editorial-approvals-nav" ? "aprovacoes" : "")
+    || "dashboard";
+  button.innerHTML = `${renderAdminModuleIcon(view, "admin-nav-icon")}<span class="admin-nav-label">${escapeHtml(label)}</span>`;
 }
 
 function refreshSidebarNavigation() {
@@ -261,8 +127,9 @@ function renderAdminNavigation() {
       <div class="admin-nav-group-items">
         ${group.items.map(item => {
           const attrs = [`type="button"`, `data-module="${escapeHtml(item.module)}"`, `data-label="${escapeHtml(item.label)}"`, `data-group="${escapeHtml(group.label)}"`];
-          if (!item.external) attrs.push(`data-view="${escapeHtml(item.view)}"`);
-          if (item.id) attrs.push(`id="${escapeHtml(item.id)}"`);
+          attrs.push(`data-view="${escapeHtml(item.view)}"`);
+          if (item.view === "audiencia") attrs.push(`id="audience-nav"`);
+          if (item.view === "aprovacoes") attrs.push(`id="editorial-approvals-nav"`);
           return `<button ${attrs.join(" ")}>${escapeHtml(item.label)}</button>`;
         }).join("")}
       </div>
@@ -859,15 +726,7 @@ async function dashboard() {
     ].filter(Boolean);
     const attentionTotal = importantAlerts.reduce((sum, item) => sum + Math.max(1, Number(String(item[0]).match(/^\d+/)?.[0] || 1)), 0);
     const portalScore = Math.max(0, 100 - (aprovacoes * 8) - (rascunhos * 3) - (campanhasVencendo * 6) - (colaboradoresNovos * 4) - (eventSubmissionsPending * 3) - (businessSubmissionsPending * 3) - (campanhasAtivas ?0 : 10));
-    const targetAttrs = target => {
-      if (target === "publicidade") return 'data-view="publicidade"';
-      if (target === "comunicacao") return 'data-view="comunicacao"';
-      if (target === "melhores") return 'data-view="melhores"';
-      if (target === "notificacoes") return `data-view="${target}"`;
-      if (target === "aprovacoes") return "id=\"dashboard-approvals\"";
-      if (target === "audiencia") return "id=\"dashboard-audience\"";
-      return `data-view="${target}"`;
-    };
+    const targetAttrs = target => `data-view="${escapeHtml(target)}"`;
     const primaryMetrics = [
       ["Hoje", fmtNumber(viewsHoje), "interações registradas", "Fonte: analytics_eventos"],
       ["7 dias", fmtNumber(views7d), "movimento recente", `${fmtNumber(uniqueVisitors)} visitante(s) identificáveis`],
@@ -910,6 +769,57 @@ async function dashboard() {
       ["Enviar notificação", "App", "Abrir comunicação push", "notificacoes", "view"],
       ["Nova publicidade", "Comercial", "Abrir gestão de campanhas", "publicidade", "view"]
     ];
+    const moduleIndicators = {
+      dashboard: `${fmtNumber(attentionTotal)} atenção`,
+      audiencia: `${fmtNumber(views7d)} 7d`,
+      noticias: `${fmtNumber(publicadas)} pub.`,
+      aprovacoes: `${fmtNumber(aprovacoes)} pend.`,
+      eventos: `${fmtNumber(eventosProximos)} próx.`,
+      eventos_principais: `${fmtNumber(eventosPrincipais)} ativos`,
+      eventos_edicoes: `${fmtNumber(eventosEdicoes)} edições`,
+      categorias: `${fmtNumber(categorias)} ativas`,
+      guia_comercial: `${fmtNumber(empresasAtivas)} pub.`,
+      guia_verificacao: `${fmtNumber(Math.max(0, guideQuality.total - guideQuality.complete))} revisar`,
+      turismo: `${fmtNumber(pontosAtivos)} pub.`,
+      turismo_verificacao: "180d",
+      telefones_uteis: "App",
+      motoristas: "App",
+      iniciativas: "Comunidade",
+      vantagens: "Parceiros",
+      links: `${fmtNumber(links)} ativos`,
+      publicidade: `${fmtNumber(campanhasAtivas)} ativas`,
+      melhores: `${fmtNumber(melhoresEdicoes)} edições`,
+      comunicacao: `${fmtNumber(assinantes)} ativos`,
+      notificacoes: "Push",
+      colaboradores_voluntarios: `${fmtNumber(colaboradoresNovos)} novos`,
+      submissoes: `${fmtNumber(eventSubmissionsPending + businessSubmissionsPending)} pend.`,
+      configuracoes_site: "Global",
+      usuarios: `${fmtNumber(usuariosAtivos)} ativos`,
+      importacao: "JSON"
+    };
+    const domainDescriptions = {
+      "Operação": "Leitura geral, audiência e saúde do ecossistema.",
+      "Conteúdo": "Editorial, agenda, categorias e acervo público.",
+      "Viva Urânia": "Tudo que alimenta o aplicativo e a experiência local.",
+      "Comercial": "Publicidade, assinaturas e premiação Melhores de Urânia.",
+      "Comunicação": "Relacionamento, push, submissões e comunidade.",
+      "Sistema": "Configuração, acesso e ferramentas técnicas."
+    };
+    const domainHtml = adminNavigationGroups.map(group => `
+      <article class="ops-domain">
+        <header>
+          <h3>${escapeHtml(group.label)}</h3>
+          <p>${escapeHtml(domainDescriptions[group.label] || "Módulos administrativos conectados.")}</p>
+        </header>
+        <div class="ops-domain-modules">
+          ${group.items.map(item => `<button class="ops-module-link" data-view="${escapeHtml(item.view)}">
+            ${renderAdminModuleIcon(item.view)}
+            <strong>${escapeHtml(item.label)}</strong>
+            <small>${escapeHtml(moduleIndicators[item.view] || item.dashboard?.indicator || "")}</small>
+          </button>`).join("")}
+        </div>
+      </article>
+    `).join("");
 
     app.innerHTML = `
       <section class="ops-dashboard">
@@ -960,6 +870,19 @@ async function dashboard() {
           </header>
           <div class="ops-attention-list">
             ${importantAlerts.length ?importantAlerts.map(([text, action, target, tone]) => `<button class="ops-attention-item ${tone || ""}" ${targetAttrs(target)}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} →</strong></button>`).join("") : '<div class="ops-empty">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
+          </div>
+        </section>
+
+        <section class="ops-section panel">
+          <header class="ops-section-header">
+            <div>
+              <p class="eyebrow">Áreas do sistema</p>
+              <h2>Todo o ecossistema em um único painel</h2>
+              <small>Os módulos abaixo vêm do registry global: sidebar, busca, dashboard e cabeçalhos usam a mesma identidade.</small>
+            </div>
+          </header>
+          <div class="ops-system-domains">
+            ${domainHtml}
           </div>
         </section>
 
@@ -1073,10 +996,13 @@ async function resourceList(table) {
     app.innerHTML=`
       <section class="admin-page">
         <header class="admin-page-header panel">
-          <div>
-            <p class="admin-breadcrumb">${escapeHtml(meta.group)} / ${escapeHtml(config.label)}</p>
-            <h2>${escapeHtml(config.label)}</h2>
-            <p>${escapeHtml(resourceDescription(table))}</p>
+          <div class="admin-page-title-row">
+            ${renderAdminModuleIcon(table, "admin-page-icon")}
+            <div>
+              <p class="admin-breadcrumb">${escapeHtml(meta.group)} / ${escapeHtml(config.label)}</p>
+              <h2>${escapeHtml(config.label)}</h2>
+              <p>${escapeHtml(resourceDescription(table))}</p>
+            </div>
           </div>
           <button class="admin-button" data-new="${table}">${escapeHtml(resourceActionLabel(table))}</button>
         </header>
@@ -1429,10 +1355,13 @@ async function editForm(table,id) {
   app.innerHTML=`
     <section class="admin-page admin-form-page">
       <header class="admin-page-header panel">
-        <div>
-          <p class="admin-breadcrumb">${escapeHtml(meta.group)} / ${escapeHtml(config.label)} / ${escapeHtml(action)}</p>
-          <h2>${escapeHtml(id ? `Editar ${row[config.title] || config.label}` : resourceActionLabel(table))}</h2>
-          <p>${escapeHtml(resourceDescription(table))}</p>
+        <div class="admin-page-title-row">
+          ${renderAdminModuleIcon(table, "admin-page-icon")}
+          <div>
+            <p class="admin-breadcrumb">${escapeHtml(meta.group)} / ${escapeHtml(config.label)} / ${escapeHtml(action)}</p>
+            <h2>${escapeHtml(id ? `Editar ${row[config.title] || config.label}` : resourceActionLabel(table))}</h2>
+            <p>${escapeHtml(resourceDescription(table))}</p>
+          </div>
         </div>
       </header>
       <form id="resource-form" class="resource-form admin-resource-form">
@@ -1548,11 +1477,12 @@ function setActiveNav(view) {
 async function mountShellModule(view, options = {}) {
   const route = moduleRoutes[view];
   if (!route) return false;
+  const moduleMeta = getAdminModule(view);
   clearMountedModule();
   currentView = view;
   currentResourceTable = null;
   currentResourceId = null;
-  setShellTitle(route.label, route.hint);
+  setShellTitle(moduleMeta.label || route.label, moduleMeta.description || route.hint);
   setActiveNav(view);
   const targetPath = adminPathForView(view);
   if (location.pathname !== targetPath) {
@@ -1574,7 +1504,7 @@ async function mountShellModule(view, options = {}) {
     });
   } catch (error) {
     console.error(`Falha ao carregar módulo ${view}:`, error);
-    app.innerHTML = `<section class="panel"><h2>Não foi possível carregar ${escapeHtml(route.label)}</h2><p class="form-message">${escapeHtml(error.message || "Erro inesperado.")}</p><button class="admin-button" data-retry-module="${escapeHtml(view)}" type="button">Tentar novamente</button></section>`;
+    app.innerHTML = `<section class="panel"><h2>Não foi possível carregar ${escapeHtml(moduleMeta.label || route.label)}</h2><p class="form-message">${escapeHtml(error.message || "Erro inesperado.")}</p><button class="admin-button" data-retry-module="${escapeHtml(view)}" type="button">Tentar novamente</button></section>`;
   }
   return true;
 }
@@ -1600,6 +1530,9 @@ async function handleClick(event) {
   if(button.dataset.view){
     event.preventDefault();
     if (button.dataset.qualityFilter) sessionStorage.setItem("euamourania:guide-quality-filter", button.dataset.qualityFilter);
+    if (button.dataset.view === "audiencia" && button.id !== "audience-nav") return document.getElementById("audience-nav")?.click();
+    if (button.dataset.view === "aprovacoes" && button.id !== "editorial-approvals-nav") return document.getElementById("editorial-approvals-nav")?.click();
+    if (button.dataset.view === "audiencia" || button.dataset.view === "aprovacoes") return;
     return navigateToView(button.dataset.view);
   }
   if(button.dataset.new)return editForm(button.dataset.new);
@@ -1620,8 +1553,13 @@ function adminCommandItems() {
     .map(item => ({
       type: "Módulo",
       title: item.label,
-      detail: item.group,
-      run: () => item.external && item.id ? document.getElementById(item.id)?.click() : navigateToView(item.view)
+      detail: item.description || item.group,
+      group: item.group,
+      icon: renderAdminModuleIcon(item.view),
+      searchable: [item.label, item.group, item.description, ...(item.keywords || [])].filter(Boolean).join(" "),
+      run: () => ["audiencia", "aprovacoes"].includes(item.view)
+        ? document.querySelector(`.admin-nav button[data-view="${item.view}"]`)?.click()
+        : navigateToView(item.view)
     }));
   return navigation;
 }
@@ -1656,13 +1594,13 @@ function updateCommandSelection(nextIndex) {
 function renderCommandResults() {
   if (!commandResults || !commandSearch) return;
   const term = commandSearch.value.trim().toLowerCase();
-  const items = adminCommandItems().filter(item => `${item.title} ${item.detail} ${item.type}`.toLowerCase().includes(term)).slice(0, 10);
+  const items = adminCommandItems().filter(item => `${item.title} ${item.detail} ${item.type} ${item.group || ""} ${item.searchable || ""}`.toLowerCase().includes(term)).slice(0, 10);
   commandResults._commands = items;
   commandResults.innerHTML = items.length ? items.map((item, index) => `
     <button type="button" role="option" data-command-index="${index}" aria-selected="${index === 0 ? "true" : "false"}" class="${index === 0 ? "is-selected" : ""}">
-      <span>${escapeHtml(item.type)}</span>
-      <strong>${escapeHtml(item.title)}</strong>
-      <small>${escapeHtml(item.detail)}</small>
+      ${item.icon || renderAdminModuleIcon("dashboard")}
+      <strong>${escapeHtml(item.title)}<small>${escapeHtml(item.detail)}</small></strong>
+      <span>${escapeHtml(item.group || item.type)}</span>
     </button>
   `).join("") : '<p class="admin-command-empty">Nenhum módulo encontrado.</p>';
   updateCommandSelection(0);
