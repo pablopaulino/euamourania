@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Viva Urânia — marca de coração
+  Arquivo-mestre vetorial, com transparência.
+  Use este SVG como origem para web e para gerar os PNGs de ícone do aplicativo.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" role="img" aria-labelledby="title description">
+  <title id="title">Coração Viva Urânia</title>
+  <desc id="description">Símbolo de coração vermelho com detalhe laranja.</desc>
+
+  <!-- Contorno aberto do coração -->
+  <path
+    d="M 305 624
+       C 258 572 233 518 233 454
+       C 233 353 309 271 405 271
+       C 458 271 504 294 541 336
+       C 578 294 625 271 677 271
+       C 773 271 850 353 850 454
+       C 850 537 802 602 738 660
+       L 541 821
+       L 371 689"
+    fill="none"
+    stroke="#FF1217"
+    stroke-width="60"
+    stroke-linecap="butt"
+    stroke-linejoin="round" />
+
+  <!-- Parte interna em forma de U da marca -->
+  <path
+    d="M 363 401
+       H 414
+       C 421 401 427 407 427 415
+       V 640
+       C 427 651 414 657 406 649
+       L 364 610
+       C 355 602 350 590 350 578
+       V 414
+       C 350 407 356 401 363 401 Z"
+    fill="#FF9300" />
+</svg>

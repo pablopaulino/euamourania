@@ -154,6 +154,7 @@
 .app-audience-grid small{display:-webkit-box;overflow:hidden;color:#647780;font-size:.68rem;font-weight:700;line-height:1.2;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal}
 .app-audience-columns{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1rem}
 .app-audience-columns>div{padding:.9rem;border:1px solid rgba(7,59,76,.1);border-radius:16px;background:#fff}
+.app-audience-columns>.app-company-performance{grid-column:1/-1;overflow:hidden}
 .app-audience-columns h3{margin:0 0 .5rem;color:#073b4c;font-size:.92rem}
 @media(max-width:1180px){.app-audience-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.google-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:1050px){.audience-page-head,.audience-overview-grid,.audience-split-grid{grid-template-columns:1fr}.audience-page-head{align-items:start}.audience-kpi-grid,.audience-mini-kpis,.audience-metrics,.audience-metrics.pro{grid-template-columns:repeat(2,minmax(0,1fr))}.audience-head{grid-template-columns:1fr}.audience-filters{justify-self:stretch;width:100%}.audience-filter-actions{justify-content:flex-start}.audience-strategy{grid-template-columns:1fr}.audience-insights{grid-template-columns:repeat(2,minmax(0,1fr))}.audience-content-grid,.audience-support-layout{grid-template-columns:1fr}.app-audience-columns{grid-template-columns:1fr}}

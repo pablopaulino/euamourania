@@ -67,7 +67,7 @@ for (const event of ["guia_click", "turismo_click", "link_click"]) {
   must(auditMigration.includes(`'${event}'`) && analytics.includes(`"${event}"`), `Metrica ausente: ${event}`);
 }
 must(auditMigration.includes("update public.turismo set visualizacoes=visualizacoes+1"), "Turismo sem contador de visualizacoes");
-must(categoryFields.includes("cms_categoria_id") && guide.includes('fetchPublicRows("categorias"') && guide.includes('tipo:"eq.guia"'), "Categorias nao estao integradas aos conteudos e filtros publicos");
+must(categoryFields.includes("cms_categoria_id") && /fetchPublicRows\("categorias"\s*,/.test(guide) && /tipo:\s*"eq\.guia"/.test(guide), "Categorias nao estao integradas aos conteudos e filtros publicos");
 must(index.includes('import("./editorial-audience.js")'), "Modulo administrativo nao carregado");
 must(index.includes('import("./category-fields.js")'), "Campos de categoria nao carregados no CMS");
 must(docs.includes("não grava IP"), "Documentacao de privacidade ausente");

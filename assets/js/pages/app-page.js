@@ -140,29 +140,13 @@ function setupPartnersAutoscroll(list) {
     cloneRuns += 1;
   }
 
-  let paused = false;
-  let rafId = 0;
-  const speed = window.matchMedia("(max-width: 720px)").matches ? 0.22 : 0.34;
-  const setPaused = value => {
-    paused = value;
-  };
-  const tick = () => {
-    if (!paused && list.scrollWidth > list.clientWidth) {
-      const resetPoint = list.scrollWidth / 2;
-      list.scrollLeft = list.scrollLeft >= resetPoint ? 0 : list.scrollLeft + speed;
-    }
-    rafId = window.requestAnimationFrame(tick);
-  };
-  const stop = () => window.cancelAnimationFrame(rafId);
+  const styles = getComputedStyle(list);
+  const gap = Number.parseFloat(styles.columnGap || styles.gap || "0") || 0;
+  const setWidth = cards.reduce((total, card) => total + card.getBoundingClientRect().width, 0) + gap * cards.length;
+  const duration = Math.max(22, Math.round(setWidth / 34));
 
-  list.addEventListener("mouseenter", () => setPaused(true));
-  list.addEventListener("mouseleave", () => setPaused(false));
-  list.addEventListener("focusin", () => setPaused(true));
-  list.addEventListener("focusout", () => setPaused(false));
-  list.addEventListener("touchstart", () => setPaused(true), { passive: true });
-  list.addEventListener("touchend", () => window.setTimeout(() => setPaused(false), 1800), { passive: true });
-  window.addEventListener("pagehide", stop, { once: true });
-  rafId = window.requestAnimationFrame(tick);
+  list.style.setProperty("--partner-set-width", `${setWidth}px`);
+  list.style.setProperty("--partner-marquee-duration", `${duration}s`);
 }
 
 function setupHeaderMotion() {

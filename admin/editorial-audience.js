@@ -422,82 +422,38 @@ async function appAudience(startString,endString){
  }
  const startIso=`${startString}T00:00:00.000Z`,endIso=`${endString}T23:59:59.999Z`;
  try{
-  const [ativos,ativosPeriodo,android,ios,tokens,notifications,failures,events]=await Promise.all([
+  const [audienceResult,ativos,ativosPeriodo,android,ios,tokens,notifications,failures]=await Promise.all([
+   db.rpc("obter_audiencia_app",{p_inicio:startString,p_fim:endString}),
    safeCountRows("app_push_tokens",query=>query.eq("ativo",true)),
    safeCountRows("app_push_tokens",query=>query.eq("ativo",true).gte("visto_em",startIso)),
    safeCountRows("app_push_tokens",query=>query.eq("ativo",true).eq("plataforma","android")),
    safeCountRows("app_push_tokens",query=>query.eq("ativo",true).eq("plataforma","ios")),
    safeListRows("app_push_tokens","plataforma,app_version,locale,ativo,visto_em,criado_em",query=>query.eq("ativo",true).order("visto_em",{ascending:false}).limit(600)),
    temPermissao(admin,"notificacoes","ler")?safeListRows("app_notificacoes","titulo,status,plataforma,total_destinatarios,total_aceitos,total_erros,cliques,enviado_em,criado_em",query=>query.gte("criado_em",startIso).lte("criado_em",endIso).order("criado_em",{ascending:false}).limit(80)):Promise.resolve([]),
-   temPermissao(admin,"notificacoes","ler")?safeCountRows("app_push_falhas",query=>query.gte("criado_em",startIso).lte("criado_em",endIso)):Promise.resolve(0),
-   safeListRows("analytics_eventos","tipo,pagina,recurso_tipo,recurso_id,anonymous_id,sessao_hash,origem,dispositivo,app_version,notification_id,metadados,criado_em",query=>query.gte("criado_em",startIso).lte("criado_em",endIso).order("criado_em",{ascending:false}).limit(5000))
+   temPermissao(admin,"notificacoes","ler")?safeCountRows("app_push_falhas",query=>query.gte("criado_em",startIso).lte("criado_em",endIso)):Promise.resolve(0)
   ]);
-  const versions=new Map(),locales=new Map(),eventCounts=new Map(),contentCounts=new Map(),searches=new Map(),screens=new Map(),zeroSearches=new Map(),shareTypes=new Map(),usefulContacts=new Map();
-  const visitors=new Set(),sessions=new Set();
+  if(audienceResult.error)throw audienceResult.error;
+  const audience=audienceResult.data||{},summary=audience.summary||{};
+  const versions=new Map(),locales=new Map();
   tokens.forEach(item=>{
    const version=item.app_version||"Sem versao";
    versions.set(version,(versions.get(version)||0)+1);
    const locale=item.locale||"Nao informado";
    locales.set(locale,(locales.get(locale)||0)+1);
   });
-  events.filter(isAppAudienceEvent).forEach(item=>{
-   eventCounts.set(item.tipo,(eventCounts.get(item.tipo)||0)+1);
-   if(item.anonymous_id)visitors.add(item.anonymous_id);
-   if(item.sessao_hash)sessions.add(item.sessao_hash);
-   if(item.recurso_tipo&&item.recurso_id){
-    const key=`${item.recurso_tipo}:${item.recurso_id}`;
-    const current=contentCounts.get(key)||{label:key,tipo:item.recurso_tipo,total:0};
-    current.total+=1;
-    contentCounts.set(key,current);
-   }
-   if(item.tipo==="search"){
-    const query=String(item.metadados?.query||"").trim();
-    if(query)searches.set(query,(searches.get(query)||0)+1);
-    const resultCount=Number(item.metadados?.results_count??0);
-    if(query&&Number.isFinite(resultCount)&&resultCount===0)zeroSearches.set(query,(zeroSearches.get(query)||0)+1);
-   }
-   if(item.tipo==="app_screen_view"){
-    const screen=String(item.metadados?.screen||"Tela nao identificada").replace(/_/g," ");
-    screens.set(screen,(screens.get(screen)||0)+1);
-   }
-   if(item.tipo==="share_click"){
-    const type=String(item.metadados?.content_type||item.recurso_tipo||"app");
-    shareTypes.set(type,(shareTypes.get(type)||0)+1);
-   }
-   if(item.tipo==="telefone_util_view"||item.tipo==="telefone_util_call_click"||item.tipo==="telefone_util_whatsapp_click"){
-    const key=item.recurso_id?String(item.recurso_id):String(item.metadados?.category||"Telefone util");
-    const current=usefulContacts.get(key)||{label:key,total:0,views:0,calls:0,whatsapp:0};
-    current.total+=1;
-    if(item.tipo==="telefone_util_view")current.views+=1;
-    if(item.tipo==="telefone_util_call_click")current.calls+=1;
-    if(item.tipo==="telefone_util_whatsapp_click")current.whatsapp+=1;
-    usefulContacts.set(key,current);
-   }
-  });
   const sent=notifications.filter(item=>item.status==="enviado").length;
   const accepted=notifications.reduce((sum,item)=>sum+Number(item.total_aceitos||0),0);
   const recipients=notifications.reduce((sum,item)=>sum+Number(item.total_destinatarios||0),0);
   const errors=notifications.reduce((sum,item)=>sum+Number(item.total_erros||0),0);
   const clicks=notifications.reduce((sum,item)=>sum+Number(item.cliques||0),0);
-  const views=Number(eventCounts.get("empresa_view")||0)+Number(eventCounts.get("turismo_view")||0)+Number(eventCounts.get("evento_view")||0)+Number(eventCounts.get("noticia_view")||0);
-  const usefulPhoneActions=Number(eventCounts.get("telefone_util_call_click")||0)+Number(eventCounts.get("telefone_util_whatsapp_click")||0);
-  const commercialActions=Number(eventCounts.get("empresa_whatsapp_click")||0)+Number(eventCounts.get("empresa_phone_click")||0)+Number(eventCounts.get("empresa_map_click")||0)+Number(eventCounts.get("turismo_map_click")||0)+usefulPhoneActions;
-  return{available:true,ativos,ativosPeriodo,platforms:{android,ios},events,
-   activeVisitors:visitors.size,sessions:sessions.size,opens:Number(eventCounts.get("app_open")||0),views,commercialActions,
-   favorites:Number(eventCounts.get("favorite_add")||0),favoriteRemovals:Number(eventCounts.get("favorite_remove")||0),searchCount:Number(eventCounts.get("search")||0),zeroSearchCount:[...zeroSearches.values()].reduce((sum,total)=>sum+Number(total||0),0),notificationOpens:Number(eventCounts.get("notification_open")||0),
-   shareCount:Number(eventCounts.get("share_click")||0),aiQuestions:Number(eventCounts.get("ai_guide_question")||0),aiItineraries:Number(eventCounts.get("ai_guide_itinerary_create")||0),itinerarySaves:Number(eventCounts.get("itinerary_save")||0),usefulPhoneActions,
-   viewsByType:[
-    {label:"Empresas",total:Number(eventCounts.get("empresa_view")||0)},
-    {label:"Turismo",total:Number(eventCounts.get("turismo_view")||0)},
-    {label:"Eventos",total:Number(eventCounts.get("evento_view")||0)},
-   {label:"Noticias",total:Number(eventCounts.get("noticia_view")||0)}
-   ].filter(item=>item.total),
-   topSearches:[...searches.entries()].map(([label,total])=>({label,total})).sort((a,b)=>b.total-a.total),
-   zeroSearches:[...zeroSearches.entries()].map(([label,total])=>({label,total})).sort((a,b)=>b.total-a.total),
-   screens:[...screens.entries()].map(([label,total])=>({label,total})).sort((a,b)=>b.total-a.total),
-   shareTypes:[...shareTypes.entries()].map(([label,total])=>({label,total})).sort((a,b)=>b.total-a.total),
-   usefulContacts:[...usefulContacts.values()].sort((a,b)=>b.total-a.total),
-   topContent:[...contentCounts.values()].sort((a,b)=>b.total-a.total),
+  const searches=(audience.searches||[]).map(item=>({label:item.label,total:Number(item.total||0)}));
+  const zeroSearches=(audience.searches||[]).filter(item=>Number(item.withoutResults||0)>0).map(item=>({label:item.label,total:Number(item.withoutResults||0)}));
+  return{available:true,ativos,ativosPeriodo,platforms:{android,ios},
+   accountsTotal:Number(summary.accountsTotal||0),accountsCreated:Number(summary.accountsCreated||0),activeSignedAccounts:Number(summary.activeSignedAccounts||0),
+   activeVisitors:Number(summary.activeDevices||0),sessions:Number(summary.sessions||0),opens:Number(summary.opens||0),views:Number(summary.views||0),commercialActions:Number(summary.commercialActions||0),
+   favorites:Number(summary.favorites||0),favoriteRemovals:Number(summary.favoriteRemovals||0),searchCount:Number(summary.searches||0),zeroSearchCount:zeroSearches.reduce((sum,item)=>sum+item.total,0),notificationOpens:Number(summary.notificationOpens||0),
+   shareCount:Number(summary.shares||0),aiQuestions:Number(summary.aiQuestions||0),aiItineraries:Number(summary.aiItineraries||0),itinerarySaves:Number(summary.itinerarySaves||0),usefulPhoneActions:0,
+   viewsByType:(audience.viewsByType||[]).filter(item=>Number(item.total||0)>0),topSearches:searches,zeroSearches,screens:audience.screens||[],shareTypes:[],usefulContacts:[],companies:audience.companies||[],
    versions:[...versions.entries()].map(([label,total])=>({label,total})).sort((a,b)=>b.total-a.total),
    locales:[...locales.entries()].map(([label,total])=>({label,total})).sort((a,b)=>b.total-a.total),
    notifications,sent,accepted,recipients,errors,clicks,failures};
@@ -507,6 +463,14 @@ async function appAudience(startString,endString){
 }
 function appRank(rows=[],limit=5){
  return rows.slice(0,limit).map((item,index)=>`<div class="audience-rank-row"><span>${index+1}</span><div><strong>${esc(item.label)}</strong></div><small>${fmt(item.total)}</small></div>`).join("")||'<div class="empty-state">Sem dados do app.</div>';
+}
+function companyPerformanceRows(rows=[]){
+ return rows.map((item,index)=>`<tr>
+  <td><span class="audience-position">${index+1}</span></td>
+  <td><strong class="audience-ellipsis">${esc(item.nome||"Empresa")}</strong></td>
+  <td>${fmt(item.impressoes)}</td><td>${fmt(item.visualizacoes)}</td>
+  <td>${fmt(item.whatsapp)}</td><td>${fmt(item.ligacoes)}</td><td>${fmt(item.rotas)}</td>
+ </tr>`).join("")||'<tr><td colspan="7"><div class="empty-state">Sem interações de empresas no período.</div></td></tr>';
 }
 function appStatusLabel(status){
  return({rascunho:"Rascunho",enviando:"Enviando",enviado:"Enviado",falhou:"Falhou",cancelado:"Cancelado"})[status]||status||"Sem status";
@@ -519,8 +483,10 @@ function appPanels(data){
  const pushCtr=data.accepted?`${((data.clicks/data.accepted)*100).toFixed(1).replace(".",",")}%`:"—";
  return`<section class="panel wide app-audience-panel"><header class="panel-header"><div><p class="eyebrow">Viva Urânia</p><h2>Audiência do app</h2><p>Instalações, atividade real, conteúdo consumido e desempenho das notificações.</p></div><span class="audience-source-pill">Fonte: analytics_eventos + push</span></header>
   <div class="app-audience-grid">
+   <article><span>Contas criadas</span><strong>${fmt(data.accountsTotal)}</strong><small>${fmt(data.accountsCreated)} nova(s) no período</small></article>
+   <article><span>Contas ativas</span><strong>${fmt(data.activeSignedAccounts)}</strong><small>Contas autenticadas no período</small></article>
    <article><span>Aparelhos ativos</span><strong>${fmt(data.ativos)}</strong><small>Total com push ativo</small></article>
-   <article><span>Usuários ativos</span><strong>${fmt(data.activeVisitors)}</strong><small>Identificadores anônimos no período</small></article>
+   <article><span>Dispositivos ativos</span><strong>${fmt(data.activeVisitors)}</strong><small>Identificadores anônimos no período</small></article>
    <article><span>Sessões</span><strong>${fmt(data.sessions)}</strong><small>Janelas de uso do app</small></article>
    <article><span>Aberturas</span><strong>${fmt(data.opens)}</strong><small>App iniciado no período</small></article>
    <article><span>Conteúdos vistos</span><strong>${fmt(data.views)}</strong><small>Empresas, turismo, eventos e notícias</small></article>
@@ -535,6 +501,7 @@ function appPanels(data){
    <article><span>Cliques em push</span><strong>${fmt(data.clicks)}</strong><small>CTR ${pushCtr}</small></article>
   </div>
   <div class="app-audience-columns">
+   <div class="app-company-performance"><h3>Empresas: desempenho no período</h3><div class="table-wrap"><table class="cms-table"><thead><tr><th>#</th><th>Empresa</th><th>Impressões</th><th>Perfis</th><th>WhatsApp</th><th>Ligações</th><th>Rotas</th></tr></thead><tbody>${companyPerformanceRows(data.companies||[])}</tbody></table></div></div>
    <div><h3>Telas mais abertas</h3>${appRank(data.screens)}</div>
    <div><h3>Visualizações por módulo</h3>${appRank(data.viewsByType)}</div>
    <div><h3>Buscas do app</h3>${appRank(data.topSearches)}</div>
@@ -658,7 +625,10 @@ function exportAudience(){
  (audienceData.buscas||[]).forEach(item=>rows.push(["Buscas",item.termo,item.total]));
  (audienceData.recursos||[]).forEach(item=>rows.push(["Conteúdos",`${item.tipo}: ${item.nome}`,item.total]));
  if(audienceData.app?.available){
- rows.push(["App","Aparelhos ativos",audienceData.app.ativos]);
+  rows.push(["App","Contas criadas (total)",audienceData.app.accountsTotal]);
+  rows.push(["App","Contas criadas no período",audienceData.app.accountsCreated]);
+  rows.push(["App","Contas autenticadas ativas",audienceData.app.activeSignedAccounts]);
+  rows.push(["App","Aparelhos ativos",audienceData.app.ativos]);
   rows.push(["App","Aparelhos ativos no periodo",audienceData.app.ativosPeriodo]);
   rows.push(["App","Usuarios ativos",audienceData.app.activeVisitors]);
   rows.push(["App","Sessoes",audienceData.app.sessions]);
@@ -684,6 +654,12 @@ function exportAudience(){
   (audienceData.app.shareTypes||[]).forEach(item=>rows.push(["Compartilhamentos do app",item.label,item.total]));
   (audienceData.app.usefulContacts||[]).forEach(item=>rows.push(["Telefones uteis",item.label,item.total]));
   (audienceData.app.versions||[]).forEach(item=>rows.push(["Versoes do app",item.label,item.total]));
+  (audienceData.app.companies||[]).forEach(item=>{
+   rows.push(["Empresas · visualizações",item.nome,item.visualizacoes]);
+   rows.push(["Empresas · WhatsApp",item.nome,item.whatsapp]);
+   rows.push(["Empresas · ligações",item.nome,item.ligacoes]);
+   rows.push(["Empresas · rotas",item.nome,item.rotas]);
+  });
  }
  const csv="\ufeff"+rows.map(row=>row.map(value=>`"${String(value??"").replaceAll('"','""')}"`).join(";")).join("\n");
  const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"})),link=document.createElement("a");

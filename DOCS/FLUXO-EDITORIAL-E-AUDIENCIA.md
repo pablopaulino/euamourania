@@ -100,3 +100,9 @@ Fontes externas complementares:
 - Search Console.
 
 Sempre documentar quando um card usar fonte externa.
+
+As consultas administrativas do Google Analytics e Search Console usam cache por dez minutos. Nunca exponha o JSON da conta de serviço no site público, no aplicativo, no repositório ou em respostas da API.
+
+## Privacidade da audiência
+
+O rastreamento interno não grava IP, e-mail, telefone, senha, token ou outros dados pessoais nos eventos de audiência. Para o aplicativo, os indicadores de dispositivos usam identificadores anônimos e as métricas de contas são agregadas exclusivamente para usuários administrativos com permissão de insights.
