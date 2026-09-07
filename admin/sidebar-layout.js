@@ -86,13 +86,20 @@ const sharedSidebarIcons = {
   links: sidebarIconSvgShared(`<path d="M10 13a5 5 0 0 0 7.1 0l1.4-1.4a5 5 0 0 0-7.1-7.1L10.6 5"/><path d="M14 11a5 5 0 0 0-7.1 0l-1.4 1.4a5 5 0 0 0 7.1 7.1l.8-.8"/>`),
   events: sidebarIconSvgShared(`<path d="M7 3v4"/><path d="M17 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/>`),
   ads: sidebarIconSvgShared(`<path d="m4 14 4-2 9-5v10l-9-5-4-2v4Z"/><path d="M8 14v5"/><path d="M18 9.5c1 .8 1.5 1.7 1.5 2.5s-.5 1.7-1.5 2.5"/>`),
+  audience: sidebarIconSvgShared(`<path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-4"/><path d="M12 16V8"/><path d="M16 16v-7"/><path d="M7 9l4-3 4 2 4-5"/>`),
   mail: sidebarIconSvgShared(`<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/>`),
   bell: sidebarIconSvgShared(`<path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>`),
   award: sidebarIconSvgShared(`<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M5 6H3v2a4 4 0 0 0 4 4"/><path d="M19 6h2v2a4 4 0 0 1-4 4"/>`),
+  category: sidebarIconSvgShared(`<path d="M20 10.5 13.5 4H7L4 7v6.5l6.5 6.5a2 2 0 0 0 2.8 0l6.7-6.7a2 2 0 0 0 0-2.8Z"/><circle cx="8.7" cy="8.7" r="1"/>`),
+  checkStore: sidebarIconSvgShared(`<path d="M4.5 10h15"/><path d="m6 10 1-5h10l1 5"/><path d="M7 10v9h10v-9"/><path d="m9 15 2 2 4-5"/>`),
+  editions: sidebarIconSvgShared(`<path d="M7.5 7h12v12h-12z"/><path d="M4.5 4h12v12"/><path d="M10.5 11h5.5"/><path d="M10.5 14.5h4"/>`),
+  event: sidebarIconSvgShared(`<path d="M7 3.5v3"/><path d="M17 3.5v3"/><rect x="4.5" y="5.5" width="15" height="15" rx="3"/><path d="M4.5 10h15"/><path d="m12 13 1 2 2.2.3-1.6 1.55.38 2.15L12 18l-1.98 1 .38-2.15-1.6-1.55 2.2-.3 1-2Z"/>`),
+  submission: sidebarIconSvgShared(`<path d="M4.5 5h15v11h-10L6 19.5V16h-1.5V5Z"/><path d="M8 9h8"/><path d="M8 12.5h5"/>`),
   tag: sidebarIconSvgShared(`<path d="M20.5 10.5 13.5 3.5H6l-2.5 2.5v7.5l7 7a2 2 0 0 0 2.8 0l7.2-7.2a2 2 0 0 0 0-2.8Z"/><circle cx="8.5" cy="8.5" r="1"/>`),
+  ticket: sidebarIconSvgShared(`<path d="M4.5 8.5a2 2 0 0 0 0 3v1a2 2 0 0 0 0 3v2h15v-2a2 2 0 0 0 0-3v-1a2 2 0 0 0 0-3v-2h-15v2Z"/><path d="M9 7v10"/><path d="M13 10h3"/><path d="M13 14h3"/>`),
   settings: sidebarIconSvgShared(`<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19 13.5a1.8 1.8 0 0 0 0-3l1.2-2-2.4-2.4-2 1.2a1.8 1.8 0 0 0-3 0L11.6 5H8.4L7.2 7.3a1.8 1.8 0 0 0-3 0L2 8.6l1.2 2a1.8 1.8 0 0 0 0 3L2 15.6l2.2 2.2 2-1.2a1.8 1.8 0 0 0 3 0l1.2 2.4h3.2l1.2-2.4a1.8 1.8 0 0 0 3 0l2 1.2 2.2-2.2-1.2-2Z"/>`),
   users: sidebarIconSvgShared(`<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M20.5 8v6"/><path d="M17.5 11h6"/>`),
-  upload: sidebarIconSvgShared(`<path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5Z"/><path d="M12 12v5"/><path d="m9.5 14.5 2.5-2.5 2.5 2.5"/>`)
+  upload: sidebarIconSvgShared(`<path d="M14 4v5h5"/><path d="M19 9v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 6Z"/><path d="M12 12v5"/><path d="m9.5 14.5 2.5 2.5 2.5-2.5"/>`)
 };
 
 let sidebarIsRendering = false;
@@ -100,27 +107,27 @@ let sidebarIsRendering = false;
 const fullSidebarMenu = [
   { label: "Visão geral", href: adminPathForModule("dashboard"), icon: "dashboard", module: "dashboard", view: "dashboard" },
   { label: "Notícias", href: adminPathForModule("noticias"), icon: "news", module: "noticias", view: "noticias" },
-  { label: "Aprovações", href: adminPathForModule("aprovacoes"), icon: "approval", module: "noticias", id: "editorial-approvals-nav" },
+  { label: "Aprovações", href: adminPathForModule("aprovacoes"), icon: "approval", module: "noticias", view: "aprovacoes", id: "editorial-approvals-nav" },
   { label: "Colaborações", href: adminPathForModule("colaboradores_voluntarios"), icon: "users", module: "colaboradores", view: "colaboradores_voluntarios" },
   { label: "Guia comercial", href: adminPathForModule("guia_comercial"), icon: "guide", module: "guia_comercial", view: "guia_comercial" },
-  { label: "Verificação do Guia", href: adminPathForModule("guia_verificacao"), icon: "approval", module: "guia_comercial", view: "guia_verificacao" },
+  { label: "Verificação do Guia", href: adminPathForModule("guia_verificacao"), icon: "checkStore", module: "guia_comercial", view: "guia_verificacao" },
   { label: "Turismo", href: adminPathForModule("turismo"), icon: "tourism", module: "turismo", view: "turismo" },
-  { label: "Verificação de Turismo", href: adminPathForModule("turismo_verificacao"), icon: "approval", module: "turismo", view: "turismo_verificacao" },
-  { label: "Viva Vantagens", href: adminPathForModule("vantagens"), icon: "tag", module: "guia_comercial", view: "vantagens" },
+  { label: "Verificação de Turismo", href: adminPathForModule("turismo_verificacao"), icon: "tourism", module: "turismo", view: "turismo_verificacao" },
+  { label: "Viva Vantagens", href: adminPathForModule("vantagens"), icon: "ticket", module: "guia_comercial", view: "vantagens" },
   { label: "Links", href: adminPathForModule("links"), icon: "links", module: "links", view: "links" },
-  { label: "Submissões públicas", href: adminPathForModule("submissoes"), icon: "users", module: "submissoes" },
+  { label: "Submissões públicas", href: adminPathForModule("submissoes"), icon: "submission", module: "submissoes", view: "submissoes" },
   { label: "Agenda simples", href: adminPathForModule("eventos"), icon: "events", module: "eventos", view: "eventos" },
-  { label: "Eventos principais", href: adminPathForModule("eventos_principais"), icon: "events", module: "eventos", view: "eventos_principais" },
-  { label: "Edições", href: adminPathForModule("eventos_edicoes"), icon: "news", module: "eventos", view: "eventos_edicoes" },
-  { label: "Publicidade", href: adminPathForModule("publicidade"), icon: "ads", module: "publicidade" },
-  { label: "Comunicação", href: adminPathForModule("comunicacao"), icon: "mail", module: "comunicacao" },
-  { label: "Notificações do Viva Urânia", href: adminPathForModule("notificacoes"), icon: "bell", module: "notificacoes" },
-  { label: "Melhores de Urânia", href: adminPathForModule("melhores"), icon: "award", module: "melhores" },
-  { label: "Categorias", href: adminPathForModule("categorias"), icon: "tag", module: "categorias", view: "categorias" },
-  { label: "Audiência", href: adminPathForModule("audiencia"), icon: "dashboard", module: "insights", id: "audience-nav" },
+  { label: "Eventos principais", href: adminPathForModule("eventos_principais"), icon: "event", module: "eventos", view: "eventos_principais" },
+  { label: "Edições", href: adminPathForModule("eventos_edicoes"), icon: "editions", module: "eventos", view: "eventos_edicoes" },
+  { label: "Publicidade", href: adminPathForModule("publicidade"), icon: "ads", module: "publicidade", view: "publicidade" },
+  { label: "Comunicação", href: adminPathForModule("comunicacao"), icon: "mail", module: "comunicacao", view: "comunicacao" },
+  { label: "Notificações do Viva Urânia", href: adminPathForModule("notificacoes"), icon: "bell", module: "notificacoes", view: "notificacoes" },
+  { label: "Melhores de Urânia", href: adminPathForModule("melhores"), icon: "award", module: "melhores", view: "melhores" },
+  { label: "Categorias", href: adminPathForModule("categorias"), icon: "category", module: "categorias", view: "categorias" },
+  { label: "Audiência", href: adminPathForModule("audiencia"), icon: "audience", module: "insights", view: "audiencia", id: "audience-nav" },
   { label: "Configurações", href: adminPathForModule("configuracoes_site"), icon: "settings", module: "configuracoes", view: "configuracoes_site" },
-  { label: "Usuários administrativos", href: adminPathForModule("usuarios"), icon: "users", module: "usuarios" },
-  { label: "Migrar conteúdo antigo", href: adminPathForModule("importacao"), icon: "upload", module: "importacao" }
+  { label: "Usuários administrativos", href: adminPathForModule("usuarios"), icon: "users", module: "usuarios", view: "usuarios" },
+  { label: "Migrar conteúdo antigo", href: adminPathForModule("importacao"), icon: "upload", module: "importacao", view: "importacao" }
 ];
 
 function currentSidebarTarget() {
