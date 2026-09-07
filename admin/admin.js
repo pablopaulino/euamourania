@@ -56,6 +56,11 @@ const moduleRoutes = {
     hint: "Contatos de motoristas particulares para corridas locais e viagens.",
     module: () => import("./motoristas.js")
   },
+  vantagens: {
+    label: "Viva Vantagens",
+    hint: "Cupons, ofertas e benefícios dos parceiros do Viva.",
+    module: () => import("./vantagens.js")
+  },
   iniciativas: {
     label: "Iniciativas da Comunidade",
     hint: "Projetos, ações e formas de ajuda divulgadas pelo Viva Urânia.",
