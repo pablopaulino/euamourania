@@ -769,7 +769,7 @@ select:focus {
 }
 
 #app-content[data-layout="form"] {
-  max-width: 1120px;
+  max-width: 1600px;
 }
 
 #app-content[data-layout="dashboard"],
@@ -1235,6 +1235,49 @@ body[data-admin-shell="true"] .admin-shell.sidebar-collapsed .admin-nav a {
 body[data-admin-shell="true"] .admin-shell.sidebar-collapsed .admin-nav button.active::before,
 body[data-admin-shell="true"] .admin-shell.sidebar-collapsed .admin-nav a.active::before {
   left: -4px;
+}
+
+body[data-admin-shell="true"] .admin-page-wide,
+body[data-admin-shell="true"] .admin-form-page,
+body[data-admin-shell="true"] .admin-list-panel,
+body[data-admin-shell="true"] .admin-filterbar,
+body[data-admin-shell="true"] .admin-data-table-wrap,
+body[data-admin-shell="true"] .admin-data-table,
+body[data-admin-shell="true"] .admin-resource-form,
+body[data-admin-shell="true"] .admin-form-section {
+  width: 100%;
+  max-width: none;
+}
+
+body[data-admin-shell="true"] .admin-page-wide {
+  align-items: stretch;
+}
+
+body[data-admin-shell="true"] .admin-list-panel {
+  justify-self: stretch;
+}
+
+body[data-admin-shell="true"] .admin-filterbar {
+  grid-template-columns: minmax(360px, 1fr) minmax(180px, 260px) auto;
+}
+
+body[data-admin-shell="true"] .admin-data-table {
+  min-width: 980px;
+}
+
+body[data-admin-shell="true"] .admin-form-page {
+  justify-self: stretch;
+}
+
+@media (min-width: 1181px) {
+  body[data-admin-shell="true"] .resource-form-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  body[data-admin-shell="true"] .resource-form-grid .full-row,
+  body[data-admin-shell="true"] .resource-form-grid fieldset.full-row {
+    grid-column: 1 / -1;
+  }
 }
 
 body[data-admin-shell="true"] .audience-tabs,

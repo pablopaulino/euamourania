@@ -1293,8 +1293,28 @@ function fieldHtmlCorrigido([name,label,type,required], value) {
   if(type==="event-principal-select") return `<label>${label}<select name="${name}" data-event-principal-select data-current="${escapeHtml(inputValue(value,type))}" ${req}><option value="">Carregando eventos principais...</option></select><small>Escolha o evento principal. Não precisa copiar ID.</small></label>`;
   const options=type==="status"?["rascunho","publicado","arquivado"]:type==="active-status"?["ativo","inativo"]:type==="category-type"?["noticias","guia","turismo","eventos"]:type==="link-feature-type"?["normal","grupo_whatsapp","app"]:type==="volunteer-status"?["novo","em_conversa","aprovado","recusado","arquivado"]:type==="event-recurrence"?["anual","mensal","unico","outro"]:type==="event-simple-recurrence"?["nenhuma","semanal","mensal","anual"]:type==="event-edition-status"?["anunciado","confirmado","acontecendo","encerrado","cancelado"]:null;
   if(options) return `<label>${label}<select name="${name}">${options.map(o=>`<option value="${o}" ${value===o?"selected":""}>${selectOptionLabel(o,type)}</option>`).join("")}</select></label>`;
-  const inputType=type==="url"||type==="number"?"text":type,urlAttributes=type==="url"?' inputmode="url" data-type="url" placeholder="https://... ou /assets/..."':type==="number"?' inputmode="decimal" data-type="number" placeholder="Ex.: -20.2046718"':"";
+  const inputType=type==="url"||type==="number"?"text":type,urlAttributes=type==="url"?` inputmode="url" data-type="url" placeholder="https://... ou /assets/..."${mediaAttributesForField(name)}`:type==="number"?' inputmode="decimal" data-type="number" placeholder="Ex.: -20.2046718"':"";
   return `<label class="${full}">${label}<input type="${inputType}"${urlAttributes} name="${name}" value="${escapeHtml(inputValue(value,type))}" ${req}></label>`;
+}
+
+function mediaAttributesForField(name) {
+  const fieldName = String(name || "");
+  const isMediaField = /(imagem|capa|cartaz|banner|seo_imagem)/.test(fieldName);
+  if (!isMediaField) return "";
+  const folderBase = {
+    noticias: "noticias",
+    guia_comercial: "guia",
+    turismo: "turismo",
+    eventos: "eventos",
+    eventos_principais: "eventos/principais",
+    eventos_edicoes: "eventos/edicoes",
+    banners: "banners"
+  }[currentResourceTable] || "configuracoes/imagens";
+  const preset = fieldName.includes("seo") ? "social"
+    : fieldName.includes("banner") || fieldName.includes("capa") ? "wide"
+    : fieldName.includes("cartaz") ? "classic"
+    : "card";
+  return ` data-cms-image="true" data-media-folder="${escapeHtml(folderBase)}" data-media-preset="${preset}"`;
 }
 
 function resourceFieldSection(field) {
