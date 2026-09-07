@@ -1,6 +1,6 @@
 ﻿import { adminModuleFromLocation, adminPathForModule } from "./admin-routes.js";
 
-const viewModules={dashboard:"dashboard",noticias:"noticias",colaboradores_voluntarios:"colaboradores",guia_comercial:"guia_comercial",guia_verificacao:"guia_comercial",turismo:"turismo",turismo_verificacao:"turismo",telefones_uteis:"configuracoes",motoristas:"configuracoes",vantagens:"guia_comercial",iniciativas:"configuracoes",links:"links",eventos:"eventos",eventos_principais:"eventos",eventos_edicoes:"eventos",categorias:"categorias",insights:"insights",audiencia:"insights",configuracoes_site:"configuracoes",comunicacao:"comunicacao",notificacoes:"notificacoes",submissoes:"submissoes",publicidade:"publicidade",usuarios:"usuarios",importacao:"importacao",melhores:"melhores"};
+const viewModules={dashboard:"dashboard",noticias:"noticias",colaboradores_voluntarios:"colaboradores",guia_comercial:"guia_comercial",guia_verificacao:"guia_comercial",turismo:"turismo",turismo_verificacao:"turismo",telefones_uteis:"configuracoes",motoristas:"configuracoes",vantagens:"guia_comercial",iniciativas:"configuracoes",links:"links",eventos:"eventos",eventos_principais:"eventos",eventos_edicoes:"eventos",categorias:"categorias",insights:"insights",audiencia:"insights",configuracoes_site:"configuracoes",midia:"configuracoes",comunicacao:"comunicacao",notificacoes:"notificacoes",submissoes:"submissoes",publicidade:"publicidade",usuarios:"usuarios",importacao:"importacao",melhores:"melhores"};
 const navItems=[
   ["dashboard","Visão geral","dashboard"],
   ["noticias","Notícias","noticias"],
@@ -25,6 +25,7 @@ const navItems=[
   ["melhores","Melhores de Urânia","melhores"],
   ["categorias","Categorias","categorias"],
   ["audiencia","Audiência","insights"],
+  ["midia","Mídia","configuracoes"],
   ["configuracoes_site","Configurações","configuracoes"],
   ["usuarios","Usuários administrativos","usuarios"],
   ["importacao","Migrar conteúdo antigo","importacao"]
@@ -51,7 +52,7 @@ function buttonForNav([key,label,module],isIndex,current){
   const attrs=[`type="button"`,`data-module="${module}"`];
   if(current===key)attrs.push('class="active"');
   if(isIndex){
-    if(["dashboard","noticias","colaboradores_voluntarios","guia_comercial","guia_verificacao","turismo","turismo_verificacao","telefones_uteis","motoristas","vantagens","iniciativas","links","eventos","eventos_principais","eventos_edicoes","categorias","configuracoes_site","comunicacao","notificacoes","submissoes","publicidade","usuarios","importacao","melhores"].includes(key))attrs.push(`data-view="${key}"`);
+    if(["dashboard","noticias","colaboradores_voluntarios","guia_comercial","guia_verificacao","turismo","turismo_verificacao","telefones_uteis","motoristas","vantagens","iniciativas","links","eventos","eventos_principais","eventos_edicoes","categorias","configuracoes_site","midia","comunicacao","notificacoes","submissoes","publicidade","usuarios","importacao","melhores"].includes(key))attrs.push(`data-view="${key}"`);
     else if(key==="aprovacoes")attrs.push('id="editorial-approvals-nav"');
     else if(key==="audiencia")attrs.push('id="audience-nav"');
     else attrs.push(`onclick="location.href='${adminPathForModule(key)}'"`);
@@ -125,7 +126,7 @@ export function aplicarControleAcesso(access,can){
   const requested=viewModules[adminModuleFromLocation()]||viewModules[location.hash.slice(1)];
   if(requested&&!allowed(requested)){history.replaceState(null,"",adminPathForModule("dashboard"))}
   const apply=()=>{
-    document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button=>{const module=navModule(button);if(module)button.hidden=!allowed(module)});
+    document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button=>{const module=navModule(button);if(module)button.hidden=button.dataset.view==="midia"?role!=="super_admin":!allowed(module)});
     const path=location.pathname;
     if(path.endsWith("/admin/index.html")||path.endsWith("/admin/")||path.endsWith("/admin"))document.querySelectorAll("button").forEach(button=>{const action=mainAction(button);if(action&&!allowed(...action))button.hidden=true});
     if(path.endsWith("publicidade.html")){

@@ -4,7 +4,7 @@ import { listarTabela, salvarRegistro, excluirRegistro } from "../assets/js/serv
 import { gerarSlug } from "../assets/js/utils.js";
 import { adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js";
 import { summarizeBusinessQuality } from "./business-quality.js";
-import { ADMIN_MODULE_LIST, adminModulesForNavigation, getAdminModule, renderAdminModuleIcon } from "./admin-modules.js";
+import { ADMIN_MODULE_LIST, adminModulesForNavigation, getAdminModule, renderAdminModuleIcon } from "./admin-modules.js?v=20260907-media-gallery";
 
 const app = document.getElementById("app-content");
 const title = document.getElementById("page-title");
@@ -134,6 +134,7 @@ function renderAdminNavigation() {
           attrs.push(`data-view="${escapeHtml(item.view)}"`);
           if (item.view === "audiencia") attrs.push(`id="audience-nav"`);
           if (item.view === "aprovacoes") attrs.push(`id="editorial-approvals-nav"`);
+          if (item.view === "midia") attrs.push(`id="media-library-nav"`);
           return `<button ${attrs.join(" ")}>${escapeHtml(item.label)}</button>`;
         }).join("")}
       </div>
@@ -1546,6 +1547,22 @@ async function mountShellModule(view, options = {}) {
 }
 
 async function navigateToView(view, options = {}) {
+  if (view === "midia") {
+    clearMountedModule();
+    currentView = view;
+    activeModuleKey = view;
+    app.dataset.layout = "module";
+    setActiveNav(view);
+    const moduleMeta = getAdminModule(view);
+    setShellTitle(moduleMeta.label, moduleMeta.description, { moduleKey: view, contextLabel: moduleMeta.group });
+    const targetPath = adminPathForView(view);
+    if (location.pathname !== targetPath) {
+      history[options.replace ?"replaceState" : "pushState"]({ adminView: view }, "", targetPath);
+    }
+    app.innerHTML = '<div class="loading">Carregando biblioteca de mídia...</div>';
+    window.dispatchEvent(new CustomEvent("admin:open-media-library"));
+    return true;
+  }
   if (moduleRoutes[view]) return mountShellModule(view, options);
   clearMountedModule();
   currentView = view || "dashboard";
@@ -1595,7 +1612,7 @@ function adminCommandItems() {
       group: item.group,
       icon: renderAdminModuleIcon(item.view),
       searchable: [item.label, item.group, item.description, ...(item.keywords || [])].filter(Boolean).join(" "),
-      run: () => ["audiencia", "aprovacoes"].includes(item.view)
+      run: () => ["audiencia", "aprovacoes", "midia"].includes(item.view)
         ? document.querySelector(`.admin-nav button[data-view="${item.view}"]`)?.click()
         : navigateToView(item.view)
     }));
@@ -1758,7 +1775,7 @@ async function init(){
 init();
 window.addEventListener("popstate",()=>{
   const view=adminViewFromLocation()||"dashboard";
-  if(view==="audiencia"||view==="aprovacoes"){clearMountedModule();return;}
+  if(view==="audiencia"||view==="aprovacoes"||view==="midia"){clearMountedModule();return;}
   navigateToView(view,{replace:true});
 });
 window.addEventListener("admin:external-module",event=>{

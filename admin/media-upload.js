@@ -20,7 +20,7 @@ function ensureStyles(){
  if(document.querySelector('link[data-cms-media]'))return;
  const link=document.createElement("link");
  link.rel="stylesheet";link.dataset.cmsMedia="true";
- link.href=new URL("./media-upload.css",import.meta.url).href;
+ link.href=new URL("./media-upload.css?v=20260907-media-gallery",import.meta.url).href;
  document.head.append(link);
 }
 
@@ -420,7 +420,12 @@ function ensureMediaNavigation(){
 }
 
 async function renderMediaLibrary(){
+ if(obterAcessoAtual()?.admin?.funcao!=="super_admin"){
+  app.innerHTML='<div class="ads-card empty-state"><strong>Acesso restrito</strong><p>A biblioteca de mídia é restrita ao Super Admin.</p></div>';
+  return;
+ }
  libraryOpened=true;
+ window.dispatchEvent(new CustomEvent("admin:external-module",{detail:{view:"midia"}}));
  document.getElementById("page-title").textContent="Mídia";
  if(location.pathname!==adminPathForView("midia"))history.pushState({adminView:"midia"},"",adminPathForView("midia"));
  document.querySelectorAll(".admin-nav button").forEach(button=>button.classList.toggle("active",button.id==="media-library-nav"));
@@ -518,7 +523,7 @@ function inferMediaConfig(element){
 
 document.addEventListener("click",async event=>{
  const button=event.target.closest("button");if(!button)return;
- if(button.id==="media-library-nav"){
+ if(button.id==="media-library-nav"||button.dataset.view==="midia"){
   event.preventDefault();event.stopImmediatePropagation();renderMediaLibrary();return;
  }
  if(button.dataset.mediaDelete){
@@ -531,6 +536,9 @@ document.addEventListener("click",async event=>{
   if(rows.length&&confirm(`Excluir definitivamente ${rows.length} imagem(ns) sem uso há mais de 7 dias?`))await removeMediaRows(rows);
  }
 },true);
+
+window.addEventListener("admin:open-media-library",()=>renderMediaLibrary());
+window.addEventListener("popstate",()=>{if(adminViewFromLocation()==="midia")renderMediaLibrary()});
 
 const observer=new MutationObserver(enhance);
 observer.observe(document.body,{childList:true,subtree:true});
