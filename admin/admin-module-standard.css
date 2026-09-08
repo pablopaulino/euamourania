@@ -216,6 +216,35 @@ body[data-admin-shell="true"] #app-content[data-module] :is(.ads-tab, .awards-ta
   box-shadow: 0 1px 2px rgba(15, 23, 42, .08) !important;
 }
 
+@media (min-width: 861px) {
+  body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-tabs {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-tab {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+@media (max-width: 860px) {
+  body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-tabs {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+}
+
 /* Indicadores compactos e com altura regular. */
 body[data-admin-shell="true"] #app-content[data-module] :is(
   .ads-grid,
