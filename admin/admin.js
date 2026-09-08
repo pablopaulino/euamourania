@@ -26,6 +26,24 @@ let painelAccess = null;
 let activeMountedModule = null;
 let shellPrimaryActionCleanup = null;
 
+const unifiedModuleViews = new Set([
+  "publicidade",
+  "melhores",
+  "comunicacao",
+  "notificacoes",
+  "colaboradores_voluntarios",
+  "submissoes",
+  "midia",
+  "configuracoes_site",
+  "usuarios",
+  "importacao"
+]);
+
+function setUnifiedModuleScope(view) {
+  if (unifiedModuleViews.has(view)) app.dataset.module = view;
+  else delete app.dataset.module;
+}
+
 const moduleRoutes = {
   comunicacao: {
     label: "Comunicação",
@@ -1609,6 +1627,7 @@ async function mountShellModule(view, options = {}) {
   currentView = view;
   activeModuleKey = view;
   app.dataset.layout = "module";
+  setUnifiedModuleScope(view);
   currentResourceTable = null;
   currentResourceId = null;
   setShellTitle(moduleMeta.label || route.label, moduleMeta.description || route.hint, { moduleKey: view });
@@ -1645,6 +1664,7 @@ async function navigateToView(view, options = {}) {
     currentView = view;
     activeModuleKey = view;
     app.dataset.layout = "module";
+    setUnifiedModuleScope(view);
     setActiveNav(view);
     const moduleMeta = getAdminModule(view);
     setShellTitle(moduleMeta.label, moduleMeta.description, { moduleKey: view, contextLabel: moduleMeta.group });
@@ -1661,6 +1681,7 @@ async function navigateToView(view, options = {}) {
   currentView = view || "dashboard";
   activeModuleKey = currentView;
   app.dataset.layout = currentView === "dashboard" ? "dashboard" : "wide";
+  setUnifiedModuleScope(currentView);
   setActiveNav(currentView);
   const targetPath = adminPathForView(currentView);
   if (location.pathname !== targetPath) {
@@ -1878,6 +1899,7 @@ window.addEventListener("admin:external-module",event=>{
   currentView = view;
   activeModuleKey = view;
   app.dataset.layout = event.detail?.layout || "module";
+  setUnifiedModuleScope(view);
   setActiveNav(view);
   const moduleMeta = getAdminModule(view);
   setShellTitle(event.detail?.label || moduleMeta.label || "Painel", event.detail?.hint || moduleMeta.description, {

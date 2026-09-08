@@ -1,0 +1,520 @@
+/*
+ * Padroniza os módulos comerciais, de comunicação e de sistema com a base
+ * visual aprovada no Admin. A identificação vem de data-module, definida pelo
+ * shell, para que nenhum estilo vaze para o site público ou para outro módulo.
+ */
+
+body[data-admin-shell="true"] #app-content[data-module] {
+  --module-surface: var(--admin-surface, #fff);
+  --module-surface-secondary: var(--admin-surface-secondary, #f6f7f8);
+  --module-border: var(--admin-border, #e2e5e7);
+  --module-divider: var(--admin-divider, #eceef0);
+  --module-text: var(--admin-text, #172027);
+  --module-muted: var(--admin-text-secondary, #66727a);
+  --module-accent: var(--admin-accent, #f47a35);
+  --module-danger: var(--admin-danger, #b42318);
+  --module-radius: 22px;
+  --module-control-radius: 13px;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="publicidade"] > .ads-content,
+body[data-admin-shell="true"] #app-content[data-module="melhores"] > .awards-content,
+body[data-admin-shell="true"] #app-content[data-module="notificacoes"] > .ads-content,
+body[data-admin-shell="true"] #app-content[data-module="submissoes"] > .submissions-shell,
+body[data-admin-shell="true"] #app-content[data-module="midia"] > .media-library {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="publicidade"],
+body[data-admin-shell="true"] #app-content[data-module="melhores"],
+body[data-admin-shell="true"] #app-content[data-module="comunicacao"],
+body[data-admin-shell="true"] #app-content[data-module="notificacoes"],
+body[data-admin-shell="true"] #app-content[data-module="submissoes"],
+body[data-admin-shell="true"] #app-content[data-module="midia"],
+body[data-admin-shell="true"] #app-content[data-module="usuarios"],
+body[data-admin-shell="true"] #app-content[data-module="importacao"] {
+  align-content: start;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Cabeçalhos internos seguem a mesma hierarquia e alinhamento. */
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-heading,
+  .awards-hero,
+  .awards-panel-head,
+  .commercial-section-head,
+  .cms-section-head,
+  .push-heading,
+  .push-form-heading,
+  .push-history-head,
+  .submissions-card-header,
+  .panel-header
+) {
+  text-align: left;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-heading,
+  .awards-panel-head,
+  .commercial-section-head,
+  .cms-section-head,
+  .push-heading,
+  .push-form-heading,
+  .push-history-head,
+  .panel-header
+) {
+  align-items: flex-start;
+  gap: 14px;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-heading,
+  .push-heading
+) {
+  margin: 0 0 18px;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-heading,
+  .awards-panel-head,
+  .commercial-section-head,
+  .cms-section-head,
+  .push-heading,
+  .push-form-heading,
+  .push-history-head,
+  .panel-header
+) :is(h2, h3) {
+  margin-top: 0;
+  color: var(--module-text);
+  letter-spacing: -.035em;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-heading,
+  .awards-panel-head,
+  .commercial-section-head,
+  .cms-section-head,
+  .push-heading,
+  .push-form-heading,
+  .submissions-card-header,
+  .panel-header
+) p {
+  color: var(--module-muted);
+  line-height: 1.5;
+}
+
+/* Superfícies: brancas, discretas e sem decoração de template. */
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-card,
+  .awards-card,
+  .push-card,
+  .submissions-card,
+  .panel,
+  .media-library-card,
+  .subscription-card,
+  .request-card
+) {
+  background: var(--module-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--module-border) !important;
+  border-radius: var(--module-radius) !important;
+  box-shadow: var(--admin-shadow-sm, 0 1px 2px rgba(15, 23, 42, .035)) !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] .push-composer-card::before,
+body[data-admin-shell="true"] #app-content[data-module] .awards-hero::after,
+body[data-admin-shell="true"] #app-content[data-module] .metric-card::after {
+  display: none !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-hero {
+  display: block;
+  padding: 18px 20px;
+  overflow: visible;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-hero h2 {
+  margin: 3px 0 4px;
+  font-size: 1.22rem;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-hero p {
+  max-width: 920px;
+  margin: 0;
+  color: var(--module-muted);
+  font-size: .86rem;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-signature {
+  color: var(--module-muted);
+  font-size: .67rem;
+  letter-spacing: .08em;
+}
+
+/* Navegação interna compacta no mesmo padrão de pílulas aprovado. */
+body[data-admin-shell="true"] #app-content[data-module] :is(.ads-tabs, .awards-tabs, .submissions-tabs) {
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+  gap: 3px;
+  padding: 4px;
+  overflow-x: auto;
+  background: rgba(239, 240, 242, .82) !important;
+  border: 1px solid var(--module-border) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  scrollbar-width: none;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(.ads-tabs, .awards-tabs, .submissions-tabs)::-webkit-scrollbar {
+  display: none;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(.ads-tab, .awards-tab, .submissions-tabs button) {
+  min-height: 34px;
+  padding: .46rem .8rem;
+  color: var(--module-muted) !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  font-size: .79rem;
+  font-weight: 680;
+  white-space: nowrap;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(.ads-tab, .awards-tab, .submissions-tabs button).active {
+  color: var(--module-text) !important;
+  background: #fff !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .08) !important;
+}
+
+/* Indicadores compactos e com altura regular. */
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-grid,
+  .awards-grid,
+  .push-metrics,
+  .media-library-summary,
+  .dashboard-grid
+) {
+  gap: 12px;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] .metric-card,
+body[data-admin-shell="true"] #app-content[data-module="midia"] .media-library-summary article {
+  box-sizing: border-box;
+  min-height: 108px;
+  padding: 17px 18px;
+  background: var(--module-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--module-border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--admin-shadow-sm, 0 1px 2px rgba(15, 23, 42, .035)) !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] .metric-card span,
+body[data-admin-shell="true"] #app-content[data-module="midia"] .media-library-summary span {
+  color: var(--module-muted);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .055em;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] .metric-card strong,
+body[data-admin-shell="true"] #app-content[data-module="midia"] .media-library-summary strong {
+  color: var(--module-text);
+  font-size: clamp(1.45rem, 2.1vw, 2rem);
+  letter-spacing: -.045em;
+}
+
+/* Filtros, campos e formulários herdam a mesma geometria. */
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-toolbar,
+  .awards-toolbar,
+  .cms-toolbar-v2,
+  .media-library-toolbar,
+  .submissions-toolbar
+) {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 14px;
+  background: var(--module-surface-secondary) !important;
+  border: 1px solid var(--module-border) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-field input,
+  .ads-field select,
+  .ads-field textarea,
+  .ads-toolbar input,
+  .ads-toolbar select,
+  .awards-field input,
+  .awards-field select,
+  .awards-field textarea,
+  .awards-toolbar input,
+  .awards-toolbar select,
+  .cms-field input,
+  .cms-field select,
+  .cms-field textarea,
+  .cms-toolbar-v2 input,
+  .cms-toolbar-v2 select,
+  .push-field input,
+  .push-field select,
+  .push-field textarea,
+  .submissions-field input,
+  .submissions-field select,
+  .submissions-field textarea,
+  .media-library-toolbar input,
+  .media-library-toolbar select,
+  .guide-file-box input
+) {
+  min-height: 44px;
+  border: 1px solid var(--module-border) !important;
+  border-radius: var(--module-control-radius) !important;
+  background: var(--module-surface) !important;
+  color: var(--module-text) !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-field input,
+  .ads-field select,
+  .ads-field textarea,
+  .awards-field input,
+  .awards-field select,
+  .awards-field textarea,
+  .cms-field input,
+  .cms-field select,
+  .cms-field textarea,
+  .push-field input,
+  .push-field select,
+  .push-field textarea,
+  .submissions-field input,
+  .submissions-field select,
+  .submissions-field textarea
+):focus {
+  border-color: color-mix(in srgb, var(--module-accent) 58%, var(--module-border)) !important;
+  outline: 3px solid color-mix(in srgb, var(--module-accent) 13%, transparent) !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-field label,
+  .awards-field label,
+  .cms-field label,
+  .push-field label,
+  .submissions-field > span,
+  .ads-group legend
+) {
+  color: var(--module-text) !important;
+  font-size: .78rem;
+  font-weight: 680;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .ads-field small,
+  .awards-field small,
+  .cms-field small,
+  .push-field small
+) {
+  color: var(--module-muted) !important;
+  line-height: 1.4;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(.ads-form-grid, .awards-form, .cms-form, .push-form, .submissions-form-grid) {
+  gap: 16px;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(.form-actions, .awards-form-actions, .cms-sticky-actions, .push-actions) {
+  gap: 8px;
+}
+
+/* Todos os botões de ação usam pílula; perigo continua apenas semântico. */
+body[data-admin-shell="true"] #app-content[data-module] :is(
+  .admin-button,
+  .icon-button,
+  .cms-actions button,
+  .cms-actions a,
+  .awards-actions button,
+  .submissions-button,
+  .push-row-actions button,
+  .ads-pagination button
+) {
+  min-height: 34px;
+  border-radius: 999px !important;
+  font-weight: 680;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(.icon-button, .cms-actions button, .cms-actions a, .awards-actions button) {
+  padding: 7px 10px;
+  color: var(--module-text) !important;
+  background: var(--module-surface-secondary) !important;
+  border: 1px solid transparent !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(.danger, .icon-button.danger, .cms-actions .danger, .awards-actions .danger) {
+  color: var(--module-danger) !important;
+  background: #fff1ef !important;
+}
+
+/* Tabelas com uma única linguagem visual e sem cortes. */
+body[data-admin-shell="true"] #app-content[data-module] :is(.ads-table-wrap, .awards-table-wrap, .table-wrap, .push-card.table-card) {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid var(--module-border) !important;
+  border-radius: 18px !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(.ads-table, .awards-table, .cms-table, .push-table) {
+  width: 100%;
+  background: var(--module-surface) !important;
+  border-collapse: collapse;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(.ads-table, .awards-table, .cms-table, .push-table) th {
+  padding: 14px 12px;
+  color: var(--module-muted) !important;
+  background: #fbfbfc;
+  border-bottom: 1px solid var(--module-divider) !important;
+  font-size: .69rem;
+  letter-spacing: .055em;
+}
+
+body[data-admin-shell="true"] #app-content[data-module] :is(.ads-table, .awards-table, .cms-table, .push-table) td {
+  padding: 15px 12px;
+  color: var(--module-text);
+  border-bottom: 1px solid var(--module-divider) !important;
+}
+
+/* Ajustes próprios sem quebrar a personalidade funcional dos módulos. */
+body[data-admin-shell="true"] #app-content[data-module="publicidade"] .ads-dashboard-layout,
+body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-dashboard-layout,
+body[data-admin-shell="true"] #app-content[data-module="submissoes"] .submissions-review-grid {
+  align-items: stretch;
+  gap: 16px;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="publicidade"] :is(.position-selection-head, .format-size-guide, .ads-library-tools, .position-option, .placement-item),
+body[data-admin-shell="true"] #app-content[data-module="melhores"] :is(.awards-note, .awards-apuration-group, .awards-dashboard-task, .awards-dashboard-row),
+body[data-admin-shell="true"] #app-content[data-module="comunicacao"] :is(.monthly-newsletter-card, .monthly-newsletter-panel, .monthly-newsletter-stats span, .monthly-editor-note),
+body[data-admin-shell="true"] #app-content[data-module="notificacoes"] :is(.push-notice, .push-preview, .push-audience-box),
+body[data-admin-shell="true"] #app-content[data-module="submissoes"] :is(.submission-row, .submissions-alert) {
+  background: var(--module-surface-secondary) !important;
+  background-image: none !important;
+  border-color: var(--module-border) !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="notificacoes"] .phone-preview {
+  background: #18252b !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="notificacoes"] .push-pro-pill,
+body[data-admin-shell="true"] #app-content[data-module="publicidade"] .inventory-heading > span {
+  color: var(--module-muted) !important;
+  background: var(--module-surface-secondary) !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="submissoes"] .submissions-card > .submissions-card-header {
+  padding: 19px 22px;
+  border-bottom: 1px solid var(--module-divider);
+}
+
+body[data-admin-shell="true"] #app-content[data-module="submissoes"] .submissions-card-body {
+  padding: 20px 22px;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="midia"] .media-library-grid {
+  gap: 16px;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="midia"] .media-library-card {
+  grid-template-rows: 172px auto auto auto;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="midia"] .media-library-card > img {
+  height: 172px;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="usuarios"] > .ads-card,
+body[data-admin-shell="true"] #app-content[data-module="importacao"] > .panel,
+body[data-admin-shell="true"] #app-content[data-module="configuracoes_site"] > .admin-page,
+body[data-admin-shell="true"] #app-content[data-module="colaboradores_voluntarios"] > .admin-page {
+  width: 100%;
+  max-width: none;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="usuarios"] .dashboard-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+body[data-admin-shell="true"] #app-content[data-module="usuarios"] .cms-form {
+  padding: 20px;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="importacao"] .guide-import-grid {
+  gap: 16px;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="importacao"] :is(.guide-file-box, .guide-import-actions) {
+  background: var(--module-surface-secondary);
+  border-color: var(--module-border);
+  border-radius: 18px;
+}
+
+@media (max-width: 1100px) {
+  body[data-admin-shell="true"] #app-content[data-module] :is(.ads-grid, .push-metrics, .awards-grid) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-admin-shell="true"] #app-content[data-module="usuarios"] .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-admin-shell="true"] #app-content[data-module] :is(
+    .ads-heading,
+    .awards-panel-head,
+    .commercial-section-head,
+    .cms-section-head,
+    .push-heading,
+    .push-form-heading,
+    .push-history-head,
+    .panel-header
+  ) {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body[data-admin-shell="true"] #app-content[data-module] :is(.ads-toolbar, .awards-toolbar, .cms-toolbar-v2, .media-library-toolbar) {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-admin-shell="true"] #app-content[data-module] :is(.ads-grid, .push-metrics, .awards-grid),
+  body[data-admin-shell="true"] #app-content[data-module="usuarios"] .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-admin-shell="true"] #app-content[data-module] :is(.form-actions, .awards-form-actions, .cms-sticky-actions, .push-actions) {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  body[data-admin-shell="true"] #app-content[data-module] :is(.form-actions, .awards-form-actions, .cms-sticky-actions, .push-actions) .admin-button {
+    width: 100%;
+  }
+}
