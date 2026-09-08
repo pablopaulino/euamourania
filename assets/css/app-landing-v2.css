@@ -776,6 +776,10 @@ body.viva-landing {
   .viva-store-actions { grid-column: auto; justify-content: center; }
   .viva-partners-heading { grid-template-columns: 1fr; gap: .75rem; align-items: start; }
   .viva-partners-heading > a { width: max-content; }
+  .viva-partner-viewport {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
   .viva-footer { grid-template-columns: 1fr; gap: 1rem; text-align: center; }
   .viva-footer-brand, .viva-footer nav { justify-self: center; }
 }

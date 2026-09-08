@@ -130,6 +130,16 @@ function setupPartnersMarquee(list, partners) {
     link.removeAttribute("data-app-page-link");
   });
   list.append(duplicate);
+
+  // Mobile browsers may defer images that enter the viewport through a CSS
+  // transform. Preload this small repeated pool so animated cards stay painted.
+  if (window.matchMedia("(max-width: 780px)").matches) {
+    list.querySelectorAll("img").forEach(image => {
+      image.loading = "eager";
+      image.fetchPriority = "low";
+    });
+  }
+
   list.classList.add("is-marquee");
   list.style.setProperty("--partner-marquee-duration", Math.max(28, partners.length * repeats * 5) + "s");
   bindTrackedLinks(primary);
