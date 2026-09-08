@@ -2,6 +2,7 @@ import { GOOGLE_PLAY_URL, getAppDownloadConfig } from "../services/appDownloadCo
 
 const SESSION_KEY = "viva_app_banner_shown";
 const OFFICIAL_ORIGIN = "https://euamourania.com.br";
+let waitingForCookieChoice = false;
 
 function isEligibleAndroidBrowser() {
   const userAgent = navigator.userAgent || "";
@@ -71,6 +72,23 @@ function ensureStyles() {
   document.head.append(link);
 }
 
+function waitForCookieChoice() {
+  const cookieBanner = document.getElementById("cookie-banner");
+  if (!cookieBanner || cookieBanner.hidden) return false;
+  if (waitingForCookieChoice) return true;
+
+  waitingForCookieChoice = true;
+  const continueSetup = () => {
+    waitingForCookieChoice = false;
+    window.removeEventListener("cookie-consent:accepted", continueSetup);
+    window.removeEventListener("cookie-consent:declined", continueSetup);
+    setupSmartAppBanner();
+  };
+  window.addEventListener("cookie-consent:accepted", continueSetup, { once: true });
+  window.addEventListener("cookie-consent:declined", continueSetup, { once: true });
+  return true;
+}
+
 function setupBottomOffset(banner) {
   const cookieBanner = document.getElementById("cookie-banner");
   if (!cookieBanner) return () => {};
@@ -90,6 +108,7 @@ function setupBottomOffset(banner) {
 
 export function setupSmartAppBanner() {
   if (!isEligibleAndroidBrowser() || wasShown() || document.querySelector("[data-viva-app-banner]")) return;
+  if (waitForCookieChoice()) return;
   ensureStyles();
 
   const banner = document.createElement("aside");
