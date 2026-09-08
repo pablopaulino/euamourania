@@ -1,0 +1,506 @@
+:root {
+  --subscription-width: 1180px;
+  --subscription-blue: #0b4f6c;
+  --subscription-blue-bright: #1685a8;
+  --subscription-cream: #fff6ea;
+}
+
+body.viva-subscription-page {
+  background:
+    radial-gradient(circle at 89% 3%, rgba(245, 0, 25, .09), transparent 27rem),
+    radial-gradient(circle at 7% 9%, rgba(255, 137, 0, .12), transparent 29rem),
+    linear-gradient(180deg, #fafafa 0%, #fff 29%, #f4f5f7 100%);
+}
+
+.viva-subscription-page main { overflow: clip; }
+
+.viva-subscription-hero,
+.viva-subscription-proof,
+.viva-subscription-section,
+.viva-subscription-clarity,
+.viva-subscription-contact {
+  width: min(var(--subscription-width), calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.viva-subscription-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, .95fr) minmax(340px, .7fr);
+  gap: clamp(2rem, 7vw, 6.5rem);
+  min-height: min(800px, calc(100vh - 92px));
+  padding: clamp(4.8rem, 9vw, 8rem) 0 clamp(4rem, 8vw, 7rem);
+  align-items: center;
+}
+
+.viva-subscription-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 3%;
+  right: -22%;
+  width: 760px;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 35% 34%, rgba(255, 255, 255, .98) 0 9%, transparent 30%),
+    radial-gradient(circle at 38% 39%, rgba(255, 137, 0, .24), transparent 47%),
+    radial-gradient(circle at 68% 62%, rgba(245, 0, 25, .2), transparent 57%);
+  filter: blur(26px);
+  opacity: .78;
+  pointer-events: none;
+}
+
+.viva-subscription-copy { position: relative; z-index: 2; min-width: 0; max-width: 720px; }
+
+.viva-subscription-hero h1,
+.viva-subscription-heading h2,
+.viva-subscription-showcase h2,
+.viva-subscription-clarity h2,
+.viva-subscription-contact h2 {
+  margin: 0;
+  color: var(--landing-ink);
+  font-weight: 750;
+  letter-spacing: -.072em;
+}
+
+.viva-subscription-hero h1 {
+  font-size: clamp(4.2rem, 8vw, 7.7rem);
+  line-height: .88;
+}
+
+.viva-subscription-hero h1 span {
+  display: inline-block;
+  margin-inline: -.05em;
+  padding-inline: .05em;
+  color: transparent;
+  background: linear-gradient(100deg, var(--landing-red) 8%, var(--landing-orange) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.viva-subscription-lead {
+  max-width: 640px;
+  margin: 1.6rem 0 0;
+  color: #5f6268;
+  font-size: clamp(1.05rem, 1.7vw, 1.28rem);
+  line-height: 1.58;
+  letter-spacing: -.018em;
+}
+
+.viva-subscription-actions { display: flex; flex-wrap: wrap; gap: .72rem; margin-top: 1.7rem; }
+.viva-subscription-actions .viva-button { font-size: .92rem; font-weight: 700; }
+.viva-subscription-note { max-width: 560px; margin: 1rem 0 0; color: #83868b; font-size: .76rem; line-height: 1.5; }
+
+.viva-subscription-visual { position: relative; display: grid; min-height: 650px; place-items: center; }
+
+.viva-subscription-shape {
+  position: absolute;
+  top: 3%;
+  right: -12%;
+  width: min(430px, 39vw);
+  opacity: .085;
+  transform: rotate(-8deg);
+}
+
+.viva-subscription-shape img { display: block; width: 100%; }
+
+.viva-subscription-device {
+  z-index: 2;
+  width: min(330px, 79vw);
+  height: 670px;
+  transform: rotate(2.5deg);
+}
+
+.viva-subscription-float {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  min-width: 176px;
+  padding: .85rem 1rem;
+  background: rgba(255, 255, 255, .7);
+  border: 1px solid rgba(255, 255, 255, .88);
+  border-radius: 18px;
+  box-shadow: 0 18px 42px rgba(25, 28, 34, .12), inset 0 0 0 1px rgba(17, 18, 20, .03);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  backdrop-filter: blur(22px) saturate(1.25);
+}
+
+.viva-subscription-float strong { font-size: .8rem; letter-spacing: -.02em; }
+.viva-subscription-float span { margin-top: .18rem; color: #777a80; font-size: .67rem; }
+.viva-subscription-float-top { top: 20%; left: -10%; }
+.viva-subscription-float-bottom { right: -9%; bottom: 18%; }
+
+.viva-subscription-proof {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: clamp(3rem, 7vw, 6.5rem);
+  border-block: 1px solid var(--landing-line);
+}
+
+.viva-subscription-proof span {
+  position: relative;
+  padding: 1.2rem .7rem;
+  color: #5e6167;
+  font-size: .7rem;
+  font-weight: 750;
+  letter-spacing: .08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.viva-subscription-proof span + span::before {
+  content: "";
+  position: absolute;
+  top: 29%;
+  bottom: 29%;
+  left: 0;
+  width: 1px;
+  background: var(--landing-line);
+}
+
+.viva-subscription-section { padding-block: clamp(4rem, 8vw, 7.5rem); }
+
+.viva-subscription-heading { max-width: 850px; }
+
+.viva-subscription-heading h2,
+.viva-subscription-showcase h2,
+.viva-subscription-clarity h2,
+.viva-subscription-contact h2 {
+  font-size: clamp(2.75rem, 5.5vw, 5.3rem);
+  line-height: .95;
+}
+
+.viva-subscription-heading > p:last-child,
+.viva-subscription-heading-row > p,
+.viva-subscription-showcase-copy > p,
+.viva-subscription-clarity > p,
+.viva-subscription-contact > div > p:last-child {
+  margin: 1.15rem 0 0;
+  color: var(--landing-muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.viva-subscription-heading-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, .55fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  max-width: none;
+  align-items: end;
+}
+
+.viva-subscription-heading-row > p { margin: 0 0 .25rem; }
+
+.viva-subscription-benefit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .85rem;
+  margin-top: 2.3rem;
+}
+
+.viva-subscription-benefit-grid article {
+  position: relative;
+  min-height: 430px;
+  padding: clamp(1.45rem, 3vw, 2rem);
+  overflow: hidden;
+  background: rgba(255, 255, 255, .72);
+  border: 1px solid rgba(17, 18, 20, .075);
+  border-radius: 30px;
+  box-shadow: 0 20px 55px rgba(24, 28, 34, .07);
+}
+
+.viva-subscription-benefit-grid article::after {
+  content: "";
+  position: absolute;
+  right: -18%;
+  bottom: -30%;
+  width: 220px;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(255, 137, 0, .13), transparent 67%);
+  pointer-events: none;
+}
+
+.viva-subscription-benefit-grid article:nth-child(2)::after { background: radial-gradient(circle, rgba(22, 133, 168, .13), transparent 67%); }
+.viva-subscription-benefit-grid article:nth-child(3)::after { background: radial-gradient(circle, rgba(245, 0, 25, .11), transparent 67%); }
+
+.viva-benefit-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  color: #fff;
+  background: #111214;
+  border-radius: 15px;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.viva-subscription-benefit-grid article:nth-child(2) .viva-benefit-icon { background: var(--subscription-blue); }
+.viva-subscription-benefit-grid article:nth-child(3) .viva-benefit-icon { background: linear-gradient(135deg, var(--landing-red), var(--landing-orange)); }
+.viva-benefit-kicker { margin: 2.3rem 0 .7rem; color: #8a8d92; font-size: .68rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+.viva-subscription-benefit-grid h3 { margin: 0; font-size: clamp(1.5rem, 2.4vw, 2rem); line-height: 1.08; letter-spacing: -.052em; }
+.viva-subscription-benefit-grid ul { display: grid; gap: .72rem; margin: 1.45rem 0 0; padding: 0; list-style: none; }
+.viva-subscription-benefit-grid li { position: relative; padding-left: 1.1rem; color: #686b71; font-size: .86rem; line-height: 1.5; }
+.viva-subscription-benefit-grid li::before { content: ""; position: absolute; top: .61em; left: 0; width: 5px; height: 5px; background: var(--landing-orange); border-radius: 50%; }
+
+.viva-subscription-showcase {
+  display: grid;
+  grid-template-columns: minmax(300px, .68fr) minmax(0, 1fr);
+  gap: clamp(2rem, 7vw, 7rem);
+  align-items: center;
+}
+
+.viva-subscription-showcase-image {
+  position: relative;
+  justify-self: center;
+  width: min(345px, 80vw);
+  height: 685px;
+  overflow: hidden;
+  background: #fff;
+  border: 7px solid rgba(25, 27, 30, .94);
+  border-radius: 44px;
+  box-shadow: 0 34px 85px rgba(24, 28, 34, .16);
+  transform: rotate(-2.2deg);
+}
+
+.viva-subscription-showcase-image::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -14% -32%;
+  background: linear-gradient(135deg, rgba(11, 79, 108, .14), rgba(255, 137, 0, .16));
+  border-radius: 45%;
+}
+
+.viva-subscription-showcase-image img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.viva-subscription-showcase-copy { max-width: 650px; }
+.viva-subscription-showcase-copy ul { display: grid; gap: .9rem; margin: 1.8rem 0 0; padding: 0; list-style: none; }
+.viva-subscription-showcase-copy li { position: relative; padding: 1rem 1rem 1rem 3rem; color: #4f5258; background: rgba(255, 255, 255, .64); border: 1px solid rgba(17, 18, 20, .07); border-radius: 16px; font-size: .86rem; font-weight: 650; }
+.viva-subscription-showcase-copy li::before { content: "✓"; position: absolute; top: 50%; left: 1rem; display: grid; width: 24px; height: 24px; place-items: center; color: #fff; background: var(--subscription-blue); border-radius: 50%; font-size: .7rem; transform: translateY(-50%); }
+
+.viva-subscription-pricing { scroll-margin-top: 100px; }
+
+.viva-plan-shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(270px, .62fr) minmax(420px, 1fr);
+  gap: clamp(1.3rem, 4vw, 3.5rem);
+  margin-top: 2.5rem;
+  padding: clamp(1.2rem, 3vw, 2rem);
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(circle at 83% 18%, rgba(255, 137, 0, .3), transparent 27rem),
+    radial-gradient(circle at 10% 88%, rgba(22, 133, 168, .3), transparent 30rem),
+    #101214;
+  border-radius: 40px;
+  box-shadow: 0 35px 90px rgba(17, 18, 20, .18);
+}
+
+.viva-plan-shell::before {
+  content: "V";
+  position: absolute;
+  right: -1.5rem;
+  bottom: -8rem;
+  color: rgba(255, 255, 255, .035);
+  font-size: 34rem;
+  font-weight: 800;
+  line-height: .8;
+  letter-spacing: -.16em;
+  pointer-events: none;
+}
+
+.viva-plan-selector { position: relative; z-index: 2; display: grid; gap: .7rem; align-content: center; }
+
+.viva-plan-selector button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .35rem 1rem;
+  width: 100%;
+  padding: 1.15rem 1.2rem;
+  color: rgba(255, 255, 255, .72);
+  background: rgba(255, 255, 255, .055);
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 19px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.viva-plan-selector button:hover { color: #fff; background: rgba(255, 255, 255, .09); transform: translateX(3px); }
+.viva-plan-selector button.is-active { color: #111214; background: #fff; border-color: #fff; box-shadow: 0 15px 34px rgba(0, 0, 0, .2); }
+.viva-plan-selector button span { font-size: 1rem; font-weight: 750; letter-spacing: -.025em; }
+.viva-plan-selector button small { align-self: center; font-size: .68rem; font-weight: 650; opacity: .68; }
+.viva-plan-selector button.is-active::after { content: "Selecionado"; grid-column: 1 / -1; color: var(--subscription-blue); font-size: .58rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+
+.viva-plan-card {
+  position: relative;
+  z-index: 2;
+  padding: clamp(1.5rem, 4vw, 2.6rem);
+  color: #111214;
+  background: rgba(255, 255, 255, .95);
+  border: 1px solid rgba(255, 255, 255, .65);
+  border-radius: 30px;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, .2);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+.viva-plan-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.viva-plan-name { margin: 0; font-size: 1.05rem; font-weight: 780; letter-spacing: -.03em; }
+.viva-plan-duration { margin: .3rem 0 0; color: #85888e; font-size: .74rem; }
+.viva-plan-badge { padding: .5rem .65rem; color: #fff; background: linear-gradient(110deg, var(--landing-red), var(--landing-orange)); border-radius: 999px; font-size: .61rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+
+.viva-plan-price { display: flex; align-items: flex-start; margin-top: 2rem; line-height: 1; }
+.viva-plan-price > span { margin: .65rem .35rem 0 0; color: #6d7076; font-size: 1rem; font-weight: 700; }
+.viva-plan-price strong { font-size: clamp(4rem, 8vw, 7rem); font-weight: 760; letter-spacing: -.08em; }
+.viva-plan-price small { align-self: flex-end; margin: 0 0 .75rem .45rem; color: #777a80; font-size: .8rem; font-weight: 650; }
+.viva-plan-equivalent { margin: .35rem 0 0; color: #73767c; font-size: .82rem; line-height: 1.5; }
+
+.viva-plan-savings { display: grid; grid-template-columns: 1fr auto; gap: .18rem 1rem; margin-top: 1.1rem; padding: .85rem 1rem; color: #0e5d42; background: #e9f8f1; border: 1px solid rgba(14, 93, 66, .1); border-radius: 15px; }
+.viva-plan-savings span { font-size: .7rem; font-weight: 700; }
+.viva-plan-savings strong { grid-row: 1 / 3; grid-column: 2; align-self: center; font-size: 1.1rem; letter-spacing: -.035em; }
+.viva-plan-savings small { font-size: .62rem; opacity: .72; }
+
+.viva-plan-includes { margin-top: 1.45rem; padding-top: 1.35rem; border-top: 1px solid rgba(17, 18, 20, .09); }
+.viva-plan-includes > p { margin: 0; color: #85888e; font-size: .66rem; font-weight: 780; letter-spacing: .1em; text-transform: uppercase; }
+.viva-plan-includes ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .72rem 1rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+.viva-plan-includes li { position: relative; padding-left: 1.2rem; color: #4f5257; font-size: .78rem; line-height: 1.45; }
+.viva-plan-includes li::before { content: ""; position: absolute; top: .52em; left: 0; width: 6px; height: 6px; background: var(--landing-orange); border-radius: 50%; }
+.viva-plan-cta { width: 100%; margin-top: 1.55rem; font-size: .9rem; font-weight: 750; }
+.viva-plan-footnote { margin: .7rem 0 0; color: #92959a; font-size: .64rem; text-align: center; }
+
+.viva-subscription-steps ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 2.3rem 0 0; padding: 0; border-top: 1px solid var(--landing-line); list-style: none; }
+.viva-subscription-steps li { position: relative; display: grid; gap: 2rem; min-height: 245px; padding: 1.4rem 1.25rem 1.4rem 0; border-bottom: 1px solid var(--landing-line); }
+.viva-subscription-steps li + li { padding-left: 1.25rem; border-left: 1px solid var(--landing-line); }
+.viva-subscription-steps li > span { color: #a1a3a8; font-size: .68rem; font-weight: 750; letter-spacing: .1em; }
+.viva-subscription-steps h3 { margin: 0; font-size: 1.28rem; letter-spacing: -.045em; }
+.viva-subscription-steps p { margin: .55rem 0 0; color: #73767c; font-size: .84rem; line-height: 1.55; }
+
+.viva-subscription-clarity {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, .5fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: end;
+  margin-block: clamp(3rem, 7vw, 6rem);
+  padding: clamp(1.5rem, 4vw, 2.7rem);
+  background: rgba(255, 255, 255, .75);
+  border: 1px solid rgba(17, 18, 20, .075);
+  border-radius: 32px;
+  box-shadow: 0 24px 65px rgba(24, 28, 34, .08);
+}
+
+.viva-subscription-clarity h2 { font-size: clamp(2.4rem, 4.7vw, 4.5rem); }
+.viva-subscription-clarity > p { margin: 0 0 .25rem; }
+
+.viva-subscription-contact {
+  position: relative;
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr) auto;
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: center;
+  margin-bottom: clamp(4rem, 8vw, 7rem);
+  padding: clamp(1.35rem, 3vw, 2.1rem);
+  overflow: hidden;
+  background: #111214;
+  border-radius: 34px;
+  box-shadow: 0 30px 75px rgba(17, 18, 20, .2);
+}
+
+.viva-subscription-contact::after { content: ""; position: absolute; right: 12%; bottom: -110px; width: 310px; height: 240px; background: radial-gradient(circle, rgba(255, 137, 0, .2), transparent 67%); pointer-events: none; }
+.viva-subscription-contact-mark { position: relative; z-index: 1; display: grid; width: 92px; aspect-ratio: 1; place-items: center; background: #fff; border-radius: 27px; }
+.viva-subscription-contact-mark img { width: 72%; }
+.viva-subscription-contact > div:nth-child(2) { position: relative; z-index: 1; }
+.viva-subscription-contact .viva-eyebrow { color: rgba(255, 255, 255, .52); }
+.viva-subscription-contact h2 { color: #fff; font-size: clamp(2rem, 4vw, 3.7rem); }
+.viva-subscription-contact > div > p:last-child { color: rgba(255, 255, 255, .64); }
+.viva-subscription-contact > .viva-button { position: relative; z-index: 1; color: #111214 !important; background: #fff; box-shadow: none; font-size: .86rem; font-weight: 750; }
+
+@media (max-width: 980px) {
+  .viva-subscription-hero { grid-template-columns: minmax(0, 1fr) minmax(300px, .58fr); gap: 2.8rem; }
+  .viva-subscription-benefit-grid { grid-template-columns: 1fr 1fr; }
+  .viva-subscription-benefit-grid article:last-child { grid-column: 1 / -1; min-height: 340px; }
+  .viva-plan-shell { grid-template-columns: minmax(230px, .5fr) minmax(380px, 1fr); }
+  .viva-subscription-contact { grid-template-columns: 86px minmax(0, 1fr); }
+  .viva-subscription-contact > .viva-button { grid-column: 2; width: max-content; }
+}
+
+@media (max-width: 780px) {
+  .viva-subscription-hero { grid-template-columns: 1fr; min-height: 0; padding-top: 5.2rem; text-align: center; }
+  .viva-subscription-copy { margin-inline: auto; }
+  .viva-subscription-hero h1 { font-size: clamp(3.8rem, 17vw, 6.2rem); }
+  .viva-subscription-lead, .viva-subscription-note { margin-inline: auto; }
+  .viva-subscription-actions { justify-content: center; }
+  .viva-subscription-visual { min-height: 590px; }
+  .viva-subscription-device { height: 600px; transform: rotate(1deg); }
+  .viva-subscription-float-top { top: 23%; left: 2%; }
+  .viva-subscription-float-bottom { right: 2%; bottom: 14%; }
+  .viva-subscription-proof { grid-template-columns: 1fr 1fr; }
+  .viva-subscription-proof span:nth-child(3)::before { display: none; }
+  .viva-subscription-proof span:nth-child(-n+2) { border-bottom: 1px solid var(--landing-line); }
+  .viva-subscription-heading-row, .viva-subscription-clarity { grid-template-columns: 1fr; gap: 1.2rem; align-items: start; }
+  .viva-subscription-heading-row > p, .viva-subscription-clarity > p { margin: 0; }
+  .viva-subscription-benefit-grid { grid-template-columns: 1fr; }
+  .viva-subscription-benefit-grid article, .viva-subscription-benefit-grid article:last-child { grid-column: auto; min-height: 0; }
+  .viva-subscription-showcase { grid-template-columns: 1fr; }
+  .viva-subscription-showcase-image { height: 620px; }
+  .viva-subscription-showcase-copy { max-width: none; }
+  .viva-plan-shell { grid-template-columns: 1fr; border-radius: 32px; }
+  .viva-plan-selector { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .viva-plan-selector button { grid-template-columns: 1fr; align-content: start; }
+  .viva-plan-selector button:hover { transform: translateY(-2px); }
+  .viva-subscription-steps ol { grid-template-columns: 1fr 1fr; }
+  .viva-subscription-steps li:nth-child(3) { border-left: 0; }
+}
+
+@media (max-width: 520px) {
+  .viva-subscription-hero,
+  .viva-subscription-proof,
+  .viva-subscription-section,
+  .viva-subscription-clarity,
+  .viva-subscription-contact { width: min(100% - 24px, var(--subscription-width)); }
+
+  .viva-subscription-hero { padding-top: 4.1rem; padding-bottom: 3.4rem; }
+  .viva-subscription-hero h1 { font-size: clamp(3.25rem, 16.5vw, 5.3rem); }
+  .viva-subscription-lead { font-size: 1rem; }
+  .viva-subscription-actions .viva-button { width: 100%; }
+  .viva-subscription-visual { min-height: 510px; }
+  .viva-subscription-device { width: 247px; height: 500px; border-width: 6px; border-radius: 34px; }
+  .viva-subscription-float { min-width: 0; max-width: 154px; padding: .7rem .75rem; text-align: left; }
+  .viva-subscription-float-top { left: 0; }
+  .viva-subscription-float-bottom { right: 0; }
+  .viva-subscription-proof span { padding: 1rem .4rem; font-size: .6rem; line-height: 1.4; }
+  .viva-subscription-section { padding-block: 3.7rem; }
+  .viva-subscription-heading h2, .viva-subscription-showcase h2 { font-size: clamp(2.45rem, 13vw, 3.65rem); }
+  .viva-subscription-benefit-grid article { padding: 1.35rem; border-radius: 24px; }
+  .viva-benefit-kicker { margin-top: 1.8rem; }
+  .viva-subscription-showcase-image { width: 250px; height: 510px; border-width: 6px; border-radius: 35px; }
+  .viva-subscription-showcase-copy li { padding-left: 2.8rem; }
+  .viva-plan-shell { width: calc(100% + 8px); margin-left: -4px; padding: .75rem; border-radius: 28px; }
+  .viva-plan-selector { grid-template-columns: 1fr; gap: .48rem; }
+  .viva-plan-selector button { grid-template-columns: 1fr auto; padding: .85rem .9rem; border-radius: 15px; }
+  .viva-plan-selector button.is-active::after { display: none; }
+  .viva-plan-card { padding: 1.25rem; border-radius: 23px; }
+  .viva-plan-price { margin-top: 1.5rem; }
+  .viva-plan-price strong { font-size: clamp(3.6rem, 18vw, 5.1rem); }
+  .viva-plan-includes ul { grid-template-columns: 1fr; }
+  .viva-plan-cta { width: 100%; }
+  .viva-subscription-steps ol { grid-template-columns: 1fr; }
+  .viva-subscription-steps li, .viva-subscription-steps li + li { min-height: 0; padding: 1.3rem 0; border-left: 0; }
+  .viva-subscription-steps li { grid-template-columns: 38px 1fr; gap: .6rem; }
+  .viva-subscription-clarity { padding: 1.3rem; border-radius: 25px; }
+  .viva-subscription-clarity h2 { font-size: 2.55rem; }
+  .viva-subscription-contact { grid-template-columns: 1fr; padding: 1.3rem; border-radius: 28px; text-align: center; }
+  .viva-subscription-contact-mark { width: 82px; margin-inline: auto; }
+  .viva-subscription-contact > .viva-button { grid-column: auto; width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viva-plan-selector button { transition: none; }
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .viva-subscription-float, .viva-plan-card { background: #fff; }
+}
