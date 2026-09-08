@@ -17,6 +17,8 @@ let db = null;
 let context = {};
 let moduleStyle = null;
 let cleanupHandlers = [];
+let actionPopover = null;
+let actionPopoverTrigger = null;
 
 const state = {
   items: [],
@@ -74,7 +76,7 @@ function ensureModuleStyle() {
   if (document.querySelector('link[data-admin-module-style="guia-verificacao"]')) return;
   moduleStyle = document.createElement("link");
   moduleStyle.rel = "stylesheet";
-  moduleStyle.href = "/admin/guia-verificacao.css?v=20260908-verification-redesign";
+  moduleStyle.href = "/admin/guia-verificacao.css?v=20260908-verification-floating-menu";
   moduleStyle.dataset.adminModuleStyle = "guia-verificacao";
   document.head.append(moduleStyle);
   addCleanup(() => {
@@ -354,22 +356,102 @@ function renderBusinessRow(item) {
         <div class="verification-row-main-actions">
           <button type="button" class="primary" data-open-dialog="verified" data-id="${item.id}">Verificar</button>
           <button type="button" data-action="edit-business" data-id="${item.id}">Editar</button>
-          <details class="verification-more-actions">
-            <summary aria-label="Mais ações para ${escapeHtml(item.nome || "cadastro")}">•••</summary>
-            <div class="verification-action-menu">
-              <button type="button" data-open-dialog="contact" data-id="${item.id}">Registrar contato</button>
-              <button type="button" data-action="copy" data-id="${item.id}">Copiar mensagem</button>
-              ${wa ? `<a class="verification-copy" href="${wa}" target="_blank" rel="noopener">Abrir WhatsApp</a>` : ""}
-              <button type="button" data-action="needs-update" data-id="${item.id}">Precisa atualizar</button>
-              <button type="button" data-action="inactive" data-id="${item.id}">Possível inatividade</button>
-              ${derived === "archived"
-                ? `<button type="button" data-action="restore" data-id="${item.id}">Restaurar cadastro</button>`
-                : `<button type="button" class="danger" data-open-dialog="archive" data-id="${item.id}">Arquivar cadastro</button>`}
-            </div>
-          </details>
+          <button type="button" class="verification-more-trigger" data-action-menu="${item.id}" aria-label="Mais ações para ${escapeHtml(item.nome || "cadastro")}" aria-haspopup="menu" aria-expanded="false">•••</button>
         </div>
       </td>
     </tr>`;
+}
+
+function closeActionPopover({ restoreFocus = false } = {}) {
+  const trigger = actionPopoverTrigger;
+  actionPopover?.remove();
+  actionPopover = null;
+  actionPopoverTrigger = null;
+  trigger?.setAttribute("aria-expanded", "false");
+  if (restoreFocus && trigger?.isConnected) trigger.focus();
+}
+
+function positionActionPopover() {
+  if (!actionPopover || !actionPopoverTrigger?.isConnected) return closeActionPopover();
+  const triggerRect = actionPopoverTrigger.getBoundingClientRect();
+  const popoverRect = actionPopover.getBoundingClientRect();
+  const gap = 8;
+  const viewportMargin = 12;
+  const left = Math.min(
+    window.innerWidth - popoverRect.width - viewportMargin,
+    Math.max(viewportMargin, triggerRect.right - popoverRect.width)
+  );
+  let top = triggerRect.bottom + gap;
+  if (top + popoverRect.height > window.innerHeight - viewportMargin) {
+    top = Math.max(viewportMargin, triggerRect.top - popoverRect.height - gap);
+  }
+  actionPopover.style.left = `${left}px`;
+  actionPopover.style.top = `${top}px`;
+  actionPopover.style.visibility = "visible";
+}
+
+function openActionPopover(trigger, item) {
+  if (actionPopoverTrigger === trigger) {
+    closeActionPopover({ restoreFocus: true });
+    return;
+  }
+  closeActionPopover();
+  const derived = deriveVerificationStatus(item);
+  const wa = whatsappUrl(item);
+  const popover = document.createElement("div");
+  popover.className = "verification-action-popover";
+  popover.setAttribute("role", "menu");
+  popover.setAttribute("aria-label", `Mais ações para ${item.nome || "cadastro"}`);
+  popover.style.visibility = "hidden";
+  popover.innerHTML = `
+    <div class="verification-action-popover-head">
+      <span>Mais ações</span>
+      <button type="button" data-close-action-menu aria-label="Fechar menu">×</button>
+    </div>
+    <div class="verification-action-popover-list">
+      <button type="button" role="menuitem" data-open-dialog="contact" data-id="${item.id}">Registrar contato</button>
+      <button type="button" role="menuitem" data-action="copy" data-id="${item.id}">Copiar mensagem</button>
+      ${wa ? `<a role="menuitem" href="${wa}" target="_blank" rel="noopener">Abrir WhatsApp</a>` : ""}
+      <button type="button" role="menuitem" data-action="needs-update" data-id="${item.id}">Precisa atualizar</button>
+      <button type="button" role="menuitem" data-action="inactive" data-id="${item.id}">Possível inatividade</button>
+      ${derived === "archived"
+        ? `<button type="button" role="menuitem" data-action="restore" data-id="${item.id}">Restaurar cadastro</button>`
+        : `<button type="button" role="menuitem" class="danger" data-open-dialog="archive" data-id="${item.id}">Arquivar cadastro</button>`}
+    </div>`;
+  document.body.append(popover);
+  actionPopover = popover;
+  actionPopoverTrigger = trigger;
+  trigger.setAttribute("aria-expanded", "true");
+  positionActionPopover();
+
+  popover.addEventListener("click", async event => {
+    const control = event.target.closest("button,a");
+    if (!control) return;
+    if (control.dataset.closeActionMenu !== undefined) {
+      closeActionPopover({ restoreFocus: true });
+      return;
+    }
+    if (control.tagName === "A") {
+      closeActionPopover();
+      return;
+    }
+    const itemId = control.dataset.id;
+    const selectedItem = state.items.find(row => row.id === itemId);
+    if (control.dataset.openDialog) {
+      closeActionPopover();
+      state.dialog = { type: control.dataset.openDialog, id: itemId };
+      render();
+      return;
+    }
+    if (!control.dataset.action || !selectedItem) return;
+    closeActionPopover();
+    try {
+      await quickAction(control.dataset.action, selectedItem);
+    } catch (error) {
+      state.message = error.message || "Não foi possível concluir a ação.";
+      render();
+    }
+  });
 }
 
 function renderDialog() {
@@ -647,6 +729,25 @@ async function quickAction(action, item) {
 }
 
 function bindEvents() {
+  const handleOutsideClick = event => {
+    if (!actionPopover) return;
+    if (actionPopover.contains(event.target) || actionPopoverTrigger?.contains(event.target)) return;
+    closeActionPopover();
+  };
+  const handleEscape = event => {
+    if (event.key === "Escape" && actionPopover) closeActionPopover({ restoreFocus: true });
+  };
+  const handleViewportChange = () => closeActionPopover();
+  document.addEventListener("click", handleOutsideClick);
+  document.addEventListener("keydown", handleEscape);
+  window.addEventListener("resize", handleViewportChange);
+  document.addEventListener("scroll", handleViewportChange, true);
+  addCleanup(() => document.removeEventListener("click", handleOutsideClick));
+  addCleanup(() => document.removeEventListener("keydown", handleEscape));
+  addCleanup(() => window.removeEventListener("resize", handleViewportChange));
+  addCleanup(() => document.removeEventListener("scroll", handleViewportChange, true));
+  addCleanup(() => closeActionPopover());
+
   app.addEventListener("input", event => {
     const qualitySearch = event.target.closest("[data-quality-search]");
     if (qualitySearch) {
@@ -670,6 +771,11 @@ function bindEvents() {
   app.addEventListener("click", async event => {
     const button = event.target.closest("button,[data-action]");
     if (!button) return;
+    if (button.dataset.actionMenu) {
+      const item = state.items.find(row => row.id === button.dataset.actionMenu);
+      if (item) openActionPopover(button, item);
+      return;
+    }
     if (button.dataset.refresh !== undefined) return loadItems();
     if (button.dataset.qualityFilter) {
       state.qualityFilter = button.dataset.qualityFilter;
