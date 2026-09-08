@@ -1,1 +1,185 @@
-.viva-app-banner{--viva-app-banner-offset:0px;position:fixed;right:12px;bottom:calc(max(12px,env(safe-area-inset-bottom)) + var(--viva-app-banner-offset));left:12px;z-index:1200;display:grid;grid-template-columns:48px minmax(0,1fr) auto 32px;align-items:center;gap:11px;max-width:680px;margin:0 auto;padding:11px 10px 11px 12px;border:1px solid rgba(7,59,76,.13);border-radius:18px;background:rgba(255,255,255,.97);box-shadow:0 12px 36px rgba(7,59,76,.16);opacity:0;transform:translateY(16px);transition:opacity .18s ease,transform .18s ease,bottom .18s ease}.viva-app-banner.is-visible{opacity:1;transform:translateY(0)}.viva-app-banner.is-leaving{pointer-events:none;opacity:0;transform:translateY(10px)}.viva-app-banner__icon{width:48px;height:48px;padding:4px;border-radius:13px;background:#fff6ea;object-fit:contain}.viva-app-banner__copy{display:grid;gap:2px;min-width:0}.viva-app-banner__copy strong{color:#073b4c;font-size:.93rem;line-height:1.2}.viva-app-banner__copy span{overflow:hidden;color:#657780;font-size:.76rem;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}.viva-app-banner__actions{display:flex;align-items:center;gap:6px}.viva-app-banner__open,.viva-app-banner__download{display:inline-flex;min-height:38px;align-items:center;justify-content:center;padding:0 12px;border-radius:10px;font-size:.72rem;font-weight:800;text-decoration:none;white-space:nowrap}.viva-app-banner__open{color:#fff;background:#0b4f6c}.viva-app-banner__download{color:#0b4f6c;background:#e8f3f6}.viva-app-banner__close{display:grid;width:32px;height:32px;place-items:center;padding:0;border:0;border-radius:999px;color:#657780;background:transparent;font-size:1.45rem;line-height:1;cursor:pointer}.viva-app-banner__close:focus-visible,.viva-app-banner__open:focus-visible,.viva-app-banner__download:focus-visible{outline:3px solid rgba(247,201,72,.62);outline-offset:2px}@media(max-width:520px){.viva-app-banner{grid-template-columns:44px minmax(0,1fr) 32px;gap:9px;padding:10px}.viva-app-banner__icon{width:44px;height:44px}.viva-app-banner__actions{grid-column:2/4;justify-content:flex-start}.viva-app-banner__open,.viva-app-banner__download{min-height:36px}.viva-app-banner__close{grid-column:3;grid-row:1}}@media(prefers-color-scheme:dark){.viva-app-banner{border-color:rgba(224,239,242,.14);background:rgba(12,29,34,.97);box-shadow:0 14px 38px rgba(0,0,0,.34)}.viva-app-banner__icon{background:#fff6ea}.viva-app-banner__copy strong{color:#eff8f9}.viva-app-banner__copy span{color:#a8bcc2}.viva-app-banner__open{color:#07242d;background:#f7c948}.viva-app-banner__download{color:#dcecef;background:#173b45}.viva-app-banner__close{color:#b7c8cd}}@media(prefers-reduced-motion:reduce){.viva-app-banner{transition:none}}
+.viva-app-banner {
+  --viva-app-banner-offset: 0px;
+  position: fixed;
+  right: 12px;
+  bottom: calc(max(10px, env(safe-area-inset-bottom)) + var(--viva-app-banner-offset));
+  left: 12px;
+  z-index: 1200;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto 30px;
+  align-items: center;
+  gap: 10px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 9px 8px 9px 12px;
+  border: 1px solid rgba(7, 59, 76, .1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 8px 24px rgba(7, 59, 76, .12);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .18s ease, transform .18s ease, bottom .18s ease;
+}
+
+.viva-app-banner.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.viva-app-banner.is-leaving {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.viva-app-banner__icon {
+  display: block;
+  width: 44px;
+  height: 44px;
+  padding: 3px;
+  object-fit: contain;
+}
+
+.viva-app-banner__copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.viva-app-banner__copy strong {
+  color: #073b4c;
+  font-size: .92rem;
+  line-height: 1.2;
+}
+
+.viva-app-banner__copy span {
+  overflow: hidden;
+  color: #657780;
+  font-size: .73rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viva-app-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.viva-app-banner__open,
+.viva-app-banner__download {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.viva-app-banner__open {
+  color: #fff;
+  background: #f50019;
+}
+
+.viva-app-banner__download {
+  border-color: rgba(245, 0, 25, .14);
+  color: #c90015;
+  background: #fff4f1;
+}
+
+.viva-app-banner__close {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: #75858b;
+  background: transparent;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.viva-app-banner__close:hover {
+  background: rgba(7, 59, 76, .06);
+}
+
+.viva-app-banner__close:focus-visible,
+.viva-app-banner__open:focus-visible,
+.viva-app-banner__download:focus-visible {
+  outline: 3px solid rgba(255, 137, 0, .42);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .viva-app-banner {
+    grid-template-columns: 40px minmax(0, 1fr) 30px;
+    gap: 8px;
+    padding: 9px 8px 9px 10px;
+  }
+
+  .viva-app-banner__icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .viva-app-banner__actions {
+    grid-column: 2 / 4;
+    justify-content: flex-start;
+  }
+
+  .viva-app-banner__open,
+  .viva-app-banner__download {
+    min-height: 34px;
+    padding-inline: 12px;
+  }
+
+  .viva-app-banner__close {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .viva-app-banner {
+    border-color: rgba(255, 255, 255, .1);
+    background: rgba(14, 26, 30, .98);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .28);
+  }
+
+  .viva-app-banner__copy strong {
+    color: #f3f7f8;
+  }
+
+  .viva-app-banner__copy span {
+    color: #a8b8bd;
+  }
+
+  .viva-app-banner__download {
+    border-color: rgba(255, 137, 0, .22);
+    color: #ffb04a;
+    background: rgba(255, 137, 0, .09);
+  }
+
+  .viva-app-banner__close {
+    color: #b4c1c5;
+  }
+
+  .viva-app-banner__close:hover {
+    background: rgba(255, 255, 255, .06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viva-app-banner {
+    transition: none;
+  }
+}

@@ -97,7 +97,7 @@ export function setupSmartAppBanner() {
   banner.dataset.vivaAppBanner = "true";
   banner.setAttribute("aria-label", "Abrir o Viva Urânia");
   banner.innerHTML = `
-    <img class="viva-app-banner__icon" src="/assets/logo-viva-urania-coracao.svg" alt="" width="48" height="48">
+    <img class="viva-app-banner__icon" src="/assets/viva-origem-colorido.svg" alt="" width="44" height="44">
     <div class="viva-app-banner__copy">
       <strong>Viva Urânia</strong>
       <span>Tudo sobre Urânia em um só lugar.</span>
