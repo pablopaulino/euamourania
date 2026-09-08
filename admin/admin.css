@@ -107,8 +107,9 @@
 
 .simple-event-form.is-recurring-event{align-items:start}
 .simple-event-form.is-recurring-event [name="recorrencia_tipo"]{border-color:rgba(247,201,72,.72);background:#fffaf0}
-.simple-event-form.is-recurring-event .event-date-field{padding:.9rem;border:1px solid rgba(7,59,76,.1);border-radius:16px;background:linear-gradient(180deg,#fff,#f8fbfc);box-shadow:0 10px 24px rgba(7,59,76,.045)}
-.simple-event-form.is-recurring-event .event-date-field small{color:var(--muted);font-size:.78rem;font-weight:650;line-height:1.4}
+.simple-event-form .event-schedule-field{display:flex;flex-direction:column;min-height:144px;margin:0;padding:.9rem;border:1px solid rgba(7,59,76,.1);border-radius:16px;background:#fff;box-shadow:0 10px 24px rgba(7,59,76,.045)}
+.simple-event-form .event-schedule-field input,.simple-event-form .event-schedule-field select{margin-top:auto}
+.simple-event-form .event-schedule-field small{min-height:2.2em;color:var(--muted);font-size:.78rem;font-weight:650;line-height:1.4}
 .simple-event-form.is-recurring-event .event-repeat-until-field{grid-column:1/-1;margin-top:-.35rem;padding:.72rem .85rem;border:1px dashed rgba(7,59,76,.18);border-radius:14px;background:#fbfdfd;color:var(--muted)}
 .simple-event-form.is-recurring-event .event-repeat-until-field input{min-height:40px;padding:.6rem .75rem}
 .simple-event-form.is-recurring-event .event-repeat-until-field small{color:var(--muted);font-size:.76rem;font-weight:650;line-height:1.35}

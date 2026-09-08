@@ -1114,6 +1114,14 @@ async function resourceList(table) {
 }
 
 function selectOptionLabel(option, type) {
+  if (type === "event-simple-recurrence") {
+    return {
+      nenhuma: "Não se repete",
+      semanal: "Semanal",
+      mensal: "Mensal",
+      anual: "Anual"
+    }[option] || option;
+  }
   if (type === "link-feature-type") {
     return {
       normal: "Normal",
@@ -1227,14 +1235,22 @@ function setupSimpleEventRecurrenceForm(container) {
 
   form.classList.add("simple-event-form");
   endInput.dataset.datetimeValue = endInput.value || "";
-  startInput.closest("label")?.classList.add("event-date-field");
-  endInput.closest("label")?.classList.add("event-date-field");
+  const recurrenceField = recurrenceInput.closest("label");
+  const startField = startInput.closest("label");
+  const endField = endInput.closest("label");
+  recurrenceField?.classList.add("event-recurrence-field", "event-schedule-field");
+  startField?.classList.add("event-date-field", "event-schedule-field");
+  endField?.classList.add("event-date-field", "event-schedule-field");
+  if (recurrenceField && startField?.parentElement === recurrenceField.parentElement) {
+    startField.parentElement.insertBefore(recurrenceField, startField);
+  }
   repeatUntilInput?.closest("label")?.classList.add("event-repeat-until-field");
 
   const apply = () => {
     const recurring = simpleEventIsRecurring(recurrenceInput.value);
     form.classList.toggle("is-recurring-event", recurring);
     setFieldCaption(recurrenceInput, "Tipo de repetição");
+    setFieldHint(recurrenceInput, recurring ? "O evento será repetido automaticamente nessa frequência." : "Escolha primeiro se este evento se repete.");
     if (recurring) {
       setFieldCaption(startInput, "Primeira data e horário de início");
       setFieldHint(startInput, "Use a primeira ocorrência. O site repete automaticamente conforme a frequência escolhida.");
@@ -1253,9 +1269,9 @@ function setupSimpleEventRecurrenceForm(container) {
       }
     } else {
       setFieldCaption(startInput, "Início");
-      setFieldHint(startInput, "");
+      setFieldHint(startInput, "Data e horário em que o evento começa.");
       setFieldCaption(endInput, "Fim");
-      setFieldHint(endInput, "");
+      setFieldHint(endInput, "Data e horário em que o evento termina.");
       if (endInput.type !== "datetime-local") {
         const datePart = String(startInput.value || "").slice(0, 10);
         const timePart = extractTimeFromDateTime(endInput.value);
@@ -1265,7 +1281,7 @@ function setupSimpleEventRecurrenceForm(container) {
       if (repeatUntilInput) {
         setFieldCaption(repeatUntilInput, "Repetir até");
         setFieldHint(repeatUntilInput, "");
-        repeatUntilInput.closest("label")?.classList.remove("hidden");
+        repeatUntilInput.closest("label")?.classList.add("hidden");
       }
     }
   };
