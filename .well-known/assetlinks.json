@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.com.euamourania.app",
+      "sha256_cert_fingerprints": [
+        "E7:7C:95:B2:C8:35:8F:E0:D8:DC:38:E3:E2:6F:D0:73:FE:B4:18:6B:0B:AE:64:7D:31:C1:82:18:6D:FA:A1:C9"
+      ]
+    }
+  }
+]
