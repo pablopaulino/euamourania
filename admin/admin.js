@@ -259,10 +259,56 @@ const normalizeGalleryUrls = value => Array.isArray(value) ?value.map(item => ty
 function galleryUrlsHtml(name,label,value){
   const urls=normalizeGalleryUrls(value);
   const folder=currentResourceTable==="turismo"?"turismo/galeria":currentResourceTable==="guia_comercial"?"guia/galeria":`galerias/${name}`;
-  return `<fieldset class="full-row cms-gallery-field" data-gallery-field="${name}"><legend>${label}</legend><div class="cms-gallery-head"><span>Imagem principal + extras</span><strong>${urls.length}/${EXTRA_GALLERY_LIMIT}</strong></div><p class="field-hint">A imagem principal já conta como a primeira foto. Adicione aqui só até 4 fotos extras para o carrossel do aplicativo.</p><div class="cms-gallery-list">${Array.from({length:EXTRA_GALLERY_LIMIT},(_,index)=>`<label><span>Foto extra ${index+1}</span><input type="text" inputmode="url" data-type="url" data-cms-image="true" data-media-folder="${escapeHtml(folder)}" data-media-preset="card" name="${name}_${index}" value="${escapeHtml(urls[index]||"")}" placeholder="Escolher da biblioteca ou colar URL"></label>`).join("")}</div></fieldset>`;
+  return `<fieldset class="full-row cms-gallery-field" data-gallery-field="${name}"><legend>${label}</legend><div class="cms-gallery-head"><span>Imagem principal + extras</span><strong data-gallery-count>${urls.length}/${EXTRA_GALLERY_LIMIT}</strong></div><p class="field-hint">A imagem principal já conta como a primeira foto. Adicione até 4 fotos extras para o carrossel do aplicativo.</p><label class="cms-gallery-picker"><span>Adicionar foto extra</span><input type="text" inputmode="url" data-type="url" data-cms-image="true" data-gallery-picker data-media-folder="${escapeHtml(folder)}" data-media-preset="card" name="${name}_picker" placeholder="Escolher da biblioteca ou colar URL"></label><ol class="cms-gallery-list">${Array.from({length:EXTRA_GALLERY_LIMIT},(_,index)=>{const url=urls[index]||"";return `<li data-gallery-slot="${index}" ${url?"":"hidden"}><img ${url?`src="${escapeHtml(url)}"`:""} alt="" data-gallery-thumb><span><small>Foto extra ${index+1}</small><strong data-gallery-url>${escapeHtml(url)}</strong></span><input type="hidden" name="${name}_${index}" value="${escapeHtml(url)}"><button type="button" class="admin-button secondary" data-gallery-remove="${index}">Remover</button></li>`}).join("")}</ol><p class="cms-gallery-empty" data-gallery-empty ${urls.length?"hidden":""}>Nenhuma foto extra adicionada.</p></fieldset>`;
 }
 function collectGalleryUrls(form,name){
   return Array.from({length:EXTRA_GALLERY_LIMIT},(_,index)=>String(form.get(`${name}_${index}`)||"").trim()).filter(Boolean).filter((url,index,array)=>array.indexOf(url)===index);
+}
+function setupGalleryFields(container){
+  container.querySelectorAll("[data-gallery-field]").forEach(fieldset=>{
+    const name=fieldset.dataset.galleryField;
+    const picker=fieldset.querySelector("[data-gallery-picker]");
+    const slots=Array.from({length:EXTRA_GALLERY_LIMIT},(_,index)=>fieldset.querySelector(`[name="${name}_${index}"]`));
+    const refresh=()=>{
+      const values=slots.map(input=>String(input?.value||"").trim());
+      fieldset.querySelector("[data-gallery-count]").textContent=`${values.filter(Boolean).length}/${EXTRA_GALLERY_LIMIT}`;
+      fieldset.querySelector("[data-gallery-empty]").hidden=values.some(Boolean);
+      values.forEach((url,index)=>{
+        const row=fieldset.querySelector(`[data-gallery-slot="${index}"]`);
+        if(!row)return;
+        row.hidden=!url;
+        const thumbnail=row.querySelector("[data-gallery-thumb]");
+        if(url)thumbnail.src=url;else thumbnail.removeAttribute("src");
+        row.querySelector("[data-gallery-url]").textContent=url;
+      });
+    };
+    picker?.addEventListener("change",()=>{
+      const url=String(picker.value||"").trim();
+      if(!url)return;
+      const existing=slots.find(input=>input.value===url);
+      const target=slots.find(input=>!String(input.value||"").trim());
+      const message=()=>fieldset.querySelector(".cms-media-state");
+      if(!existing&&target){target.value=url;target.dispatchEvent(new Event("input",{bubbles:true}));}
+      picker.value="";
+      refresh();
+      setTimeout(()=>{
+        const status=message();
+        const preview=fieldset.querySelector(".cms-media-preview");
+        if(preview)preview.innerHTML="";
+        if(status){status.className=`cms-media-state ${target&&!existing?"success":"error"}`;status.textContent=existing?"Essa foto já está na galeria.":target?"Foto adicionada à galeria.":"A galeria já possui 4 fotos extras.";}
+      },0);
+    });
+    fieldset.addEventListener("click",event=>{
+      const button=event.target.closest("[data-gallery-remove]");
+      if(!button)return;
+      const index=Number(button.dataset.galleryRemove);
+      slots[index].value="";
+      const compacted=slots.map(input=>input.value).filter(Boolean);
+      slots.forEach((input,slotIndex)=>{input.value=compacted[slotIndex]||"";});
+      refresh();
+    });
+    refresh();
+  });
 }
 const WEEK_DAYS = [["mon","Segunda-feira"],["tue","Terça-feira"],["wed","Quarta-feira"],["thu","Quinta-feira"],["fri","Sexta-feira"],["sat","Sábado"],["sun","Domingo"]];
 const weeklyDayRecord = (value, day) => value && typeof value === "object" && !Array.isArray(value) ? value?.[day] || {} : {};
@@ -1404,6 +1450,7 @@ async function editForm(table,id) {
       </form>
     </section>`;
   normalizeCoordinateInputs(app);
+  setupGalleryFields(app);
   const editorField=config.fields.find(f=>f[2]==="editor");
   if(editorField){quill=new Quill("#editor",{theme:"snow",modules:{toolbar:[["bold","italic","blockquote"],[{header:[2,3,false]}],[{list:"ordered"},{list:"bullet"}],["link","image","video"],["clean"]]}});quill.root.innerHTML=row[editorField[0]]||"";}
   await carregarSelectEventosPrincipais();
