@@ -14,21 +14,21 @@ const plans = {
   semiannual: {
     label: "Semestral",
     duration: "Compromisso de 6 meses",
-    price: 449.4,
-    priceLabel: "449,40",
+    price: 419.9,
+    priceLabel: "419,90",
     period: "/6 meses",
-    equivalent: "Equivale a R$ 74,90 por mês.",
-    savings: 30,
+    equivalent: "Equivale a R$ 69,98 por mês.",
+    savings: 59.5,
     badge: "Economize"
   },
   annual: {
     label: "Anual",
     duration: "Compromisso de 12 meses",
-    price: 838.8,
-    priceLabel: "838,80",
+    price: 759.9,
+    priceLabel: "759,90",
     period: "/12 meses",
-    equivalent: "Equivale a R$ 69,90 por mês.",
-    savings: 120,
+    equivalent: "Equivale a R$ 63,33 por mês.",
+    savings: 198.9,
     badge: "Melhor valor"
   }
 };

@@ -698,6 +698,53 @@ body.viva-landing {
   text-align: center;
 }
 
+.viva-partner-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+  padding: 1.15rem 1.25rem;
+  color: inherit;
+  background: rgba(255, 255, 255, .7);
+  border: 1px solid var(--landing-line);
+  border-radius: 22px;
+  text-decoration: none;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.viva-partner-cta:hover {
+  background: #fff;
+  border-color: rgba(17, 18, 20, .18);
+  transform: translateY(-2px);
+}
+
+.viva-partner-cta-copy { display: grid; gap: .25rem; }
+.viva-partner-cta-copy small {
+  color: #777a80;
+  font-size: .66rem;
+  font-weight: 750;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.viva-partner-cta-copy strong {
+  color: var(--landing-ink);
+  font-size: 1.08rem;
+  letter-spacing: -.035em;
+}
+.viva-partner-cta-copy > span { color: var(--landing-muted); font-size: .85rem; line-height: 1.45; }
+.viva-partner-cta-action {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: .35rem;
+  color: #383a3f;
+  font-size: .8rem;
+  font-weight: 750;
+}
+.viva-partner-cta-action span { transition: transform .18s ease; }
+.viva-partner-cta:hover .viva-partner-cta-action span { transform: translateX(3px); }
+
 .viva-footer {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -821,6 +868,7 @@ body.viva-landing {
   .viva-download h2 { font-size: 2.3rem; }
   .viva-store-button { width: 100%; }
   .viva-partner-card { flex-basis: 152px; min-width: 152px; }
+  .viva-partner-cta { align-items: flex-start; flex-direction: column; gap: .85rem; }
   .viva-footer nav { flex-wrap: wrap; justify-content: center; }
 }
 
