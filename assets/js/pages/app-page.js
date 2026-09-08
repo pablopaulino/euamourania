@@ -26,7 +26,7 @@ const safeTrack = (tipo, metadados = {}) => {
   }).catch(() => {});
 };
 
-const PARTNERS_LIMIT = 6;
+const PARTNERS_LIMIT = 200;
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -90,6 +90,51 @@ function partnerCard(item) {
   </article>`;
 }
 
+function partnerSet(partners, repeats = 1, hidden = false) {
+  const set = document.createElement("div");
+  set.className = "viva-partner-set";
+  if (hidden) set.setAttribute("aria-hidden", "true");
+  set.innerHTML = Array.from({ length: repeats }, () => partners.map(partnerCard).join("")).join("");
+  const cards = [...set.querySelectorAll(".viva-partner-card")];
+  cards.forEach((card, index) => {
+    if (hidden || index >= partners.length) {
+      card.setAttribute("aria-hidden", "true");
+      const link = card.querySelector("a");
+      if (link) {
+        link.tabIndex = -1;
+        link.removeAttribute("data-app-page-link");
+      }
+    }
+  });
+  return set;
+}
+
+function setupPartnersMarquee(list, partners) {
+  list.replaceChildren();
+  list.classList.remove("is-static", "is-marquee");
+  const shouldAnimate = partners.length > 1 && !prefersReducedMotion();
+  const repeats = shouldAnimate ? Math.max(1, Math.ceil(8 / partners.length)) : 1;
+  const primary = partnerSet(partners, repeats);
+  list.append(primary);
+
+  if (!shouldAnimate) {
+    list.classList.add("is-static");
+    bindTrackedLinks(primary);
+    return;
+  }
+
+  const duplicate = primary.cloneNode(true);
+  duplicate.setAttribute("aria-hidden", "true");
+  duplicate.querySelectorAll("a").forEach(link => {
+    link.tabIndex = -1;
+    link.removeAttribute("data-app-page-link");
+  });
+  list.append(duplicate);
+  list.classList.add("is-marquee");
+  list.style.setProperty("--partner-marquee-duration", Math.max(28, partners.length * repeats * 5) + "s");
+  bindTrackedLinks(primary);
+}
+
 async function loadPartners() {
   const list = document.getElementById("viva-partners-list");
   if (!list) return;
@@ -111,8 +156,7 @@ async function loadPartners() {
       section?.setAttribute("hidden", "");
       return;
     }
-    list.innerHTML = partners.map(partnerCard).join("");
-    bindTrackedLinks(list);
+    setupPartnersMarquee(list, partners);
   } catch (error) {
     console.warn("Parceiros do Viva Urânia:", error.message);
     section?.setAttribute("hidden", "");

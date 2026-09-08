@@ -194,6 +194,9 @@ body.viva-landing {
 }
 
 .viva-hero h1 span {
+  display: inline-block;
+  margin-inline: -.055em;
+  padding-inline: .055em;
   color: transparent;
   background: linear-gradient(100deg, var(--landing-red) 8%, var(--landing-orange) 92%);
   -webkit-background-clip: text;
@@ -602,14 +605,51 @@ body.viva-landing {
 .viva-partners-heading > a span { margin-left: .25rem; transition: transform .18s ease; }
 .viva-partners-heading > a:hover span { display: inline-block; transform: translateX(3px); }
 
-.viva-partner-grid {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: .75rem;
-  padding-top: 1.4rem;
+.viva-partner-viewport {
+  width: 100%;
+  margin-top: 1.4rem;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
 }
 
-.viva-partner-card { min-width: 0; margin: 0; }
+.viva-partner-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+.viva-partner-track.is-marquee {
+  animation: viva-partner-marquee var(--partner-marquee-duration, 30s) linear infinite;
+}
+
+.viva-partner-viewport:hover .viva-partner-track.is-marquee,
+.viva-partner-track.is-marquee:focus-within {
+  animation-play-state: paused;
+}
+
+.viva-partner-track.is-static { width: 100%; }
+
+.viva-partner-set {
+  display: flex;
+  flex: 0 0 auto;
+  gap: .75rem;
+  padding-right: .75rem;
+}
+
+.viva-partner-track.is-static .viva-partner-set {
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-right: 0;
+}
+
+.viva-partner-card {
+  flex: 0 0 174px;
+  min-width: 174px;
+  margin: 0;
+}
+
 .viva-partner-card a {
   display: grid;
   gap: .75rem;
@@ -638,7 +678,7 @@ body.viva-landing {
 }
 
 .viva-partner-logo img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.viva-partner-body { display: grid; min-width: 0; gap: .2rem; padding: 0 .2rem .25rem; }
+.viva-partner-body { display: grid; min-width: 0; gap: .2rem; padding: 0 .2rem .25rem; text-align: center; }
 .viva-partner-body strong { overflow: hidden; font-size: .82rem; text-overflow: ellipsis; white-space: nowrap; }
 .viva-partner-body small { color: #85888e; font-size: .66rem; }
 
@@ -651,8 +691,7 @@ body.viva-landing {
   animation: viva-skeleton 1.3s linear infinite;
 }
 
-.viva-partner-grid .partners-empty {
-  grid-column: 1 / -1;
+.viva-partner-track .partners-empty {
   margin: 0;
   padding: 2rem;
   color: #777a80;
@@ -686,6 +725,7 @@ body.viva-landing {
 .motion-ready .motion-reveal.is-visible { opacity: 1; transform: translateY(0); }
 
 @keyframes viva-skeleton { to { background-position: -220% 0; } }
+@keyframes viva-partner-marquee { to { transform: translate3d(-50%, 0, 0); } }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -701,7 +741,6 @@ body.viva-landing {
   .viva-hero h1 { font-size: clamp(4rem, 9vw, 6.4rem); }
   .viva-note-top { left: -10%; }
   .viva-note-bottom { right: -5%; }
-  .viva-partner-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .viva-download { grid-template-columns: 90px 1fr; }
   .viva-download-mark { width: 88px; height: 88px; }
   .viva-store-actions { grid-column: 2; justify-content: flex-start; }
@@ -772,7 +811,7 @@ body.viva-landing {
   .viva-download { margin-top: 4.5rem; padding: 1.35rem; border-radius: 28px; }
   .viva-download h2 { font-size: 2.3rem; }
   .viva-store-button { width: 100%; }
-  .viva-partner-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .viva-partner-card { flex-basis: 152px; min-width: 152px; }
   .viva-footer nav { flex-wrap: wrap; justify-content: center; }
 }
 
