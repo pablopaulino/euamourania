@@ -14,7 +14,7 @@ const safeImage = value => {
   const raw = String(value || "").trim();
   if (/^https?:\/\//i.test(raw)) return escapeHtml(raw);
   if (/^\/?assets\//i.test(raw)) return escapeHtml(raw.startsWith("/") ? raw : `/${raw}`);
-  return "/assets/compartilhamento-logo.png";
+  return "/assets/viva-origem-colorido.svg";
 };
 
 const safeTrack = (tipo, metadados = {}) => {
@@ -26,7 +26,7 @@ const safeTrack = (tipo, metadados = {}) => {
   }).catch(() => {});
 };
 
-const PARTNERS_LIMIT = 24;
+const PARTNERS_LIMIT = 6;
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -84,7 +84,7 @@ function partnerCard(item) {
       </span>
       <span class="viva-partner-body">
         <strong>${escapeHtml(item.nome)}</strong>
-        <small>Destaque no Guia</small>
+        <small>Parceiro do Viva</small>
       </span>
     </a>
   </article>`;
@@ -93,8 +93,9 @@ function partnerCard(item) {
 async function loadPartners() {
   const list = document.getElementById("viva-partners-list");
   if (!list) return;
+  const section = list.closest(".viva-partners");
   if (!publicSupabaseConfigured()) {
-    list.innerHTML = `<p class="partners-empty">Parceiros indisponíveis no momento.</p>`;
+    section?.setAttribute("hidden", "");
     return;
   }
   try {
@@ -106,47 +107,16 @@ async function loadPartners() {
       limit: String(PARTNERS_LIMIT)
     }, { ttl: 300000, timeout: 5000 });
     const partners = rows || [];
-    list.innerHTML = partners.length ? partners.map(partnerCard).join("") : `<p class="partners-empty">Em breve, novos parceiros por aqui.</p>`;
-    setupPartnersAutoscroll(list);
+    if (!partners.length) {
+      section?.setAttribute("hidden", "");
+      return;
+    }
+    list.innerHTML = partners.map(partnerCard).join("");
     bindTrackedLinks(list);
   } catch (error) {
     console.warn("Parceiros do Viva Urânia:", error.message);
-    list.innerHTML = `<p class="partners-empty">Não foi possível carregar os parceiros agora.</p>`;
+    section?.setAttribute("hidden", "");
   }
-}
-
-function setupPartnersAutoscroll(list) {
-  const cards = [...list.querySelectorAll(".viva-partner-card")];
-  if (cards.length < 2 || prefersReducedMotion()) {
-    list.classList.add("is-static");
-    return;
-  }
-
-  list.classList.add("is-auto-scrolling");
-  const addCloneSet = () => cards.forEach(card => {
-    const clone = card.cloneNode(true);
-    clone.setAttribute("aria-hidden", "true");
-    clone.querySelectorAll("a").forEach(link => {
-      link.tabIndex = -1;
-      link.removeAttribute("data-app-page-link");
-    });
-    list.appendChild(clone);
-  });
-  addCloneSet();
-
-  let cloneRuns = 1;
-  while (list.scrollWidth < list.clientWidth * 2 && cloneRuns < 5) {
-    addCloneSet();
-    cloneRuns += 1;
-  }
-
-  const styles = getComputedStyle(list);
-  const gap = Number.parseFloat(styles.columnGap || styles.gap || "0") || 0;
-  const setWidth = cards.reduce((total, card) => total + card.getBoundingClientRect().width, 0) + gap * cards.length;
-  const duration = Math.max(22, Math.round(setWidth / 34));
-
-  list.style.setProperty("--partner-set-width", `${setWidth}px`);
-  list.style.setProperty("--partner-marquee-duration", `${duration}s`);
 }
 
 function setupHeaderMotion() {
@@ -161,18 +131,16 @@ function setupRevealMotion() {
   if (prefersReducedMotion() || !("IntersectionObserver" in window)) return;
   document.documentElement.classList.add("motion-ready");
   const targets = [
-    ".viva-trust-strip span",
+    ".viva-proof span",
     ".viva-section-head",
-    ".viva-ecosystem-grid article",
-    ".viva-app-screen",
-    ".viva-showcase-notes span",
-    ".viva-daily > *",
-    ".viva-smart-guide > *",
-    ".viva-tourism > *",
-    ".viva-business > *",
+    ".viva-section-heading",
+    ".viva-path",
+    ".viva-screen-card",
+    ".viva-everyday > *",
+    ".viva-smart > *",
+    ".viva-download > *",
     ".viva-partners > *",
-    ".viva-brand-story > *",
-    ".viva-download > *"
+    ".viva-partner-card"
   ].join(",");
   const elements = [...document.querySelectorAll(targets)];
   elements.forEach((element, index) => {
@@ -187,45 +155,6 @@ function setupRevealMotion() {
     });
   }, { threshold: 0.14, rootMargin: "0px 0px -8% 0px" });
   elements.forEach(element => observer.observe(element));
-}
-
-function setupTourismDepth() {
-  if (prefersReducedMotion() || window.matchMedia("(max-width: 720px)").matches) return;
-  const image = document.querySelector(".viva-tourism img");
-  if (!image) return;
-  let ticking = false;
-  const update = () => {
-    const rect = image.getBoundingClientRect();
-    const progress = ((rect.top + rect.height / 2) - window.innerHeight / 2) / window.innerHeight;
-    const offset = Math.max(-8, Math.min(8, progress * -10));
-    image.style.transform = `translateY(${offset}px)`;
-    ticking = false;
-  };
-  const onScroll = () => {
-    if (ticking) return;
-    ticking = true;
-    window.requestAnimationFrame(update);
-  };
-  update();
-  window.addEventListener("scroll", onScroll, { passive: true });
-}
-
-function setupSlides() {
-  const slides = [...document.querySelectorAll(".viva-slide")];
-  if (!slides.length) return;
-  const setActive = index => {
-    slides.forEach((slide, i) => slide.classList.toggle("active", i === index));
-    slides[index]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  };
-  document.querySelectorAll("[data-viva-slide]").forEach(button => {
-    button.addEventListener("click", () => {
-      const current = Math.max(0, slides.findIndex(slide => slide.classList.contains("active")));
-      const next = button.dataset.vivaSlide === "next"
-        ? (current + 1) % slides.length
-        : (current - 1 + slides.length) % slides.length;
-      setActive(next);
-    });
-  });
 }
 
 async function init() {
@@ -260,8 +189,6 @@ async function init() {
   bindSmoothAnchors();
   setupHeaderMotion();
   setupRevealMotion();
-  setupTourismDepth();
-  setupSlides();
   loadPartners();
 }
 

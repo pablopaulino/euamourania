@@ -3,267 +3,210 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Viva Urânia | Aplicativo oficial do Eu Amo Urânia</title>
-  <meta name="description" content="Baixe o Viva Urânia, o aplicativo do Eu Amo Urânia com guia comercial, turismo, eventos, notícias, telefones úteis, iniciativas e informações da cidade.">
+  <title>Viva Urânia | O app da cidade</title>
+  <meta name="description" content="Baixe o Viva Urânia. Comércio, turismo, eventos, notícias, benefícios e serviços locais em um só aplicativo.">
   <link rel="canonical" href="https://euamourania.com.br/app">
-  <meta name="theme-color" content="#fff7ee">
+  <meta name="theme-color" content="#ffffff">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="pt_BR">
-  <meta property="og:site_name" content="Eu Amo Urânia">
-  <meta property="og:title" content="Viva Urânia | Aplicativo oficial do Eu Amo Urânia">
-  <meta property="og:description" content="Guia, turismo, eventos, notícias e informações úteis de Urânia na palma da sua mão.">
+  <meta property="og:site_name" content="Viva Urânia">
+  <meta property="og:title" content="Viva Urânia | O app da cidade">
+  <meta property="og:description" content="Urânia na palma da sua mão: lugares, eventos, notícias, benefícios e informações úteis.">
   <meta property="og:url" content="https://euamourania.com.br/app">
   <meta property="og:image" content="https://euamourania.com.br/assets/app/viva-urania-home.jpeg">
   <meta property="og:image:alt" content="Tela inicial do aplicativo Viva Urânia">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Viva Urânia | Aplicativo oficial do Eu Amo Urânia">
-  <meta name="twitter:description" content="Guia, turismo, eventos, notícias e informações úteis de Urânia na palma da sua mão.">
+  <meta name="twitter:title" content="Viva Urânia | O app da cidade">
+  <meta name="twitter:description" content="Urânia na palma da sua mão.">
   <meta name="twitter:image" content="https://euamourania.com.br/assets/app/viva-urania-home.jpeg">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Viva Urânia","url":"https://euamourania.com.br/app","downloadUrl":"https://play.google.com/store/apps/details?id=br.com.euamourania.app","operatingSystem":"Android","applicationCategory":"LifestyleApplication","description":"Aplicativo do Eu Amo Urânia com guia comercial, turismo, eventos, notícias, telefones úteis e informações locais.","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"},"publisher":{"@type":"Organization","name":"Eu Amo Urânia","url":"https://euamourania.com.br/"},"inLanguage":"pt-BR"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Viva Urânia","url":"https://euamourania.com.br/app","downloadUrl":"https://play.google.com/store/apps/details?id=br.com.euamourania.app","operatingSystem":"Android","applicationCategory":"LifestyleApplication","description":"Aplicativo local com guia comercial, turismo, eventos, notícias, benefícios e serviços de Urânia.","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"},"publisher":{"@type":"Organization","name":"Eu Amo Urânia","url":"https://euamourania.com.br/"},"inLanguage":"pt-BR"}</script>
   <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/assets/css/app-page.css">
+  <link rel="stylesheet" href="/assets/css/app-landing-v2.css">
   <link rel="preload" as="image" href="/assets/app/viva-urania-home.jpeg" fetchpriority="high">
+  <link rel="preload" as="image" href="/assets/viva-origem-colorido.svg">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="app-page">
+<body class="viva-landing">
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
   <header class="viva-header" aria-label="Topo do Viva Urânia">
-    <a class="viva-brand" href="/app" aria-label="Viva Urânia">
-      <img src="/assets/icons/apple-touch-icon.png" alt="" width="44" height="44">
-      <span><strong>Viva Urânia</strong><small>O app da cidade</small></span>
+    <a class="viva-brand" href="/app" aria-label="Viva Urânia — início">
+      <img src="/assets/viva-origem-colorido.svg" alt="" width="38" height="32">
+      <span>Viva Urânia</span>
     </a>
-    <nav class="viva-nav" aria-label="Navegação da página do app">
+    <nav class="viva-nav" aria-label="Navegação da página">
+      <a href="#por-dentro" data-scroll-target>O aplicativo</a>
       <a href="#recursos" data-scroll-target>Recursos</a>
-      <a href="#experiencia" data-scroll-target>Experiência</a>
-      <a href="#empresas" data-scroll-target>Empresas</a>
       <a href="#parceiros" data-scroll-target>Parceiros</a>
-      <a href="#download" data-scroll-target>Baixar</a>
-      <a href="/">Eu Amo Urânia</a>
     </nav>
+    <a class="viva-header-cta" href="https://play.google.com/store/apps/details?id=br.com.euamourania.app" target="_blank" rel="noopener" data-google-play>Baixar o app</a>
   </header>
 
   <main id="conteudo">
     <section class="viva-hero" aria-labelledby="viva-title">
       <div class="viva-hero-copy">
-        <span class="viva-pill">Aplicativo do Eu Amo Urânia</span>
-        <h1 id="viva-title">Urânia inteira mais perto de você.</h1>
-        <p>Guia comercial, turismo, eventos, notícias e informações da cidade em uma experiência feita para quem vive, visita e movimenta Urânia.</p>
-        <div class="viva-actions" aria-label="Ações principais">
-          <a class="viva-button primary" href="https://play.google.com/store/apps/details?id=br.com.euamourania.app" target="_blank" rel="noopener" data-google-play>Baixar no Google Play</a>
-          <a class="viva-button ghost" href="#experiencia" data-scroll-target>Explorar o aplicativo</a>
+        <p class="viva-eyebrow">O aplicativo de Urânia</p>
+        <h1 id="viva-title">Sua cidade,<br><span>mais perto.</span></h1>
+        <p class="viva-lead">Encontre lugares, acompanhe o que acontece e resolva o dia a dia em um aplicativo feito para Urânia.</p>
+        <div class="viva-actions" aria-label="Baixar ou conhecer o aplicativo">
+          <a class="viva-button viva-button-primary" href="https://play.google.com/store/apps/details?id=br.com.euamourania.app" target="_blank" rel="noopener" data-google-play>
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M4.4 2.8c-.3.2-.4.6-.4 1.1v16.2c0 .5.1.9.4 1.1l9-9.2-9-9.2Zm10 8.2 2.1-2.1L6.1 3.1 14.4 11Zm2.8-1.7L15.2 12l2 2.7 2.4-1.4c1.2-.7 1.2-1.9 0-2.6l-2.4-1.4Zm-.7 5.8-2.1-2.1-8.3 7.9 10.4-5.8Z"/></svg>
+            <span><small>Disponível na</small><strong data-store-label>Google Play</strong></span>
+          </a>
+          <a class="viva-button viva-button-secondary" href="#por-dentro" data-scroll-target>Conhecer o Viva</a>
         </div>
-        <p class="viva-store-hint">Android disponível agora. iPhone em breve.</p>
+        <p class="viva-availability">Gratuito no Android <span aria-hidden="true">·</span> iPhone em breve</p>
       </div>
 
-      <figure class="viva-phone-showcase" aria-label="Captura real do aplicativo Viva Urânia">
-        <span class="viva-phone-note">Tela real do aplicativo</span>
-        <img src="/assets/app/viva-urania-home.jpeg" alt="Tela inicial do aplicativo Viva Urânia mostrando busca, parceiros do guia e sugestão do momento" width="740" height="1600" fetchpriority="high" decoding="async">
-      </figure>
-    </section>
-
-    <section class="viva-trust-strip" aria-label="Diferenciais rápidos do Viva Urânia">
-      <span>Gratuito</span>
-      <span>Feito para Urânia</span>
-      <span>Informações locais</span>
-      <span>Empresas e lugares da cidade</span>
-    </section>
-
-    <section class="viva-feature-strip" id="recursos" aria-labelledby="recursos-title">
-      <div class="viva-section-head">
-        <span class="viva-kicker">O que você encontra</span>
-        <h2 id="recursos-title">Tudo que você procura em Urânia, em um só lugar.</h2>
-        <p>O Viva organiza informações que antes ficavam espalhadas e transforma a cidade em caminhos mais simples de acessar.</p>
-      </div>
-      <div class="viva-ecosystem-grid">
-        <article>
-          <span class="viva-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5v8A1.5 1.5 0 0 1 18.5 20h-13A1.5 1.5 0 0 1 4 18.5v-8Z"/><path d="M8 20v-7h8v7"/></svg></span>
-          <strong>Encontre empresas</strong>
-          <p>Horários, contato, WhatsApp, localização e informações para chegar mais rápido ao que você procura.</p>
-        </article>
-        <article>
-          <span class="viva-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19 9 5l5 14 2-6 4 6H4Z"/><path d="M9 5l5 14"/></svg></span>
-          <strong>Descubra Urânia</strong>
-          <p>Turismo, experiências, lugares e sugestões para moradores e visitantes.</p>
-        </article>
-        <article>
-          <span class="viva-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4v3M17 4v3M5 8h14M6.5 6h11A1.5 1.5 0 0 1 19 7.5v11A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-11A1.5 1.5 0 0 1 6.5 6Z"/><path d="M8 12h3M8 16h6"/></svg></span>
-          <strong>Acompanhe a cidade</strong>
-          <p>Eventos, notícias, iniciativas e informações locais reunidos em um único aplicativo.</p>
-        </article>
-        <article>
-          <span class="viva-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8h14M7 16h10"/><path d="M16 3 8 21"/></svg></span>
-          <strong>Resolva rápido</strong>
-          <p>Telefones úteis, motoristas, favoritos e ferramentas para facilitar o dia a dia.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="viva-section viva-experience" id="experiencia" aria-labelledby="experience-title">
-      <div class="viva-section-head">
-        <span class="viva-kicker">Experiência do aplicativo</span>
-        <h2 id="experience-title">Conheça o Viva por dentro.</h2>
-        <p>Uma experiência visual, direta e pensada para encontrar o que importa sem complicar.</p>
-      </div>
-      <div class="viva-app-showcase" aria-label="Telas e momentos do aplicativo">
-        <figure class="viva-app-screen">
-          <img src="/assets/app/viva-urania-home.jpeg" alt="Tela inicial do aplicativo Viva Urânia" width="740" height="1600" loading="lazy" decoding="async">
-          <figcaption>Descubra.</figcaption>
+      <div class="viva-hero-visual" aria-label="Tela real do aplicativo Viva Urânia">
+        <span class="viva-brand-shape" aria-hidden="true"><img src="/assets/viva-origem-colorido.svg" alt=""></span>
+        <figure class="viva-device viva-device-hero">
+          <img src="/assets/app/viva-urania-home.jpeg" alt="Tela inicial do Viva Urânia com busca, parceiros e sugestões da cidade" width="740" height="1600" fetchpriority="high" decoding="async">
         </figure>
-        <figure class="viva-app-screen">
-          <img src="/assets/app/viva-urania-guia-comercial.png" alt="Tela do Guia Comercial no aplicativo Viva Urânia com busca, categorias e empresas em destaque" width="1170" height="2532" loading="lazy" decoding="async">
-          <figcaption>Encontre.</figcaption>
-        </figure>
-        <figure class="viva-app-screen">
-          <img src="/assets/app/viva-urania-perfil-empresa.jpeg" alt="Tela de perfil de empresa no aplicativo Viva Urânia com contatos, rota e compartilhamento" width="740" height="1600" loading="lazy" decoding="async">
-          <figcaption>Conecte.</figcaption>
-        </figure>
-        <div class="viva-showcase-notes">
-          <span>Salve favoritos</span>
-          <span>Abra contatos</span>
-          <span>Veja rotas</span>
-          <span>Acompanhe a cidade</span>
-        </div>
+        <div class="viva-hero-note viva-note-top"><strong>Feito em Urânia</strong><span>para quem vive a cidade</span></div>
+        <div class="viva-hero-note viva-note-bottom"><strong>Tudo em um só lugar</strong><span>sem perder tempo procurando</span></div>
       </div>
     </section>
 
-    <section class="viva-section viva-daily" aria-labelledby="daily-title">
+    <section class="viva-proof" aria-label="Diferenciais do aplicativo">
+      <span>Conteúdo local</span>
+      <span>Informações úteis</span>
+      <span>Contato direto</span>
+      <span>Atualizações da cidade</span>
+    </section>
+
+    <section class="viva-section viva-intro" id="recursos" aria-labelledby="intro-title">
+      <header class="viva-section-heading">
+        <p class="viva-eyebrow">Um app para a vida real</p>
+        <h2 id="intro-title">O que você precisa,<br>sem se perder.</h2>
+        <p>O Viva reúne a cidade em três caminhos simples: descobrir, acompanhar e resolver.</p>
+      </header>
+      <div class="viva-paths">
+        <article class="viva-path">
+          <span class="viva-path-number">01</span>
+          <div><h3>Descubra</h3><p>Comércios, pontos turísticos, gastronomia e lugares para conhecer.</p><small>Guia Comercial · Turismo · Busca</small></div>
+        </article>
+        <article class="viva-path">
+          <span class="viva-path-number">02</span>
+          <div><h3>Acompanhe</h3><p>Eventos, notícias, iniciativas e novidades que movimentam Urânia.</p><small>Agenda · Notícias · Comunidade · Melhores de Urânia</small></div>
+        </article>
+        <article class="viva-path">
+          <span class="viva-path-number">03</span>
+          <div><h3>Resolva</h3><p>Telefones úteis, motoristas, rotas, horários e contato pelo WhatsApp.</p><small>Serviços · Contatos · Mobilidade</small></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="viva-product" id="por-dentro" aria-labelledby="product-title">
+      <header class="viva-section-heading viva-heading-center">
+        <p class="viva-eyebrow">Por dentro do Viva</p>
+        <h2 id="product-title">Simples de abrir.<br>Fácil de usar.</h2>
+        <p>Telas reais do aplicativo, com a informação mais importante sempre ao alcance.</p>
+      </header>
+      <div class="viva-screens" aria-label="Telas do aplicativo Viva Urânia">
+        <figure class="viva-screen-card viva-screen-side">
+          <div class="viva-device"><img src="/assets/app/viva-urania-guia-comercial.png" alt="Guia Comercial do Viva Urânia" width="1170" height="2532" loading="lazy" decoding="async"></div>
+          <figcaption><strong>Encontre</strong><span>Empresas, categorias e destaques.</span></figcaption>
+        </figure>
+        <figure class="viva-screen-card viva-screen-main">
+          <div class="viva-device"><img src="/assets/app/viva-urania-home.jpeg" alt="Página inicial do Viva Urânia" width="740" height="1600" loading="lazy" decoding="async"></div>
+          <figcaption><strong>Descubra</strong><span>Uma Home que acompanha a cidade.</span></figcaption>
+        </figure>
+        <figure class="viva-screen-card viva-screen-side">
+          <div class="viva-device"><img src="/assets/app/viva-urania-perfil-empresa.jpeg" alt="Perfil de empresa no Viva Urânia" width="740" height="1600" loading="lazy" decoding="async"></div>
+          <figcaption><strong>Conecte</strong><span>Telefone, WhatsApp e rota em um toque.</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="viva-section viva-everyday" aria-labelledby="everyday-title">
+      <div class="viva-everyday-copy">
+        <p class="viva-eyebrow">Do seu jeito</p>
+        <h2 id="everyday-title">O Viva fica mais útil cada vez que você usa.</h2>
+        <p>Salve o que gosta, escolha os assuntos que quer acompanhar e volte rapidamente ao que faz parte da sua rotina.</p>
+      </div>
+      <div class="viva-capabilities">
+        <article>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 20.5 4.7 13.6a4.7 4.7 0 0 1 6.6-6.7l.7.7.7-.7a4.7 4.7 0 0 1 6.6 6.7L12 20.5Z"/></svg>
+          <div><h3>Meu Viva</h3><p>Favoritos e preferências reunidos para você.</p></div>
+        </article>
+        <article>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 5.5h14v13H5z"/><path d="M8 9h8M8 13h5"/></svg>
+          <div><h3>Notificações relevantes</h3><p>Escolha o que quer receber e acompanhe o que importa.</p></div>
+        </article>
+        <article>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 8.5h16v9H4z"/><path d="M8 8.5V6h8v2.5M7 13h.01M11 13h6"/></svg>
+          <div><h3>Viva Vantagens</h3><p>Benefícios e condições especiais de parceiros locais.</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="viva-section viva-smart" aria-labelledby="smart-title">
       <div>
-        <span class="viva-kicker">No dia a dia</span>
-        <h2 id="daily-title">Feito para quem vive Urânia.</h2>
-        <p>O Viva transforma informações espalhadas em caminhos simples para encontrar o que você precisa.</p>
+        <p class="viva-eyebrow">Guia Inteligente</p>
+        <h2 id="smart-title">Pergunte sobre Urânia.</h2>
+        <p>Use uma conversa simples para encontrar lugares, informações e ideias para conhecer a cidade.</p>
       </div>
-      <div class="viva-question-cloud" aria-label="Situações de uso do Viva Urânia">
-        <span>Onde tem uma pizzaria aberta?</span>
-        <span>O que tem para fazer hoje?</span>
-        <span>Qual telefone eu preciso?</span>
-        <span>Quero encontrar uma empresa.</span>
-        <span>Quero salvar esse lugar.</span>
-      </div>
-    </section>
-
-    <section class="viva-section viva-smart-guide" aria-labelledby="smart-title">
-      <div>
-        <span class="viva-kicker">Guia Inteligente</span>
-        <h2 id="smart-title">Uma forma mais inteligente de descobrir a cidade.</h2>
-        <p>Busca e recomendações contextuais ajudam o usuário a explorar informações do Viva sem precisar saber exatamente onde procurar.</p>
-      </div>
-      <div class="viva-search-demo" aria-label="Exemplo visual de busca no Viva Urânia">
-        <span>Buscar no Viva Urânia</span>
-        <strong>empresas, lugares, eventos e informações úteis</strong>
-        <small>Uma entrada simples para encontrar caminhos dentro da cidade.</small>
-      </div>
-    </section>
-
-    <section class="viva-section viva-tourism" id="turismo" aria-labelledby="tourism-title">
-      <div>
-        <span class="viva-kicker">Descubra a cidade</span>
-        <h2 id="tourism-title">Urânia também é para descobrir.</h2>
-        <p>Lugares, experiências, turismo rural, gastronomia e pontos da cidade reunidos para moradores e visitantes.</p>
-        <a class="viva-link-button" href="/turismo.html">Explorar Urânia</a>
-      </div>
-      <img src="/assets/AD3A1763-min (1).jpg" alt="Imagem de turismo em Urânia" width="680" height="440" loading="lazy" decoding="async">
-    </section>
-
-    <section class="viva-section viva-business" id="empresas" aria-labelledby="business-title">
-      <div class="viva-business-copy">
-        <span class="viva-kicker">Para empresas</span>
-        <h2 id="business-title">Sua empresa onde Urânia procura.</h2>
-        <p>O Viva aproxima negócios locais de moradores e visitantes no momento em que eles estão procurando onde comprar, comer, contratar ou conhecer.</p>
-        <div class="viva-actions">
-          <a class="viva-button primary" href="/divulgue" data-app-page-link>Quero minha empresa no Viva</a>
-          <a class="viva-button ghost" href="/app/parceiros" data-app-page-link>Conhecer parceiros</a>
-        </div>
-      </div>
-      <div class="viva-business-panel">
-        <figure>
-          <img src="/assets/app/viva-urania-perfil-empresa.jpeg" alt="Tela do aplicativo Viva Urânia mostrando o perfil de uma empresa parceira do Guia" width="740" height="1600" loading="lazy" decoding="async">
-        </figure>
-        <div class="viva-business-benefits">
-          <article><strong>Presença no Guia</strong><span>Sua empresa encontrada dentro do aplicativo.</span></article>
-          <article><strong>Contato direto</strong><span>WhatsApp, telefone, endereço, mapa e canais oficiais.</span></article>
-          <article><strong>Mais descoberta</strong><span>Presença em buscas, categorias e navegação do Viva.</span></article>
-          <article><strong>Destaque no ecossistema</strong><span>Opções de maior visibilidade para fortalecer sua presença.</span></article>
-        </div>
-      </div>
-    </section>
-
-    <section class="viva-section viva-partners" id="parceiros" aria-labelledby="partners-title">
-      <div class="viva-section-head row">
-        <div>
-          <span class="viva-kicker">Parceiros e destaques</span>
-          <h2 id="partners-title">Parceiros que movimentam o Viva.</h2>
-          <p>O Guia Comercial é parte da plataforma. Parceiros e destaques são empresas com presença diferenciada dentro do ecossistema.</p>
-        </div>
-        <a class="viva-link-button" href="/app/parceiros" data-app-page-link>Ver parceiros</a>
-      </div>
-      <div class="viva-partner-carousel" id="viva-partners-list" aria-live="polite">
-        <article class="viva-partner-skeleton"></article>
-        <article class="viva-partner-skeleton"></article>
-        <article class="viva-partner-skeleton"></article>
-      </div>
-      <div class="viva-partner-cta">
-        <div>
-          <strong>Quer apresentar sua empresa no ecossistema?</strong>
-          <span>Conheça a página comercial do Eu Amo Urânia e veja os formatos disponíveis.</span>
-        </div>
-        <a class="viva-button ghost" href="/divulgue" data-app-page-link>Conhecer opções</a>
+      <div class="viva-chat-preview" aria-label="Exemplos de perguntas ao Guia Inteligente">
+        <span>O que está aberto agora?</span>
+        <span>Onde posso comer?</span>
+        <span>Monte um roteiro por Urânia.</span>
+        <div><small>Pergunte sobre Urânia</small><strong aria-hidden="true">→</strong></div>
       </div>
     </section>
 
     <section class="viva-download" id="download" aria-labelledby="download-title">
-      <figure class="viva-download-phone" aria-hidden="true">
-        <img src="/assets/app/viva-urania-home.jpeg" alt="" width="740" height="1600" loading="lazy" decoding="async">
-      </figure>
-      <div>
-        <span class="viva-kicker">Download</span>
-        <h2 id="download-title">Leve Urânia com você.</h2>
-        <p>Tenha guia, turismo, eventos, notícias e informações úteis da cidade sempre à mão.</p>
-        <div class="viva-store-row">
-          <a class="viva-store" href="https://play.google.com/store/apps/details?id=br.com.euamourania.app" target="_blank" rel="noopener" data-google-play>
-            <svg aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M4.4 2.8c-.3.2-.4.6-.4 1.1v16.2c0 .5.1.9.4 1.1l9-9.2-9-9.2Zm10 8.2 2.1-2.1L6.1 3.1 14.4 11Zm2.8-1.7L15.2 12l2 2.7 2.4-1.4c1.2-.7 1.2-1.9 0-2.6l-2.4-1.4Zm-.7 5.8-2.1-2.1-8.3 7.9 10.4-5.8Z"/></svg>
-            <span><small>Disponível na</small><strong data-store-label>Google Play</strong></span>
-          </a>
-          <a class="viva-store secondary is-disabled" href="#download" aria-disabled="true" data-app-store>
-            <svg aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M16.5 13.2c0-2 1.6-3 1.7-3.1-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7-.7 0-1.7-.7-2.7-.7-1.4 0-2.7.8-3.4 2.1-1.5 2.6-.4 6.4 1.1 8.5.7 1 1.5 2.1 2.6 2.1 1 0 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.7 1.1 0 1.9-1 2.5-2 .8-1.1 1.1-2.2 1.1-2.3 0 0-2.4-.9-2.4-3.7Zm-2-6c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.6.6-1 1.6-.9 2.5 1 .1 2-.5 2.5-1.1Z"/></svg>
-            <span><small>iPhone</small><strong data-store-label>App Store em breve</strong></span>
-          </a>
+      <div class="viva-download-mark" aria-hidden="true"><img src="/assets/viva-origem-colorido.svg" alt=""></div>
+      <div class="viva-download-copy">
+        <p class="viva-eyebrow">Baixe agora</p>
+        <h2 id="download-title">Urânia cabe no seu bolso.</h2>
+        <p>Tenha a cidade por perto, todos os dias. O Viva Urânia é gratuito.</p>
+      </div>
+      <div class="viva-store-actions">
+        <a class="viva-store-button" href="https://play.google.com/store/apps/details?id=br.com.euamourania.app" target="_blank" rel="noopener" data-google-play>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M4.4 2.8c-.3.2-.4.6-.4 1.1v16.2c0 .5.1.9.4 1.1l9-9.2-9-9.2Zm10 8.2 2.1-2.1L6.1 3.1 14.4 11Zm2.8-1.7L15.2 12l2 2.7 2.4-1.4c1.2-.7 1.2-1.9 0-2.6l-2.4-1.4Zm-.7 5.8-2.1-2.1-8.3 7.9 10.4-5.8Z"/></svg>
+          <span><small>Disponível na</small><strong data-store-label>Google Play</strong></span>
+        </a>
+        <a class="viva-store-button viva-store-disabled" href="#download" aria-disabled="true" data-app-store>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M16.5 13.2c0-2 1.6-3 1.7-3.1-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7-.7 0-1.7-.7-2.7-.7-1.4 0-2.7.8-3.4 2.1-1.5 2.6-.4 6.4 1.1 8.5.7 1 1.5 2.1 2.6 2.1 1 0 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.7 1.1 0 1.9-1 2.5-2 .8-1.1 1.1-2.2 1.1-2.3 0 0-2.4-.9-2.4-3.7Zm-2-6c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.6.6-1 1.6-.9 2.5 1 .1 2-.5 2.5-1.1Z"/></svg>
+          <span><small>Para iPhone</small><strong data-store-label>Em breve</strong></span>
+        </a>
+      </div>
+    </section>
+
+    <section class="viva-section viva-partners" id="parceiros" aria-labelledby="partners-title">
+      <header class="viva-partners-heading">
+        <div>
+          <p class="viva-eyebrow">Quem faz parte</p>
+          <h2 id="partners-title">Parceiros do Viva.</h2>
+          <p>Negócios locais que ajudam a fortalecer uma plataforma feita para a cidade.</p>
         </div>
+        <a href="/app/parceiros" data-app-page-link>Conhecer parceiros <span aria-hidden="true">→</span></a>
+      </header>
+      <div class="viva-partner-grid" id="viva-partners-list" aria-live="polite">
+        <article class="viva-partner-skeleton"></article>
+        <article class="viva-partner-skeleton"></article>
+        <article class="viva-partner-skeleton"></article>
       </div>
     </section>
   </main>
 
   <footer class="viva-footer">
-    <div class="viva-footer-brand">
-      <img src="/assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="170" height="50">
-      <div>
-        <span>Viva Urânia</span>
-        <p>O app da cidade. Um produto do ecossistema Eu Amo Urânia.</p>
-      </div>
-    </div>
-    <nav class="viva-footer-links" aria-label="Links finais">
-      <div>
-        <strong>Viva</strong>
-        <a href="#recursos" data-scroll-target>Recursos</a>
-        <a href="/guia.html">Guia Comercial</a>
-        <a href="/turismo.html">Turismo</a>
-      </div>
-      <div>
-        <strong>Empresas</strong>
-        <a href="/app/parceiros">Parceiros</a>
-        <a href="/divulgue">Cadastrar empresa</a>
-      </div>
-      <div>
-        <strong>Institucional</strong>
-        <a href="/">Eu Amo Urânia</a>
-        <a href="/politica-de-privacidade.html">Privacidade</a>
-      </div>
+    <a class="viva-footer-brand" href="/app" aria-label="Viva Urânia">
+      <img src="/assets/viva-origem-colorido.svg" alt="" width="40" height="34">
+      <span><strong>Viva Urânia</strong><small>O app da cidade</small></span>
+    </a>
+    <nav aria-label="Links finais">
+      <a href="/">Eu Amo Urânia</a>
+      <a href="/politica-de-privacidade.html">Privacidade</a>
+      <a href="/links">Contato</a>
     </nav>
+    <p>Feito em Urânia, para Urânia.</p>
   </footer>
 
   <script type="module" src="/assets/js/pages/app-page.js"></script>
