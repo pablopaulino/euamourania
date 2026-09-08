@@ -3,89 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Parceiros do Viva Urânia | Eu Amo Urânia</title>
+  <title>Parceiros do Viva Urânia | O app da cidade</title>
   <meta name="description" content="Conheça os negócios que fazem parte do Viva Urânia e ajudam a fortalecer o comércio e os serviços locais.">
   <link rel="canonical" href="https://euamourania.com.br/app/parceiros">
-  <meta name="theme-color" content="#fff7ee">
+  <meta name="theme-color" content="#ffffff">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="pt_BR">
-  <meta property="og:site_name" content="Eu Amo Urânia">
+  <meta property="og:site_name" content="Viva Urânia">
   <meta property="og:title" content="Parceiros do Viva Urânia">
   <meta property="og:description" content="Conheça os negócios que fazem parte do app e ajudam a fortalecer o comércio e os serviços locais.">
   <meta property="og:url" content="https://euamourania.com.br/app/parceiros">
-  <meta property="og:image" content="https://euamourania.com.br/assets/icons/apple-touch-icon.png">
+  <meta property="og:image" content="https://euamourania.com.br/assets/app/viva-urania-home.jpeg">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Parceiros do Viva Urânia">
+  <meta name="twitter:description" content="Negócios locais que fazem parte do app da cidade.">
+  <meta name="twitter:image" content="https://euamourania.com.br/assets/app/viva-urania-home.jpeg">
   <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/assets/css/app-page.css">
+  <link rel="stylesheet" href="/assets/css/app-landing-v2.css">
+  <link rel="stylesheet" href="/assets/css/app-partners-v2.css">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" href="/assets/viva-origem-colorido.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/assets/viva-origem-colorido.svg">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="app-page partners-page">
+<body class="viva-landing viva-partners-page">
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
   <header class="viva-header" aria-label="Topo do Viva Urânia">
-    <a class="viva-brand" href="/app" aria-label="Viva Urânia">
-      <img src="/assets/icons/apple-touch-icon.png" alt="" width="44" height="44">
-      <span><strong>Viva Urânia</strong><small>O app da cidade</small></span>
+    <a class="viva-brand" href="/app" aria-label="Viva Urânia — início">
+      <img src="/assets/viva-origem-colorido.svg" alt="" width="38" height="32">
+      <span>Viva Urânia</span>
     </a>
-    <nav class="viva-nav" aria-label="Navegação">
-      <a href="/app">O app</a>
+    <nav class="viva-nav" aria-label="Navegação da página">
+      <a href="/app">O aplicativo</a>
+      <a href="#todos">Parceiros</a>
       <a href="/divulgue">Seja parceiro</a>
-      <a href="/">Eu Amo Urânia</a>
     </nav>
+    <a class="viva-header-cta" href="https://play.google.com/store/apps/details?id=br.com.euamourania.app" target="_blank" rel="noopener">Baixar o app</a>
   </header>
 
   <main id="conteudo">
-    <section class="partners-hero">
-      <span class="viva-pill">Parceiros do app</span>
-      <h1>Parceiros do Viva Urânia</h1>
-      <p>Conheça os negócios que aparecem no app da cidade e ajudam a fortalecer o comércio, os serviços e as experiências locais.</p>
-      <div class="partners-hero-notes" aria-label="Resumo da página">
-        <span>Empresas locais</span>
-        <span>Guia Comercial</span>
-        <span>Presença no app</span>
+    <section class="viva-partners-hero" aria-labelledby="partners-title">
+      <div class="viva-partners-hero-copy">
+        <p class="viva-eyebrow">Quem faz parte</p>
+        <h1 id="partners-title">A cidade cresce<br><span>quando a gente se conecta.</span></h1>
+        <p>Conheça os negócios que aparecem no Viva Urânia e ajudam a tornar o app cada vez mais útil para a cidade.</p>
+        <div class="viva-partners-hero-notes" aria-label="Sobre os parceiros">
+          <span>Negócios locais</span>
+          <span>Presença no app</span>
+          <span>Contato direto</span>
+        </div>
+      </div>
+      <div class="viva-partners-mark" aria-hidden="true">
+        <img src="/assets/viva-origem-colorido.svg" alt="">
+        <small>Feito em Urânia</small>
       </div>
     </section>
 
-    <section class="partners-tools" aria-label="Buscar parceiros">
-      <input id="partners-search" type="search" placeholder="Buscar por nome..." autocomplete="off">
-      <select id="partners-category">
-        <option value="">Todas as categorias</option>
-      </select>
+    <section class="viva-partners-directory" id="todos" aria-labelledby="directory-title">
+      <header class="viva-partners-directory-head">
+        <div>
+          <p class="viva-eyebrow">Encontre no Viva</p>
+          <h2 id="directory-title">Parceiros do app.</h2>
+        </div>
+        <p>Busque pelo nome ou filtre pela categoria.</p>
+      </header>
+
+      <div class="viva-partners-tools" aria-label="Buscar parceiros">
+        <label>
+          <span>Buscar</span>
+          <input id="partners-search" type="search" placeholder="Nome do parceiro" autocomplete="off">
+        </label>
+        <label>
+          <span>Categoria</span>
+          <select id="partners-category">
+            <option value="">Todas as categorias</option>
+          </select>
+        </label>
+      </div>
+
+      <p class="viva-partners-status" id="partners-status" role="status">Carregando parceiros...</p>
+
+      <section class="viva-featured-partners" id="featured-partners" aria-labelledby="featured-title" hidden>
+        <header class="viva-partners-group-head">
+          <div>
+            <p class="viva-eyebrow">Em destaque</p>
+            <h2 id="featured-title">Vale conhecer de perto.</h2>
+          </div>
+          <p>Parceiros selecionados para aparecer com mais destaque no Viva.</p>
+        </header>
+        <div class="viva-featured-grid" id="partners-featured-grid"></div>
+      </section>
+
+      <section class="viva-all-partners" id="all-partners" aria-labelledby="all-title" hidden>
+        <header class="viva-partners-group-head viva-partners-group-compact">
+          <div>
+            <p class="viva-eyebrow">Todos por aqui</p>
+            <h2 id="all-title">Mais parceiros do Viva.</h2>
+          </div>
+          <p>Toque em uma foto para abrir o perfil da empresa.</p>
+        </header>
+        <div class="viva-compact-grid" id="partners-grid" aria-label="Todos os parceiros"></div>
+      </section>
     </section>
 
-    <p class="partners-empty" id="partners-status" role="status">Carregando parceiros...</p>
-    <section class="partners-grid" id="partners-grid" aria-label="Lista de parceiros"></section>
-
-    <section class="partners-final">
+    <section class="viva-partners-cta" aria-labelledby="partners-cta-title">
+      <div class="viva-partners-cta-mark" aria-hidden="true">
+        <img src="/assets/viva-origem-colorido.svg" alt="">
+      </div>
       <div>
-        <h2>Seu negócio pode ser o próximo.</h2>
-        <p>Faça parte do Viva Urânia e ganhe presença em uma experiência criada para quem procura Urânia pelo celular.</p>
+        <p class="viva-eyebrow">Faça parte</p>
+        <h2 id="partners-cta-title">Seu negócio também pode estar no Viva.</h2>
+        <p>Ganhe presença em uma experiência criada para quem procura Urânia pelo celular.</p>
       </div>
-      <div class="viva-actions">
-      <a class="viva-button primary" href="/divulgue">Quero ser parceiro</a>
-      <a class="viva-button ghost" href="/links">Falar com a equipe</a>
+      <div class="viva-partners-cta-actions">
+        <a class="viva-button viva-button-primary" href="/divulgue">Quero ser parceiro</a>
+        <a class="viva-button viva-button-secondary" href="/links">Falar com a equipe</a>
       </div>
     </section>
   </main>
 
   <footer class="viva-footer">
-    <div class="viva-footer-brand">
-      <img src="/assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="170" height="50">
-      <div>
-        <span>Viva Urânia</span>
-        <p>Guia, turismo e informações úteis na palma da mão.</p>
-      </div>
-    </div>
+    <a class="viva-footer-brand" href="/app" aria-label="Viva Urânia">
+      <img src="/assets/viva-origem-colorido.svg" alt="" width="40" height="34">
+      <span><strong>Viva Urânia</strong><small>O app da cidade</small></span>
+    </a>
     <nav aria-label="Links finais">
       <a href="/">Eu Amo Urânia</a>
-      <a href="/app">Baixar app</a>
-      <a href="/divulgue">Para empresas</a>
-      <a href="/links">Urania Links</a>
+      <a href="/politica-de-privacidade.html">Privacidade</a>
+      <a href="/links">Contato</a>
     </nav>
+    <p>Feito em Urânia, para Urânia.</p>
   </footer>
 
   <script type="module" src="/assets/js/pages/parceiros-page.js"></script>

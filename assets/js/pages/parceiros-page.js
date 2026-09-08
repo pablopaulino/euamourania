@@ -1,10 +1,15 @@
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 import { registrarEventoSite } from "../services/analyticsService.js";
 
-const grid = document.getElementById("partners-grid");
+const compactGrid = document.getElementById("partners-grid");
+const featuredGrid = document.getElementById("partners-featured-grid");
+const featuredSection = document.getElementById("featured-partners");
+const allSection = document.getElementById("all-partners");
 const status = document.getElementById("partners-status");
 const search = document.getElementById("partners-search");
 const category = document.getElementById("partners-category");
+const directory = document.querySelector(".viva-partners-directory");
+const FALLBACK_IMAGE = "/assets/viva-origem-colorido.svg";
 const escapeHtml = (value = "") => String(value ?? "").replace(/[&<>'"]/g, char => ({
   "&": "&amp;",
   "<": "&lt;",
@@ -17,7 +22,7 @@ const safeImage = value => {
   const raw = String(value || "").trim();
   if (/^https?:\/\//i.test(raw)) return escapeHtml(raw);
   if (/^\/?assets\//i.test(raw)) return escapeHtml(raw.startsWith("/") ? raw : `/${raw}`);
-  return "/assets/compartilhamento-logo.png";
+  return FALLBACK_IMAGE;
 };
 let rows = [];
 
@@ -29,18 +34,31 @@ function track(tipo, metadados = {}) {
   }).catch(() => {});
 }
 
-function card(item) {
-  const url = `/guia/${encodeURIComponent(item.slug || item.id)}`;
-  return `<article class="partner-list-card">
+function partnerUrl(item) {
+  return `/guia/${encodeURIComponent(item.slug || item.id)}`;
+}
+
+function featuredCard(item) {
+  const url = partnerUrl(item);
+  return `<article class="viva-featured-card">
     <a href="${url}" aria-label="Conhecer ${escapeHtml(item.nome)}">
-      <img src="${safeImage(item.imagem_url)}" alt="${escapeHtml(item.nome)}" width="460" height="280" loading="lazy" decoding="async">
+      <img src="${safeImage(item.imagem_url)}" alt="${escapeHtml(item.nome)}" width="720" height="520" loading="lazy" decoding="async">
+      <div class="viva-featured-card-copy">
+        <small>${escapeHtml(item.categoria_nome || "Parceiro do Viva")}</small>
+        <h3>${escapeHtml(item.nome)}</h3>
+        ${item.descricao ? `<p>${escapeHtml(item.descricao)}</p>` : ""}
+      </div>
     </a>
-    <div>
-      <small>${escapeHtml(item.categoria_nome || "Guia Comercial")}</small>
-      <h2>${escapeHtml(item.nome)}</h2>
-      ${item.descricao ? `<p>${escapeHtml(item.descricao)}</p>` : ""}
-      <a href="${url}">Conhecer empresa →</a>
-    </div>
+  </article>`;
+}
+
+function compactCard(item) {
+  const url = partnerUrl(item);
+  const name = escapeHtml(item.nome);
+  return `<article class="viva-compact-card">
+    <a href="${url}" aria-label="Conhecer ${name}" title="${name}">
+      <img src="${safeImage(item.imagem_url)}" alt="${name}" width="360" height="360" loading="lazy" decoding="async">
+    </a>
   </article>`;
 }
 
@@ -50,15 +68,26 @@ function fillCategories() {
   category.innerHTML = `<option value="">Todas as categorias</option>${categories.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("")}`;
 }
 
-function render() {
+function filteredRows() {
   const term = normalize(search.value);
   const selected = normalize(category.value);
-  const filtered = rows.filter(item => {
+  return rows.filter(item => {
     const itemCategory = item.categoria_nome || "";
     const haystack = normalize(`${item.nome} ${item.descricao || ""} ${itemCategory}`);
     return (!term || haystack.includes(term)) && (!selected || normalize(itemCategory) === selected);
   });
-  grid.innerHTML = filtered.map(card).join("");
+}
+
+function render() {
+  const filtered = filteredRows();
+  const featured = filtered.filter(item => Boolean(item.recomendado));
+  const regular = filtered.filter(item => !item.recomendado);
+
+  featuredGrid.innerHTML = featured.map(featuredCard).join("");
+  compactGrid.innerHTML = regular.map(compactCard).join("");
+  featuredSection.hidden = featured.length === 0;
+  allSection.hidden = regular.length === 0;
+
   status.textContent = filtered.length
     ? `${filtered.length} ${filtered.length === 1 ? "parceiro encontrado" : "parceiros encontrados"}.`
     : "Nenhum parceiro encontrado com esses filtros.";
@@ -87,9 +116,14 @@ async function init() {
 
 search?.addEventListener("input", render);
 category?.addEventListener("change", render);
-grid?.addEventListener("click", event => {
+directory?.addEventListener("click", event => {
   const link = event.target.closest("a");
   if (link) track("app_parceiro_clique", { href: link.href });
 });
+directory?.addEventListener("error", event => {
+  const image = event.target;
+  if (!image.matches?.("img") || image.getAttribute("src") === FALLBACK_IMAGE) return;
+  image.src = FALLBACK_IMAGE;
+}, true);
 
 init();
