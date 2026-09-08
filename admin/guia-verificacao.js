@@ -74,7 +74,7 @@ function ensureModuleStyle() {
   if (document.querySelector('link[data-admin-module-style="guia-verificacao"]')) return;
   moduleStyle = document.createElement("link");
   moduleStyle.rel = "stylesheet";
-  moduleStyle.href = "/admin/guia-verificacao.css";
+  moduleStyle.href = "/admin/guia-verificacao.css?v=20260908-verification-redesign";
   moduleStyle.dataset.adminModuleStyle = "guia-verificacao";
   document.head.append(moduleStyle);
   addCleanup(() => {
@@ -282,8 +282,10 @@ function renderQualityRow({ item, quality, verificationStatus }) {
       </td>
       <td><span class="verification-pill ${statusClass(verificationStatus)}">${escapeHtml(statusLabels[verificationStatus] || verificationStatus)}</span></td>
       <td class="verification-row-actions">
-        <button type="button" class="primary" data-action="edit-business" data-id="${item.id}">Editar cadastro</button>
-        <button type="button" data-action="needs-update" data-id="${item.id}">Marcar para revisão</button>
+        <div class="verification-row-main-actions">
+          <button type="button" class="primary" data-action="edit-business" data-id="${item.id}">Editar</button>
+          <button type="button" data-action="needs-update" data-id="${item.id}">Revisar</button>
+        </div>
       </td>
     </tr>`;
 }
@@ -299,7 +301,6 @@ function renderQualityPanel() {
           <h2>${summary.averageScore}% de completude média</h2>
           <p>Diagnóstico não bloqueante: organiza o que está faltando sem impedir publicação nem substituir a verificação periódica.</p>
         </div>
-        <button class="admin-button secondary" type="button" data-action="open-guide">Abrir Guia Comercial</button>
       </header>
       <div class="quality-filter-grid">
         ${renderQualityFilterButton("all", summary.total)}
@@ -350,16 +351,23 @@ function renderBusinessRow(item) {
         <small>${item.contact_attempt_count || 0} tentativa(s)</small>
       </td>
       <td class="verification-row-actions">
-        <button type="button" class="primary" data-open-dialog="verified" data-id="${item.id}">Verificado</button>
-        <button type="button" data-open-dialog="contact" data-id="${item.id}">Contato</button>
-        <button type="button" data-action="copy" data-id="${item.id}">Copiar mensagem</button>
-        ${wa ? `<a class="verification-copy" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>` : ""}
-        <button type="button" data-action="needs-update" data-id="${item.id}">Precisa atualizar</button>
-        <button type="button" data-action="inactive" data-id="${item.id}">Inatividade</button>
-        ${derived === "archived"
-          ? `<button type="button" data-action="restore" data-id="${item.id}">Restaurar</button>`
-          : `<button type="button" class="danger" data-open-dialog="archive" data-id="${item.id}">Arquivar</button>`}
-        <button type="button" data-action="open-guide">Ver cadastro</button>
+        <div class="verification-row-main-actions">
+          <button type="button" class="primary" data-open-dialog="verified" data-id="${item.id}">Verificar</button>
+          <button type="button" data-action="edit-business" data-id="${item.id}">Editar</button>
+          <details class="verification-more-actions">
+            <summary aria-label="Mais ações para ${escapeHtml(item.nome || "cadastro")}">•••</summary>
+            <div class="verification-action-menu">
+              <button type="button" data-open-dialog="contact" data-id="${item.id}">Registrar contato</button>
+              <button type="button" data-action="copy" data-id="${item.id}">Copiar mensagem</button>
+              ${wa ? `<a class="verification-copy" href="${wa}" target="_blank" rel="noopener">Abrir WhatsApp</a>` : ""}
+              <button type="button" data-action="needs-update" data-id="${item.id}">Precisa atualizar</button>
+              <button type="button" data-action="inactive" data-id="${item.id}">Possível inatividade</button>
+              ${derived === "archived"
+                ? `<button type="button" data-action="restore" data-id="${item.id}">Restaurar cadastro</button>`
+                : `<button type="button" class="danger" data-open-dialog="archive" data-id="${item.id}">Arquivar cadastro</button>`}
+            </div>
+          </details>
+        </div>
       </td>
     </tr>`;
 }
@@ -437,13 +445,12 @@ function render() {
       ${state.message ? `<div class="submissions-toast">${escapeHtml(state.message)}</div>` : ""}
       <div class="verification-hero">
         <div>
-          <p class="verification-eyebrow">Guia Comercial</p>
-          <h2>Verificação periódica de cadastros</h2>
-          <p>Ciclo padrão de ${VERIFICATION_CYCLE_DAYS} dias. A tela organiza vencidos, próximos vencimentos, tentativas de contato e cadastros que precisam de atualização.</p>
+          <p class="verification-eyebrow">Rotina de conferência</p>
+          <h2>Resumo da verificação</h2>
+          <p>Priorize cadastros vencidos, contatos sem retorno e informações comerciais que precisam de atualização. O ciclo padrão é de ${VERIFICATION_CYCLE_DAYS} dias.</p>
         </div>
         <div class="verification-actions">
-          <button class="admin-button secondary" type="button" data-refresh>Atualizar</button>
-          <button class="admin-button" type="button" data-action="open-guide">Abrir Guia Comercial</button>
+          <button class="admin-button secondary" type="button" data-refresh>Atualizar dados</button>
         </div>
       </div>
 
@@ -463,29 +470,29 @@ function render() {
           </div>
         </header>
         <div class="verification-filters">
-          <input data-filter="search" value="${escapeHtml(state.filters.search)}" placeholder="Buscar por nome, categoria, contato ou endereço">
-          <select data-filter="status">
+          <label class="verification-filter-search"><span>Buscar</span><input data-filter="search" value="${escapeHtml(state.filters.search)}" placeholder="Nome, categoria, contato ou endereço"></label>
+          <label><span>Status</span><select data-filter="status">
             <option value="all">Todos os status</option>
             ${Object.entries(statusLabels).map(([value, label]) => `<option value="${value}" ${state.filters.status === value ? "selected" : ""}>${label}</option>`).join("")}
-          </select>
-          <select data-filter="category">
+          </select></label>
+          <label><span>Categoria</span><select data-filter="category">
             <option value="all">Todas categorias</option>
             ${categories().map(category => `<option value="${escapeHtml(category)}" ${state.filters.category === category ? "selected" : ""}>${escapeHtml(category)}</option>`).join("")}
-          </select>
-          <select data-filter="method">
+          </select></label>
+          <label><span>Método</span><select data-filter="method">
             <option value="all">Todos métodos</option>
             ${Object.entries(methodLabels).map(([value, label]) => `<option value="${value}" ${state.filters.method === value ? "selected" : ""}>${label}</option>`).join("")}
-          </select>
-          <select data-filter="featured">
+          </select></label>
+          <label><span>Destaque</span><select data-filter="featured">
             <option value="all">Destaque: todos</option>
             <option value="yes" ${state.filters.featured === "yes" ? "selected" : ""}>Somente destaque</option>
             <option value="no" ${state.filters.featured === "no" ? "selected" : ""}>Sem destaque</option>
-          </select>
-          <select data-filter="hours">
+          </select></label>
+          <label><span>Horários</span><select data-filter="hours">
             <option value="all">Horários: todos</option>
             <option value="structured" ${state.filters.hours === "structured" ? "selected" : ""}>Com horário do app</option>
             <option value="missing" ${state.filters.hours === "missing" ? "selected" : ""}>Sem horário do app</option>
-          </select>
+          </select></label>
         </div>
         <div class="verification-table-wrap">
           <table class="verification-table">
@@ -497,6 +504,16 @@ function render() {
       ${renderQualityPanel()}
     </section>
     ${renderDialog()}`;
+}
+
+function renderKeepingFilterFocus(field, selector) {
+  const start = typeof field.selectionStart === "number" ? field.selectionStart : null;
+  const end = typeof field.selectionEnd === "number" ? field.selectionEnd : null;
+  render();
+  const replacement = app?.querySelector(selector);
+  if (!replacement) return;
+  replacement.focus({ preventScroll: true });
+  if (start !== null && typeof replacement.setSelectionRange === "function") replacement.setSelectionRange(start, end);
 }
 
 async function loadItems() {
@@ -634,13 +651,13 @@ function bindEvents() {
     const qualitySearch = event.target.closest("[data-quality-search]");
     if (qualitySearch) {
       state.qualitySearch = qualitySearch.value;
-      render();
+      renderKeepingFilterFocus(qualitySearch, "[data-quality-search]");
       return;
     }
     const field = event.target.closest("[data-filter]");
     if (!field) return;
     state.filters[field.dataset.filter] = field.value;
-    render();
+    renderKeepingFilterFocus(field, `[data-filter="${field.dataset.filter}"]`);
   });
 
   app.addEventListener("change", event => {
@@ -706,6 +723,7 @@ export async function mount(container, options = {}) {
   cleanupHandlers = [];
   ensureModuleStyle();
   options.setTitle?.("Verificação do Guia", "Conferência periódica dos cadastros comerciais.");
+  options.setPrimaryAction?.("Abrir Guia Comercial", () => options.navigate?.("guia_comercial"));
   container.innerHTML = `<section id="business-verification-app" class="verification-shell loading">Carregando…</section>`;
   app = container.querySelector("#business-verification-app");
   state.items = [];
