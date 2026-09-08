@@ -171,7 +171,7 @@ Object.assign(resources, {
   categorias: { label:"Categorias", title:"nome", order:"ordem", ascending:true, fields:[["nome","Nome","text",true],["slug","Slug","text",true],["tipo","Tipo","category-type",true],["ordem","Ordem","number"],["status","Status","active-status"]]},
   configuracoes_site: { label:"Configurações", title:"chave", order:"chave", ascending:true, fields:[["chave","Chave","text",true],["valor","Valor","textarea"],["tipo","Tipo","text"]]},
   eventos_principais: { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","Descrição curta","textarea"],["historia_html","História do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histórica","url-list"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","Recorrência","event-recurrence"],["periodo_aproximado","Período aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]]},
-  eventos_edicoes: { label:"Edições de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["edicao_label","Rótulo da edição","text"],["slug","Slug da edição","text"],["titulo","Título da edição","text",true],["titulo_curto","Título curto no app","text"],["subtitulo","Subtítulo","text"],["organizador","Organização da edição","text"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","Programação","editor"],["atracoes_html","Atrações","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da edição","url-list"],["videos","Vídeos","line-list"],["local","Local","text"],["endereco","Endereço","text"],["mapa_url","Link do mapa","url"],["latitude","Latitude","number"],["longitude","Longitude","number"],["links_uteis","Links úteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da edição","event-edition-status"],["resumo_pos_evento_html","Resumo pós-evento","textarea"],["publico_estimado","Público estimado","number"],["observacoes","Observações","textarea"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]]}
+  eventos_edicoes: { label:"Edições de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["edicao_label","Rótulo da edição","text"],["slug","Slug da edição","text"],["titulo","Título da edição","text",true],["titulo_curto","Título curto no app","text"],["subtitulo","Subtítulo","text"],["organizador","Organização da edição","text"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","Programação","editor"],["atracoes_html","Atrações","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da edição","url-list"],["videos","Vídeos","line-list"],["local","Local","text"],["endereco","Endereço","text"],["mapa_url","Link do mapa","url"],["latitude","Latitude","number"],["longitude","Longitude","number"],["links_uteis","Links úteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da edição","event-edition-status"],["resumo_pos_evento_html","Resumo pós-evento","textarea"],["publico_estimado","Público estimado","number"],["observacoes","Observações","textarea"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["palavras_chave","Palavras-chave","text"],["seo_descricao","Descrição SEO","textarea"]]}
 });
 
 function adicionarCamposDestaqueHome() {
@@ -1175,13 +1175,22 @@ async function carregarSelectEventosPrincipais() {
   try {
     const { data = [], error } = await getSupabase()
       .from("eventos_principais")
-      .select("id,nome,slug,ativo")
+      .select("id,nome,slug,ativo,categoria")
       .order("nome", { ascending: true });
     if (error) throw error;
     select.innerHTML = `<option value="">Selecione um evento principal</option>${data.map(item => `<option value="${escapeHtml(item.id)}" ${item.id===current?"selected":""}>${escapeHtml(item.nome)}${item.ativo===false?" (inativo)":""}</option>`).join("")}`;
     if (!data.length) select.innerHTML = '<option value="">Cadastre um evento principal primeiro</option>';
+    const inheritedCategory = app.querySelector("[data-event-edition-category]");
+    const syncInheritedCategory = () => {
+      const event = data.find(item => item.id === select.value);
+      if (inheritedCategory) inheritedCategory.value = event?.categoria || (select.value ? "Sem categoria" : "Selecione o evento principal");
+    };
+    select.addEventListener("change", syncInheritedCategory);
+    syncInheritedCategory();
   } catch (error) {
     select.innerHTML = '<option value="">Não foi possível carregar os eventos</option>';
+    const inheritedCategory = app.querySelector("[data-event-edition-category]");
+    if (inheritedCategory) inheritedCategory.value = "Não foi possível carregar";
   }
 }
 
@@ -1346,7 +1355,8 @@ document.addEventListener("submit",salvarEvento2Form,true);
 
 function fieldHtmlCorrigido([name,label,type,required], value) {
   const isPrimaryMediaField = type === "url" && /^(imagem_url|imagem_capa_url)$/.test(String(name || ""));
-  const req=required?"required":"", full=["textarea","editor","url-list","line-list","weekly-hours","gallery-urls"].includes(type)||isPrimaryMediaField?"full-row":"";
+  const isEditionMediaField = currentResourceTable === "eventos_edicoes" && type === "url" && /^(cartaz_url|banner_url)$/.test(String(name || ""));
+  const req=required?"required":"", full=["textarea","editor","url-list","line-list","weekly-hours","gallery-urls"].includes(type)||isPrimaryMediaField||isEditionMediaField?`full-row${isEditionMediaField?" event-edition-media-field":""}`:"";
   if(type==="editor") return `<label class="${full}">${label}<div id="editor"></div><input type="hidden" name="${name}"></label>`;
   if(type==="weekly-hours") return weeklyHoursHtml(name,label,value);
   if(type==="gallery-urls") return galleryUrlsHtml(name,label,value);
@@ -1435,7 +1445,7 @@ function renderResourceFormSections(config, row, table) {
         <span>${String(index + 1).padStart(2, "0")}</span>
         <div><h3>${escapeHtml(heading)}</h3><p>${escapeHtml(description)}</p></div>
       </header>
-      <div class="resource-form-grid">${groups[key].map(field=>fieldHtmlCorrigido(field,row[field[0]])).join("")}</div>
+      <div class="resource-form-grid">${groups[key].map(field=>fieldHtmlCorrigido(field,row[field[0]])).join("")}${table==="eventos_edicoes"&&key==="publication"?'<label>Categoria do evento<input type="text" value="Carregando..." data-event-edition-category readonly><small>Definida no Evento principal.</small></label>':""}</div>
     </section>`;
   }).join("");
 }
@@ -1878,4 +1888,4 @@ window.addEventListener("admin:external-module",event=>{
 });
 import("./editorial-audience.js").catch(error=>console.error("Módulos editorial/audiência:",error));
 import("./category-fields.js").catch(error=>console.error("Categorias dos conteúdos:",error));
-import("./media-upload.js?v=20260907-news-media-fields").catch(error=>console.error("Upload de imagens:",error));
+import("./media-upload.js").catch(error=>console.error("Upload de imagens:",error));

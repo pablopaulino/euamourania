@@ -36,20 +36,21 @@ db.from=function(table){
 document.addEventListener("click",event=>{
  const button=event.target.closest("button");
  if(!button)return;
- if(button.dataset.new&&types[button.dataset.new]){
+ if(button.dataset.new){
   currentTable=button.dataset.new;currentId=null;
  }
- if(button.dataset.edit&&types[button.dataset.edit]){
+ if(button.dataset.edit){
   currentTable=button.dataset.edit;currentId=button.dataset.id||null;
  }
 },true);
 
 document.addEventListener("submit",event=>{
- if(event.target.id!=="resource-form"||!types[currentTable])return;
+ const table=event.target.dataset.resourceTable||currentTable;
+ if(event.target.id!=="resource-form"||!types[table])return;
  const select=event.target.elements.cms_categoria_id;
  const option=select?.selectedOptions?.[0];
  pendingCategory={
-  table:currentTable,
+  table,
   id:select?.value||null,
   nome:select?.value?option?.textContent?.trim()||null:null
  };
@@ -58,12 +59,13 @@ document.addEventListener("submit",event=>{
 const escapeHtml=value=>String(value??"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 
 async function enhanceCategoryField(form){
- if(form.dataset.categoryField||!types[currentTable])return;
+ const table=form.dataset.resourceTable||currentTable;
+ if(form.dataset.categoryField||!types[table])return;
  form.dataset.categoryField="loading";
- const config=types[currentTable];
+ const config=types[table];
  const [{data:categories,error},record]=await Promise.all([
   originalFrom("categorias").select("id,nome").eq("tipo",config.tipo).eq("status","ativo").order("ordem").order("nome"),
-  currentId?originalFrom(currentTable).select(config.idField||config.nameField).eq("id",currentId).maybeSingle():Promise.resolve({data:null})
+  currentId?originalFrom(table).select(config.idField||config.nameField).eq("id",currentId).maybeSingle():Promise.resolve({data:null})
  ]);
  if(error){console.error("Categorias:",error);form.dataset.categoryField="error";return}
  const selected=config.idField?record.data?.[config.idField]||"":categories?.find(item=>item.nome===record.data?.[config.nameField])?.id||"";

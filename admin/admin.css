@@ -277,6 +277,9 @@
 .resource-form-grid #editor{min-height:260px;border-radius:0 0 12px 12px}
 .resource-form-grid .ql-toolbar{border-color:#d5e2e6;border-radius:12px 12px 0 0;background:#fbfdfd}
 .resource-form-grid .ql-container{border-color:#d5e2e6;border-radius:0 0 12px 12px}
+.admin-resource-form[data-resource-table="eventos_edicoes"] .admin-form-section:first-child .resource-form-grid>label{align-self:start;align-content:start}
+.admin-resource-form[data-resource-table="eventos_edicoes"] .admin-form-section:first-child .resource-form-grid>label :is(input,select){height:48px;min-height:48px}
+.admin-resource-form[data-resource-table="eventos_edicoes"] .event-edition-media-field{align-content:start}
 .admin-form-actions{position:sticky;bottom:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:0;padding:1rem 1.1rem;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.92);box-shadow:0 -12px 30px rgba(7,59,76,.08);backdrop-filter:blur(14px)}
 .admin-form-actions>div{display:flex;justify-content:flex-end;gap:.6rem}
 .admin-form-actions .form-message{margin:0;color:var(--danger);font-size:.86rem;font-weight:750}
