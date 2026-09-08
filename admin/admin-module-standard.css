@@ -42,6 +42,23 @@ body[data-admin-shell="true"] #app-content[data-module="importacao"] {
   min-width: 0;
 }
 
+/* Publicidade usa um único contêiner: o card externo do módulo. */
+body[data-admin-shell="true"] #app-content[data-module="publicidade"] {
+  padding: clamp(20px, 2.35vw, 36px);
+  background: var(--module-surface);
+  border: 1px solid var(--module-border);
+  border-radius: 26px;
+  box-shadow: var(--admin-shadow-sm, 0 1px 2px rgba(15, 23, 42, .035));
+}
+
+body[data-admin-shell="true"] #app-content[data-module="publicidade"] > .ads-content {
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
 /* Cabeçalhos internos seguem a mesma hierarquia e alinhamento. */
 body[data-admin-shell="true"] #app-content[data-module] :is(
   .ads-heading,
@@ -486,6 +503,11 @@ body[data-admin-shell="true"] #app-content[data-module="importacao"] :is(.guide-
 }
 
 @media (max-width: 760px) {
+  body[data-admin-shell="true"] #app-content[data-module="publicidade"] {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
   body[data-admin-shell="true"] #app-content[data-module] :is(
     .ads-heading,
     .awards-panel-head,
