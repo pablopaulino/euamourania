@@ -109,37 +109,104 @@ function partnerSet(partners, repeats = 1, hidden = false) {
   return set;
 }
 
+function startMobilePartnersMarquee(viewport, track, loopSet) {
+  const speed = 27;
+  let frameId = 0;
+  let previousTime = 0;
+  let loopStart = 0;
+  let loopWidth = 0;
+  let position = 0;
+
+  const measure = () => {
+    const nextWidth = loopSet.getBoundingClientRect().width;
+    if (nextWidth <= 0) return false;
+
+    const nextStart = loopSet.getBoundingClientRect().left - track.getBoundingClientRect().left;
+    if (loopWidth <= 0) {
+      loopStart = nextStart;
+      loopWidth = nextWidth;
+      position = loopStart;
+      viewport.scrollLeft = position;
+      return true;
+    }
+
+    if (Math.abs(nextWidth - loopWidth) > .5 || Math.abs(nextStart - loopStart) > .5) {
+      const progress = ((position - loopStart) % loopWidth + loopWidth) % loopWidth;
+      const ratio = progress / loopWidth;
+      loopStart = nextStart;
+      loopWidth = nextWidth;
+      position = loopStart + (ratio * loopWidth);
+      viewport.scrollLeft = position;
+    }
+    return true;
+  };
+
+  const move = currentTime => {
+    if (!previousTime) previousTime = currentTime;
+    const elapsed = Math.min(currentTime - previousTime, 64);
+    previousTime = currentTime;
+
+    if (!document.hidden && (loopWidth > 0 || measure())) {
+      position += (elapsed / 1000) * speed;
+      if (position >= loopStart + loopWidth) {
+        position -= loopWidth;
+      }
+      viewport.scrollLeft = position;
+    }
+
+    frameId = window.requestAnimationFrame(move);
+  };
+
+  frameId = window.requestAnimationFrame(move);
+  const resizeObserver = "ResizeObserver" in window ? new ResizeObserver(measure) : null;
+  resizeObserver?.observe(loopSet);
+  window.addEventListener("pagehide", () => {
+    window.cancelAnimationFrame(frameId);
+    resizeObserver?.disconnect();
+  }, { once: true });
+}
+
+function hiddenPartnerClone(set) {
+  const clone = set.cloneNode(true);
+  clone.setAttribute("aria-hidden", "true");
+  clone.querySelectorAll("a").forEach(link => {
+    link.tabIndex = -1;
+    link.removeAttribute("data-app-page-link");
+  });
+  return clone;
+}
+
 function setupPartnersMarquee(list, partners) {
   list.replaceChildren();
-  list.classList.remove("is-static", "is-marquee");
+  list.classList.remove("is-static", "is-marquee", "is-mobile-marquee");
   const shouldAnimate = partners.length > 1 && !prefersReducedMotion();
   const repeats = shouldAnimate ? Math.max(1, Math.ceil(8 / partners.length)) : 1;
   const primary = partnerSet(partners, repeats);
-  list.append(primary);
 
   if (!shouldAnimate) {
+    list.append(primary);
     list.classList.add("is-static");
     bindTrackedLinks(primary);
     return;
   }
 
-  const duplicate = primary.cloneNode(true);
-  duplicate.setAttribute("aria-hidden", "true");
-  duplicate.querySelectorAll("a").forEach(link => {
-    link.tabIndex = -1;
-    link.removeAttribute("data-app-page-link");
-  });
-  list.append(duplicate);
-
   // Mobile browsers may defer images that enter the viewport through a CSS
-  // transform. Preload this small repeated pool so animated cards stay painted.
+  // transform. Keep one copy on each side of the interactive set so the
+  // scroll position can be recycled before either edge reaches the viewport.
   if (window.matchMedia("(max-width: 780px)").matches) {
+    list.append(hiddenPartnerClone(primary), primary, hiddenPartnerClone(primary));
     list.querySelectorAll("img").forEach(image => {
       image.loading = "eager";
       image.fetchPriority = "low";
     });
+    list.classList.add("is-mobile-marquee");
+    const viewport = list.closest(".viva-partner-viewport");
+    if (viewport) startMobilePartnersMarquee(viewport, list, primary);
+    bindTrackedLinks(primary);
+    return;
   }
 
+  list.append(primary, hiddenPartnerClone(primary));
   list.classList.add("is-marquee");
   list.style.setProperty("--partner-marquee-duration", Math.max(28, partners.length * repeats * 5) + "s");
   bindTrackedLinks(primary);

@@ -780,6 +780,11 @@ body.viva-landing {
     -webkit-mask-image: none;
     mask-image: none;
   }
+  .viva-partner-track.is-mobile-marquee {
+    animation: none;
+    transform: none;
+    will-change: auto;
+  }
   .viva-footer { grid-template-columns: 1fr; gap: 1rem; text-align: center; }
   .viva-footer-brand, .viva-footer nav { justify-self: center; }
 }
