@@ -179,10 +179,10 @@ begin
     raise exception 'Permissão para enviar notificações necessária';
   end if;
 
-  select plataforma, tema
+  select notificacao.plataforma, notificacao.tema
     into v_plataforma, v_tema
-    from public.app_notificacoes
-   where id = p_notificacao_id;
+    from public.app_notificacoes as notificacao
+   where notificacao.id = p_notificacao_id;
 
   if not found then
     raise exception 'Notificação não encontrada';
