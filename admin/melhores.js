@@ -141,20 +141,24 @@ function renderShell(container) {
         </div>
       </section>
 
-      <div class="awards-tabs" role="tablist">
-        <button class="awards-tab active" data-tab="dashboard" type="button">Visão geral</button>
-        <button class="awards-tab" data-tab="editions" type="button">Edições</button>
-        <button class="awards-tab" data-tab="categories" type="button">Categorias</button>
-        <button class="awards-tab" data-tab="indications" type="button">Indicações</button>
-        <button class="awards-tab" data-tab="nominees" type="button">Indicados</button>
-        <button class="awards-tab" data-tab="votes" type="button">Votação</button>
-        <button class="awards-tab" data-tab="instagram" type="button">Instagram</button>
-        <button class="awards-tab" data-tab="apuration" type="button">Apuração</button>
-        <button class="awards-tab" data-tab="results" type="button">Resultados</button>
-        <button class="awards-tab" data-tab="app" type="button">Exibição no aplicativo</button>
-        <button class="awards-tab" data-tab="audience" type="button">Audiência</button>
-        <button class="awards-tab" data-tab="audit" type="button">Auditoria</button>
-        <button class="awards-tab" data-tab="settings" type="button">Configurações</button>
+      <div class="awards-tabs-stack" aria-label="Áreas do Melhores de Urânia">
+        <div class="awards-tabs" role="tablist" aria-label="Operação do prêmio">
+          <button class="awards-tab active" data-tab="dashboard" type="button">Visão geral</button>
+          <button class="awards-tab" data-tab="editions" type="button">Edições</button>
+          <button class="awards-tab" data-tab="categories" type="button">Categorias</button>
+          <button class="awards-tab" data-tab="indications" type="button">Indicações</button>
+          <button class="awards-tab" data-tab="nominees" type="button">Indicados</button>
+          <button class="awards-tab" data-tab="votes" type="button">Votação</button>
+          <button class="awards-tab" data-tab="apuration" type="button">Apuração</button>
+          <button class="awards-tab" data-tab="results" type="button">Resultados</button>
+        </div>
+        <div class="awards-tabs" role="tablist" aria-label="Divulgação e administração">
+          <button class="awards-tab" data-tab="instagram" type="button">Instagram</button>
+          <button class="awards-tab" data-tab="app" type="button">Exibição no aplicativo</button>
+          <button class="awards-tab" data-tab="audience" type="button">Audiência</button>
+          <button class="awards-tab" data-tab="audit" type="button">Auditoria</button>
+          <button class="awards-tab" data-tab="settings" type="button">Configurações</button>
+        </div>
       </div>
 
       <section id="dashboard-view" class="awards-view active"></section>

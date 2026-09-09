@@ -216,30 +216,53 @@ body[data-admin-shell="true"] #app-content[data-module] :is(.ads-tab, .awards-ta
   box-shadow: 0 1px 2px rgba(15, 23, 42, .08) !important;
 }
 
-@media (min-width: 861px) {
-  body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-tabs {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
-    overflow: visible;
-  }
+body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-tabs-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 18px;
+}
 
-  body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-tab {
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
-    white-space: normal;
-    text-align: center;
-  }
+body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-tabs {
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-hero,
+body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-hero > div {
+  width: 100%;
+  text-align: left;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="comunicacao"] > .ads-heading {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="comunicacao"] > .ads-heading > div {
+  width: 100%;
+  text-align: left;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="comunicacao"] > .ads-tabs {
+  margin-right: auto;
+  margin-left: auto;
 }
 
 @media (max-width: 860px) {
+  body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-tabs-stack {
+    gap: 6px;
+  }
+
   body[data-admin-shell="true"] #app-content[data-module="melhores"] .awards-tabs {
-    box-sizing: border-box;
     width: 100%;
-    min-width: 0;
     flex-wrap: nowrap;
     overflow-x: auto;
   }
@@ -495,6 +518,41 @@ body[data-admin-shell="true"] #app-content[data-module="midia"] .media-library-c
   height: 172px;
 }
 
+/* Mídia e Configurações usam uma única superfície, sem card branco duplicado. */
+body[data-admin-shell="true"] #app-content[data-module="notificacoes"],
+body[data-admin-shell="true"] #app-content[data-module="midia"],
+body[data-admin-shell="true"] #app-content[data-module="configuracoes_site"] {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  padding: clamp(20px, 2.35vw, 36px);
+  background: var(--module-surface);
+  border: 1px solid var(--module-border);
+  border-radius: 26px;
+  box-shadow: var(--admin-shadow-sm, 0 1px 2px rgba(15, 23, 42, .035));
+}
+
+body[data-admin-shell="true"] #app-content[data-module="notificacoes"] > .ads-content,
+body[data-admin-shell="true"] #app-content[data-module="midia"] > .media-library,
+body[data-admin-shell="true"] #app-content[data-module="configuracoes_site"] > .panel {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+body[data-admin-shell="true"] #app-content[data-module="configuracoes_site"] .config-grid {
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
 body[data-admin-shell="true"] #app-content[data-module="usuarios"] > .ads-card,
 body[data-admin-shell="true"] #app-content[data-module="importacao"] > .panel,
 body[data-admin-shell="true"] #app-content[data-module="configuracoes_site"] > .admin-page,
@@ -532,7 +590,10 @@ body[data-admin-shell="true"] #app-content[data-module="importacao"] :is(.guide-
 }
 
 @media (max-width: 760px) {
-  body[data-admin-shell="true"] #app-content[data-module="publicidade"] {
+  body[data-admin-shell="true"] #app-content[data-module="publicidade"],
+  body[data-admin-shell="true"] #app-content[data-module="notificacoes"],
+  body[data-admin-shell="true"] #app-content[data-module="midia"],
+  body[data-admin-shell="true"] #app-content[data-module="configuracoes_site"] {
     padding: 16px;
     border-radius: 20px;
   }
@@ -557,6 +618,10 @@ body[data-admin-shell="true"] #app-content[data-module="importacao"] :is(.guide-
 
   body[data-admin-shell="true"] #app-content[data-module] :is(.ads-grid, .push-metrics, .awards-grid),
   body[data-admin-shell="true"] #app-content[data-module="usuarios"] .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-admin-shell="true"] #app-content[data-module="configuracoes_site"] .config-grid {
     grid-template-columns: 1fr;
   }
 
