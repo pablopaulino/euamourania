@@ -188,10 +188,14 @@ Object.assign(resources, {
   banners: { label:"Banners", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","Título","text"],["subtitulo","Subtítulo","text"],["imagem_url","Imagem","url"],["link_url","Link","url"],["posicao","Posição","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
   categorias: { label:"Categorias", title:"nome", order:"ordem", ascending:true, fields:[["nome","Nome","text",true],["slug","Slug","text",true],["tipo","Tipo","category-type",true],["ordem","Ordem","number"],["status","Status","active-status"]]},
   configuracoes_site: { label:"Configurações", title:"chave", order:"chave", ascending:true, fields:[["chave","Chave","text",true],["valor","Valor","textarea"],["tipo","Tipo","text"]]},
-  sugestoes_momento: { label:"Sugestões do momento", title:"titulo", order:"prioridade", fields:[["titulo","Nome interno","text",true],["tipo_conteudo","Tipo de conteúdo","home-suggestion-type",true],["conteudo_id","Conteúdo vinculado","home-suggestion-target",true],["titulo_override","Título exibido (opcional)","text"],["descricao_override","Texto exibido (opcional)","textarea"],["imagem_url_override","Imagem exibida (opcional)","url"],["status","Status","home-suggestion-status"],["prioridade","Prioridade","number"],["inicio_em","Início","datetime-local"],["fim_em","Fim","datetime-local"],["recorrencia_tipo","Repetição","home-suggestion-recurrence"],["dia_semana","Dia da semana","home-suggestion-weekday"],["hora_inicio","Hora inicial","time"],["hora_fim","Hora final","time"],["recorrencia_ate","Repetir até","date"]]},
+  sugestoes_momento: { table:"home_sugestoes_momento", label:"Sugestões do momento", title:"titulo", order:"prioridade", fields:[["titulo","Nome interno","text",true],["tipo_conteudo","Tipo de conteúdo","home-suggestion-type",true],["conteudo_id","Conteúdo vinculado","home-suggestion-target",true],["titulo_override","Título exibido (opcional)","text"],["descricao_override","Texto exibido (opcional)","textarea"],["imagem_url_override","Imagem exibida (opcional)","url"],["status","Status","home-suggestion-status"],["prioridade","Prioridade","number"],["inicio_em","Início","datetime-local"],["fim_em","Fim","datetime-local"],["recorrencia_tipo","Repetição","home-suggestion-recurrence"],["dia_semana","Dia da semana","home-suggestion-weekday"],["hora_inicio","Hora inicial","time"],["hora_fim","Hora final","time"],["recorrencia_ate","Repetir até","date"]]},
   eventos_principais: { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","Descrição curta","textarea"],["historia_html","História do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histórica","url-list"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","Recorrência","event-recurrence"],["periodo_aproximado","Período aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]]},
   eventos_edicoes: { label:"Edições de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["edicao_label","Rótulo da edição","text"],["slug","Slug da edição","text"],["titulo","Título da edição","text",true],["titulo_curto","Título curto no app","text"],["subtitulo","Subtítulo","text"],["organizador","Organização da edição","text"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","Programação","editor"],["atracoes_html","Atrações","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da edição","url-list"],["videos","Vídeos","line-list"],["local","Local","text"],["endereco","Endereço","text"],["mapa_url","Link do mapa","url"],["latitude","Latitude","number"],["longitude","Longitude","number"],["links_uteis","Links úteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da edição","event-edition-status"],["resumo_pos_evento_html","Resumo pós-evento","textarea"],["publico_estimado","Público estimado","number"],["observacoes","Observações","textarea"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["palavras_chave","Palavras-chave","text"],["seo_descricao","Descrição SEO","textarea"]]}
 });
+
+function databaseTable(table) {
+  return resources[table]?.table || table;
+}
 
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const inputValue = (value, type) => type === "datetime-local" && value ?new Date(value).toISOString().slice(0,16) : value ?? "";
@@ -1050,7 +1054,7 @@ async function resourceList(table) {
   });
   app.innerHTML='<div class="loading">Carregando...</div>';
   try {
-    const rows=await listarTabela(table,{ordem:config.order,crescente:config.ascending||false});
+    const rows=await listarTabela(databaseTable(table),{ordem:config.order,crescente:config.ascending||false});
     const statuses = [...new Set(rows.map(resourceRowStatus).filter(Boolean))].sort((a,b) => a.localeCompare(b, "pt-BR"));
     app.innerHTML=`
       <section class="admin-page admin-page-wide">
@@ -1511,7 +1515,7 @@ async function editForm(table,id) {
   currentResourceTable=table;currentResourceId=id||null;
   activeModuleKey = table;
   app.dataset.layout = "form";
-  if(id){const {data,error}=await getSupabase().from(table).select("*").eq("id",id).single();if(error)throw error;row=data;}
+  if(id){const {data,error}=await getSupabase().from(databaseTable(table)).select("*").eq("id",id).single();if(error)throw error;row=data;}
   const meta = adminModuleMeta(table);
   const action = id ? "Editar" : "Novo";
   setShellTitle(id ? `Editar ${config.label}` : resourceActionLabel(table), resourceDescription(table), {
@@ -1593,7 +1597,7 @@ async function editForm(table,id) {
     }
     if (table === "noticias" && payload.status === "publicado" && !payload.publicado_em) payload.publicado_em = new Date().toISOString();
     try {
-      await salvarRegistro(table, payload);
+      await salvarRegistro(databaseTable(table), payload);
       await resourceList(table);
     } catch (error) {
       message.textContent = error.message;
@@ -1747,7 +1751,7 @@ async function handleClick(event) {
   if(button.dataset.new)return editForm(button.dataset.new);
   if(button.dataset.edit)return editForm(button.dataset.edit,button.dataset.id);
   if(button.dataset.cancel)return resourceList(button.dataset.cancel);
-  if(button.dataset.delete&&confirm("Excluir este registro?Esta ação não pode ser desfeita.")){await excluirRegistro(button.dataset.delete,button.dataset.id);return resourceList(button.dataset.delete);}
+  if(button.dataset.delete&&confirm("Excluir este registro?Esta ação não pode ser desfeita.")){await excluirRegistro(databaseTable(button.dataset.delete),button.dataset.id);return resourceList(button.dataset.delete);}
 }
 
 let commandPalette = null;
