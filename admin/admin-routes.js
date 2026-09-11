@@ -1,4 +1,4 @@
-import { ADMIN_MODULES } from "./admin-modules.js";
+import { ADMIN_MODULES } from "./admin-modules.js?v=20260911-home-suggestions";
 
 const trimSlash = value => String(value || "").replace(/\/+$/, "") || "/admin";
 

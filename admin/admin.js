@@ -2,9 +2,9 @@
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { listarTabela, salvarRegistro, excluirRegistro } from "../assets/js/services/baseService.js";
 import { gerarSlug } from "../assets/js/utils.js";
-import { adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js";
+import { adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js?v=20260911-home-suggestions";
 import { summarizeBusinessQuality } from "./business-quality.js";
-import { ADMIN_MODULE_LIST, adminModulesForNavigation, getAdminModule, renderAdminModuleIcon } from "./admin-modules.js?v=20260907-media-gallery";
+import { ADMIN_MODULE_LIST, adminModulesForNavigation, getAdminModule, renderAdminModuleIcon } from "./admin-modules.js?v=20260911-home-suggestions";
 
 const app = document.getElementById("app-content");
 const title = document.getElementById("page-title");
@@ -188,26 +188,10 @@ Object.assign(resources, {
   banners: { label:"Banners", title:"titulo", order:"ordem", ascending:true, fields:[["titulo","Título","text"],["subtitulo","Subtítulo","text"],["imagem_url","Imagem","url"],["link_url","Link","url"],["posicao","Posição","text"],["ordem","Ordem","number"],["status","Status","active-status"]]},
   categorias: { label:"Categorias", title:"nome", order:"ordem", ascending:true, fields:[["nome","Nome","text",true],["slug","Slug","text",true],["tipo","Tipo","category-type",true],["ordem","Ordem","number"],["status","Status","active-status"]]},
   configuracoes_site: { label:"Configurações", title:"chave", order:"chave", ascending:true, fields:[["chave","Chave","text",true],["valor","Valor","textarea"],["tipo","Tipo","text"]]},
+  sugestoes_momento: { label:"Sugestões do momento", title:"titulo", order:"prioridade", fields:[["titulo","Nome interno","text",true],["tipo_conteudo","Tipo de conteúdo","home-suggestion-type",true],["conteudo_id","Conteúdo vinculado","home-suggestion-target",true],["titulo_override","Título exibido (opcional)","text"],["descricao_override","Texto exibido (opcional)","textarea"],["imagem_url_override","Imagem exibida (opcional)","url"],["status","Status","home-suggestion-status"],["prioridade","Prioridade","number"],["inicio_em","Início","datetime-local"],["fim_em","Fim","datetime-local"],["recorrencia_tipo","Repetição","home-suggestion-recurrence"],["dia_semana","Dia da semana","home-suggestion-weekday"],["hora_inicio","Hora inicial","time"],["hora_fim","Hora final","time"],["recorrencia_ate","Repetir até","date"]]},
   eventos_principais: { label:"Eventos principais", title:"nome", order:"atualizado_em", fields:[["nome","Nome do evento","text",true],["slug","Slug","text",true],["descricao_curta","Descrição curta","textarea"],["historia_html","História do evento","editor"],["imagem_capa_url","Imagem de capa","url"],["galeria_historica","Galeria histórica","url-list"],["categoria","Categoria","text"],["local_tradicional","Local tradicional","text"],["recorrencia","Recorrência","event-recurrence"],["periodo_aproximado","Período aproximado","text"],["organizador","Organizador","text"],["telefone","Telefone","text"],["email","E-mail","email"],["website","Website","url"],["instagram","Instagram","url"],["facebook","Facebook","url"],["ativo","Ativo","boolean"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["seo_descricao","Descrição SEO","textarea"],["palavras_chave","Palavras-chave","text"]]},
   eventos_edicoes: { label:"Edições de eventos", title:"titulo", order:"ano", ascending:false, fields:[["evento_id","Evento principal","event-principal-select",true],["ano","Ano","number",true],["edicao_label","Rótulo da edição","text"],["slug","Slug da edição","text"],["titulo","Título da edição","text",true],["titulo_curto","Título curto no app","text"],["subtitulo","Subtítulo","text"],["organizador","Organização da edição","text"],["data_inicio","Início","datetime-local"],["data_fim","Fim","datetime-local"],["programacao_html","Programação","editor"],["atracoes_html","Atrações","textarea"],["cartaz_url","Cartaz oficial","url"],["banner_url","Banner","url"],["galeria","Galeria da edição","url-list"],["videos","Vídeos","line-list"],["local","Local","text"],["endereco","Endereço","text"],["mapa_url","Link do mapa","url"],["latitude","Latitude","number"],["longitude","Longitude","number"],["links_uteis","Links úteis","line-list"],["patrocinadores","Patrocinadores","line-list"],["status","Status da edição","event-edition-status"],["resumo_pos_evento_html","Resumo pós-evento","textarea"],["publico_estimado","Público estimado","number"],["observacoes","Observações","textarea"],["destaque","Destaque","boolean"],["seo_titulo","Título SEO","text"],["palavras_chave","Palavras-chave","text"],["seo_descricao","Descrição SEO","textarea"]]}
 });
-
-function adicionarCamposDestaqueHome() {
-  const campos = [
-    ["destaque_home", "Destaque da Home", "boolean"],
-    ["destaque_home_inicio", "Início do destaque", "datetime-local"],
-    ["destaque_home_fim", "Fim do destaque", "datetime-local"]
-  ];
-  for (const tabela of ["noticias", "guia_comercial", "turismo", "eventos"]) {
-    const recurso = resources[tabela];
-    if (!recurso || recurso.fields.some(([nome]) => nome === "destaque_home")) continue;
-    const statusIndex = recurso.fields.findIndex(([nome]) => nome === "status");
-    const insertAt = statusIndex >= 0 ?statusIndex : recurso.fields.length;
-    recurso.fields.splice(insertAt, 0, ...campos);
-  }
-}
-
-adicionarCamposDestaqueHome();
 
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const inputValue = (value, type) => type === "datetime-local" && value ?new Date(value).toISOString().slice(0,16) : value ?? "";
@@ -1147,6 +1131,10 @@ function selectOptionLabel(option, type) {
       app: "Bloco do app"
     }[option] || option;
   }
+  if (type === "home-suggestion-type") return ({ empresa: "Comércio", turismo: "Turismo", evento: "Evento", noticia: "Notícia", iniciativa: "Iniciativa", vantagem: "Viva Vantagem" })[option] || option;
+  if (type === "home-suggestion-status") return ({ rascunho: "Rascunho", agendado: "Agendado", ativo: "Ativo", pausado: "Pausado", encerrado: "Encerrado" })[option] || option;
+  if (type === "home-suggestion-recurrence") return ({ nenhuma: "Não se repete", semanal: "Toda semana" })[option] || option;
+  if (type === "home-suggestion-weekday") return (["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"])[Number(option)] || option;
   return option;
 }
 
@@ -1210,6 +1198,55 @@ async function carregarSelectEventosPrincipais() {
     const inheritedCategory = app.querySelector("[data-event-edition-category]");
     if (inheritedCategory) inheritedCategory.value = "Não foi possível carregar";
   }
+}
+
+const HOME_SUGGESTION_TARGETS = {
+  empresa: { table: "guia_comercial", fields: "id,nome", title: item => item.nome, filter: query => query.eq("status", "publicado") },
+  turismo: { table: "turismo", fields: "id,nome", title: item => item.nome, filter: query => query.eq("status", "publicado") },
+  evento: { table: "eventos", fields: "id,titulo,data_inicio", title: item => `${item.titulo}${item.data_inicio ? ` — ${new Date(item.data_inicio).toLocaleDateString("pt-BR")}` : ""}`, filter: query => query.eq("status", "publicado") },
+  noticia: { table: "noticias", fields: "id,titulo", title: item => item.titulo, filter: query => query.eq("status", "publicado") },
+  iniciativa: { table: "iniciativas_comunitarias", fields: "id,titulo", title: item => item.titulo, filter: query => query.eq("status", "publicado").eq("exibir_na_listagem", true) },
+  vantagem: { table: "vantagens", fields: "id,titulo", title: item => item.titulo, filter: query => query.eq("ativo", true) }
+};
+
+async function carregarSelectSugestaoMomento() {
+  const target = app.querySelector("[data-home-suggestion-target]");
+  const type = app.querySelector('[name="tipo_conteudo"]');
+  if (!target || !type) return;
+  const load = async () => {
+    const config = HOME_SUGGESTION_TARGETS[type.value];
+    const current = target.dataset.current || target.value || "";
+    if (!config) {
+      target.innerHTML = '<option value="">Escolha primeiro o tipo de conteúdo</option>';
+      return;
+    }
+    target.innerHTML = '<option value="">Carregando conteúdos...</option>';
+    try {
+      let query = getSupabase().from(config.table).select(config.fields).order("id", { ascending: false }).limit(300);
+      query = config.filter(query);
+      const { data = [], error } = await query;
+      if (error) throw error;
+      target.innerHTML = `<option value="">Selecione um conteúdo</option>${data.map(item => `<option value="${escapeHtml(item.id)}" ${item.id === current ? "selected" : ""}>${escapeHtml(config.title(item))}</option>`).join("")}`;
+      if (!data.length) target.innerHTML = '<option value="">Nenhum conteúdo público disponível</option>';
+    } catch {
+      target.innerHTML = '<option value="">Não foi possível carregar os conteúdos</option>';
+    }
+  };
+  type.addEventListener("change", () => { target.dataset.current = ""; void load(); });
+  await load();
+}
+
+function setupHomeSuggestionSchedule(container) {
+  if (currentResourceTable !== "sugestoes_momento") return;
+  const form = container.querySelector("#resource-form");
+  const recurrence = form?.elements.recorrencia_tipo;
+  if (!form || !recurrence) return;
+  const fields = ["dia_semana", "hora_inicio", "hora_fim", "recorrencia_ate"]
+    .map(name => form.elements[name]?.closest("label"))
+    .filter(Boolean);
+  const apply = () => fields.forEach(field => { field.hidden = recurrence.value !== "semanal"; });
+  recurrence.addEventListener("change", apply);
+  apply();
 }
 
 const SIMPLE_EVENT_RECURRENCES = new Set(["semanal", "mensal", "anual"]);
@@ -1384,8 +1421,9 @@ function fieldHtmlCorrigido([name,label,type,required], value) {
   if(type==="boolean"){const checked=value===undefined&&name==="ativo"?true:Boolean(value);return `<label>${label}<select name="${name}"><option value="false" ${!checked?"selected":""}>Não</option><option value="true" ${checked?"selected":""}>Sim</option></select></label>`}
   if(type==="tags") return `<label class="${full}">${label}<input type="text" name="${name}" value="${escapeHtml(Array.isArray(value)?value.join(", "):inputValue(value,type))}" placeholder="pautas, fotos, eventos"><small>Separe por vírgula.</small></label>`;
   if(type==="event-principal-select") return `<label>${label}<select name="${name}" data-event-principal-select data-current="${escapeHtml(inputValue(value,type))}" ${req}><option value="">Carregando eventos principais...</option></select><small>Escolha o evento principal. Não precisa copiar ID.</small></label>`;
-  const options=type==="status"?["rascunho","publicado","arquivado"]:type==="active-status"?["ativo","inativo"]:type==="category-type"?["noticias","guia","turismo","eventos"]:type==="link-feature-type"?["normal","grupo_whatsapp","app"]:type==="volunteer-status"?["novo","em_conversa","aprovado","recusado","arquivado"]:type==="event-recurrence"?["anual","mensal","unico","outro"]:type==="event-simple-recurrence"?["nenhuma","semanal","mensal","anual"]:type==="event-edition-status"?["anunciado","confirmado","acontecendo","encerrado","cancelado"]:null;
-  if(options) return `<label>${label}<select name="${name}">${options.map(o=>`<option value="${o}" ${value===o?"selected":""}>${selectOptionLabel(o,type)}</option>`).join("")}</select></label>`;
+  if(type==="home-suggestion-target") return `<label>${label}<select name="${name}" data-home-suggestion-target data-current="${escapeHtml(inputValue(value,type))}" ${req}><option value="">Escolha primeiro o tipo de conteúdo</option></select><small>Somente conteúdo ainda público e válido poderá aparecer na Home.</small></label>`;
+  const options=type==="status"?["rascunho","publicado","arquivado"]:type==="active-status"?["ativo","inativo"]:type==="category-type"?["noticias","guia","turismo","eventos"]:type==="link-feature-type"?["normal","grupo_whatsapp","app"]:type==="volunteer-status"?["novo","em_conversa","aprovado","recusado","arquivado"]:type==="event-recurrence"?["anual","mensal","unico","outro"]:type==="event-simple-recurrence"?["nenhuma","semanal","mensal","anual"]:type==="event-edition-status"?["anunciado","confirmado","acontecendo","encerrado","cancelado"]:type==="home-suggestion-type"?["empresa","turismo","evento","noticia","iniciativa","vantagem"]:type==="home-suggestion-status"?["agendado","rascunho","ativo","pausado","encerrado"]:type==="home-suggestion-recurrence"?["nenhuma","semanal"]:type==="home-suggestion-weekday"?["0","1","2","3","4","5","6"]:null;
+  if(options) { const current=value ?? (type==="home-suggestion-status"?"agendado":type==="home-suggestion-recurrence"?"nenhuma":""); return `<label>${label}<select name="${name}">${options.map(o=>`<option value="${o}" ${String(current)===o?"selected":""}>${selectOptionLabel(o,type)}</option>`).join("")}</select></label>`; }
   const inputType=type==="url"||type==="number"?"text":type,urlAttributes=type==="url"?` inputmode="url" data-type="url" placeholder="https://... ou /assets/..."${mediaAttributesForField(name)}`:type==="number"?' inputmode="decimal" data-type="number" placeholder="Ex.: -20.2046718"':"";
   return `<label class="${full}">${label}<input type="${inputType}"${urlAttributes} name="${name}" value="${escapeHtml(inputValue(value,type))}" ${req}></label>`;
 }
@@ -1498,7 +1536,9 @@ async function editForm(table,id) {
   const editorField=config.fields.find(f=>f[2]==="editor");
   if(editorField){quill=new Quill("#editor",{theme:"snow",modules:{toolbar:[["bold","italic","blockquote"],[{header:[2,3,false]}],[{list:"ordered"},{list:"bullet"}],["link","image","video"],["clean"]]}});quill.root.innerHTML=row[editorField[0]]||"";}
   await carregarSelectEventosPrincipais();
+  await carregarSelectSugestaoMomento();
   setupSimpleEventRecurrenceForm(app);
+  setupHomeSuggestionSchedule(app);
   const sourceName=config.fields.some(f=>f[0]==="titulo")?"titulo":config.fields.some(f=>f[0]==="nome")?"nome":null;
   if(sourceName&&config.fields.some(f=>f[0]==="slug")){const source=app.querySelector(`[name="${sourceName}"]`),slugInput=app.querySelector('[name="slug"]');source.addEventListener("input",()=>{if(!id||!slugInput.dataset.edited)slugInput.value=gerarSlug(source.value)});slugInput.addEventListener("input",()=>slugInput.dataset.edited="true");}
   document.getElementById("resource-form").addEventListener("submit", async event => {
