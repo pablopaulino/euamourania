@@ -4,8 +4,7 @@ import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const port = Number(process.argv[2] || process.env.PORT || 4173);
-const host = process.argv[3] || process.env.HOST || "127.0.0.1";
+const port = Number(process.env.PORT || 4173);
 const types = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -33,4 +32,4 @@ createServer(async (request, response) => {
     response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     response.end("Não encontrado");
   }
-}).listen(port, host, () => console.log(`http://${host}:${port}`));
+}).listen(port, "127.0.0.1", () => console.log(`http://127.0.0.1:${port}`));

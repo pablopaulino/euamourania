@@ -168,12 +168,6 @@
   ],
   "headers": [
     {
-      "source": "/preview/(.*)",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
-      ]
-    },
-    {
       "source": "/.well-known/assetlinks.json",
       "headers": [
         { "key": "Content-Type", "value": "application/json; charset=utf-8" },
