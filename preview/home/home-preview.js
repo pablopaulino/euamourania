@@ -7,7 +7,7 @@ const shorten = (value, size = 110) => plain(value).length > size ? `${plain(val
 const safeUrl = value => /^(https?:\/\/|\/|assets\/)/i.test(String(value || "")) ? String(value) : "";
 const todayIso = () => new Date().toISOString();
 const newsUrl = item => `/noticias/${encodeURIComponent(item.slug || item.id || "")}`;
-const eventUrl = item => `/eventos/agenda/${encodeURIComponent(item.slug || item.id || "")}`;
+const eventUrl = item => item.eventHref || `/eventos/agenda/${encodeURIComponent(item.slug || item.id || "")}`;
 const guideUrl = item => item.slug ? `/guia/${encodeURIComponent(item.slug)}` : `/guia-details.html?slug=${encodeURIComponent(item.id || "")}`;
 const tourismUrl = item => `/turismo/${encodeURIComponent(item.slug || item.id || "")}`;
 
@@ -78,15 +78,20 @@ async function renderBusinesses() {
 function occurrence(event, now = new Date()) {
   let date = event.data_inicio ? new Date(event.data_inicio) : null;
   if (!date || Number.isNaN(date.getTime())) return null;
+  let end = event.data_fim ? new Date(event.data_fim) : new Date(date);
+  if (Number.isNaN(end.getTime())) end = new Date(date);
+  if (!event.data_fim) end.setHours(23, 59, 59, 999);
   const type = event.recorrencia_tipo;
   let guard = 0;
-  while (date < now && ["semanal", "mensal", "anual"].includes(type) && guard++ < 100) {
-    if (type === "semanal") date.setDate(date.getDate() + 7);
-    if (type === "mensal") date.setMonth(date.getMonth() + 1);
-    if (type === "anual") date.setFullYear(date.getFullYear() + 1);
+  const recurring = ["semanal", "mensal", "anual"].includes(type);
+  while (end < now && recurring && guard++ < 100) {
+    if (type === "semanal") { date.setDate(date.getDate() + 7); end.setDate(end.getDate() + 7); }
+    if (type === "mensal") { date.setMonth(date.getMonth() + 1); end.setMonth(end.getMonth() + 1); }
+    if (type === "anual") { date.setFullYear(date.getFullYear() + 1); end.setFullYear(end.getFullYear() + 1); }
   }
   const until = event.recorrencia_ate ? new Date(event.recorrencia_ate) : null;
-  return until && date > until ? null : { ...event, nextDate: date };
+  if ((until && date > until) || end < now) return null;
+  return { ...event, nextDate: date, nextEnd: end, isOngoing: date <= now && end >= now };
 }
 
 async function renderAgenda() {
@@ -98,13 +103,33 @@ async function renderAgenda() {
     } catch {
       rows = await fetchPublicRows("eventos", { select: "id,titulo,slug,local,data_inicio,data_fim", status: "eq.publicado", order: "data_inicio.asc", limit: "40" }, { ttl: 120000 });
     }
-    const now = new Date(); now.setHours(0,0,0,0);
-    const items = rows.map(item => occurrence(item, now)).filter(Boolean).sort((a,b) => a.nextDate - b.nextDate).slice(0, 3);
+    const editions = await fetchPublicRows("eventos_edicoes", {
+      select: "id,titulo,slug,ano,data_inicio,data_fim,local,status,eventos_principais!inner(nome,slug,ativo)",
+      order: "data_inicio.asc",
+      "eventos_principais.ativo": "eq.true"
+    }, { ttl: 120000 }).catch(() => []);
+    const now = new Date();
+    const simpleItems = rows.map(item => occurrence(item, now)).filter(Boolean);
+    const editionItems = editions
+      .filter(item => ["anunciado", "confirmado", "acontecendo"].includes(item.status))
+      .map(item => {
+        const parent = item.eventos_principais;
+        const edition = occurrence({
+          ...item,
+          titulo: item.titulo || parent?.nome || "Evento",
+          eventHref: parent?.slug ? `/eventos/${encodeURIComponent(parent.slug)}/${encodeURIComponent(item.ano || item.slug || "")}` : "/eventos/"
+        }, now);
+        return edition;
+      })
+      .filter(Boolean);
+    const items = [...simpleItems, ...editionItems]
+      .sort((a, b) => Number(b.isOngoing) - Number(a.isOngoing) || a.nextDate - b.nextDate)
+      .slice(0, 3);
     if (!items.length) return fallbackMessage(root, "Nenhum evento futuro publicado no momento.");
     const dateFmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", timeZone: "America/Sao_Paulo" });
     const monthFmt = new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone: "America/Sao_Paulo" });
     const timeFmt = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
-    root.innerHTML = items.map(item => `<a class="agenda-item" href="${eventUrl(item)}"><time class="agenda-date" datetime="${esc(item.nextDate.toISOString())}"><strong>${dateFmt.format(item.nextDate)}</strong><span>${esc(monthFmt.format(item.nextDate).replace(".", ""))}</span></time><div><h3>${esc(item.titulo)}</h3><p>${esc(item.local || "Urânia")} · ${esc(timeFmt.format(item.nextDate))}</p></div><b aria-hidden="true">→</b></a>`).join("");
+    root.innerHTML = items.map(item => `<a class="agenda-item" href="${eventUrl(item)}"><time class="agenda-date" datetime="${esc(item.nextDate.toISOString())}"><strong>${dateFmt.format(item.nextDate)}</strong><span>${esc(monthFmt.format(item.nextDate).replace(".", ""))}</span></time><div><h3>${esc(item.titulo)}</h3><p>${esc(item.local || "Urânia")} · ${item.isOngoing ? "Em andamento" : esc(timeFmt.format(item.nextDate))}</p></div><b aria-hidden="true">→</b></a>`).join("");
   } catch { fallbackMessage(root, "Não foi possível consultar a agenda agora."); }
 }
 
