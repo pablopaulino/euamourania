@@ -1,5 +1,6 @@
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://omhcpbphvtihqwdkbsbf.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || "sb_publishable_m02B2sC8Ddh4fCtnvsGePg_TqwUanoM";
+const { useSite2026Response } = require("../lib/site-2026-response.js");
 const DEFAULT_DOMAIN = "https://euamourania.com.br";
 const DEFAULT_LOGO = "/assets/1505%20-%20Urania%20-%20Logo%20Horizontal%20-%201.png";
 const DEFAULT_FAVICON = "/favicon.ico";
@@ -442,6 +443,7 @@ module.exports = async (req, res) => {
   }
 
   try {
+    if (req.query.tipo !== "guia-categoria") useSite2026Response(res, req.query.tipo || "news");
     if (req.query.tipo === "guia-categoria") return renderGuiaCategoria(req, res, slug);
     if (req.query.tipo === "guia") return renderGuia(req, res, slug);
     if (req.query.tipo === "turismo") return renderTurismo(req, res, slug);

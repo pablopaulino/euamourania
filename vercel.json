@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/noticia.js": {
+      "includeFiles": "preview/**/*"
+    }
+  },
   "crons": [
     {
       "path": "/api/melhores-votar?cron=limpeza",
@@ -167,6 +172,12 @@
     { "source": "/rss.xml", "destination": "/api/rss" }
   ],
   "headers": [
+    {
+      "source": "/preview/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+      ]
+    },
     {
       "source": "/.well-known/assetlinks.json",
       "headers": [

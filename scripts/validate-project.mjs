@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const skip = new Set([".git", "node_modules", "notificacoes-worktree"]);
+const skip = new Set([".git", "node_modules", ".reels-tools", "notificacoes-worktree"]);
 const files = [];
 
 async function walk(dir) {
