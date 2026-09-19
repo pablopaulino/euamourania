@@ -1,309 +1,120 @@
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 
-const container = document.getElementById("links-list");
+const hub = document.getElementById("links-hub");
 const status = document.getElementById("links-status");
-const LINKS_CACHE_KEY = "euamourania:links-page:v2";
+const socialSection = document.querySelector(".links-social");
+const socialDock = document.getElementById("social-dock");
+const CACHE_KEY = "euamourania:links-hub:v3";
 
-const NEWS_GROUP_LINK = {
-  id: "whatsapp-grupo-noticias",
-  titulo: "Grupo de notícias no WhatsApp",
-  url: "https://chat.whatsapp.com/H8uSnazUFAREgQZziiwmPf?s=cl&p=i&ilr=0",
-  tipo_destaque: "grupo_whatsapp",
-  rotulo: "Grupo de notícias",
-  descricao: "Entre para receber avisos, notícias e informações importantes de Urânia direto no WhatsApp."
+const FALLBACKS = {
+  site: { id: "site-principal", titulo: "Nosso site", url: "/" },
+  news: { id: "pagina-noticias", titulo: "Notícias", url: "/news/" },
+  app: { id: "app-viva-urania", titulo: "Viva Urânia", url: "/app" },
+  group: { id: "whatsapp-grupo-noticias", titulo: "Grupo de notícias", url: "https://chat.whatsapp.com/H8uSnazUFAREgQZziiwmPf?s=cl&p=i&ilr=0" },
+  channel: { id: "whatsapp-canal-noticias", titulo: "Canal de notícias", url: "https://whatsapp.com/channel/0029VapPdlLGpLHTXQELk210" },
+  contact: { id: "falar-com-equipe", titulo: "Falar com a equipe", url: "https://wa.me/555517976005583" },
+  instagram: { id: "social-instagram", titulo: "Instagram", url: "https://instagram.com/euamourania" },
+  tiktok: { id: "social-tiktok", titulo: "TikTok", url: "https://tiktok.com/@euamourania" },
+  youtube: { id: "social-youtube", titulo: "YouTube", url: "https://www.youtube.com/@EuAmoUr%C3%A2nia" },
+  facebook: { id: "social-facebook", titulo: "Facebook", url: "https://facebook.com/euamourania" },
+  x: { id: "social-x", titulo: "X", url: "https://x.com/euamourania" }
 };
-
-const NEWS_PAGE_LINK = {
-  id: "pagina-noticias",
-  titulo: "Notícias",
-  url: "/news/",
-  iconType: "news"
-};
-
-const APP_LINK = {
-  id: "app-viva-urania",
-  titulo: "Viva Ur\u00e2nia",
-  url: "/app",
-  iconType: "app",
-  tipo_destaque: "app",
-  rotulo: "O app da cidade",
-  descricao: "Guia, turismo, favoritos e informa\u00e7\u00f5es de Ur\u00e2nia na palma da sua m\u00e3o."
-};
-const APP_DEFAULT_DESCRIPTION = "Guia, turismo, favoritos e informa\u00e7\u00f5es de Ur\u00e2nia na palma da sua m\u00e3o.";
-
-const FALLBACK_LINKS = [
-  {
-    id: "site-principal",
-    titulo: "Nosso site",
-    url: "/",
-    iconType: "site"
-  },
-  NEWS_PAGE_LINK,
-  NEWS_GROUP_LINK,
-  APP_LINK,
-  {
-    id: "falar-com-equipe",
-    titulo: "Falar com a Equipe",
-    url: "https://wa.me/5517976005583",
-    iconType: "whatsapp"
-  }
-];
-
-const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  "'": "&#39;",
-  '"': "&quot;"
-}[char]));
-
-const safeUrl = value => /^(https?:\/\/|\/)/i.test(value || "") ? escapeHtml(value) : "#";
-const normalize = value => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const icons = {
-  whatsapp: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a8.4 8.4 0 0 0-7.2 12.7l-.9 3.4 3.5-.9A8.4 8.4 0 1 0 12 3.5Zm0 1.8a6.6 6.6 0 1 1-3.7 12.1l-.4-.3-1.8.5.5-1.8-.3-.4A6.6 6.6 0 0 1 12 5.3Zm-2.4 3.5c-.2 0-.5.1-.7.3-.4.4-.8.9-.8 1.7 0 1.1.8 2.2.9 2.3.1.2 1.6 2.6 4 3.5 2 .8 2.4.6 2.8.6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1-.1-.1-.2-.2-.5-.3l-1.6-.8c-.2-.1-.4-.1-.6.1-.1.2-.6.8-.7 1-.1.1-.3.2-.5.1-.3-.1-1-.4-1.8-1.1-.7-.6-1.1-1.4-1.3-1.7-.1-.2 0-.4.1-.5l.4-.5c.1-.1.1-.3.2-.4.1-.1 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.5-.6-.5h-.3Z"/></svg>',
-  instagram: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3.5h8A4.5 4.5 0 0 1 20.5 8v8a4.5 4.5 0 0 1-4.5 4.5H8A4.5 4.5 0 0 1 3.5 16V8A4.5 4.5 0 0 1 8 3.5Zm0 2A2.5 2.5 0 0 0 5.5 8v8A2.5 2.5 0 0 0 8 18.5h8a2.5 2.5 0 0 0 2.5-2.5V8A2.5 2.5 0 0 0 16 5.5H8Zm4 3.2a3.3 3.3 0 1 1 0 6.6 3.3 3.3 0 0 1 0-6.6Zm0 2a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6Zm4-2.7a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8Z"/></svg>',
-  facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.4 21v-7.7h2.6l.4-3h-3V8.5c0-.9.3-1.5 1.6-1.5h1.6V4.3c-.8-.1-1.6-.2-2.4-.2-2.4 0-4 1.5-4 4.1v2.1H7.5v3h2.7V21h3.2Z"/></svg>',
-  youtube: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8.1a3 3 0 0 0-2.1-2.1C17 5.5 12 5.5 12 5.5s-5 0-6.9.5A3 3 0 0 0 3 8.1 31 31 0 0 0 2.5 12c0 1.3.1 2.6.5 3.9A3 3 0 0 0 5.1 18c1.9.5 6.9.5 6.9.5s5 0 6.9-.5a3 3 0 0 0 2.1-2.1c.4-1.3.5-2.6.5-3.9s-.1-2.6-.5-3.9ZM10.1 15V9l5.2 3-5.2 3Z"/></svg>',
-  site: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17Zm6.3 7.5h-2.8a12 12 0 0 0-1.1-4.1 6.6 6.6 0 0 1 3.9 4.1ZM12 5.4c.6.9 1.3 2.7 1.5 5.6h-3c.2-2.9.9-4.7 1.5-5.6ZM5.7 13h2.8c.1 1.6.4 3 .8 4.1A6.6 6.6 0 0 1 5.7 13Zm2.8-2H5.7a6.6 6.6 0 0 1 3.6-4.1c-.4 1.1-.7 2.5-.8 4.1Zm3.5 7.6c-.6-.9-1.3-2.7-1.5-5.6h3c-.2 2.9-.9 4.7-1.5 5.6Zm2.7-1.5c.4-1.1.7-2.5.8-4.1h2.8a6.6 6.6 0 0 1-3.6 4.1Z"/></svg>',
-  news: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11.5A2.5 2.5 0 0 1 19 7v10.5h.5a1 1 0 0 0 1-1V8h2v8.5a3 3 0 0 1-3 3H6A3.5 3.5 0 0 1 2.5 16V7A2.5 2.5 0 0 1 5 4.5Zm0 2a.5.5 0 0 0-.5.5v9A1.5 1.5 0 0 0 6 17.5h11V7a.5.5 0 0 0-.5-.5H5Zm1.2 2h8.7v2H6.2v-2Zm0 3.2h8.7v2H6.2v-2Zm0 3.2h5.2v2H6.2v-2Z"/></svg>',
-  app: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6.3" y="2.8" width="11.4" height="18.4" rx="2.4"/><path d="M10.2 5.7h3.6"/><path d="M9.1 9.2h5.8"/><path d="M9.1 12h4.2"/><path d="M9.1 14.8h5.8"/><circle cx="12" cy="18" r=".45" fill="currentColor" stroke="none"/></svg>'
+  app: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.2 2.5h9.6a2.7 2.7 0 0 1 2.7 2.7v13.6a2.7 2.7 0 0 1-2.7 2.7H7.2a2.7 2.7 0 0 1-2.7-2.7V5.2a2.7 2.7 0 0 1 2.7-2.7Zm0 2A.7.7 0 0 0 6.5 5.2v13.6c0 .4.3.7.7.7h9.6c.4 0 .7-.3.7-.7V5.2a.7.7 0 0 0-.7-.7H7.2Zm3 12.8h3.6v1.4h-3.6v-1.4Z"/></svg>',
+  news: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12a2 2 0 0 1 2 2v11h.5a.5.5 0 0 0 .5-.5V8h2v8.5a2.5 2.5 0 0 1-2.5 2.5H6a3 3 0 0 1-3-3V6a2 2 0 0 1 2-2Zm0 2v10a1 1 0 0 0 1 1h11V6H5Zm2 2h8v2H7V8Zm0 4h8v2H7v-2Z"/></svg>',
+  site: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm6.7 8h-3.2a15 15 0 0 0-1.2-5 7.1 7.1 0 0 1 4.4 5ZM12 5c.7 1 1.3 3 1.5 6h-3c.2-3 .8-5 1.5-6ZM5.3 13h3.2a15 15 0 0 0 1.2 5 7.1 7.1 0 0 1-4.4-5Zm3.2-2H5.3a7.1 7.1 0 0 1 4.4-5 15 15 0 0 0-1.2 5Zm3.5 8c-.7-1-1.3-3-1.5-6h3c-.2 3-.8 5-1.5 6Zm2.3-1a15 15 0 0 0 1.2-5h3.2a7.1 7.1 0 0 1-4.4 5Z"/></svg>',
+  whatsapp: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3Zm0 2a7 7 0 1 1-3.9 12.8l-.5-.3-1.8.5.5-1.8-.3-.5A7 7 0 0 1 12 5Zm-2.7 3c-.2 0-.5.1-.7.3-.4.4-.8 1-.8 1.8 0 1.1.8 2.3.9 2.5.1.2 1.7 2.7 4.2 3.7 2 .8 2.5.7 2.9.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2-.1-.1-.3-.2-.6-.3l-1.6-.8c-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.6.1-.3-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.7-.1-.2 0-.4.1-.5l.4-.5.2-.4c.1-.2 0-.3 0-.5L10 8.5c-.2-.4-.4-.5-.7-.5Z"/></svg>',
+  instagram: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3H8Zm4 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm4.5-3.2a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/></svg>',
+  tiktok: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.2 3h3a4.8 4.8 0 0 0 3.8 3.8v3a7.8 7.8 0 0 1-3.8-1v6.1a6.1 6.1 0 1 1-5.3-6v3.1a3.1 3.1 0 1 0 2.3 3V3Z"/></svg>',
+  youtube: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.2 7.4a3 3 0 0 0-2.1-2.1C17.2 4.8 12 4.8 12 4.8s-5.2 0-7.1.5a3 3 0 0 0-2.1 2.1A18 18 0 0 0 2.3 12c0 1.6.1 3.1.5 4.6a3 3 0 0 0 2.1 2.1c1.9.5 7.1.5 7.1.5s5.2 0 7.1-.5a3 3 0 0 0 2.1-2.1c.4-1.5.5-3 .5-4.6s-.1-3.1-.5-4.6ZM10 15.2V8.8l5.5 3.2-5.5 3.2Z"/></svg>',
+  facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.6 21v-8h2.7l.4-3.1h-3.1V8c0-.9.3-1.5 1.6-1.5h1.7V3.7c-.9-.1-1.7-.2-2.5-.2-2.5 0-4.2 1.5-4.2 4.3v2.1H7.4V13h2.8v8h3.4Z"/></svg>',
+  x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.3 3h4.4l4.1 5.5L17.6 3h2.1l-5.9 7 6.2 11h-4.4l-4.5-6-5.3 6H3.7l6.4-7.5L4.3 3Zm3.3 1.8 9 14.4h1.8l-9-14.4H7.6Z"/></svg>'
 };
 
-function isWhatsappGroup(link) {
-  if (link.tipo_destaque === "grupo_whatsapp") return true;
-  const title = normalize(link.titulo);
-  const icon = normalize(link.icone);
-  const url = normalize(link.url);
-  return url.includes("chat.whatsapp.com")
-    || (url.includes("wa.me") && title.includes("grupo"))
-    || (title.includes("grupo") && (title.includes("whatsapp") || title.includes("noticia") || icon.includes("whatsapp")));
+const escapeHtml = (value = "") => String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
+const normalize = value => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const safeUrl = value => /^(https?:\/\/|\/)/i.test(String(value || "")) ? escapeHtml(value) : "#";
+const externalAttributes = value => /^https?:\/\//i.test(String(value || "")) ? 'target="_blank" rel="noopener noreferrer"' : "";
+const searchable = link => normalize(`${link?.titulo || ""} ${link?.url || ""} ${link?.icone || ""} ${link?.tipo_destaque || ""}`);
+const findLink = (links, predicate, fallback) => links.find(predicate) || fallback;
+
+function classify(links) {
+  return {
+    app: findLink(links, link => searchable(link).includes("viva urania") || searchable(link).includes("tipo_destaque app") || /\/app\/?$/i.test(link.url || ""), FALLBACKS.app),
+    news: findLink(links, link => searchable(link).includes("noticia") && !/whatsapp|chat\./i.test(link.url || ""), FALLBACKS.news),
+    site: findLink(links, link => normalize(link.titulo).includes("nosso site") || /^https:\/\/euamourania\.com\.br\/?$/i.test(link.url || ""), FALLBACKS.site),
+    group: findLink(links, link => /chat\.whatsapp\.com/i.test(link.url || ""), FALLBACKS.group),
+    channel: findLink(links, link => /whatsapp\.com\/channel/i.test(link.url || "") || normalize(link.titulo).includes("canal whatsapp"), FALLBACKS.channel),
+    contact: findLink(links, link => /wa\.me|api\.whatsapp\.com/i.test(link.url || "") && !/chat\.|channel/i.test(link.url || ""), FALLBACKS.contact),
+    instagram: findLink(links, link => searchable(link).includes("instagram"), FALLBACKS.instagram),
+    tiktok: findLink(links, link => searchable(link).includes("tiktok"), FALLBACKS.tiktok),
+    youtube: findLink(links, link => searchable(link).includes("youtube") || searchable(link).includes("youtu.be"), FALLBACKS.youtube),
+    facebook: findLink(links, link => searchable(link).includes("facebook"), FALLBACKS.facebook),
+    x: findLink(links, link => searchable(link).includes("twitter") || /(^|\/\/)(www\.)?x\.com\//i.test(link.url || ""), FALLBACKS.x)
+  };
 }
 
-function isAppDownloadLink(link) {
-  if (link.tipo_destaque === "app") return true;
-  const title = normalize(link.titulo);
-  const icon = normalize(link.icone);
-  const url = normalize(link.url);
-  return url === "/app"
-    || url.endsWith("/app")
-    || url.includes("play.google.com")
-    || url.includes("apps.apple.com")
-    || icon.includes("app")
-    || title.includes("baixe o app")
-    || title.includes("baixar app")
-    || title.includes("viva urania");
+function accessCard(item, type, label, delay) {
+  return `<a class="hub-card hub-access" href="${safeUrl(item.url)}" data-link-id="${escapeHtml(item.id)}" ${externalAttributes(item.url)} style="--delay:${delay}ms"><span class="hub-card-icon">${icons[type]}</span><strong>${escapeHtml(label)}</strong><span class="hub-card-arrow" aria-hidden="true">↗</span></a>`;
 }
 
-function isYoutubeLink(link) {
-  const value = `${normalize(link.titulo)} ${normalize(link.icone)} ${normalize(link.url)}`;
-  return value.includes("youtube") || value.includes("youtu.be");
+function whatsappCard(item, label, delay) {
+  return `<a class="hub-card hub-whatsapp" href="${safeUrl(item.url)}" data-link-id="${escapeHtml(item.id)}" ${externalAttributes(item.url)} style="--delay:${delay}ms"><span class="hub-card-icon">${icons.whatsapp}</span><strong>${escapeHtml(label)}</strong><span class="hub-card-arrow" aria-hidden="true">↗</span></a>`;
 }
 
-function isInstagramLink(link) {
-  const value = `${normalize(link.titulo)} ${normalize(link.icone)} ${normalize(link.url)}`;
-  return value.includes("instagram");
-}
-
-function iconFor(link) {
-  if (link.iconType && icons[link.iconType]) return icons[link.iconType];
-  const value = `${normalize(displayTitle(link))} ${normalize(link.titulo)} ${normalize(link.icone)} ${normalize(link.url)}`;
-  if (isAppDownloadLink(link)) return icons.app;
-  if (value.includes("whatsapp") || value.includes("wa.me") || value.includes("chat.whatsapp")) return icons.whatsapp;
-  if (value.includes("instagram")) return icons.instagram;
-  if (value.includes("facebook") || value.includes("fb.")) return icons.facebook;
-  if (value.includes("youtube") || value.includes("youtu.be")) return icons.youtube;
-  if (value.includes("noticia") || value.includes("news")) return icons.news;
-  return icons.site;
-}
-
-function displayTitle(link) {
-  if (link.featured) return link.titulo;
-  const title = normalize(link.titulo);
-  const url = normalize(link.url);
-  if ((title.includes("canal") && title.includes("whatsapp")) || title.includes("canal de noticia") || title.includes("canal noticias")) {
-    return "Canal de Notícias";
-  }
-  if ((url.includes("wa.me") || url.includes("api.whatsapp.com") || title === "whatsapp" || title.includes("whatsapp")) && !isWhatsappGroup(link)) {
-    return "Falar com a Equipe";
-  }
-  return link.titulo;
-}
-
-function linkAttributes(url = "") {
-  return /^https?:\/\//i.test(url) ? 'target="_blank" rel="noopener noreferrer"' : "";
-}
-
-function sameDestination(a = "", b = "") {
-  try {
-    const left = new URL(a, window.location.origin);
-    const right = new URL(b, window.location.origin);
-    return left.hostname === right.hostname && left.pathname === right.pathname;
-  } catch {
-    return a === b;
-  }
-}
-
-function renderLink(link, index) {
-  if (isWhatsappGroup(link)) return renderFeaturedLink(link, index);
-  if (isAppDownloadLink(link)) return renderAppLink(link, index);
-  return `
-    <a href="${safeUrl(link.url)}" class="link-button" data-link-id="${escapeHtml(link.id)}" ${linkAttributes(link.url)} style="--link-delay:${index * 45}ms">
-      <span class="link-button-main">
-        <span class="link-button-icon">${iconFor(link)}</span>
-        <span>${escapeHtml(displayTitle(link))}</span>
-      </span>
-      <span class="link-button-arrow" aria-hidden="true">→</span>
+function renderHub(links, latestNews) {
+  const items = classify(links);
+  const current = latestNews || { id: "latest-news", titulo: "Veja as últimas notícias de Urânia", slug: "" };
+  const currentUrl = current.slug ? `/noticias/${encodeURIComponent(current.slug)}` : "/news/";
+  hub.innerHTML = `
+    <a class="hub-card hub-app" href="${safeUrl(items.app.url)}" data-link-id="${escapeHtml(items.app.id)}" ${externalAttributes(items.app.url)} style="--delay:40ms">
+      <span class="hub-app-logo"><img src="/assets/viva-origem-colorido.svg" alt="" width="64" height="64"></span>
+      <span class="hub-app-copy"><span class="hub-kicker">Viva Urânia</span><h2>O app da cidade</h2><p>Guia, turismo, eventos, notícias, serviços e muito mais.</p></span>
+      <span class="hub-app-action">Baixar <span aria-hidden="true">→</span></span>
     </a>
-  `;
-}
-
-function renderAppLink(link, index) {
-  const label = link.rotulo || link.label || "Aplicativo";
-  const description = link.descricao || link.description || APP_DEFAULT_DESCRIPTION;
-  return `
-    <a href="${safeUrl(link.url)}" class="links-app-card" data-link-id="${escapeHtml(link.id)}" ${linkAttributes(link.url)} style="--link-delay:${index * 45}ms">
-      <span class="links-app-copy">
-        <span class="links-app-kicker">${escapeHtml(label)}</span>
-        <strong>${escapeHtml(displayTitle(link) || "Baixe o app")}</strong>
-        <small>${escapeHtml(description)}</small>
-      </span>
-      <span class="links-app-action">Baixar <span aria-hidden="true">&rarr;</span></span>
+    ${accessCard(items.news, "news", "Notícias", 80)}
+    ${accessCard(items.site, "site", "Nosso site", 110)}
+    <a class="hub-card hub-now" href="${safeUrl(currentUrl)}" data-link-id="${escapeHtml(current.id || "latest-news")}" style="--delay:140ms">
+      <span class="hub-now-label">Agora em Urânia</span>
+      <div><h2>${escapeHtml(current.titulo)}</h2><span class="hub-card-arrow" aria-hidden="true">→</span></div>
     </a>
-  `;
+    ${whatsappCard(items.group, "Grupo de notícias", 170)}
+    ${whatsappCard(items.channel, "Canal de notícias", 200)}
+    <a class="hub-card hub-contact" href="${safeUrl(items.contact.url)}" data-link-id="${escapeHtml(items.contact.id)}" ${externalAttributes(items.contact.url)} style="--delay:230ms"><span><span class="hub-card-icon">${icons.whatsapp}</span>Falar com a equipe</span><span class="hub-card-arrow" aria-hidden="true">↗</span></a>`;
+  hub.classList.remove("is-loading");
+  hub.setAttribute("aria-busy", "false");
+
+  const socialItems = [[items.instagram, "instagram"], [items.tiktok, "tiktok"], [items.youtube, "youtube"], [items.facebook, "facebook"], [items.x, "x"]];
+  socialDock.innerHTML = socialItems.map(([item, type]) => `<a class="social-link" href="${safeUrl(item.url)}" data-link-id="${escapeHtml(item.id)}" ${externalAttributes(item.url)} aria-label="${escapeHtml(item.titulo || type)}" title="${escapeHtml(item.titulo || type)}">${icons[type]}</a>`).join("");
+  socialSection.hidden = false;
+  status.textContent = "Central digital carregada.";
 }
 
-function renderFeaturedLink(link, index) {
-  const label = link.rotulo || link.label || "Grupo oficial";
-  const description = link.descricao || link.description || "Receba avisos, novidades e publicações importantes de Urânia direto no celular.";
-  return `
-    <a href="${safeUrl(link.url)}" class="links-featured-card" data-link-id="${escapeHtml(link.id)}" target="_blank" rel="noopener noreferrer" style="--link-delay:${index * 45}ms">
-      <span class="links-featured-glow" aria-hidden="true"></span>
-      <span class="links-featured-icon">${icons.whatsapp}</span>
-      <span class="links-featured-copy">
-        <span class="links-featured-kicker">${escapeHtml(label)}</span>
-        <strong>${escapeHtml(link.titulo || "Grupo de notícias")}</strong>
-        <small>${escapeHtml(description)}</small>
-      </span>
-      <span class="links-featured-action">Entrar agora <span aria-hidden="true">→</span></span>
-    </a>
-  `;
+function readCache() {
+  try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); } catch { return null; }
+}
+function saveCache(links, latestNews) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ links, latestNews, savedAt: Date.now() })); } catch {}
 }
 
-function insertAfterPreferredLink(ordered, link) {
-  const youtubeIndex = ordered.findIndex(isYoutubeLink);
-  const instagramIndex = ordered.findIndex(isInstagramLink);
-  const groupIndex = ordered.findIndex(isWhatsappGroup);
-  const insertAfter = youtubeIndex >= 0 ? youtubeIndex : instagramIndex >= 0 ? instagramIndex : groupIndex;
-  ordered.splice(insertAfter >= 0 ? insertAfter + 1 : Math.min(ordered.length, 4), 0, link);
-}
-
-function withFeaturedLinks(links) {
-  const normalized = normalizeShowcaseLinks(links);
-  const newsLink = normalized.find(link => sameDestination(link.url, NEWS_PAGE_LINK.url)) || NEWS_PAGE_LINK;
-  const groupLink = normalized.find(link => sameDestination(link.url, NEWS_GROUP_LINK.url) || link.tipo_destaque === "grupo_whatsapp") || NEWS_GROUP_LINK;
-  const appLink = normalized.find(link => sameDestination(link.url, APP_LINK.url) || link.tipo_destaque === "app") || APP_LINK;
-
-  const ordered = normalized.filter(link =>
-    !sameDestination(link.url, NEWS_PAGE_LINK.url)
-    && !sameDestination(link.url, NEWS_GROUP_LINK.url)
-    && link.tipo_destaque !== "grupo_whatsapp"
-    && !isAppDownloadLink(link)
-  );
-
-  ordered.splice(Math.min(1, ordered.length), 0, newsLink);
-  ordered.splice(Math.min(2, ordered.length), 0, groupLink);
-  insertAfterPreferredLink(ordered, appLink);
-
-  return ordered;
-}
-
-function normalizeShowcaseLinks(links = []) {
-  const normalized = links.map(link => ({ ...link }));
-  const hasNews = normalized.some(link => sameDestination(link.url, NEWS_PAGE_LINK.url));
-  const hasGroup = normalized.some(link => sameDestination(link.url, NEWS_GROUP_LINK.url) || link.tipo_destaque === "grupo_whatsapp");
-  const hasApp = normalized.some(link => sameDestination(link.url, APP_LINK.url) || link.tipo_destaque === "app");
-
-  if (!hasNews) normalized.push(NEWS_PAGE_LINK);
-  if (!hasGroup) normalized.push(NEWS_GROUP_LINK);
-  if (!hasApp) normalized.push(APP_LINK);
-
-  return normalized.map((link, index) => ({
-    ...link,
-    ordem: Number.isFinite(Number(link.ordem)) ? Number(link.ordem) : 1000 + index
-  }));
-}
-
-function readLinksCache() {
-  try {
-    const cached = JSON.parse(localStorage.getItem(LINKS_CACHE_KEY) || "null");
-    return Array.isArray(cached?.links) ? cached.links : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveLinksCache(links) {
-  try {
-    localStorage.setItem(LINKS_CACHE_KEY, JSON.stringify({ links, savedAt: Date.now() }));
-  } catch {}
-}
-
-function renderLinks(links, { fromCache = false } = {}) {
-  const renderedLinks = links.length ? withFeaturedLinks(links) : FALLBACK_LINKS;
-  container.innerHTML = renderedLinks.map(renderLink).join("");
-  status.hidden = true;
-  container.dataset.loaded = fromCache ? "cache" : "fresh";
-}
-
-function setLoadingMessage(message) {
-  if (!container?.children?.length) {
-    status.hidden = false;
-    status.textContent = message;
-  }
-}
-
-async function carregarLinks() {
-  const cachedLinks = readLinksCache();
-  renderLinks(cachedLinks || FALLBACK_LINKS, { fromCache: Boolean(cachedLinks) });
-
-  if (!publicSupabaseConfigured()) {
-    setLoadingMessage("Configure o Supabase para carregar os links.");
-    return;
-  }
+async function loadHub() {
+  const cached = readCache();
+  renderHub(Array.isArray(cached?.links) ? cached.links : [], cached?.latestNews || null);
+  if (!publicSupabaseConfigured()) return;
 
   try {
-    let links;
-
-    try {
-      links = await fetchPublicRows("links", {
-        select: "id,titulo,url,icone,rotulo,descricao,tipo_destaque,ordem",
-        status: "eq.ativo",
-        order: "ordem.asc"
-      }, {
-        ttl: 600000,
-        timeout: 3500
-      });
-    } catch (newColumnsError) {
-      console.warn("Links com campos de vitrine indisponíveis, usando formato legado:", newColumnsError);
-      links = await fetchPublicRows("links", {
-        select: "id,titulo,url,icone,ordem",
-        status: "eq.ativo",
-        order: "ordem.asc"
-      }, {
-        ttl: 600000,
-        timeout: 3500
-      });
-    }
-
-    saveLinksCache(links);
-    renderLinks(links);
+    const [links, news] = await Promise.all([
+      fetchPublicRows("links", { select: "id,titulo,url,icone,rotulo,descricao,tipo_destaque,ordem", status: "eq.ativo", order: "ordem.asc" }, { ttl: 600000, timeout: 5000 }),
+      fetchPublicRows("noticias", { select: "id,titulo,slug,categoria_nome,publicado_em,destaque", status: "eq.publicado", publicado_em: `lte.${new Date().toISOString()}`, order: "destaque.desc,publicado_em.desc", limit: "1" }, { ttl: 120000, timeout: 5000 })
+    ]);
+    const latestNews = news[0] || null;
+    saveCache(links, latestNews);
+    renderHub(links, latestNews);
   } catch (error) {
-    console.error("Erro ao atualizar links públicos:", error);
-    if (!container?.children?.length) {
-      renderLinks(FALLBACK_LINKS);
-    }
+    console.error("Não foi possível atualizar a central de links:", error);
+    status.textContent = "Os acessos principais continuam disponíveis.";
   }
 }
 
-carregarLinks();
+loadHub();
