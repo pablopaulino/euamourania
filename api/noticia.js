@@ -349,9 +349,9 @@ async function renderNoticia(req, res, slug) {
   const articleText = plain(noticia.conteudo_html) || noticia.resumo || "";
   const description = (noticia.seo_descricao || noticia.resumo || articleText).slice(0, 160);
   const image = absolute(
-    noticia.seo_imagem || noticia.imagem_url || config.imagem_padrao_noticia || config.imagem_compartilhamento,
+    noticia.imagem_url?.trim() || logo,
     domain
-  );
+  ).replace(/^http:/i, "https:");
   const title = `${noticia.seo_titulo || noticia.titulo} | ${siteName}`;
   const authorName = noticia.autor || "Redação Eu Amo Urânia";
   const structured = JSON.stringify({

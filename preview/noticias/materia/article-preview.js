@@ -75,7 +75,7 @@ async function loadRelated(news){
 }
 
 function render(news){
-  const canonical=`https://euamourania.com.br/noticias/${encodeURIComponent(news.slug)}`,description=news.seo_descricao||summary(news).slice(0,160),image=news.seo_imagem||news.imagem_url;
+  const canonical=`https://euamourania.com.br/noticias/${encodeURIComponent(news.slug)}`,description=news.seo_descricao||summary(news).slice(0,160),image=news.imagem_url?.trim()||document.querySelector('meta[property="og:image"]')?.content;
   definirMeta({titulo:`${news.seo_titulo||news.titulo} | Eu Amo Urânia`,descricao:description,imagem:image,url:canonical}); structuredData(news,canonical,description,image);
   const content=sanitizeArticleHtml(news.conteudo_html)||`<p>${esc(summary(news))}</p>`,words=textoPuro(content).split(/\s+/).filter(Boolean).length,minutes=Math.max(1,Math.ceil(words/220));
   const category=news.categoria_nome||"Notícias",hero=safeImage(news.imagem_url,{width:1600,height:960,quality:84});

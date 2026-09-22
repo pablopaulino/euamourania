@@ -285,7 +285,7 @@ function renderNews(news) {
   const canonical = `https://euamourania.com.br/noticias/${encodeURIComponent(news.slug)}`;
   if (location.pathname.includes("news-details")) history.replaceState({}, "", urlNoticia(news.slug));
   const description = news.seo_descricao || resumo(news).slice(0, 160);
-  const metaImage = news.seo_imagem || news.imagem_url;
+  const metaImage = news.imagem_url?.trim() || document.querySelector('meta[property="og:image"]')?.content;
   definirMeta({ titulo: `${news.seo_titulo || news.titulo} | Eu Amo Urânia`, descricao: description, imagem: metaImage, url: canonical });
   let structured = document.getElementById("news-structured-data");
   if (!structured) {
