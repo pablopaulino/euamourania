@@ -664,6 +664,15 @@
   background: rgba(25, 113, 73, .06);
 }
 
+/* Redistribui o espaço existente entre descrição, selos e divisória. */
+@media (min-width: 651px) {
+  .guide-page #guia-container .card-text { margin-bottom: 0; }
+  .guide-page #guia-container .guide-mobile-tags { margin-block: 13px; }
+}
+@media (min-width: 651px) and (max-width: 760px) {
+  .guide-page #guia-container .guide-mobile-tags { margin-block: 9px; }
+}
+
 /* No celular, recupera a pílula horizontal da versão original. */
 @media (max-width: 650px) {
   .guide-page #guia-container.guia-grid { gap: 12px; }
