@@ -8,6 +8,9 @@ for(const make of [restaurant,florist,clothing]){
 }
 const official=JSON.parse(await readFile(new URL('../modelos/catalogo-exemplo-v1.json',import.meta.url),'utf8'));
 assert.equal(validateCatalog(official).valid,true);
+const exampleProducts=official.catalog.categories.flatMap(category=>category.products);
+assert.ok(exampleProducts.some(product=>product.price_mode==='fixo'&&product.price_cents>0&&product.images.some(image=>image.url.startsWith('https://'))));
+assert.ok(exampleProducts.some(product=>product.price_mode==='variacoes'&&product.variants.length&&product.option_groups.some(group=>group.min>0)&&product.option_groups.some(group=>group.min===0&&group.options.some(option=>option.price_cents>0))));
 const invalid=mutate=>{const d=restaurant();mutate(d,d.catalog.categories[0].products[0]);assert.equal(validateCatalog(d).valid,false);};
 invalid(d=>d.version=2);invalid(d=>d.catalog.extra='ignored?');invalid((d,p)=>p.key=d.catalog.key);invalid((d,p)=>p.variants[0].price_cents=32.50);invalid((d,p)=>p.images=[{url:'javascript:alert(1)'}]);invalid((d,p)=>p.variants.push({...p.variants[0],key:'new'}));invalid((d,p)=>p.option_groups[0].min=3);invalid((d,p)=>p.option_groups[0].options[0].product_key='missing');invalid((d,p)=>p.option_groups[0].options[0].product_key='pizza');invalid((d,p)=>p.promo_price_cents=5000);
 invalid((d,p)=>{const second=structuredClone(p);second.key='pizza-two';second.variants=[];second.option_groups=[];second.price_mode='fixo';second.price_cents=1000;p.option_groups[0].options[0].product_key='pizza-two';second.option_groups=[{key:'group-two',name:'Escolha',order:0,min:0,max:1,selection:'unica',options:[{key:'option-two',name:'Pizza',order:0,price_cents:0,available:true,quantity:1,product_key:'pizza'}]}];d.catalog.categories[0].products.push(second);});

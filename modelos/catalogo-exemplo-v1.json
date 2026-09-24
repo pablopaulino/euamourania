@@ -102,6 +102,29 @@
                 ]
               }
             ]
+          },
+          {
+            "key": "refrigerante-lata",
+            "name": "Refrigerante em lata",
+            "description": "Produto simples de exemplo. Substitua a URL da imagem pela foto real antes de publicar.",
+            "status": "ativo",
+            "availability": "disponivel",
+            "price_mode": "fixo",
+            "price_cents": 600,
+            "promo_price_cents": null,
+            "order": 1,
+            "sku": "REF-LATA",
+            "external_id": null,
+            "source": "manual",
+            "accepts_notes": false,
+            "images": [
+              {
+                "url": "https://example.com/imagens/refrigerante-lata.jpg",
+                "alt": "Lata de refrigerante — imagem ilustrativa a substituir"
+              }
+            ],
+            "variants": [],
+            "option_groups": []
           }
         ]
       }

@@ -52,7 +52,13 @@ await page.evaluate(async()=>{
 });
 const act=name=>page.locator(`[data-catalog-action="${name}"]`).first();
 try{
+ const modelLink=()=>page.getByRole('link',{name:'Baixar modelo JSON'});
+ const modelDownload=page.waitForEvent('download');await modelLink().click();
+ const downloadedModel=await modelDownload;
+ assert.equal(downloadedModel.suggestedFilename(),'modelo-catalogo-viva-v1.json');
+ assert.deepEqual(JSON.parse(await readFile(await downloadedModel.path(),'utf8')),JSON.parse(await readFile('modelos/catalogo-exemplo-v1.json','utf8')));
  await act('edit').click();await page.getByRole('heading',{name:'Dados gerais'}).waitFor();
+ assert.equal(await modelLink().count(),1);
  await act('product').click();await page.locator('[data-product-editor]').waitFor();
  await page.locator('[data-path="catalog.categories.0.products.0.name"]').fill('Pizza editada localmente');
  await page.getByRole('button',{name:'Salvar catálogo',exact:true}).click();
