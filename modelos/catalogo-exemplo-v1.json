@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "catalog": {
+    "key": "impastare-cardapio",
+    "name": "Cardápio",
+    "description": "Exemplo técnico de catálogo do Viva Urânia.",
+    "status": "rascunho",
+    "source": "manual",
+    "external_id": null,
+    "order": 0,
+    "currency": "BRL",
+    "categories": [
+      {
+        "key": "pizzas",
+        "name": "Pizzas",
+        "order": 0,
+        "active": true,
+        "products": [
+          {
+            "key": "pizza-frango",
+            "name": "Pizza de frango",
+            "description": "Exemplo com tamanhos, borda e adicionais.",
+            "status": "ativo",
+            "availability": "disponivel",
+            "price_mode": "variacoes",
+            "price_cents": null,
+            "promo_price_cents": null,
+            "order": 0,
+            "sku": "PIZ-FRA",
+            "external_id": null,
+            "source": "manual",
+            "accepts_notes": true,
+            "images": [],
+            "variants": [
+              {
+                "key": "pizza-frango-p",
+                "name": "Pequena",
+                "order": 0,
+                "attributes": { "Tamanho": "P" },
+                "price_cents": 3200,
+                "promo_price_cents": null,
+                "sku": "PIZ-FRA-P",
+                "available": true
+              },
+              {
+                "key": "pizza-frango-g",
+                "name": "Grande",
+                "order": 1,
+                "attributes": { "Tamanho": "G" },
+                "price_cents": 5200,
+                "promo_price_cents": 4900,
+                "sku": "PIZ-FRA-G",
+                "available": true
+              }
+            ],
+            "option_groups": [
+              {
+                "key": "bordas",
+                "name": "Escolha a borda",
+                "order": 0,
+                "min": 1,
+                "max": 1,
+                "selection": "unica",
+                "options": [
+                  {
+                    "key": "sem-borda",
+                    "name": "Sem borda",
+                    "order": 0,
+                    "price_cents": 0,
+                    "available": true,
+                    "quantity": 1,
+                    "product_key": null
+                  },
+                  {
+                    "key": "borda-catupiry",
+                    "name": "Catupiry",
+                    "order": 1,
+                    "price_cents": 800,
+                    "available": true,
+                    "quantity": 1,
+                    "product_key": null
+                  }
+                ]
+              },
+              {
+                "key": "adicionais",
+                "name": "Adicionais",
+                "order": 1,
+                "min": 0,
+                "max": 2,
+                "selection": "multipla",
+                "options": [
+                  {
+                    "key": "bacon-extra",
+                    "name": "Bacon extra",
+                    "order": 0,
+                    "price_cents": 400,
+                    "available": true,
+                    "quantity": 1,
+                    "product_key": null
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

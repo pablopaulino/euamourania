@@ -96,6 +96,7 @@
     { "source": "/admin/aprovacoes", "destination": "/admin/index.html" },
     { "source": "/admin/colaboracoes", "destination": "/admin/index.html" },
     { "source": "/admin/guia", "destination": "/admin/index.html" },
+    { "source": "/admin/catalogos", "destination": "/admin/index.html" },
     { "source": "/admin/guia-comercial", "destination": "/admin/index.html" },
     { "source": "/admin/guia-verificacao", "destination": "/admin/index.html" },
     { "source": "/admin/turismo", "destination": "/admin/index.html" },

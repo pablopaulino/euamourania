@@ -1,4 +1,4 @@
-﻿import { exigirAdministrador, sair } from "./auth.js";
+﻿import { exigirAdministrador, sair, temPermissao } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { listarTabela, salvarRegistro, excluirRegistro } from "../assets/js/services/baseService.js";
 import { gerarSlug } from "../assets/js/utils.js";
@@ -45,6 +45,11 @@ function setUnifiedModuleScope(view) {
 }
 
 const moduleRoutes = {
+  catalogos: {
+    label: "Catálogos",
+    hint: "Produtos, categorias e opções das empresas do Guia Comercial.",
+    module: () => import("./catalogos.js")
+  },
   comunicacao: {
     label: "Comunicação",
     hint: "Assinantes, newsletters e resultados em um só lugar.",
@@ -1526,6 +1531,7 @@ async function editForm(table,id) {
     <section class="admin-page admin-form-page">
       <form id="resource-form" class="resource-form admin-resource-form" data-resource-table="${escapeHtml(table)}">
         ${renderResourceFormSections(config, row, table)}
+        ${table === 'guia_comercial' && id && temPermissao(painelAccess?.admin, 'guia_comercial', 'ler') ? `<section class="admin-form-section"><h3>Catálogos</h3><p data-company-catalog-count>Consulte os catálogos desta empresa.</p><a class="admin-button secondary" href="/admin/catalogos?empresa=${encodeURIComponent(id)}">Gerenciar catálogos</a></section>` : ''}
         <footer class="form-actions admin-form-actions">
           <p id="form-message" class="form-message"></p>
           <div>
@@ -1536,6 +1542,12 @@ async function editForm(table,id) {
       </form>
     </section>`;
   normalizeCoordinateInputs(app);
+  if (table === 'guia_comercial' && id) {
+    const countElement = app.querySelector('[data-company-catalog-count]');
+    if (countElement) getSupabase().from('catalogos').select('id', { count: 'exact', head: true }).eq('empresa_id', id).eq('status', 'ativo').then(({count,error}) => {
+      if (countElement.isConnected && !error) countElement.textContent = `${count || 0} catálogo(s) ativo(s)`;
+    }).catch(() => {});
+  }
   setupGalleryFields(app);
   const editorField=config.fields.find(f=>f[2]==="editor");
   if(editorField){quill=new Quill("#editor",{theme:"snow",modules:{toolbar:[["bold","italic","blockquote"],[{header:[2,3,false]}],[{list:"ordered"},{list:"bullet"}],["link","image","video"],["clean"]]}});quill.root.innerHTML=row[editorField[0]]||"";}
@@ -1751,7 +1763,28 @@ async function handleClick(event) {
   if(button.dataset.new)return editForm(button.dataset.new);
   if(button.dataset.edit)return editForm(button.dataset.edit,button.dataset.id);
   if(button.dataset.cancel)return resourceList(button.dataset.cancel);
-  if(button.dataset.delete&&confirm("Excluir este registro?Esta ação não pode ser desfeita.")){await excluirRegistro(databaseTable(button.dataset.delete),button.dataset.id);return resourceList(button.dataset.delete);}
+  if(button.dataset.delete){
+    const table=databaseTable(button.dataset.delete);
+    if(table==="guia_comercial"){
+      const {count,error}=await getSupabase().from("catalogos").select("id",{count:"exact",head:true}).eq("empresa_id",button.dataset.id);
+      if(error && !["42P01","PGRST205"].includes(error.code)){
+        shellToast("Não foi possível verificar os catálogos desta empresa. Tente novamente.","error");
+        return;
+      }
+      if(count>0){
+        shellToast(`Esta empresa possui ${count} catálogo(s). Exclua os catálogos primeiro ou mantenha a empresa inativa.`,"error");
+        return;
+      }
+    }
+    if(!confirm("Excluir este registro? Esta ação não pode ser desfeita."))return;
+    try { await excluirRegistro(table,button.dataset.id); }
+    catch(error){
+      if(table!=="guia_comercial")throw error;
+      shellToast(error.code==="23503"?"Esta empresa ainda está vinculada a catálogos ou outros registros. Remova os vínculos antes de excluir.":"Não foi possível excluir a empresa. Tente novamente.","error");
+      return;
+    }
+    return resourceList(button.dataset.delete);
+  }
 }
 
 let commandPalette = null;
