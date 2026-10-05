@@ -12,7 +12,6 @@ const publicService = read("assets/js/services/melhoresPublicService.js");
 const publicData = read("assets/js/services/publicDataService.js");
 const index = read("melhores-de-urania/index.html");
 const edition = read("melhores-de-urania/edicao.html");
-const publicRenderer = read("preview/melhores/awards-preview.js");
 const indexPage = read("assets/js/pages/melhores-index-page.js");
 const editionPage = read("assets/js/pages/melhores-edicao-page.js");
 const api = read("api/melhores-votar.js");
@@ -37,14 +36,14 @@ must(!api.includes("turnstile.skipped") && !api.includes("nao_configurado"), "AP
 must(api.includes("votingOpen") && api.includes("status === \"votacao_aberta\""), "API não valida período/status da votação");
 must(api.includes("identificador_hash") && api.includes("duplicate key"), "API não trata duplicidade de voto");
 must(api.includes("ip_hash") && !api.includes("ip:"), "API deve armazenar apenas hash de IP");
-must(index.includes("Melhores de Urânia") && index.includes("awards-preview.js") && publicRenderer.includes('home:"melhores-index-page.js"'), "Página principal pública incompleta");
-must(edition.includes("awards-preview.js") && publicRenderer.includes('edition:"melhores-edicao-page.js"') && publicRenderer.includes('"vote-area"'), "Página de edição incompleta");
+must(index.includes("Melhores de Urânia") && index.includes("melhores-index-page.js"), "Página principal pública incompleta");
+must(edition.includes("melhores-edicao-page.js") && edition.includes("Categorias e indicados"), "Página de edição incompleta");
 must(indexPage.includes("listarEdicoesPublicas"), "Página principal não carrega edições públicas");
 must(editionPage.includes("enviarVotoMelhores") && editionPage.includes("localStorage"), "Página de edição não registra voto com feedback local");
 must(css.includes(".awards-public-hero") && css.includes(".awards-nominee-card"), "CSS público incompleto");
 must(vercel.includes("/melhores-de-urania/:ano"), "Rewrite amigável da edição ausente");
 must(sitemap.includes("melhoresRows") && sitemap.includes("/melhores-de-urania/"), "Sitemap não inclui Melhores de Urânia");
-must((script.includes("Melhores de Ur&acirc;nia") && script.includes("/melhores-de-urania/")) || publicRenderer.includes('href="${base}" aria-current="page">Melhores</a>'), "Menu público não inclui Melhores de Urânia");
+must(script.includes("Melhores de Ur&acirc;nia") && script.includes("/melhores-de-urania/"), "Menu público não inclui Melhores de Urânia");
 must(docs.includes("Fase 2") && docs.includes("MELHORES_VOTO_SECRET"), "Documentação da Fase 2 incompleta");
 
 console.log("Melhores de Urânia Fase 2 validado: páginas públicas, API segura, rotas, sitemap e documentação.");
