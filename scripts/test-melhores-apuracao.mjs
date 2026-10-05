@@ -14,6 +14,7 @@ const adminHtml = read("admin/melhores.html");
 const adminJs = read("admin/melhores.js");
 const publicService = read("assets/js/services/melhoresPublicService.js");
 const resultsHtml = read("melhores-de-urania/resultados.html");
+const publicRenderer = read("preview/melhores/awards-preview.js");
 const resultsJs = read("assets/js/pages/melhores-resultados-page.js");
 const vercel = read("vercel.json");
 const sitemap = read("api/sitemaps.js");
@@ -56,7 +57,7 @@ for (const tab of ["instagram", "apuration", "results"]) {
 
 must(adminJs.includes("Votos do Instagram") && adminJs.includes("Revisar e publicar resultado"), "Painel admin sem fluxo de Instagram/apuração");
 must(publicService.includes("listarResultadosPublicos"), "Serviço público sem resultados oficiais");
-must(resultsHtml.includes("melhores-resultados-page.js"), "Página pública de resultados ausente");
+must(resultsHtml.includes("awards-preview.js") && publicRenderer.includes('results:"melhores-resultados-page.js"'), "Página pública de resultados ausente");
 must(resultsJs.includes("listarResultadosPublicos") && publicService.includes("melhores_resultados"), "Página de resultados não consome snapshot oficial");
 must(vercel.includes("/melhores-de-urania/:ano/resultados"), "Rewrite de resultados ausente");
 must(sitemap.includes("/resultados/"), "Sitemap não inclui resultados publicados");

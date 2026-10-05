@@ -67,6 +67,10 @@ Regras:
 
 ## Votação
 
+Esta é a camada pública da Fase 2: as páginas da edição leem dados publicados,
+enquanto o voto é enviado à API segura. O segredo `MELHORES_VOTO_SECRET` fica
+somente no backend; votos individuais não são expostos na leitura pública.
+
 Obrigatório:
 
 - Cloudflare Turnstile;
@@ -89,7 +93,21 @@ Após encerramento:
 - remover votos individuais;
 - preservar estatísticas oficiais.
 
+## RLS e permissões
+
+As tabelas do prêmio usam RLS. A leitura e as alterações administrativas são
+controladas por `tem_permissao_admin('melhores', ação)`, conforme a ação exigida
+pela policy (`ler`, `criar`, `editar` ou `excluir`). As regras de leitura pública
+ficam limitadas aos dados e estados explicitamente publicados pelas policies.
+
+A função `melhores_limpar_votos_expirados()` não concede `EXECUTE` ao frontend
+autenticado; a limpeza ocorre pela rotina de retenção configurada no backend.
+
 ## Resultados
+
+Na Fase 3, os votos externos são registrados em `melhores_instagram_votos`.
+A apuração combina os canais conforme seus pesos, calcula a pontuação_final
+e publica um snapshot de resultados após revisão administrativa.
 
 Resultado publicado é snapshot histórico.
 
@@ -100,6 +118,13 @@ Depois de publicado:
 - manter metodologia e data de publicação.
 
 ## Páginas públicas
+
+A Fase 4 registra a audiência das páginas e interações com a edição; a
+migração correspondente é `20260712_melhores_urania_fase4_audiencia.sql`.
+
+A Fase 5 recebe indicações em `/api/melhores-indicar`, com validação do
+período, categoria, Turnstile e limite de envios. O formulário público pede
+apenas categoria e nome do indicado; a moderação ocorre no painel.
 
 Rotas:
 

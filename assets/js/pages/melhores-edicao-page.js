@@ -275,6 +275,7 @@ function phaseInfo(edition) {
 function renderEditionHub(edition, categories, nominees) {
   const hub = document.getElementById("edition-hub");
   if (!hub) return;
+  hub.classList.add("awards-edition-hub");
   const phase = phaseInfo(edition);
   const hasResults = edition.status === "resultado_publicado";
   const links = [
@@ -448,10 +449,10 @@ function renderIndications(edition, categories) {
   const copy = document.getElementById("indication-status-copy");
   if (!area) return;
   const open = isIndicationOpen(edition);
-  const allowed = categories.filter(category => category.permite_indicacao_publica !== false);
+  const allowed = categories.filter(category => category.permite_indicacao_publica === true);
   if (copy) {
     copy.textContent = open
-      ? "Envie uma indicação com nome, categoria e justificativa. A equipe analisa antes de virar indicado oficial."
+      ? "Escolha a categoria e informe quem merece participar. A equipe analisa antes de virar indicado oficial."
       : "As indicações públicas não estão abertas agora. Acompanhe as datas da edição.";
   }
   if (!open) {
@@ -474,23 +475,7 @@ function renderIndications(edition, categories) {
       <label for="indication-name">Nome indicado *</label>
       <input id="indication-name" name="nome_indicado" type="text" maxlength="160" placeholder="Nome da empresa, pessoa ou projeto" required>
     </div>
-    <div>
-      <label for="indication-contact">Contato do indicado</label>
-      <input id="indication-contact" name="contato_indicado" type="text" maxlength="160" placeholder="WhatsApp, Instagram ou e-mail">
-    </div>
-    <div>
-      <label for="responsible-name">Seu nome *</label>
-      <input id="responsible-name" name="nome_responsavel" type="text" maxlength="160" required>
-    </div>
-    <div>
-      <label for="responsible-contact">Seu contato *</label>
-      <input id="responsible-contact" name="contato_responsavel" type="text" maxlength="160" placeholder="WhatsApp ou e-mail" required>
-    </div>
-    <div class="full">
-      <label for="indication-reason">Por que merece participar? *</label>
-      <textarea id="indication-reason" name="justificativa" rows="4" maxlength="1200" required></textarea>
-    </div>
-    <label class="full awards-consent"><input name="aceite_regulamento" type="checkbox" required> Confirmo que li o regulamento da edição e autorizo a análise desta indicação.</label>
+    <p class="full awards-indication-note">As sugestões passam por análise conforme o <a href="/melhores-de-urania/${edition.ano}/regulamento/">regulamento da edição</a>.</p>
     <div class="full awards-form-actions"><button class="button button-primary" type="submit">Enviar indicação</button></div>
   </form>`;
 }
@@ -513,6 +498,7 @@ async function init() {
     const edition = await obterEdicaoPorAno(year);
     if (!edition) {
       document.getElementById("vote-area").innerHTML = '<div class="awards-empty">Edição não encontrada ou ainda não publicada.</div>';
+      document.getElementById("indication-area").innerHTML = '<div class="awards-empty">Indicações indisponíveis para esta edição.</div>';
       return;
     }
     const open = isVotingOpen(edition);
@@ -535,6 +521,7 @@ async function init() {
   } catch (error) {
     console.error("Melhores de Urânia:", error);
     document.getElementById("vote-area").innerHTML = '<div class="awards-empty">Não foi possível carregar esta edição agora.</div>';
+    document.getElementById("indication-area").innerHTML = '<div class="awards-empty">Não foi possível carregar as indicações agora.</div>';
   }
 }
 
@@ -621,11 +608,6 @@ document.addEventListener("submit", async event => {
       edicao_id: edicaoId,
       categoria_id: form.elements.categoria_id.value,
       nome_indicado: form.elements.nome_indicado.value,
-      justificativa: form.elements.justificativa.value,
-      contato_indicado: form.elements.contato_indicado.value,
-      nome_responsavel: form.elements.nome_responsavel.value,
-      contato_responsavel: form.elements.contato_responsavel.value,
-      aceite_regulamento: form.elements.aceite_regulamento.checked,
       website: form.elements.website.value,
       turnstile_token: turnstileToken,
       pagina: location.pathname
