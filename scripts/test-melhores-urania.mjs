@@ -16,6 +16,8 @@ const adminJs = read("admin/melhores.js");
 const adminCss = read("admin/melhores.css");
 const service = read("assets/js/services/melhoresService.js");
 const index = read("admin/index.html");
+const admin = read("admin/admin.js");
+const modules = read("admin/admin-modules.js");
 const auth = read("admin/auth.js");
 const access = read("admin/access-control.js");
 const docs = read("DOCS/MELHORES-DE-URANIA.md");
@@ -74,10 +76,10 @@ must(adminJs.includes("Indicados, indicações e votos não serão copiados"), "
 for (const tab of ["dashboard", "editions", "categories", "nominees"]) {
   must(adminHtml.includes(`data-tab="${tab}"`) || adminHtml.includes(`${tab}-view`), `Aba ausente: ${tab}`);
 }
-must(index.includes("melhores.html"), "Menu principal não aponta para Melhores de Urânia");
+must(index.includes('data-view="melhores"') && admin.includes('melhores: {') && admin.includes('import("./melhores.js")') && modules.includes('route: "/admin/melhores"'), "Menu principal não aponta para o módulo Melhores de Urânia");
 must(auth.includes('"melhores.html":"melhores"') && auth.includes("melhores:*"), "Permissões locais do módulo não foram registradas");
 must(access.includes('target.includes("melhores.html")'), "Controle visual de acesso não reconhece melhores.html");
-must(docs.includes("Retenção dos votos individuais") && docs.includes("RLS e permissões"), "Documentação técnica incompleta");
+must(docs.includes("Retenção de votos") && docs.includes("RLS e permissões"), "Documentação técnica incompleta");
 must(guide.includes("Criar uma edição") && guide.includes("Criar indicados"), "Guia operacional incompleto");
 must(existsSync(new URL("../admin/melhores.html", import.meta.url)), "Arquivo admin/melhores.html não existe");
 

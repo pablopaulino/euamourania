@@ -10,7 +10,6 @@ const json = (res, status, body) => {
   return res.status(status).send(JSON.stringify(body));
 };
 const clean = (value, max = 500) => String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
-const emailOrPhone = value => clean(value, 160);
 const getHeader = (req, name) => String(req.headers[name.toLowerCase()] || "");
 const firstIp = req => (getHeader(req, "x-forwarded-for").split(",")[0] || req.socket?.remoteAddress || "").trim();
 const hash = value => crypto.createHash("sha256").update(String(value || "")).digest("hex");
@@ -73,19 +72,11 @@ module.exports = async (req, res) => {
     const edicaoId = String(payload.edicao_id || "");
     const categoriaId = String(payload.categoria_id || "");
     const nomeIndicado = clean(payload.nome_indicado, 160);
-    const justificativa = clean(payload.justificativa, 1200);
-    const contatoIndicado = emailOrPhone(payload.contato_indicado);
-    const nomeResponsavel = clean(payload.nome_responsavel, 160);
-    const contatoResponsavel = emailOrPhone(payload.contato_responsavel);
-    const aceite = payload.aceite_regulamento === true || payload.aceite_regulamento === "true";
     const honeypot = clean(payload.website || payload.site || payload.url, 200);
     if (honeypot) return json(res, 200, { ok: true, message: "Indicação recebida para análise." });
 
     if (![edicaoId, categoriaId].every(v => uuidRe.test(v))) return json(res, 400, { ok: false, message: "Edição ou categoria inválida." });
     if (nomeIndicado.length < 3) return json(res, 400, { ok: false, message: "Informe o nome indicado." });
-    if (justificativa.length < 12) return json(res, 400, { ok: false, message: "Conte rapidamente por que essa indicação merece participar." });
-    if (nomeResponsavel.length < 2 || contatoResponsavel.length < 5) return json(res, 400, { ok: false, message: "Informe seu nome e contato para auditoria da indicação." });
-    if (!aceite) return json(res, 400, { ok: false, message: "É preciso aceitar o regulamento para enviar a indicação." });
 
     const ip = firstIp(req);
     if (!TURNSTILE_SECRET) {
@@ -104,8 +95,8 @@ module.exports = async (req, res) => {
     }
 
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-    const contactHash = hash(`${edicaoId}|${categoriaId}|${contatoResponsavel.toLowerCase()}|${ip}`);
-    const recent = await rest(`melhores_indicacoes?select=id&edicao_id=eq.${edicaoId}&contato_responsavel=eq.${encodeURIComponent(contatoResponsavel)}&criado_em=gte.${encodeURIComponent(fifteenMinutesAgo)}&limit=10`);
+    const sourceHash = hash(`${edicaoId}|${categoriaId}|${ip}|${process.env.MELHORES_VOTO_SECRET || SERVICE_KEY}`).slice(0, 20);
+    const recent = await rest(`melhores_indicacoes?select=id&edicao_id=eq.${edicaoId}&categoria_id=eq.${categoriaId}&observacao_interna=eq.${encodeURIComponent(`Origem pública. Hash técnico: ${sourceHash}`)}&criado_em=gte.${encodeURIComponent(fifteenMinutesAgo)}&limit=10`);
     if (recent.length >= 5) return json(res, 429, { ok: false, message: "Muitas indicações em sequência. Tente novamente mais tarde." });
 
     const [created] = await rest("melhores_indicacoes", {
@@ -114,13 +105,13 @@ module.exports = async (req, res) => {
         edicao_id: edicaoId,
         categoria_id: categoriaId,
         nome_indicado: nomeIndicado,
-        justificativa,
-        contato_indicado: contatoIndicado || null,
-        nome_responsavel: nomeResponsavel,
-        contato_responsavel: contatoResponsavel,
-        aceite_regulamento: true,
+        justificativa: null,
+        contato_indicado: null,
+        nome_responsavel: null,
+        contato_responsavel: null,
+        aceite_regulamento: false,
         status: "pendente",
-        observacao_interna: `Origem pública. Hash técnico: ${contactHash.slice(0, 20)}`
+        observacao_interna: `Origem pública. Hash técnico: ${sourceHash}`
       }]
     });
 
