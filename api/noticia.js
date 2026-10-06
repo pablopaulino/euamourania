@@ -437,6 +437,7 @@ async function renderIniciativa(req, res, slug) {
 }
 
 module.exports = async (req, res) => {
+  if (req.query.tipo === "social") return require("../lib/social-page.js")(req, res);
   const slug = String(req.query.slug || "").trim();
   if (!/^[a-z0-9-]+$/.test(slug)) {
     return res.status(404).send(req.query.tipo === "guia" ? "Empresa não encontrada" : "Notícia não encontrada");

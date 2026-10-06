@@ -53,7 +53,7 @@ module.exports = async (req, res) => {
       : "https://euamourania.com.br";
     const title = config.seo_titulo_padrao || "Urânia SP: notícias, guia comercial e turismo | Eu Amo Urânia";
     const description = config.seo_descricao_padrao || "Portal local de Urânia SP com notícias, guia comercial, turismo, eventos, história da cidade e informações úteis para moradores e visitantes.";
-    const image = absolute(config.imagem_compartilhamento || "/assets/compartilhamento-logo.png", domain);
+    const image = absolute("/assets/AD3A1763-min%20(1).jpg", domain);
     const logo = absolute("/assets/1505 - Urania - Logo Horizontal - 1.png", domain);
     const graph = [
       {
