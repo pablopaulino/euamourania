@@ -11,6 +11,8 @@ const root = document.getElementById("awards-voting-root");
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
 const voteStorageKey = editionId => `euamourania:melhores:votos:${editionId}`;
+const sessionVotes = new Map();
+const voteFeedback = new Map();
 
 function getYear() {
   const match = location.pathname.match(/melhores-de-urania\/(\d{4})/);
@@ -25,7 +27,9 @@ function getCategorySlug() {
 }
 
 function readVotes(editionId) {
-  try { return JSON.parse(localStorage.getItem(voteStorageKey(editionId)) || "{}"); } catch { return {}; }
+  let stored = {};
+  try { stored = JSON.parse(localStorage.getItem(voteStorageKey(editionId)) || "{}"); } catch {}
+  return { ...stored, ...(sessionVotes.get(editionId) || {}) };
 }
 
 function votesFor(votes, categoryId) {
@@ -39,7 +43,8 @@ function saveVote(editionId, categoryId, nomineeId) {
   const current = votesFor(votes, categoryId);
   if (!current.includes(nomineeId)) current.push(nomineeId);
   votes[categoryId] = current;
-  localStorage.setItem(voteStorageKey(editionId), JSON.stringify(votes));
+  sessionVotes.set(editionId, votes);
+  try { localStorage.setItem(voteStorageKey(editionId), JSON.stringify(votes)); } catch {}
 }
 
 function isVotingOpen(edition) {
@@ -99,6 +104,8 @@ function setMeta(edition, suffix = "Votação") {
 function toast(message) {
   const el = document.createElement("div");
   el.className = "awards-toast";
+  el.setAttribute("role", "status");
+  el.setAttribute("aria-live", "polite");
   el.textContent = message;
   document.body.append(el);
   setTimeout(() => el.remove(), 4200);
@@ -164,60 +171,40 @@ async function getTurnstileToken(action = "vote") {
 
 function progressCard(edition, categories, nominees) {
   const progress = progressFor(edition, categories, nominees);
-  const remaining = Math.max(0, progress.total - progress.completed.length);
   const nextLink = progress.next ? votingUrl(edition, progress.next) : `${hubUrl(edition)}?concluido=1`;
-  const ctaLabel = progress.completed.length ? "Continuar de onde parei" : "Começar votação";
   return `
-    <article class="awards-voting-progress">
-      <div class="awards-voting-progress-copy">
-        <p class="eyebrow">Votação oficial</p>
-        <h1>${esc(edition.nome)}</h1>
-        <p>Uma experiência simples para escolher quem faz Urânia acontecer. Vote categoria por categoria, no seu ritmo.</p>
+    <header class="vote-hub-hero">
+      <div class="vote-brand"><span class="vote-brand-symbol" aria-hidden="true">✦</span><span>Prêmio Melhores de Urânia <b>${esc(edition.ano)}</b></span></div>
+      <p class="vote-kicker">Uma realização Eu Amo Urânia · Votação oficial</p>
+      <h1>${esc(edition.nome)}</h1>
+      <p>Seu voto valoriza quem faz a diferença na cidade. Escolha, confirme e avance no seu ritmo.</p>
+      <div class="vote-flow-steps" aria-label="Como votar"><span><b>01</b> Escolha um indicado</span><span><b>02</b> Confirme o voto</span><span><b>03</b> Avance de categoria</span></div>
+      <div class="vote-hub-progress" aria-label="${progress.completed.length} de ${progress.total} categorias votadas">
+        <span>${progress.completed.length} de ${progress.total} categorias votadas</span>
+        <span>${progress.percent}%</span>
       </div>
-      <div class="awards-progress-card">
-        <span class="awards-progress-kicker">Sua votação</span>
-        <div class="awards-progress-numbers">
-          <span><strong>${progress.completed.length}</strong><small>votadas</small></span>
-          <span><strong>${remaining}</strong><small>restantes</small></span>
-          <span><strong>${progress.percent}%</strong><small>concluído</small></span>
-        </div>
-        <div class="awards-progress-bar" aria-label="${progress.percent}% concluído">
-          <span style="width:${progress.percent}%"></span>
-        </div>
-        <a class="button button-primary awards-continue-button" href="${nextLink}" data-awards-vote-continue>${progress.total && progress.percent === 100 ? "Ver conclusão" : ctaLabel}</a>
-      </div>
-    </article>`;
+      <div class="vote-progress-track" aria-hidden="true"><span style="width:${progress.percent}%"></span></div>
+      <a class="button button-primary vote-primary" href="${nextLink}" data-awards-vote-continue>${progress.total && progress.percent === 100 ? "Ver conclusão" : progress.completed.length ? "Continuar votação" : "Começar votação"}<span aria-hidden="true">→</span></a>
+    </header>`;
 }
 
-function progressStrip(edition, categories, nominees) {
-  const progress = progressFor(edition, categories, nominees);
-  return `
-    <div class="awards-voting-strip" aria-label="Progresso da votação">
-      <span>Sua votação</span>
-      <div class="awards-progress-bar" aria-label="${progress.percent}% concluído">
-        <span style="width:${progress.percent}%"></span>
-      </div>
-      <strong>${progress.percent}%</strong>
-      <a href="${hubUrl(edition)}">Categorias</a>
-    </div>`;
-}
-
-function renderHub(edition, categories, nominees) {
+export function renderHub(edition, categories, nominees) {
   setMeta(edition, "Central da votação");
   const open = isVotingOpen(edition);
   if (!open) {
     root.innerHTML = `
-      <section class="awards-voting-closed">
-        <p class="eyebrow">Votação oficial</p>
+      <section class="vote-closed">
+        <div class="vote-brand"><span class="vote-brand-symbol" aria-hidden="true">✦</span><span>Prêmio Melhores de Urânia <b>${esc(edition.ano)}</b></span></div>
+        <p class="vote-kicker">Votação oficial</p>
         <h1>${esc(edition.nome)}</h1>
         <p>A votação não está aberta agora. Período previsto: ${esc(formatDate(edition.votacao_inicio))} até ${esc(formatDate(edition.votacao_fim))}.</p>
-        <a class="button button-primary" href="${editionUrl(edition)}">Voltar para a edição</a>
+        <a class="button button-primary vote-primary" href="${editionUrl(edition)}">Voltar para a edição</a>
       </section>`;
     return;
   }
 
   const progress = progressFor(edition, categories, nominees);
-  const showDone = new URLSearchParams(location.search).has("concluido") || (progress.total > 0 && progress.percent === 100);
+  const showDone = new URLSearchParams(location.search).has("concluido") && progress.total > 0 && progress.percent === 100;
   if (showDone) {
     renderCompletion(edition, categories, nominees);
     return;
@@ -226,49 +213,43 @@ function renderHub(edition, categories, nominees) {
   const grouped = new Map(categories.map(category => [category.id, nominees.filter(item => item.categoria_id === category.id)]));
   root.innerHTML = `
     ${progressCard(edition, categories, nominees)}
-    <section class="awards-voting-panel">
-      <div class="awards-voting-panel-head">
-        <div>
-          <p class="eyebrow">Continue de onde parou</p>
-          <h2>Sua votação</h2>
-        </div>
-        <p>Veja o que já foi escolhido e avance pelas categorias abertas.</p>
-      </div>
-      <div class="awards-voting-categories">
+    <section class="vote-hub-list" aria-labelledby="vote-category-list-title">
+      <h2 id="vote-category-list-title">Categorias</h2>
+      <div class="vote-category-list">
         ${categories.map(category => {
           const total = grouped.get(category.id)?.length || 0;
           const voted = votesFor(progress.votes, category.id).length > 0;
           const disabled = !total;
-          return `<a class="awards-voting-category ${voted ? "done" : ""} ${disabled ? "disabled" : ""}" href="${disabled ? "#" : votingUrl(edition, category)}" ${disabled ? 'aria-disabled="true"' : ""}>
-            <span class="awards-voting-check">${voted ? "✓" : "→"}</span>
+          return `<a class="vote-category-row ${voted ? "is-complete" : ""} ${disabled ? "is-disabled" : ""}" href="${disabled ? "#" : votingUrl(edition, category)}" ${disabled ? 'aria-disabled="true"' : ""}>
             <strong>${esc(category.nome)}</strong>
             <small>${total ? `${total} indicado${total === 1 ? "" : "s"}` : "sem indicados publicados"}</small>
+            <span class="vote-category-arrow" aria-hidden="true">${voted ? "✓" : "→"}</span>
           </a>`;
         }).join("")}
       </div>
     </section>`;
 }
 
-function nomineeButton(edition, category, nominee, votes) {
+function nomineeButton(category, nominee, votes) {
   const votedList = votesFor(votes, category.id);
   const voted = votedList.includes(nominee.id);
   const maxChoices = category.permite_multiplos_votos ? Math.max(1, Number(category.max_escolhas || 1)) : 1;
   const reachedLimit = votedList.length >= maxChoices;
   const img = image(nominee.imagem_url);
+  const initial = esc(String(nominee.nome || "?").trim().charAt(0).toUpperCase());
   return `
-    <article class="awards-voting-nominee ${voted ? "selected" : ""}">
-      ${img ? `<img src="${img}" alt="${esc(nominee.nome)}" loading="lazy">` : `<div class="awards-voting-nominee-empty">Eu Amo Urânia</div>`}
-      <div class="awards-voting-nominee-copy">
-        <h3>${esc(nominee.nome)}</h3>
-        ${nominee.descricao_curta ? `<p>${esc(nominee.descricao_curta)}</p>` : ""}
-      </div>
-      <button class="button button-primary awards-vote-control" type="button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" ${voted || reachedLimit ? "disabled" : ""}>
-        ${voted ? "Voto registrado" : reachedLimit ? "Limite atingido" : "Votar"}
+    <article class="vote-nominee ${voted ? "is-voted" : ""}">
+      <button class="vote-nominee-button" type="button" data-select-nominee data-nominee="${esc(nominee.id)}" data-nominee-name="${esc(nominee.nome)}" aria-pressed="false" aria-label="${voted ? "Voto enviado para" : "Selecionar"} ${esc(nominee.nome)}" ${voted || reachedLimit ? "disabled" : ""}>
+        <span class="vote-nominee-media">
+          ${img ? `<img src="${img}" alt="" loading="lazy">` : `<span class="vote-nominee-empty" aria-hidden="true">${initial}</span>`}
+          <span class="vote-nominee-check" aria-hidden="true">✓</span>
+        </span>
+        <span class="vote-nominee-name">${esc(nominee.nome)}</span>
       </button>
     </article>`;
 }
 
-function renderCategory(edition, categories, nominees, slug) {
+export function renderCategory(edition, categories, nominees, slug) {
   const category = categories.find(item => item.slug === slug);
   if (!category) {
     root.innerHTML = `<div class="awards-empty">Categoria não encontrada nesta edição.</div>`;
@@ -280,10 +261,17 @@ function renderCategory(edition, categories, nominees, slug) {
   const items = nominees.filter(item => item.categoria_id === category.id);
   const index = progress.votable.findIndex(item => item.id === category.id);
   const previous = index > 0 ? progress.votable[index - 1] : null;
-  const next = index >= 0 && index < progress.votable.length - 1 ? progress.votable[index + 1] : null;
+  const nextToVisit = progress.votable.find(item => item.id !== category.id && votesFor(progress.votes, item.id).length === 0) || null;
   const categoryVotes = votesFor(progress.votes, category.id);
-  const nextHref = next ? votingUrl(edition, next) : `${hubUrl(edition)}?concluido=1`;
+  const maxChoices = category.permite_multiplos_votos ? Math.max(1, Number(category.max_escolhas || 1)) : 1;
+  const reachedLimit = categoryVotes.length >= maxChoices;
+  const votedNames = categoryVotes.map(id => items.find(item => item.id === id)?.nome).filter(Boolean);
+  const nextHref = nextToVisit ? votingUrl(edition, nextToVisit) : `${hubUrl(edition)}?concluido=1`;
   const categoryShareUrl = `${location.origin}${votingUrl(edition, category)}`;
+  const demo = location.pathname.startsWith("/preview/melhores/") && new URLSearchParams(location.search).get("demo") === "1";
+  const feedback = demo ? "Escolha simulada nesta prévia. Nenhum voto oficial foi enviado." : voteFeedback.get(`${edition.id}:${category.id}`) || "Sua escolha foi recebida.";
+  const selectedNominee = categoryVotes.length === 1 ? items.find(item => item.id === categoryVotes[0]) : null;
+  const selectedImage = image(selectedNominee?.imagem_url);
 
   if (!open) {
     renderHub(edition, categories, nominees);
@@ -291,54 +279,76 @@ function renderCategory(edition, categories, nominees, slug) {
   }
 
   root.innerHTML = `
-    <a class="awards-voting-back" href="${hubUrl(edition)}">← Central da votação</a>
-    ${progressStrip(edition, categories, nominees)}
-    <section class="awards-voting-panel awards-voting-category-panel">
-      <div class="awards-voting-panel-head">
-        <div>
-          <p class="eyebrow">Categoria ${index + 1} de ${progress.votable.length}</p>
-          <h2>${esc(category.nome)}</h2>
+    <div class="vote-brand"><span class="vote-brand-symbol" aria-hidden="true">✦</span><span>Prêmio Melhores de Urânia <b>${esc(edition.ano)}</b></span></div>
+    <div class="vote-step-nav">
+      <a href="${hubUrl(edition)}">← Todas as categorias</a>
+      <span>Categoria ${index + 1} de ${progress.votable.length}</span>
+    </div>
+    <div class="vote-progress-track" role="progressbar" aria-label="Categorias votadas" aria-valuemin="0" aria-valuemax="${progress.total}" aria-valuenow="${progress.completed.length}"><span style="width:${progress.percent}%"></span></div>
+    <section class="vote-step" aria-labelledby="vote-step-title">
+      <header class="vote-step-heading">
+        <p class="vote-kicker">Votação oficial · ${esc(edition.ano)}</p>
+        <h1 id="vote-step-title">${esc(category.nome)}</h1>
+        <p>${reachedLimit ? "Sua participação nesta categoria foi recebida." : maxChoices > 1 ? `Quem merece seu voto? Escolha até ${maxChoices} indicados, confirmando cada escolha.` : "Quem merece seu voto? Escolha um indicado e confirme antes de enviar."}</p>
+      </header>
+      ${reachedLimit ? `<div class="vote-saved-state" role="status">
+        <span class="vote-saved-icon" aria-hidden="true">✓</span>
+        <div class="vote-saved-copy"><h2>Voto enviado.</h2><p>${esc(feedback)}</p></div>
+        ${selectedNominee ? `<div class="vote-saved-nominee"><span class="vote-saved-photo">${selectedImage ? `<img src="${selectedImage}" alt="">` : `<span aria-hidden="true">${esc(selectedNominee.nome.trim().charAt(0).toUpperCase())}</span>`}</span><span>Sua escolha<strong>${esc(selectedNominee.nome)}</strong></span></div>` : votedNames.length ? `<p class="vote-saved-list">Você escolheu: <strong>${votedNames.map(esc).join(", ")}</strong></p>` : ""}
+      </div>` : `
+        ${categoryVotes.length ? `<div class="vote-confirmation" role="status"><span aria-hidden="true">✓</span><p>${esc(feedback)} ${votedNames.length ? `<strong>${votedNames.map(esc).join(", ")}</strong>` : ""}</p></div>` : ""}
+        ${items.length ? `<div class="vote-nominees">${items.map(nominee => nomineeButton(category, nominee, progress.votes)).join("")}</div>` : `<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>`}
+      `}
+      <div class="vote-step-actions">
+        <div class="vote-action-bar">
+          <p class="vote-action-caption" data-selection-caption role="status" aria-live="polite">${reachedLimit ? "Escolha confirmada nesta categoria" : categoryVotes.length ? `${categoryVotes.length} de até ${maxChoices} votos enviados` : "Escolha um indicado para continuar"}</p>
+          ${reachedLimit ? `<a class="button button-primary vote-primary" href="${nextHref}" data-next-category>${nextToVisit ? "Próxima categoria" : "Finalizar participação"}<span aria-hidden="true">→</span></a>` : `<button class="button button-primary vote-primary" type="button" data-vote data-edition="${esc(edition.id)}" data-category="${esc(category.id)}" data-max-choices="${maxChoices}" disabled>Escolha um indicado</button>`}
+          ${categoryVotes.length && !reachedLimit ? `<a class="vote-action-skip" href="${nextHref}" data-next-category>${nextToVisit ? "Seguir para a próxima categoria" : "Finalizar participação"}</a>` : ""}
         </div>
-        <p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p>
+        <div class="vote-step-links">
+          ${previous && previous.id !== nextToVisit?.id ? `<a href="${votingUrl(edition, previous)}">Categoria anterior</a>` : `<a href="${hubUrl(edition)}">Ver categorias</a>`}
+          ${categoryVotes.length ? `<button type="button" data-share-category data-share-url="${categoryShareUrl}" data-category-name="${esc(category.nome)}">Compartilhar</button><a href="/app.html">Baixar o app</a>` : ""}
+        </div>
       </div>
-      ${items.length ? `<div class="awards-voting-nominees">${items.map(nominee => nomineeButton(edition, category, nominee, progress.votes)).join("")}</div>` : `<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>`}
-      ${categoryVotes.length ? `<div class="awards-voting-share-panel">
-        <div>
-          <strong>Voto registrado nesta categoria.</strong>
-          <span>Compartilhe esta categoria com quem também pode votar.</span>
-        </div>
-        <button class="button button-secondary" type="button" data-share-category data-share-url="${categoryShareUrl}" data-category-name="${esc(category.nome)}">Compartilhar categoria</button>
-      </div>` : ""}
-      <nav class="awards-voting-flow" aria-label="Navegação da votação">
-        ${previous ? `<a class="button button-secondary" href="${votingUrl(edition, previous)}">Categoria anterior</a>` : `<a class="button button-secondary" href="${hubUrl(edition)}">Central</a>`}
-        <a class="button button-primary ${categoryVotes.length ? "" : "disabled"}" href="${nextHref}" data-next-category>${next ? "Próxima categoria" : "Finalizar participação"}</a>
-      </nav>
     </section>`;
+
+  const confirmButton = root.querySelector("[data-vote]");
+  root.querySelectorAll("[data-select-nominee]").forEach(choice => {
+    choice.addEventListener("click", () => {
+      if (!confirmButton || choice.disabled) return;
+      root.querySelectorAll("[data-select-nominee]").forEach(item => {
+        item.setAttribute("aria-pressed", String(item === choice));
+        item.setAttribute("aria-label", `${item === choice ? "Selecionado" : "Selecionar"} ${item.dataset.nomineeName}`);
+        item.closest(".vote-nominee")?.classList.toggle("is-active", item === choice);
+      });
+      confirmButton.dataset.nominee = choice.dataset.nominee;
+      confirmButton.disabled = false;
+      confirmButton.textContent = "Confirmar voto →";
+      confirmButton.setAttribute("aria-label", `Confirmar voto em ${choice.dataset.nomineeName}`);
+      root.querySelector("[data-selection-caption]").textContent = `Você escolheu: ${choice.dataset.nomineeName}`;
+    });
+  });
 }
 
 function renderCompletion(edition, categories, nominees) {
   const progress = progressFor(edition, categories, nominees);
   const shareUrl = `${location.origin}${editionUrl(edition)}`;
   root.innerHTML = `
-    <section class="awards-voting-complete">
-      <span class="awards-complete-icon" aria-hidden="true">✓</span>
-      <p class="eyebrow">Participação registrada</p>
-      <h1>Compartilhe a votação</h1>
-      <p>Seu voto foi registrado. Chame amigos para participar também do Melhores de Urânia.</p>
-      <div class="awards-progress-card compact">
-        <div class="awards-progress-numbers">
-          <span><strong>${progress.completed.length}</strong><small>votadas</small></span>
-          <span><strong>${progress.total}</strong><small>categorias</small></span>
-          <span><strong>${progress.percent}%</strong><small>concluído</small></span>
-        </div>
-        <div class="awards-progress-bar"><span style="width:${progress.percent}%"></span></div>
-      </div>
-      <div class="hero-actions">
-        <button class="button button-primary" type="button" data-share-voting>Compartilhar votação</button>
-        <a class="button button-secondary" href="${hubUrl(edition)}">Ver categorias</a>
-        <a class="button button-secondary" href="${editionUrl(edition)}">Voltar para a edição</a>
+    <section class="vote-complete">
+      <div class="vote-brand"><span class="vote-brand-symbol" aria-hidden="true">✦</span><span>Prêmio Melhores de Urânia <b>${esc(edition.ano)}</b></span></div>
+      <p class="vote-kicker">Participação enviada · ${progress.completed.length} de ${progress.total}</p>
+      <h1>Obrigado por votar.</h1>
+      <p>Suas escolhas foram recebidas. Convide mais pessoas a participar ou acompanhe a premiação no aplicativo.</p>
+      <div class="vote-complete-meta">${progress.percent}% das categorias votadas</div>
+      <div class="vote-progress-track" aria-hidden="true"><span style="width:${progress.percent}%"></span></div>
+      <div class="vote-complete-actions">
+        <button class="button button-primary vote-primary" type="button" data-share-voting>Compartilhar votação <span aria-hidden="true">→</span></button>
+        <a href="/app.html">Baixar o app</a>
+        <a href="${hubUrl(edition)}">Ver categorias</a>
+        <a href="${editionUrl(edition)}">Voltar para a edição</a>
       </div>
     </section>`;
+  if (location.pathname.startsWith("/preview/melhores/") && new URLSearchParams(location.search).get("demo") === "1") return;
   root.querySelector("[data-share-voting]")?.addEventListener("click", async () => {
     registrarEventoMelhores("melhores_share_click", {
       edicaoId: edition.id,
@@ -360,7 +370,7 @@ function renderCompletion(edition, categories, nominees) {
 
 async function handleVote(event, edition, categories, nominees) {
   const button = event.target.closest("[data-vote]");
-  if (!button || button.disabled) return;
+  if (!button || button.disabled || !button.dataset.nominee) return;
   button.disabled = true;
   const oldText = button.textContent;
   button.textContent = "Registrando…";
@@ -370,7 +380,7 @@ async function handleVote(event, edition, categories, nominees) {
   });
   try {
     const turnstileToken = await getTurnstileToken("vote");
-    await enviarVotoMelhores({
+    const result = await enviarVotoMelhores({
       edicao_id: button.dataset.edition,
       categoria_id: button.dataset.category,
       indicado_id: button.dataset.nominee,
@@ -379,12 +389,17 @@ async function handleVote(event, edition, categories, nominees) {
       turnstile_token: turnstileToken
     });
     saveVote(button.dataset.edition, button.dataset.category, button.dataset.nominee);
+    voteFeedback.set(`${button.dataset.edition}:${button.dataset.category}`, result.message || "Sua escolha foi recebida.");
     registrarEventoMelhores("melhores_vote_complete", {
       edicaoId: button.dataset.edition,
       metadados: { categoria_id: button.dataset.category, indicado_id: button.dataset.nominee, origem_fluxo: "central_votacao" }
     });
-    toast("Voto registrado com sucesso.");
+    toast(result.message || "Sua escolha foi recebida.");
     renderCategory(edition, categories, nominees, getCategorySlug());
+    root.querySelector(".vote-saved-state, .vote-confirmation")?.scrollIntoView({
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      block: "start"
+    });
   } catch (error) {
     button.disabled = false;
     button.textContent = oldText;
@@ -450,4 +465,4 @@ async function init() {
   }
 }
 
-init();
+if (!(location.pathname.startsWith("/preview/melhores/") && new URLSearchParams(location.search).get("demo") === "1")) init();

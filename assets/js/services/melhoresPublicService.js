@@ -2,15 +2,18 @@ import { fetchPublicRows } from "./publicDataService.js";
 
 const statusPublicos = [
   "indicacoes_abertas",
+  "indicacoes_encerradas",
   "votacao_aberta",
   "votacao_encerrada",
-  "resultado_publicado"
+  "apuracao",
+  "resultado_publicado",
+  "arquivada"
 ];
 
 export async function listarEdicoesPublicas() {
   const status = statusPublicos.join(",");
   return fetchPublicRows("melhores_edicoes", {
-    select: "id,nome,ano,slug,descricao,imagem_capa_url,status,indicacoes_inicio,indicacoes_fim,votacao_inicio,votacao_fim,divulgacao_em,peso_site,peso_instagram,mostrar_votos_publicamente",
+    select: "id,nome,ano,slug,descricao,imagem_capa_url,status,indicacoes_inicio,indicacoes_fim,votacao_inicio,votacao_fim,divulgacao_em,resultado_publicado_em,peso_site,peso_instagram,mostrar_votos_publicamente",
     status: `in.(${status})`,
     order: "ano.desc"
   }, { ttl: 5000 });
@@ -31,8 +34,6 @@ export async function listarCategoriasPublicas(edicaoId) {
   return fetchPublicRows("melhores_categorias", {
     select: "id,edicao_id,nome,slug,descricao,imagem_url,icone,ordem,status,permite_multiplos_votos,max_escolhas,permite_indicacao_publica,visibilidade_publica",
     edicao_id: `eq.${edicaoId}`,
-    status: "eq.ativo",
-    visibilidade_publica: "eq.true",
     order: "ordem.asc,nome.asc"
   }, { ttl: 60000 });
 }
@@ -41,8 +42,6 @@ export async function listarIndicadosPublicos(edicaoId) {
   return fetchPublicRows("melhores_indicados", {
     select: "id,edicao_id,categoria_id,nome,slug,imagem_url,descricao_curta,instagram,whatsapp,site,endereco,status,ordem,aprovado",
     edicao_id: `eq.${edicaoId}`,
-    status: "eq.ativo",
-    aprovado: "eq.true",
     order: "ordem.asc,nome.asc"
   }, { ttl: 60000 });
 }
@@ -52,8 +51,6 @@ export async function obterCategoriaPublica(edicaoId, slug) {
     select: "id,edicao_id,nome,slug,descricao,imagem_url,icone,ordem,status,permite_multiplos_votos,max_escolhas,permite_indicacao_publica,visibilidade_publica",
     edicao_id: `eq.${edicaoId}`,
     slug: `eq.${slug}`,
-    status: "eq.ativo",
-    visibilidade_publica: "eq.true",
     limit: "1"
   }, { ttl: 60000 });
   return rows?.[0] || null;
@@ -63,9 +60,7 @@ export async function listarCategoriasHistoricasPorSlug(slug) {
   return fetchPublicRows("melhores_categorias", {
     select: "id,edicao_id,nome,slug,descricao,imagem_url,icone,ordem,status,visibilidade_publica,atualizado_em,melhores_edicoes!inner(id,nome,ano,slug,descricao,imagem_capa_url,status,atualizado_em)",
     slug: `eq.${slug}`,
-    status: "eq.ativo",
-    visibilidade_publica: "eq.true",
-    "melhores_edicoes.status": "in.(indicacoes_abertas,votacao_aberta,votacao_encerrada,resultado_publicado)",
+    "melhores_edicoes.status": `in.(${statusPublicos.join(",")})`,
     order: "atualizado_em.desc"
   }, { ttl: 60000 });
 }
@@ -75,26 +70,21 @@ export async function listarIndicadosPorCategoria(edicaoId, categoriaId) {
     select: "id,edicao_id,categoria_id,nome,slug,imagem_url,descricao_curta,instagram,whatsapp,site,endereco,status,ordem,aprovado",
     edicao_id: `eq.${edicaoId}`,
     categoria_id: `eq.${categoriaId}`,
-    status: "eq.ativo",
-    aprovado: "eq.true",
     order: "ordem.asc,nome.asc"
   }, { ttl: 60000 });
 }
 
 export async function listarResultadosPublicos(edicaoId) {
-  return fetchPublicRows("melhores_resultados", {
-    select: "id,edicao_id,categoria_id,indicado_id,votos_site,percentual_site,votos_instagram,percentual_instagram,pontuacao_final,colocacao,vencedor,selo,empate,criterio_aplicado,metodologia_resumida,publicado_em,melhores_categorias(nome),melhores_indicados(nome,imagem_url,descricao_curta,guia_comercial_id,guia_comercial(id,nome,slug,imagem_url,categoria_nome,status))",
-    edicao_id: `eq.${edicaoId}`,
-    publicado: "eq.true",
+  return fetchPublicRows("rpc/melhores_listar_resultados_publicos", {
+    p_edicao: edicaoId,
+    p_somente_vencedores: "false",
     order: "categoria_id.asc,colocacao.asc"
   }, { ttl: 120000 });
 }
 
 export async function listarHistoricoVencedoresPublicos() {
-  return fetchPublicRows("melhores_resultados", {
-    select: "id,edicao_id,categoria_id,indicado_id,vencedor,publicado,melhores_edicoes(ano,nome),melhores_categorias(nome),melhores_indicados(nome,guia_comercial_id)",
-    publicado: "eq.true",
-    vencedor: "eq.true",
+  return fetchPublicRows("rpc/melhores_listar_resultados_publicos", {
+    p_somente_vencedores: "true",
     order: "edicao_id.asc,categoria_id.asc"
   }, { ttl: 300000 });
 }

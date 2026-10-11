@@ -121,7 +121,6 @@ export async function listarEdicoes() {
   const { data, error } = await db()
     .from("melhores_edicoes")
     .select("*")
-    .neq("status", "arquivada")
     .order("ano", { ascending: false });
   if (error) throw error;
   return data || [];
@@ -146,7 +145,27 @@ export async function salvarEdicao(payload) {
   return data;
 }
 
+async function garantirEdicaoMutavel(edicaoId) {
+  const supabase = db();
+  const { data: edicao, error } = await supabase
+    .from("melhores_edicoes")
+    .select("status,resultado_publicado_em")
+    .eq("id", edicaoId)
+    .single();
+  if (error) throw error;
+  const { count, error: resultsError } = await supabase
+    .from("melhores_resultados")
+    .select("id", { count: "exact", head: true })
+    .eq("edicao_id", edicaoId)
+    .eq("publicado", true);
+  if (resultsError) throw resultsError;
+  if (edicao.resultado_publicado_em || ["resultado_publicado", "arquivada"].includes(edicao.status) || count > 0) {
+    throw new Error("Esta edição tem resultados oficiais e deve permanecer no histórico.");
+  }
+}
+
 export async function excluirEdicao(id) {
+  await garantirEdicaoMutavel(id);
   const supabase = db();
   await supabase.from("melhores_indicacoes").update({ indicado_gerado_id: null }).eq("edicao_id", id);
   const { error } = await supabase.from("melhores_edicoes").delete().eq("id", id);
@@ -163,22 +182,40 @@ export async function listarCategorias(edicaoId) {
   if (edicaoId) query = query.eq("edicao_id", edicaoId);
   const { data, error } = await query;
   if (error) throw error;
-  return data || [];
+  if (!data?.length) return [];
+  let tieQuery = db().from("melhores_desempates").select("categoria_id,indicado_id");
+  if (edicaoId) tieQuery = tieQuery.eq("edicao_id", edicaoId);
+  const { data: tieDecisions, error: tieError } = await tieQuery;
+  if (tieError) throw tieError;
+  const winnerByCategory = new Map((tieDecisions || []).map(item => [item.categoria_id, item.indicado_id]));
+  return data.map(item => ({ ...item, desempate_vencedor_id: winnerByCategory.get(item.id) || null }));
 }
 
 export async function salvarCategoria(payload) {
-  const { id, ...dados } = payload;
+  const { id, desempate_vencedor_id, ...dados } = payload;
   const query = id
     ? db().from("melhores_categorias").update(dados).eq("id", id)
     : db().from("melhores_categorias").insert(dados);
   const { data, error } = await query.select().single();
   if (error) throw error;
+  if (id && desempate_vencedor_id !== undefined) {
+    const tieQuery = desempate_vencedor_id
+      ? db().from("melhores_desempates").upsert({
+        categoria_id: data.id,
+        edicao_id: data.edicao_id,
+        indicado_id: desempate_vencedor_id
+      }, { onConflict: "categoria_id" })
+      : db().from("melhores_desempates").delete().eq("categoria_id", data.id);
+    const { error: tieError } = await tieQuery;
+    if (tieError) throw tieError;
+  }
   return data;
 }
 
 export async function copiarCategoriasEntreEdicoes({ origemEdicaoId, destinoEdicaoId }) {
   if (!origemEdicaoId || !destinoEdicaoId) throw new Error("Informe as edições de origem e destino.");
   if (origemEdicaoId === destinoEdicaoId) throw new Error("Escolha edições diferentes para copiar as categorias.");
+  await garantirEdicaoMutavel(destinoEdicaoId);
 
   const supabase = db();
   const campos = [
@@ -232,6 +269,9 @@ export async function copiarCategoriasEntreEdicoes({ origemEdicaoId, destinoEdic
 
 export async function excluirCategoria(id) {
   const supabase = db();
+  const { data: categoria, error: categoryError } = await supabase.from("melhores_categorias").select("edicao_id").eq("id", id).single();
+  if (categoryError) throw categoryError;
+  await garantirEdicaoMutavel(categoria.edicao_id);
   await supabase.from("melhores_indicacoes").update({ indicado_gerado_id: null }).eq("categoria_id", id);
   const { error } = await supabase.from("melhores_categorias").delete().eq("id", id);
   if (error) throw error;
@@ -263,6 +303,9 @@ export async function salvarIndicado(payload) {
 
 export async function excluirIndicado(id) {
   const supabase = db();
+  const { data: indicado, error: nomineeError } = await supabase.from("melhores_indicados").select("edicao_id").eq("id", id).single();
+  if (nomineeError) throw nomineeError;
+  await garantirEdicaoMutavel(indicado.edicao_id);
   await supabase.from("melhores_indicacoes").update({ indicado_gerado_id: null }).eq("indicado_gerado_id", id);
   const { error } = await supabase.from("melhores_indicados").delete().eq("id", id);
   if (error) throw error;

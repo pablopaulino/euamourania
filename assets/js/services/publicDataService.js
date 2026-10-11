@@ -16,10 +16,9 @@ const ALLOWED_TABLES = new Set([
   "guia_comercial",
   "links",
   "melhores_categorias",
-  "melhores_consolidados",
   "melhores_edicoes",
   "melhores_indicados",
-  "melhores_resultados",
+  "rpc/melhores_listar_resultados_publicos",
   "noticias",
   "turismo"
 ]);

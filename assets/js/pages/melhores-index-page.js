@@ -4,7 +4,11 @@ import { sharePage } from "../services/shareService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const img = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
-const statusLabel = value => String(value || "").replaceAll("_", " ");
+const statusLabel = value => ({
+  indicacoes_encerradas: "Indicações encerradas",
+  votacao_encerrada: "Votação encerrada",
+  apuracao: "Apuração"
+}[value] || String(value || "").replaceAll("_", " "));
 const editionUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
   ? `/melhores-de-urania/edicao.html?ano=${encodeURIComponent(edition.ano)}`
   : `/melhores-de-urania/${encodeURIComponent(edition.ano)}/`;
@@ -12,6 +16,9 @@ const indicationUrl = edition => `${editionUrl(edition)}#indicacoes`;
 const votingUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
   ? `/melhores-de-urania/votacao.html?ano=${encodeURIComponent(edition.ano)}`
   : `${editionUrl(edition)}votacao/`;
+const resultsUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+  ? `/melhores-de-urania/resultados.html?ano=${encodeURIComponent(edition.ano)}`
+  : `${editionUrl(edition)}resultados/`;
 const withinPeriod = (start, end) => (!start || Date.now() >= new Date(start).getTime())
   && (!end || Date.now() <= new Date(end).getTime());
 const phaseDetails = edition => {
@@ -26,6 +33,12 @@ const phaseDetails = edition => {
     period: `Votação: ${period(edition.votacao_inicio, edition.votacao_fim)}`,
     action: withinPeriod(edition.votacao_inicio, edition.votacao_fim) ? "Votar agora" : "Ver edição",
     href: withinPeriod(edition.votacao_inicio, edition.votacao_fim) ? votingUrl(edition) : editionUrl(edition)
+  };
+  if (edition.status === "resultado_publicado" || (edition.status === "arquivada" && edition.resultado_publicado_em)) return {
+    label: edition.status === "arquivada" ? "Edição arquivada" : "Resultado publicado",
+    period: "",
+    action: "Ver resultados",
+    href: resultsUrl(edition)
   };
   return { label: statusLabel(edition.status), period: "", action: "Ver edição", href: editionUrl(edition) };
 };

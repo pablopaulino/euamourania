@@ -6,6 +6,9 @@ import { sharePage } from "../services/shareService.js";
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
 const key = editionId => `euamourania:melhores:votos:${editionId}`;
+const resultsUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+  ? `/melhores-de-urania/resultados.html?ano=${encodeURIComponent(edition.ano)}`
+  : `/melhores-de-urania/${encodeURIComponent(edition.ano)}/resultados/`;
 function getYear() {
   const match = location.pathname.match(/melhores-de-urania\/(\d{4})/);
   const query = new URLSearchParams(location.search).get("ano");
@@ -254,12 +257,12 @@ function phaseInfo(edition) {
       cta: "Participar da votação"
     };
   }
-  if (edition.status === "resultado_publicado") {
+  if (edition.status === "resultado_publicado" || (edition.status === "arquivada" && edition.resultado_publicado_em)) {
     return {
       label: "Resultado publicado",
       title: "Confira os vencedores",
       text: "O resultado oficial desta edição já está disponível.",
-      href: `/melhores-de-urania/${edition.ano}/resultados/`,
+      href: resultsUrl(edition),
       cta: "Ver resultados"
     };
   }
@@ -277,7 +280,7 @@ function renderEditionHub(edition, categories, nominees) {
   if (!hub) return;
   hub.classList.add("awards-edition-hub");
   const phase = phaseInfo(edition);
-  const hasResults = edition.status === "resultado_publicado";
+  const hasResults = edition.status === "resultado_publicado" || (edition.status === "arquivada" && edition.resultado_publicado_em);
   const links = [
     {
       eyebrow: "Cronograma",
@@ -308,7 +311,7 @@ function renderEditionHub(edition, categories, nominees) {
       eyebrow: "Oficial",
       title: "Resultados",
       text: "Vencedores e colocações oficiais desta edição.",
-      href: `/melhores-de-urania/${edition.ano}/resultados/`
+      href: resultsUrl(edition)
     });
   }
   hub.innerHTML = `

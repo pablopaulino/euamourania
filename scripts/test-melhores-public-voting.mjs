@@ -22,9 +22,11 @@ const sitemap = read("api/sitemaps.js");
 const script = read("script.js");
 const docs = read("DOCS/MELHORES-DE-URANIA.md");
 
-for (const table of ["melhores_edicoes", "melhores_categorias", "melhores_indicados", "melhores_resultados", "melhores_consolidados"]) {
+for (const table of ["melhores_edicoes", "melhores_categorias", "melhores_indicados"]) {
   must(publicData.includes(`"${table}"`), `Tabela pública não liberada: ${table}`);
 }
+must(publicData.includes('"rpc/melhores_listar_resultados_publicos"'), "Resultados devem passar pela RPC pública sanitizada");
+must(!publicData.includes('"melhores_resultados"') && !publicData.includes('"melhores_consolidados"'), "Tabelas brutas de apuração não devem ser fontes públicas diretas");
 must(!publicData.includes('"melhores_votos"'), "Votos individuais não podem ser liberados para leitura pública direta");
 must(publicService.includes('/api/melhores-votar'), "Serviço público não usa API segura de votação");
 must(!editionPage.includes(".from(\"melhores_votos\")") && !editionPage.includes("melhores_votos"), "Frontend não deve gravar votos direto no Supabase");

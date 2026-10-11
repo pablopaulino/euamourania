@@ -2165,7 +2165,7 @@
   min-height:240px;
   object-fit:cover;
 }
-.awards-winner-media span{
+.awards-winner-media > span{
   position:absolute;
   left:.8rem;
   bottom:.8rem;
@@ -2437,11 +2437,28 @@
   background:rgba(255,255,255,.72);
   box-shadow:inset 0 0 0 1px rgba(247,201,72,.26);
 }
+.awards-winner-photo{
+  display:grid;
+  place-items:center;
+  width:100%;
+  aspect-ratio:1/1;
+  overflow:hidden;
+  border-radius:18px;
+  background:linear-gradient(135deg,#fff3d6,#f4e7d9);
+}
+.awards-winner-initial{
+  grid-area:1/1;
+  color:#aa4a22;
+  font-size:clamp(2.5rem,6vw,4rem);
+  font-weight:900;
+  line-height:1;
+}
 .awards-winner-media:is(a){
   color:inherit;
   text-decoration:none;
 }
 .awards-winner-media img{
+  grid-area:1/1;
   width:100%;
   height:auto;
   min-height:0;
@@ -2450,7 +2467,7 @@
   background:#fff8ef;
   object-fit:contain;
 }
-.awards-winner-media span{
+.awards-winner-media > span{
   position:static;
   justify-self:center;
   max-width:100%;
@@ -2494,9 +2511,124 @@
   .awards-winner-media img{
     border-radius:14px;
   }
-  .awards-winner-media span{
+  .awards-winner-media > span{
     padding:.34rem .46rem;
     font-size:.58rem;
     letter-spacing:.06em;
+  }
+}
+
+/* Arquivo anual e perfis individuais dos vencedores */
+.awards-results-more{
+  margin:1.25rem 0 0;
+  text-align:right;
+}
+.awards-results-more a,
+.awards-hall-year-head a,
+.awards-winner-other a{
+  color:var(--awards-ink);
+  font-weight:800;
+  text-decoration:none;
+}
+.awards-results-more a:hover,
+.awards-hall-year-head a:hover,
+.awards-winner-other a:hover{
+  color:#df6410;
+}
+.awards-hall-year + .awards-hall-year{
+  margin-top:clamp(2.4rem,5vw,4rem);
+}
+.awards-hall-year-head{
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:1rem;
+  margin-bottom:1rem;
+  padding-bottom:.85rem;
+  border-bottom:1px solid rgba(220,232,236,.92);
+}
+.awards-hall-year-head h2{
+  margin:.2rem 0 0;
+  color:var(--awards-ink);
+  font-size:clamp(2rem,5vw,3.5rem);
+  line-height:1;
+  letter-spacing:-.06em;
+}
+.awards-hall-year-head a{
+  padding:.5rem 0;
+  white-space:nowrap;
+}
+.awards-winner-profile{
+  display:grid;
+  grid-template-columns:minmax(220px,.8fr) minmax(0,1.2fr);
+  gap:clamp(1.2rem,4vw,3rem);
+  align-items:center;
+  max-width:980px;
+  margin-inline:auto;
+}
+.awards-winner-profile > .awards-winner-photo{
+  border-radius:26px;
+}
+.awards-winner-profile > .awards-winner-photo img{
+  grid-area:1/1;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+.awards-winner-profile-body h2{
+  margin:.35rem 0 .8rem;
+  color:var(--awards-ink);
+  font-size:clamp(2rem,5vw,3.6rem);
+  line-height:1.04;
+  letter-spacing:-.06em;
+}
+.awards-winner-profile-body > p:not(.eyebrow){
+  max-width:58ch;
+  color:var(--awards-muted);
+  line-height:1.65;
+}
+.awards-winner-profile-links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.65rem;
+  margin-top:1.5rem;
+}
+.awards-winner-other{
+  max-width:980px;
+  margin:clamp(2.4rem,5vw,4rem) auto 0;
+}
+.awards-winner-other h2{
+  color:var(--awards-ink);
+  font-size:clamp(1.5rem,3vw,2rem);
+}
+.awards-winner-other ul{
+  display:grid;
+  gap:.6rem;
+  padding:0;
+  list-style:none;
+}
+.awards-winner-other li{
+  padding:.8rem 0;
+  border-bottom:1px solid rgba(220,232,236,.92);
+}
+@media(max-width:680px){
+  .awards-hall-year-head{
+    align-items:start;
+    flex-direction:column;
+  }
+  .awards-winner-profile{
+    grid-template-columns:1fr;
+  }
+  .awards-winner-profile > .awards-winner-photo{
+    max-width:360px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .awards-winner-card{
+    transition:none;
+  }
+  .awards-winner-card.is-clickable:hover,
+  .awards-winner-card.is-clickable:focus-visible{
+    transform:none;
   }
 }

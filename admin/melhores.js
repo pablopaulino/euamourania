@@ -536,13 +536,19 @@ async function loadEditions() {
 }
 
 function editionRow(item) {
+  const historical = isHistoricalEdition(item);
   return `<tr>
     <td><div class="awards-name">${item.imagem_capa_url ? `<img class="awards-thumb" src="${escapeHtml(item.imagem_capa_url)}" alt="">` : '<span class="awards-thumb"></span>'}<div><strong>${escapeHtml(item.nome)}</strong><small>${escapeHtml(item.slug)} · ${item.ano}</small></div></div></td>
     <td><span class="awards-status ${escapeHtml(item.status)}">${escapeHtml(item.status.replaceAll("_", " "))}</span></td>
     <td>${fmtDate(item.votacao_inicio)}<br><small>${fmtDate(item.votacao_fim)}</small></td>
     <td>Site ${item.peso_site}%<br><small>Instagram ${item.peso_instagram}%</small></td>
-    <td><div class="awards-actions"><button data-edit-edition="${item.id}">Editar</button><button class="danger" data-delete-edition="${item.id}">Excluir</button></div></td>
+    <td><div class="awards-actions"><button data-edit-edition="${item.id}">${historical ? "Ver / arquivar" : "Editar"}</button>${historical ? '<small>Histórico preservado</small>' : `<button class="danger" data-delete-edition="${item.id}">Excluir</button>`}</div></td>
   </tr>`;
+}
+
+function isHistoricalEdition(itemOrId) {
+  const item = typeof itemOrId === "string" ? state.edicoes.find(edition => edition.id === itemOrId) : itemOrId;
+  return Boolean(item && (item.resultado_publicado_em || ["resultado_publicado", "arquivada"].includes(item.status)));
 }
 
 async function loadCategories() {
@@ -551,14 +557,15 @@ async function loadCategories() {
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
     const selected = $("#category-edition-filter")?.value || state.edicoes[0]?.id || "";
+    const historical = isHistoricalEdition(selected);
     state.categorias = await listarCategorias(selected);
     $("#categories-view").innerHTML = `
       <article class="awards-card">
         <div class="awards-panel-head">
           <div><h3>Categorias</h3><p>As categorias não ficam fixas no código: tudo é administrável por edição.</p></div>
           <div class="awards-actions">
-            <button class="admin-button secondary" data-copy-categories="${escapeHtml(selected)}" ${selected ? "" : "disabled"}>Copiar de outra edição</button>
-            <button class="admin-button" data-new-category>Nova categoria</button>
+            <button class="admin-button secondary" data-copy-categories="${escapeHtml(selected)}" ${selected && !historical ? "" : "disabled"}>Copiar de outra edição</button>
+            <button class="admin-button" data-new-category ${historical ? "disabled" : ""}>Nova categoria</button>
           </div>
         </div>
         <div class="awards-toolbar">
@@ -581,12 +588,13 @@ async function loadCategories() {
 }
 
 function categoryRow(item) {
+  const historical = isHistoricalEdition(item.edicao_id);
   return `<tr data-search="${escapeHtml(`${item.nome} ${item.slug}`.toLowerCase())}" data-status="${escapeHtml(item.status)}">
     <td><div class="awards-name">${item.imagem_url ? `<img class="awards-thumb" src="${escapeHtml(item.imagem_url)}" alt="">` : '<span class="awards-thumb"></span>'}<div><strong>${escapeHtml(item.nome)}</strong><small>${escapeHtml(item.slug)}</small></div></div></td>
     <td><span class="awards-status ${escapeHtml(item.status)}">${escapeHtml(item.status)}</span></td>
     <td>${Number(item.ordem || 0)}</td>
     <td><small>${item.permite_multiplos_votos ? `${item.max_escolhas} escolhas` : "1 voto"} · ${item.permite_indicacao_publica ? "indicação pública" : "sem indicação pública"}</small></td>
-    <td><div class="awards-actions"><button data-edit-category="${item.id}">Editar</button><button class="danger" data-delete-category="${item.id}">Excluir</button></div></td>
+    <td><div class="awards-actions">${historical ? '<small>Histórico preservado</small>' : `<button data-edit-category="${item.id}">Editar</button><button class="danger" data-delete-category="${item.id}">Excluir</button>`}</div></td>
   </tr>`;
 }
 
@@ -684,6 +692,7 @@ async function loadNominees() {
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
     const edicaoId = $("#nominee-edition-filter")?.value || state.edicoes[0]?.id || "";
+    const historical = isHistoricalEdition(edicaoId);
     if (!state.categorias.length || !state.categorias.some(c => c.edicao_id === edicaoId)) state.categorias = await listarCategorias(edicaoId);
     const categoriaId = $("#nominee-category-filter")?.value || "";
     state.indicados = await listarIndicados({ edicaoId, categoriaId });
@@ -691,7 +700,7 @@ async function loadNominees() {
       <article class="awards-card">
         <div class="awards-panel-head">
           <div><h3>Indicados</h3><p>Cadastre manualmente ou vincule a uma empresa já existente no Guia Comercial.</p></div>
-          <button class="admin-button" data-new-nominee>Novo indicado</button>
+          <button class="admin-button" data-new-nominee ${historical ? "disabled" : ""}>Novo indicado</button>
         </div>
         <div class="awards-toolbar">
           <input id="nominee-search" type="search" placeholder="Pesquisar indicado…">
@@ -713,12 +722,13 @@ async function loadNominees() {
 }
 
 function nomineeRow(item) {
+  const historical = isHistoricalEdition(item.edicao_id);
   return `<tr data-search="${escapeHtml(`${item.nome} ${item.slug} ${item.melhores_categorias?.nome || ""}`.toLowerCase())}" data-status="${escapeHtml(item.status)}">
     <td><div class="awards-name">${item.imagem_url ? `<img class="awards-thumb" src="${escapeHtml(item.imagem_url)}" alt="">` : '<span class="awards-thumb"></span>'}<div><strong>${escapeHtml(item.nome)}</strong><small>${escapeHtml(item.slug)} ${item.aprovado ? "· aprovado" : ""}</small></div></div></td>
     <td><span class="awards-status ${escapeHtml(item.status)}">${escapeHtml(item.status)}</span></td>
     <td>${escapeHtml(item.melhores_categorias?.nome || "Sem categoria")}</td>
     <td>${item.guia_comercial?.nome ? escapeHtml(item.guia_comercial.nome) : "—"}</td>
-    <td><div class="awards-actions"><button data-edit-nominee="${item.id}">Editar</button><button class="danger" data-delete-nominee="${item.id}">Excluir</button></div></td>
+    <td><div class="awards-actions">${historical ? '<small>Histórico preservado</small>' : `<button data-edit-nominee="${item.id}">Editar</button><button class="danger" data-delete-nominee="${item.id}">Excluir</button>`}</div></td>
   </tr>`;
 }
 
@@ -819,6 +829,8 @@ async function loadApuration() {
     const edicaoId = $("#apuration-edition-filter")?.value || state.edicoes[0]?.id || "";
     state.apuracao = edicaoId ? await obterApuracao(edicaoId) : [];
     const grouped = groupBy(state.apuracao, "categoria_id");
+    const edition = state.edicoes.find(item => item.id === edicaoId);
+    const canPublish = ["votacao_encerrada", "apuracao"].includes(edition?.status) && state.apuracao.some(row => Number(row.votos_site || 0) + Number(row.votos_instagram || 0) > 0);
     $("#apuration-view").innerHTML = `
       <article class="awards-card">
         <div class="awards-panel-head">
@@ -828,8 +840,9 @@ async function loadApuration() {
           <input id="apuration-search" type="search" placeholder="Pesquisar categoria ou indicado…">
           <select id="apuration-edition-filter">${state.edicoes.map(e => `<option value="${e.id}" ${e.id === edicaoId ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join("")}</select>
           <button class="admin-button secondary" data-refresh-apuration>Atualizar</button>
-          <button class="admin-button" data-publish-results>Revisar e publicar resultado</button>
+          <button class="admin-button" data-publish-results ${canPublish ? "" : "disabled"}>Revisar e publicar resultado</button>
         </div>
+        <p class="awards-note">${isHistoricalEdition(edition) ? "O resultado desta edição está preservado e não pode ser republicado." : "A publicação exige votos em cada categoria pública e desempates resolvidos com regra registrada."}</p>
         ${state.apuracao.length ? [...grouped.entries()].map(([categoriaId, rows]) => apurationGroup(categoriaId, rows)).join("") : '<div class="awards-empty">Sem dados suficientes para apuração.</div>'}
       </article>`;
     bindSimpleSearch("apuration", "apuration-view");
@@ -1276,6 +1289,25 @@ async function editionForm(id) {
       regulamento: getDefaultRegulamento(currentYear),
       metodologia: getDefaultMetodologia(currentYear)
     };
+  if (id && isHistoricalEdition(item)) {
+    const canArchive = item.status === "resultado_publicado";
+    showForm("Histórico da edição", `
+      <input type="hidden" name="id" value="${escapeHtml(item.id)}">
+      <div class="awards-note awards-field full">A edição ${escapeHtml(item.nome)} já faz parte do histórico oficial. Seus dados e resultados não podem ser alterados ou excluídos.${canArchive ? " Você pode apenas arquivar a edição, mantendo as páginas públicas." : ""}</div>
+      ${field("nome", "Edição", item.nome, "readonly")}
+      ${field("ano", "Ano", item.ano, "readonly")}
+      ${field("status_atual", "Status", item.status.replaceAll("_", " "), "readonly")}
+    `, async event => {
+      event.preventDefault();
+      if (!canArchive) return loadEditions();
+      if (!confirm("Arquivar esta edição? O resultado oficial e o Hall continuarão disponíveis.")) return;
+      await salvarEdicao({ id: item.id, status: "arquivada" });
+      toast("Edição arquivada. O histórico público foi preservado.");
+      state.edicoes = [];
+      await loadEditions();
+    }, { submitLabel: canArchive ? "Arquivar edição" : "Voltar às edições" });
+    return;
+  }
   const regulamento = item.regulamento || getDefaultRegulamento(item.ano);
   const metodologia = item.metodologia || getDefaultMetodologia(item.ano);
   showForm(id ? "Editar edição" : "Nova edição", `
@@ -1342,9 +1374,14 @@ async function editionForm(id) {
 async function categoryForm(id) {
   if (!state.edicoes.length) state.edicoes = await listarEdicoes();
   const item = id ? state.categorias.find(x => x.id === id) || {} : { status: "ativo", ordem: 0, max_escolhas: 1, permite_indicacao_publica: true };
+  if (id && isHistoricalEdition(item.edicao_id)) return toast("Esta categoria faz parte de um resultado publicado e não pode ser alterada.", "error");
+  const editableEditions = state.edicoes.filter(edition => !isHistoricalEdition(edition));
+  if (!editableEditions.length) return toast("Não há edição editável para cadastrar categorias.", "error");
+  const selectedEditionId = item.edicao_id || editableEditions.find(edition => edition.id === $("#category-edition-filter")?.value)?.id || editableEditions[0].id;
+  const tieNominees = id ? (await listarIndicados({ edicaoId: item.edicao_id, categoriaId: id })).filter(nominee => nominee.status === "ativo" && nominee.aprovado) : [];
   showForm(id ? "Editar categoria" : "Nova categoria", `
     <input type="hidden" name="id" value="${escapeHtml(id || "")}">
-    ${selectField("edicao_id", "Edição *", state.edicoes.map(e => `<option value="${e.id}" ${e.id === item.edicao_id ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join(""), "")}
+    ${selectField("edicao_id", "Edição *", editableEditions.map(e => `<option value="${e.id}" ${e.id === selectedEditionId ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join(""), "")}
     ${field("nome", "Nome *", item.nome || "", "required maxlength='140'")}
     ${field("slug", "Slug *", item.slug || "", "required")}
     ${selectField("status", "Status", optionList(categoryStatuses, item.status || "ativo"))}
@@ -1356,6 +1393,7 @@ async function categoryForm(id) {
     ${textarea("descricao", "Descrição", item.descricao || "")}
     ${textarea("criterios_especificos", "Critérios específicos", item.criterios_especificos || "")}
     ${field("regra_desempate", "Regra de desempate", item.regra_desempate || "")}
+    ${id ? `${selectField("desempate_vencedor_id", "Escolha do desempate (somente se houver empate na liderança)", `<option value="">Sem desempate definido</option>${tieNominees.map(nominee => `<option value="${nominee.id}" ${nominee.id === item.desempate_vencedor_id ? "selected" : ""}>${escapeHtml(nominee.nome)}</option>`).join("")}`, "full")}<p class="awards-note awards-field full">Selecione apenas um dos indicados empatados em primeiro lugar e registre acima a regra aplicada. A publicação validará essa escolha sem alterar os votos.</p>` : ""}
     <div class="awards-checks">
       <label><input name="permite_indicacao_publica" type="checkbox" ${item.permite_indicacao_publica !== false ? "checked" : ""}> Permitir indicação pública</label>
       <label><input name="permite_multiplos_votos" type="checkbox" ${item.permite_multiplos_votos ? "checked" : ""}> Permitir múltiplos votos</label>
@@ -1365,6 +1403,7 @@ async function categoryForm(id) {
     event.preventDefault();
     const form = event.currentTarget;
     if (!validReference(form.elements.imagem_url.value)) return toast("Use URL válida ou caminho interno em imagem.", "error");
+    if (form.elements.desempate_vencedor_id?.value && !form.elements.regra_desempate.value.trim() && !state.edicoes.find(edition => edition.id === form.elements.edicao_id.value)?.criterio_desempate?.trim()) return toast("Registre a regra de desempate antes de escolher o vencedor.", "error");
     await salvarCategoria({
       id: form.elements.id.value || undefined,
       edicao_id: form.elements.edicao_id.value,
@@ -1379,6 +1418,7 @@ async function categoryForm(id) {
       descricao: form.elements.descricao.value.trim() || null,
       criterios_especificos: form.elements.criterios_especificos.value.trim() || null,
       regra_desempate: form.elements.regra_desempate.value.trim() || null,
+      ...(id ? { desempate_vencedor_id: form.elements.desempate_vencedor_id.value || null } : {}),
       permite_indicacao_publica: form.elements.permite_indicacao_publica.checked,
       permite_multiplos_votos: form.elements.permite_multiplos_votos.checked,
       visibilidade_publica: form.elements.visibilidade_publica.checked
@@ -1392,6 +1432,7 @@ async function categoryForm(id) {
 }
 
 async function copyCategoriesForm(destinoEdicaoId) {
+  if (isHistoricalEdition(destinoEdicaoId)) return toast("Não é possível copiar categorias para uma edição com resultado publicado.", "error");
   const edicoesParaCopia = await listarEdicoesParaCopiaCategorias();
   const destino = edicoesParaCopia.find(item => item.id === destinoEdicaoId);
   const origens = edicoesParaCopia.filter(item => item.id !== destinoEdicaoId);
@@ -1423,14 +1464,17 @@ async function copyCategoriesForm(destinoEdicaoId) {
 
 async function nomineeForm(id) {
   if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-  const edicaoId = state.edicoes[0]?.id || "";
+  const item = id ? state.indicados.find(x => x.id === id) || {} : { status: "rascunho", ordem: 0 };
+  if (id && isHistoricalEdition(item.edicao_id)) return toast("Este indicado faz parte de um resultado publicado e não pode ser alterado.", "error");
+  const editableEditions = state.edicoes.filter(edition => !isHistoricalEdition(edition));
+  if (!editableEditions.length) return toast("Não há edição editável para cadastrar indicados.", "error");
+  const edicaoId = item.edicao_id || editableEditions.find(edition => edition.id === $("#nominee-edition-filter")?.value)?.id || editableEditions[0].id;
   if (!state.categorias.length) state.categorias = await listarCategorias(edicaoId);
   if (!state.guia.length) state.guia = await listarGuiaComercial();
-  const item = id ? state.indicados.find(x => x.id === id) || {} : { status: "rascunho", ordem: 0 };
   const categories = item.edicao_id ? await listarCategorias(item.edicao_id) : state.categorias;
   showForm(id ? "Editar indicado" : "Novo indicado", `
     <input type="hidden" name="id" value="${escapeHtml(id || "")}">
-    ${selectField("edicao_id", "Edição *", state.edicoes.map(e => `<option value="${e.id}" ${e.id === (item.edicao_id || edicaoId) ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join(""))}
+    ${selectField("edicao_id", "Edição *", editableEditions.map(e => `<option value="${e.id}" ${e.id === edicaoId ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join(""))}
     ${selectField("categoria_id", "Categoria *", categories.map(c => `<option value="${c.id}" ${c.id === item.categoria_id ? "selected" : ""}>${escapeHtml(c.nome)}</option>`).join(""))}
     ${selectField("guia_comercial_id", "Vincular ao Guia Comercial", `<option value="">Sem vínculo</option>${state.guia.map(g => `<option value="${g.id}" ${g.id === item.guia_comercial_id ? "selected" : ""}>${escapeHtml(g.nome)}</option>`).join("")}`)}
     ${field("nome", "Nome *", item.nome || "", "required maxlength='160'")}
@@ -1689,6 +1733,9 @@ async function guardedAction(button, action) {
   const actionRun = runId;
   try {
     await action();
+  } catch (error) {
+    console.error("Melhores de Urânia:", error);
+    toast(error?.message || "Não foi possível concluir a ação.", "error");
   } finally {
     if (isMounted(actionRun) || !isShellMode()) setButtonBusy(button, false);
   }
@@ -1735,6 +1782,7 @@ async function init(context = {}) {
       if (button.dataset.dashboardTab) return loadTab(button.dataset.dashboardTab);
       if (button.id === "new-edition" || button.hasAttribute("data-new-edition")) return editionForm();
       if (button.dataset.editEdition) return editionForm(button.dataset.editEdition);
+      if (button.dataset.deleteEdition && isHistoricalEdition(button.dataset.deleteEdition)) return toast("Esta edição tem histórico oficial e não pode ser excluída.", "error");
       if (button.dataset.deleteEdition && confirm("Excluir esta edição? Categorias e indicados vinculados também serão removidos.")) {
         await excluirEdicao(button.dataset.deleteEdition);
         toast("Edição excluída.");
@@ -1744,6 +1792,7 @@ async function init(context = {}) {
       if (button.hasAttribute("data-new-category")) return categoryForm();
       if (button.dataset.copyCategories) return copyCategoriesForm(button.dataset.copyCategories);
       if (button.dataset.editCategory) return categoryForm(button.dataset.editCategory);
+      if (button.dataset.deleteCategory && isHistoricalEdition(state.categorias.find(item => item.id === button.dataset.deleteCategory)?.edicao_id)) return toast("Esta categoria faz parte de um resultado publicado e não pode ser excluída.", "error");
       if (button.dataset.deleteCategory && confirm("Excluir esta categoria? Indicados vinculados também serão removidos.")) {
         await excluirCategoria(button.dataset.deleteCategory);
         toast("Categoria excluída.");
@@ -1752,6 +1801,7 @@ async function init(context = {}) {
       }
       if (button.hasAttribute("data-new-nominee")) return nomineeForm();
       if (button.dataset.editNominee) return nomineeForm(button.dataset.editNominee);
+      if (button.dataset.deleteNominee && isHistoricalEdition(state.indicados.find(item => item.id === button.dataset.deleteNominee)?.edicao_id)) return toast("Este indicado faz parte de um resultado publicado e não pode ser excluído.", "error");
       if (button.dataset.deleteNominee && confirm("Excluir este indicado?")) {
         await excluirIndicado(button.dataset.deleteNominee);
         toast("Indicado excluído.");
@@ -1833,6 +1883,9 @@ async function init(context = {}) {
       if (button.hasAttribute("data-publish-results")) {
         const edicaoId = $("#apuration-edition-filter")?.value || state.edicoes[0]?.id;
         if (!edicaoId) return toast("Selecione uma edição.", "error");
+        const edition = state.edicoes.find(item => item.id === edicaoId);
+        if (!edition || !["votacao_encerrada", "apuracao"].includes(edition.status)) return toast("Só é possível publicar uma edição com votação encerrada ou em apuração. Resultados já publicados são permanentes.", "error");
+        if (!state.apuracao.length) return toast("Não há votos apurados para publicar.", "error");
         const methodology = prompt("Descreva a metodologia resumida que ficará gravada no resultado oficial:", "Resultado calculado por percentual de votos no site e no Instagram, conforme pesos da edição.");
         if (methodology === null) return;
         if (!confirm("Publicar resultado oficial agora? Esta ação cria um snapshot histórico da edição.")) return;

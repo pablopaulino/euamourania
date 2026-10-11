@@ -1,0 +1,549 @@
+/* Experiência de votação: uma escolha clara por etapa, sem cartões decorativos. */
+body[data-awards-page="voting"] {
+  --vote-ink: #111214;
+  --vote-muted: #676b72;
+  --vote-line: #e8e4de;
+  --vote-red: var(--red, #e21414);
+  --vote-accent: var(--orange, #ff8a00);
+  background: #fbfaf8;
+  color: var(--vote-ink);
+}
+
+body[data-awards-page="voting"] main .awards-section {
+  min-height: 60vh;
+  padding: clamp(1.7rem, 5vw, 3.8rem) 0 clamp(4rem, 7vw, 6rem);
+  background: transparent;
+}
+
+body[data-awards-page="voting"] #awards-voting-root {
+  display: block;
+  width: min(860px, calc(100% - 48px));
+  max-width: 860px;
+  color: var(--vote-ink);
+}
+
+body[data-awards-page="voting"] .vote-kicker {
+  margin: 0 0 .8rem;
+  color: var(--vote-accent);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+body[data-awards-page="voting"] .vote-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  margin-bottom: 1.4rem;
+  color: var(--vote-ink);
+  font-size: .8rem;
+  font-weight: 750;
+  letter-spacing: -.015em;
+}
+
+body[data-awards-page="voting"] .vote-brand b { color: var(--vote-accent); font-weight: 850; }
+body[data-awards-page="voting"] .vote-brand-symbol {
+  color: var(--vote-red);
+  font-size: 1.16rem;
+  line-height: 1;
+}
+
+body[data-awards-page="voting"] .vote-flow-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem 1.25rem;
+  margin-top: 1.55rem;
+  color: var(--vote-muted);
+  font-size: .76rem;
+  font-weight: 600;
+}
+
+body[data-awards-page="voting"] .vote-flow-steps span { display: inline-flex; align-items: center; gap: .35rem; }
+body[data-awards-page="voting"] .vote-flow-steps b {
+  color: var(--vote-accent);
+  font-size: .68rem;
+  letter-spacing: .04em;
+}
+
+body[data-awards-page="voting"] .vote-progress-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #eae6df;
+}
+
+body[data-awards-page="voting"] .vote-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--vote-red), var(--vote-accent));
+  transition: width .22s ease;
+}
+
+body[data-awards-page="voting"] .vote-primary.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 51px;
+  padding: .8rem 1.35rem;
+  border: 0;
+  border-radius: 13px;
+  background: linear-gradient(100deg, var(--vote-red), var(--vote-accent));
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(226,20,20,.15);
+  font-size: .9rem;
+  font-weight: 750;
+  text-decoration: none;
+  transition: filter .2s ease, transform .2s ease;
+}
+
+body[data-awards-page="voting"] .vote-primary.button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(.92);
+  color: #fff;
+}
+
+body[data-awards-page="voting"] .vote-primary.button:disabled {
+  background: #eae6df;
+  color: #7b7771;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+body[data-awards-page="voting"] .vote-primary.button > span {
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform .2s ease;
+}
+
+body[data-awards-page="voting"] .vote-primary.button:hover > span { transform: translateX(3px); }
+
+/* Entrada da central. */
+body[data-awards-page="voting"] .vote-hub-hero {
+  padding: 0 0 2.1rem;
+  border-bottom: 1px solid var(--vote-line);
+}
+
+body[data-awards-page="voting"] .vote-hub-hero h1,
+body[data-awards-page="voting"] .vote-step-heading h1,
+body[data-awards-page="voting"] .vote-complete h1,
+body[data-awards-page="voting"] .vote-closed h1 {
+  max-width: 760px;
+  margin: 0;
+  color: var(--vote-ink);
+  font-size: clamp(2.25rem, 5.8vw, 4rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -.06em;
+}
+
+body[data-awards-page="voting"] .vote-hub-hero > p:not(.vote-kicker),
+body[data-awards-page="voting"] .vote-step-heading > p:not(.vote-kicker),
+body[data-awards-page="voting"] .vote-complete > p:not(.vote-kicker),
+body[data-awards-page="voting"] .vote-closed > p:not(.vote-kicker) {
+  max-width: 620px;
+  margin: 1rem 0 0;
+  color: var(--vote-muted);
+  font-size: .97rem;
+  line-height: 1.5;
+}
+
+body[data-awards-page="voting"] .vote-hub-progress {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2rem 0 .6rem;
+  color: var(--vote-ink);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+body[data-awards-page="voting"] .vote-hub-hero .vote-primary { margin-top: 1.4rem; }
+
+body[data-awards-page="voting"] .vote-hub-list { margin-top: 2.3rem; }
+body[data-awards-page="voting"] .vote-hub-list h2 {
+  margin: 0 0 .9rem;
+  color: var(--vote-ink);
+  font-size: 1.5rem;
+  letter-spacing: -.04em;
+}
+
+body[data-awards-page="voting"] .vote-category-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 1.5rem;
+  align-items: center;
+  gap: .85rem;
+  min-height: 65px;
+  padding: .85rem .25rem;
+  border-top: 1px solid var(--vote-line);
+  color: var(--vote-ink);
+  text-decoration: none;
+  transition: padding .2s ease, color .2s ease;
+}
+
+body[data-awards-page="voting"] .vote-category-row:hover { padding-left: .6rem; color: var(--vote-accent); }
+body[data-awards-page="voting"] .vote-category-row strong { font-size: .95rem; font-weight: 700; }
+body[data-awards-page="voting"] .vote-category-row small { color: var(--vote-muted); font-size: .78rem; }
+body[data-awards-page="voting"] .vote-category-row.is-complete .vote-category-arrow { color: var(--vote-accent); }
+body[data-awards-page="voting"] .vote-category-row.is-disabled { opacity: .5; pointer-events: none; }
+body[data-awards-page="voting"] .vote-category-arrow { text-align: right; font-size: 1.1rem; }
+
+/* Uma categoria: navegação fina, grade de indicados, uma ação principal. */
+body[data-awards-page="voting"] .vote-step-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1rem;
+  color: var(--vote-muted);
+  font-size: .8rem;
+  font-weight: 650;
+}
+
+body[data-awards-page="voting"] .vote-step-nav a { color: var(--vote-ink); text-decoration: none; }
+body[data-awards-page="voting"] .vote-step-nav a:hover { color: var(--vote-accent); }
+body[data-awards-page="voting"] .vote-step-nav span {
+  flex: none;
+  padding: .36rem .6rem;
+  border: 1px solid var(--vote-line);
+  border-radius: 999px;
+  color: var(--vote-muted);
+  font-size: .7rem;
+  letter-spacing: .01em;
+}
+body[data-awards-page="voting"] .vote-step { padding-top: clamp(2rem, 5vw, 3rem); }
+body[data-awards-page="voting"] .vote-step-heading { margin-bottom: 1.7rem; }
+body[data-awards-page="voting"] .vote-step-heading h1 { font-size: clamp(2.2rem, 5.3vw, 3.45rem); }
+
+body[data-awards-page="voting"] .vote-nominees {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(.9rem, 2vw, 1.4rem);
+  margin: 0;
+}
+
+body[data-awards-page="voting"] .vote-nominee { min-width: 0; margin: 0; }
+
+body[data-awards-page="voting"] .vote-nominee-button {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--vote-ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+body[data-awards-page="voting"] .vote-nominee-button:disabled { cursor: default; opacity: 1; }
+
+body[data-awards-page="voting"] .vote-nominee-media {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid #e5e0d8;
+  border-radius: 17px;
+  background: #efebe5;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+
+body[data-awards-page="voting"] .vote-nominee-button:not(:disabled):hover .vote-nominee-media { transform: translateY(-2px); }
+
+body[data-awards-page="voting"] .vote-nominee.is-active .vote-nominee-media {
+  border-color: var(--vote-red);
+  box-shadow: 0 0 0 2px var(--vote-red);
+}
+
+body[data-awards-page="voting"] .vote-nominee.is-voted .vote-nominee-media {
+  box-shadow: 0 0 0 2px var(--vote-accent);
+}
+
+body[data-awards-page="voting"] .vote-nominee-media img,
+body[data-awards-page="voting"] .vote-nominee-empty {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+body[data-awards-page="voting"] .vote-nominee-empty {
+  background: #eeeae4;
+  color: #b7b0a6;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -.08em;
+}
+
+body[data-awards-page="voting"] .vote-nominee-check {
+  position: absolute;
+  right: .55rem;
+  top: .55rem;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 0 0 1px rgba(17,18,20,.43);
+  color: transparent;
+  font-size: .85rem;
+  font-weight: 800;
+  opacity: 1;
+  transform: scale(1);
+  transition: color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+body[data-awards-page="voting"] .vote-nominee.is-active .vote-nominee-check,
+body[data-awards-page="voting"] .vote-nominee.is-voted .vote-nominee-check {
+  background: var(--vote-red);
+  box-shadow: none;
+  color: #fff;
+}
+body[data-awards-page="voting"] .vote-nominee.is-voted .vote-nominee-check { background: var(--vote-red); }
+body[data-awards-page="voting"] .vote-nominee:not(.is-voted) .vote-nominee-button:disabled { opacity: .55; }
+
+body[data-awards-page="voting"] .vote-nominee-name {
+  display: block;
+  padding: 0 .1rem;
+  color: var(--vote-ink);
+  font-size: .95rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -.02em;
+}
+
+body[data-awards-page="voting"] .vote-confirmation {
+  display: flex;
+  align-items: baseline;
+  gap: .6rem;
+  margin: -.45rem 0 1.6rem;
+  color: var(--vote-ink);
+  font-size: .85rem;
+}
+
+body[data-awards-page="voting"] .vote-confirmation > span { color: var(--vote-accent); font-weight: 900; }
+body[data-awards-page="voting"] .vote-confirmation p { margin: 0; }
+
+body[data-awards-page="voting"] .vote-step-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 2.2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--vote-line);
+}
+
+body[data-awards-page="voting"] .vote-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  width: 100%;
+}
+
+body[data-awards-page="voting"] .vote-action-caption {
+  flex: 1 1 170px;
+  min-width: 0;
+  margin: 0;
+  color: var(--vote-muted);
+  font-size: .83rem;
+  line-height: 1.35;
+}
+
+body[data-awards-page="voting"] .vote-action-caption strong { color: var(--vote-ink); }
+body[data-awards-page="voting"] .vote-action-skip {
+  color: var(--vote-ink);
+  font-size: .8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+body[data-awards-page="voting"] .vote-step-actions .vote-primary { min-width: 250px; }
+body[data-awards-page="voting"] .vote-step-links { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; }
+body[data-awards-page="voting"] .vote-step-links a,
+body[data-awards-page="voting"] .vote-step-links button {
+  padding: .2rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--vote-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+body[data-awards-page="voting"] .vote-step-links a:hover,
+body[data-awards-page="voting"] .vote-step-links button:hover { color: var(--vote-accent); }
+
+body[data-awards-page="voting"] .vote-saved-state {
+  display: grid;
+  grid-template-columns: 2.1rem minmax(0, 1fr);
+  align-items: start;
+  gap: .8rem .9rem;
+  padding: 1.35rem 0 1.5rem;
+  border-top: 1px solid var(--vote-line);
+  border-bottom: 1px solid var(--vote-line);
+}
+
+body[data-awards-page="voting"] .vote-saved-icon {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  background: var(--vote-red);
+  color: #fff;
+  font-size: .95rem;
+  font-weight: 800;
+}
+
+body[data-awards-page="voting"] .vote-saved-copy h2 {
+  margin: 0;
+  color: var(--vote-ink);
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  font-weight: 800;
+  letter-spacing: -.04em;
+}
+
+body[data-awards-page="voting"] .vote-saved-copy p {
+  margin: .35rem 0 0;
+  color: var(--vote-muted);
+  font-size: .88rem;
+  line-height: 1.4;
+}
+
+body[data-awards-page="voting"] .vote-saved-nominee {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  min-width: 0;
+  color: var(--vote-ink);
+  font-size: .88rem;
+  font-weight: 700;
+}
+
+body[data-awards-page="voting"] .vote-saved-photo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  overflow: hidden;
+  border-radius: .6rem;
+  background: #eeeae4;
+  color: #69635b;
+  font-size: 1rem;
+}
+
+body[data-awards-page="voting"] .vote-saved-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+body[data-awards-page="voting"] .vote-saved-nominee > span:last-child {
+  display: grid;
+  gap: .1rem;
+  color: var(--vote-muted);
+  font-size: .7rem;
+  font-weight: 600;
+}
+
+body[data-awards-page="voting"] .vote-saved-nominee strong {
+  color: var(--vote-ink);
+  font-size: .89rem;
+  line-height: 1.25;
+}
+
+body[data-awards-page="voting"] .vote-saved-list {
+  grid-column: 2;
+  margin: 0;
+  color: var(--vote-muted);
+  font-size: .82rem;
+}
+body[data-awards-page="voting"] .vote-saved-list strong { color: var(--vote-ink); }
+
+body[data-awards-page="voting"] .vote-primary:focus-visible,
+body[data-awards-page="voting"] .vote-nominee-button:focus-visible,
+body[data-awards-page="voting"] .vote-category-row:focus-visible,
+body[data-awards-page="voting"] .vote-step a:focus-visible,
+body[data-awards-page="voting"] .vote-step button:focus-visible,
+body[data-awards-page="voting"] .vote-step-nav a:focus-visible {
+  outline: 3px solid #f6932d;
+  outline-offset: 4px;
+}
+
+/* Finalização e indisponibilidade mantêm o mesmo vocabulário visual. */
+body[data-awards-page="voting"] .vote-complete,
+body[data-awards-page="voting"] .vote-closed {
+  max-width: 700px;
+  padding: 1rem 0;
+  background: transparent;
+}
+
+body[data-awards-page="voting"] .vote-complete .vote-progress-track { margin: .75rem 0 1.5rem; }
+body[data-awards-page="voting"] .vote-closed .vote-primary { margin-top: 1.5rem; }
+body[data-awards-page="voting"] .vote-complete-meta { margin-top: 2rem; font-size: .82rem; font-weight: 700; }
+body[data-awards-page="voting"] .vote-complete-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem 1.2rem; }
+body[data-awards-page="voting"] .vote-complete-actions a:not(.button) { color: var(--vote-muted); font-size: .82rem; font-weight: 650; }
+
+@media (max-width: 700px) {
+  body[data-awards-page="voting"] #awards-voting-root { width: calc(100% - 36px); }
+  body[data-awards-page="voting"] .vote-brand { margin-bottom: 1.05rem; font-size: .75rem; }
+  body[data-awards-page="voting"] .vote-flow-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin-top: 1.2rem; font-size: .68rem; line-height: 1.25; }
+  body[data-awards-page="voting"] .vote-flow-steps span { align-items: flex-start; }
+  body[data-awards-page="voting"] .vote-nominees { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.3rem .8rem; }
+  body[data-awards-page="voting"] .vote-hub-hero h1,
+  body[data-awards-page="voting"] .vote-step-heading h1 { font-size: clamp(2.2rem, 9vw, 3.25rem); }
+  body[data-awards-page="voting"] .vote-hub-hero .vote-primary { width: 100%; }
+  body[data-awards-page="voting"] .vote-step { padding-top: 1.8rem; padding-bottom: calc(7.6rem + env(safe-area-inset-bottom)); }
+  body[data-awards-page="voting"] .vote-step-heading { margin-bottom: 1.4rem; }
+  body[data-awards-page="voting"] .vote-category-row { grid-template-columns: minmax(0, 1fr) 1.5rem; gap: .2rem .7rem; }
+  body[data-awards-page="voting"] .vote-category-row small { grid-column: 1; grid-row: 2; }
+  body[data-awards-page="voting"] .vote-category-arrow { grid-column: 2; grid-row: 1 / 3; }
+  body[data-awards-page="voting"] .vote-step-actions { margin-top: 1.5rem; padding-top: 1rem; }
+  body[data-awards-page="voting"] .vote-action-bar {
+    position: fixed;
+    z-index: 60;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: .45rem;
+    padding: .65rem max(18px, calc((100vw - 650px) / 2)) calc(.7rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--vote-line);
+    background: #fbfaf8;
+    box-shadow: 0 -8px 28px rgba(17,18,20,.045);
+  }
+  body[data-awards-page="voting"] .vote-action-caption {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: .75rem;
+  }
+  body[data-awards-page="voting"] .vote-step-actions .vote-primary { width: 100%; min-width: 0; }
+  body[data-awards-page="voting"] .vote-action-skip { justify-self: center; padding: .35rem 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-awards-page="voting"] .vote-primary.button,
+  body[data-awards-page="voting"] .vote-primary.button > span,
+  body[data-awards-page="voting"] .vote-nominee-media,
+  body[data-awards-page="voting"] .vote-nominee-check,
+  body[data-awards-page="voting"] .vote-progress-track > span,
+  body[data-awards-page="voting"] .vote-category-row { transition: none; }
+}

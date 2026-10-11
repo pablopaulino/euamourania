@@ -14,9 +14,12 @@ function getSlug() {
 function statusLabel(status = "") {
   const labels = {
     indicacoes_abertas: "Indicações abertas",
+    indicacoes_encerradas: "Indicações encerradas",
     votacao_aberta: "Votação aberta",
     votacao_encerrada: "Votação encerrada",
-    resultado_publicado: "Resultado publicado"
+    apuracao: "Apuração",
+    resultado_publicado: "Resultado publicado",
+    arquivada: "Edição arquivada"
   };
   return labels[status] || String(status || "Status a confirmar").replaceAll("_", " ");
 }

@@ -33,8 +33,8 @@ async function rows(table, select, order, filters = []) {
 
 async function melhoresRows() {
   const query = new URLSearchParams({
-    select: "ano,atualizado_em,imagem_capa_url",
-    status: "in.(indicacoes_abertas,votacao_aberta,votacao_encerrada,resultado_publicado)",
+    select: "id,ano,status,atualizado_em,imagem_capa_url,resultado_publicado_em",
+    status: "in.(indicacoes_abertas,indicacoes_encerradas,votacao_aberta,votacao_encerrada,apuracao,resultado_publicado,arquivada)",
     order: "ano.desc"
   });
   const response = await fetch(`${SUPABASE_URL}/rest/v1/melhores_edicoes?${query}`, {
@@ -47,11 +47,9 @@ async function melhoresRows() {
 async function melhoresCategoriasRows() {
   const query = new URLSearchParams({
     select: "slug,atualizado_em,edicao_id,melhores_edicoes!inner(id,ano,status)",
-    status: "eq.ativo",
-    visibilidade_publica: "eq.true",
     order: "ordem.asc"
   });
-  query.append("melhores_edicoes.status", "in.(indicacoes_abertas,votacao_aberta,votacao_encerrada,resultado_publicado)");
+  query.append("melhores_edicoes.status", "in.(indicacoes_abertas,indicacoes_encerradas,votacao_aberta,votacao_encerrada,apuracao,resultado_publicado,arquivada)");
   const response = await fetch(`${SUPABASE_URL}/rest/v1/melhores_categorias?${query}`, {
     headers: { apikey: SUPABASE_KEY }
   });
@@ -94,7 +92,7 @@ module.exports = async (req, res) => {
       );
     }
 
-    const [guia, guiaCategorias, turismo, eventos, eventPrincipals, eventEditions, melhores, melhoresCategorias] = await Promise.all([
+    const [guia, guiaCategorias, turismo, eventos, eventPrincipals, eventEditions, melhores, melhoresCategorias, melhoresVencedores] = await Promise.all([
       rows("guia_comercial", "slug,atualizado_em,imagem_url,categoria_id,categoria_nome", "atualizado_em.desc"),
       optionalRows("categorias", {
         select: "id,nome,slug,criado_em",
@@ -115,7 +113,10 @@ module.exports = async (req, res) => {
         order: "ano.desc"
       }),
       melhoresRows(),
-      melhoresCategoriasRows()
+      melhoresCategoriasRows(),
+      optionalRows("rpc/melhores_listar_resultados_publicos", {
+        p_somente_vencedores: "true"
+      }).catch(() => [])
     ]);
     const statics = [
       { path: "/", priority: "1.0", changefreq: "daily" },
@@ -156,6 +157,7 @@ module.exports = async (req, res) => {
         .map(item => [slugify(item.categoria_nome), { slug: slugify(item.categoria_nome), lastmod: item.atualizado_em }])
       ).values()]
     ];
+    const edicoesComVencedores = new Set(melhoresVencedores.map(item => item.edicao_id));
     const melhoresUrls = melhores.flatMap(item => {
       const base = [{
         loc: `${DOMAIN}/melhores-de-urania/${item.ano}/`,
@@ -168,7 +170,7 @@ module.exports = async (req, res) => {
         loc: `${DOMAIN}/melhores-de-urania/${item.ano}/metodologia/`,
         lastmod: item.atualizado_em
       }];
-      if (item.status === "resultado_publicado") {
+      if ((item.status === "resultado_publicado" || item.status === "arquivada") && edicoesComVencedores.has(item.id)) {
         base.push({
           loc: `${DOMAIN}/melhores-de-urania/${item.ano}/resultados/`,
           lastmod: item.atualizado_em,
@@ -177,6 +179,13 @@ module.exports = async (req, res) => {
       }
       return base;
     });
+    const melhoresVencedoresUrls = melhoresVencedores
+      .filter(item => item.indicado_id && /^\d{4}$/.test(String(item.melhores_edicoes?.ano || "")))
+      .map(item => ({
+        loc: `${DOMAIN}/melhores-de-urania/${item.melhores_edicoes.ano}/vencedores/${item.indicado_id}/`,
+        lastmod: item.publicado_em,
+        image: item.melhores_indicados?.imagem_url ? `<image:image><image:loc>${xml(new URL(item.melhores_indicados.imagem_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
+      }));
     const melhoresCategoriasPermanentes = [...new Map(melhoresCategorias
       .filter(item => item.slug)
       .map(item => [item.slug, {
@@ -236,7 +245,9 @@ module.exports = async (req, res) => {
         loc: `${DOMAIN}/melhores-de-urania/categorias/${item.slug}/`,
         lastmod: item.lastmod
       })),
-      ...melhoresUrls
+      ...melhoresUrls,
+      ...(melhoresVencedoresUrls.length ? [{ loc: `${DOMAIN}/melhores-de-urania/hall/`, lastmod: melhoresVencedores.map(item => item.publicado_em).filter(Boolean).sort().at(-1) }] : []),
+      ...melhoresVencedoresUrls
     ];
     const urls = all.map(item =>
       `<url><loc>${xml(item.loc)}</loc>${item.lastmod ? `<lastmod>${xml(String(item.lastmod).slice(0, 10))}</lastmod>` : ""}${item.changefreq ? `<changefreq>${xml(item.changefreq)}</changefreq>` : ""}${item.priority ? `<priority>${xml(item.priority)}</priority>` : ""}${item.image || ""}</url>`
