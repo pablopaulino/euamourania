@@ -199,6 +199,7 @@ function activateAdSense(zone) {
 }
 
 function insertAdSenseZone(position, slot, target, where = "beforebegin", inline = false) {
+  if (position === "noticia_meio") return false;
   if (disabledTopPositions.has(position)) return false;
   if (!hasAdConsent() || !slot || adsenseCount >= adsense.maxPerPage) return false;
   if (adsenseAttempted.has(position)) return false;
@@ -222,17 +223,6 @@ function insertAdSenseBetweenCards(position, slot, containerSelector, cardSelect
   const cards = container ? [...container.querySelectorAll(cardSelector)] : [];
   if (!cards.length) return;
   insertAdSenseZone(position, slot, cards[Math.min(afterIndex, cards.length - 1)], "afterend", true);
-}
-
-function insertAdSenseInsideArticle() {
-  const position = "noticia_meio";
-  if (document.querySelector(`[data-banner="${position}"]`)) return;
-  const article = document.querySelector(".article-copy");
-  if (!article) return;
-  const blocks = [...article.children].filter(node => /^(P|H2|H3|BLOCKQUOTE|FIGURE|UL|OL)$/.test(node.tagName));
-  if (!blocks.length) return;
-  const index = Math.min(blocks.length - 1, Math.max(1, Math.floor(blocks.length / 2)));
-  insertAdSenseZone(position, adsense.slots.noticiaMeio, blocks[index], "afterend", true);
 }
 
 function zoneMarkup(position, items, inline = false) {
@@ -311,6 +301,7 @@ function setupRotator(zone, items) {
 }
 
 function insertZone(position, target, where = "beforebegin", inline = false) {
+  if (position === "noticia_meio") return false;
   if (document.querySelector(`[data-banner="${position}"]`)) return false;
   const element = typeof target === "string" ? document.querySelector(target) : target;
   if (!element) return false;
@@ -349,22 +340,28 @@ function insertRepeatedBetweenCards(position, containerSelector, cardSelector, i
   }
 }
 
-function insertInsideArticle() {
-  const position = "noticia_meio";
-  if (document.querySelector(`[data-banner="${position}"]`)) return;
-  const article = document.querySelector(".article-copy");
-  if (!article) return;
-  const blocks = [...article.children].filter(node => /^(P|H2|H3|BLOCKQUOTE|FIGURE|UL|OL)$/.test(node.tagName));
-  if (!blocks.length) return;
-  const index = Math.min(blocks.length - 1, Math.max(1, Math.floor(blocks.length / 2)));
-  insertZone(position, blocks[index], "afterend", true);
-}
-
 function insertFirstAvailable(position, targets, where = "beforebegin", inline = false) {
   return targets.some(target => insertZone(position, target, where, inline));
 }
 
+function isGuideDetailPage() {
+  return document.body.classList.contains("guide-detail-preview")
+    || location.pathname.includes("guia-details")
+    || /^\/guia\/[^/]+\/?$/.test(location.pathname);
+}
+
+function guideDetailAdTarget() {
+  return document.querySelector("#detail-final-ad-anchor") || document.querySelector(".site-footer, footer");
+}
+
+function insertGuideDetailZone() {
+  if (document.querySelector('[data-banner="guia_rodape"], [data-banner="todas_paginas"]')) return false;
+  const target = guideDetailAdTarget();
+  return target ? insertZone("guia_rodape", target) || insertZone("todas_paginas", target) : false;
+}
+
 function insertGlobalZone() {
+  if (isGuideDetailPage()) return false;
   const footer = document.querySelector(".site-footer, footer");
   if (footer) return insertZone("todas_paginas", footer, "beforebegin");
   const main = document.querySelector("main");
@@ -382,17 +379,13 @@ function render() {
     insertRepeatedBetweenCards("noticias_entre_listagem", "#news-container", ".news-item", 6);
   }
   if (path.includes("news-details") || path.includes("news-detalhes") || path.startsWith("/noticias/")) {
-    insertInsideArticle();
     insertZone("noticia_final", ".related-news");
   }
   if (path.endsWith("guia.html")) {
     insertRepeatedBetweenCards("guia_entre_estabelecimentos", "#guia-container", ".card-guia", 6);
     insertZone("guia_rodape", ".site-footer");
   }
-  if (path.includes("guia-details") || path.startsWith("/guia/")) {
-    insertFirstAvailable("guia_entre_estabelecimentos", [".guide-related-sections", ".guide-business-actions", ".tourism-detail-layout", "main"], "afterend", true);
-    insertZone("guia_rodape", ".site-footer");
-  }
+  if (isGuideDetailPage()) insertGuideDetailZone();
   if (path.endsWith("turismo.html")) {
     insertRepeatedBetweenCards("turismo_entre_cartoes", "#turismo-container", ".card-guia", 6, true);
     insertZone("turismo_rodape", ".site-footer");
@@ -428,7 +421,6 @@ function renderAdSense() {
     insertAdSenseBetweenCards("noticias_entre_listagem", adsense.slots.listagens, "#news-container", ".news-item", 3);
   }
   if (path.includes("news-details") || path.includes("news-detalhes") || path.startsWith("/noticias/")) {
-    insertAdSenseInsideArticle();
     insertAdSenseZone("noticia_final", adsense.slots.finalRodape, ".related-news");
   }
   if (path.endsWith("guia.html")) {

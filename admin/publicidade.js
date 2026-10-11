@@ -80,7 +80,7 @@ const positionRecommendations = {
   home_entre_secoes: "Super banner ou nativo",
   home_rodape: "Horizontal 728 × 90",
   noticias_entre_listagem: "Nativo ou retângulo",
-  noticia_meio: "Nativo ou retângulo",
+  noticia_meio: "Desativada — remaneje campanhas existentes",
   noticia_final: "Super banner ou nativo",
   guia_entre_estabelecimentos: "Nativo ou retângulo",
   guia_rodape: "Horizontal 728 × 90",
@@ -95,7 +95,6 @@ const positionDescriptions = {
   home_entre_secoes: "Integra a campanha ao fluxo de conteúdo da home.",
   home_rodape: "Última oportunidade antes do rodapé.",
   noticias_entre_listagem: "Entre os cards do feed de notícias.",
-  noticia_meio: "Dentro do texto, próximo ao centro da matéria.",
   noticia_final: "Depois da matéria e antes das recomendações.",
   guia_entre_estabelecimentos: "Entre os estabelecimentos cadastrados.",
   guia_rodape: "Depois do guia, antes do rodapé.",
@@ -107,7 +106,7 @@ const positionDescriptions = {
 const positions = {
   "Todas as páginas": [["todas_paginas","Exibir em todo o site"]],
   "Home": [["home_hero_conteudo","Depois da abertura"],["home_entre_secoes","Entre seções"],["home_rodape","Final da home"]],
-  "Notícias": [["noticias_entre_listagem","Entre a listagem"],["noticia_meio","Meio da notícia"],["noticia_final","Final da notícia"]],
+  "Notícias": [["noticias_entre_listagem","Entre a listagem"],["noticia_final","Final da notícia"]],
   "Guia": [["guia_entre_estabelecimentos","Entre estabelecimentos"],["guia_rodape","Final do guia"]],
   "Turismo": [["turismo_entre_cartoes","Entre cartões"],["turismo_rodape","Final do turismo"]],
   "Eventos": [["eventos_entre_eventos","Entre eventos"],["eventos_rodape","Final dos eventos"]]
@@ -418,12 +417,14 @@ function openForm(campaign=null) {
   const form=$("#campaign-form"); form.reset(); form.elements.id.value=""; form.elements.prioridade.value=0; form.elements.popup_atraso_seg.value=3; form.elements.abrir_nova_aba.checked=true; form.elements.popup_uma_vez.checked=true; form.elements.popup_botao_fechar.checked=true;
   state.currentConfig={};form.elements.formato.value="automatico";form.elements.rotacao_segundos.value=8;
   $$('[name="posicoes"]').forEach(x=>x.checked=false);
+  const hasDisabledMiddlePosition=campaign?.campanha_posicoes?.some(x=>x.posicao==="noticia_meio");
   if(campaign) {
     Object.entries(campaign).forEach(([key,value])=>{const field=form.elements[key];if(!field||key==="campanha_posicoes")return;if(field.type==="checkbox")field.checked=Boolean(value);else if(field.type==="datetime-local")field.value=inputDate(value);else field.value=value??"";});
     state.currentConfig={...(campaign.configuracao_futura||{})};["formato","imagem_mobile_url","titulo_publico","texto_publico","rotacao_segundos"].forEach(key=>{if(form.elements[key])form.elements[key].value=state.currentConfig[key]??(key==="formato"?"automatico":key==="rotacao_segundos"?8:"")});
     (campaign.campanha_posicoes||[]).forEach(x=>{const field=form.querySelector(`[name="posicoes"][value="${x.posicao}"]`);if(field)field.checked=true;});
   }
   syncPositionCards();togglePopup();updateCreativePreview(); switchView("form"); (mountedContainer || window).scrollTo?.({top:0,behavior:"smooth"});
+  if(hasDisabledMiddlePosition) toast("O anúncio no meio da matéria foi desativado. Escolha outra posição antes de salvar.","error");
 }
 
 function subscriptionById(id) {

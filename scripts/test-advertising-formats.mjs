@@ -6,8 +6,9 @@ const must = (condition, message) => {
   if (!condition) throw new Error(message);
 };
 
-const [publicJs, publicCss, adminJs, adminCss, styles, docs, migration] = await Promise.all([
+const [publicJs, previewJs, publicCss, adminJs, adminCss, styles, docs, migration] = await Promise.all([
   read("assets/js/pages/banners-page.js"),
+  read("preview/guia/banners-preview.js"),
   read("assets/css/publicidade-publica.css"),
   read("admin/publicidade.js"),
   read("admin/publicidade-v2.css"),
@@ -25,10 +26,19 @@ must(adminJs.includes("campaign-preview") && adminCss.includes(".campaign-previe
 must(adminJs.includes("formatSpecs") && adminJs.includes("format-size-guide") && adminCss.includes(".format-size-guide"), "Painel não orienta proporções e tamanhos de imagem por formato.");
 must(adminJs.includes("preview-logo") && adminJs.includes("youtubePreview"), "Prévia não representa logo ou vídeo.");
 must(adminJs.includes("positionRecommendations") && adminJs.includes("placement-inventory"), "Painel não orienta nem resume as posições.");
+must(!adminJs.includes('["noticia_meio","Meio da notícia"]'), "Painel ainda permite selecionar o espaço desativado no meio da notícia.");
 must(adminJs.includes("position-option") && adminJs.includes("syncPositionCards") && adminCss.includes(".position-option.selected"), "Seleção de posições não usa cards acessíveis.");
 must(adminJs.includes("configuracao_futura") && adminJs.includes("rotacao_segundos"), "Configuração de formato não usa o JSON escalável existente.");
 must(publicJs.includes("insertBetweenCards") && publicJs.includes('".news-item", 3') && publicJs.includes('".card-guia", 5'), "Anúncios não entram realmente entre os cartões.");
-must(publicJs.includes("insertInsideArticle") && publicJs.includes("Math.floor(blocks.length / 2)"), "Anúncio não entra no meio do conteúdo da notícia.");
+for (const [name, source] of [["legado", publicJs], ["atual", previewJs]]) {
+  must(!source.includes("insertInsideArticle") && !source.includes("insertAdSenseInsideArticle"), `Anúncio ainda entra no meio da notícia (${name}).`);
+  must((source.match(/if \(position === "noticia_meio"\) return false;/g) || []).length === 2, `Posição de meio da notícia não está bloqueada (${name}).`);
+  must(source.includes('insertZone("noticia_final"') && source.includes('insertAdSenseZone("noticia_final"'), `Anúncio final da notícia ausente (${name}).`);
+  must(source.includes('if (isGuideDetailPage()) insertGuideDetailZone();'), `Detalhe do Guia não usa uma posição exclusiva de publicidade (${name}).`);
+  must(/function insertGlobalZone\(\) \{\s*if \(isGuideDetailPage\(\)/.test(source), `Campanha global ainda duplica o anúncio no detalhe do Guia (${name}).`);
+  must(source.includes('insertZone("guia_rodape", target) || insertZone("todas_paginas", target)'), `Detalhe do Guia não prioriza seu anúncio de rodapé (${name}).`);
+  must(!source.includes('insertFirstAvailable("guia_entre_estabelecimentos"'), `Anúncio da listagem ainda entra no detalhe do Guia (${name}).`);
+}
 must(publicJs.includes("IntersectionObserver") && publicJs.includes("intersectionRatio >= .45"), "Impressões são registradas sem visibilidade real.");
 must(publicJs.includes("ad-rotator") && publicJs.includes("rotacao_segundos"), "Campanhas na mesma posição não possuem rotação.");
 must(publicJs.includes("weightedIndex") && publicJs.includes("priorityWeight"), "Rotação não respeita prioridade nem varia a campanha inicial.");

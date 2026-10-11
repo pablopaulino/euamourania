@@ -66,7 +66,6 @@ O portal usa publicidade híbrida. Campanhas próprias cadastradas no CMS têm p
 - topo;
 - home e listagens;
 - topo de notícias;
-- meio da notícia;
 - final e rodapé.
 
 Para preservar a experiência, o portal limita o AdSense a três blocos por página, não usa Google nos pop-ups e remove automaticamente espaços marcados como não preenchidos. O script do Google é carregado uma única vez e somente após o visitante aceitar os cookies opcionais.
