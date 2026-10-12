@@ -1,9 +1,20 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
 
 const require = createRequire(import.meta.url);
 const handleHome = require("../api/home.js");
 const originalFetch = globalThis.fetch;
+const routes = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8")).routes || [];
+for (const [src, dest] of [
+  ["^/$", "/api/home"],
+  ["^/news/?$", "/api/noticia?tipo=news-list"],
+  ["^/guia\\.html$", "/api/noticia?tipo=guide-list"],
+  ["^/turismo\\.html$", "/api/noticia?tipo=tourism-list"],
+  ["^/eventos/?$", "/api/noticia?tipo=agenda-list"]
+]) {
+  assert.ok(routes.some(route => route.src === src && route.dest === dest), `Rota SSR prioritária ausente: ${src}`);
+}
 const calls = [];
 const now = Date.now();
 

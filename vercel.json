@@ -88,6 +88,13 @@
     { "source": "/categorias/:categoria", "destination": "/news/:categoria", "permanent": true },
     { "source": "/categorias/:categoria/", "destination": "/news/:categoria", "permanent": true }
   ],
+  "routes": [
+    { "src": "^/$", "methods": ["GET", "HEAD"], "dest": "/api/home" },
+    { "src": "^/news/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=news-list" },
+    { "src": "^/guia\\.html$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=guide-list" },
+    { "src": "^/turismo\\.html$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=tourism-list" },
+    { "src": "^/eventos/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=agenda-list" }
+  ],
   "rewrites": [
     { "source": "/", "destination": "/api/home" },
     { "source": "/news", "destination": "/api/noticia?tipo=news-list" },

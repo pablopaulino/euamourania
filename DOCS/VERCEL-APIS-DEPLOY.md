@@ -44,6 +44,8 @@ Responsável por:
 
 As rotas públicas de conteúdo principal usam renderização no servidor: o HTML inicial já contém os registros publicados, sem depender de JavaScript. O navegador mantém as interações e complementa o conteúdo sem repetir a consulta principal quando a resposta SSR está completa. Respostas completas usam cache de 60 segundos com revalidação por mais 60; falhas e respostas parciais não são armazenadas.
 
+Home, notícias, Guia, Turismo e Agenda têm templates estáticos no repositório. As entradas específicas em `routes` devem ser avaliadas antes do sistema de arquivos da Vercel; somente `rewrites` não substitui esses arquivos estáticos em produção. Ao alterar essas URLs, confira o HTML bruto do domínio publicado, não apenas a prévia local.
+
 Para conferir o HTML local sem executar JavaScript, inicie `node scripts/serve-public-ssr-local.mjs 4178` e rode `node scripts/check-local-ssr.mjs http://127.0.0.1:4178`.
 
 ## Cron
