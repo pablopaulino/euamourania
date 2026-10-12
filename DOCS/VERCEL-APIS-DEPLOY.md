@@ -11,7 +11,7 @@ Pasta:
 Funções principais:
 
 - `home.js`: HTML dinâmico da home.
-- `noticia.js`: página de notícia com metadados dinâmicos.
+- `noticia.js`: HTML inicial das notícias, Guia, Turismo e Agenda, incluindo páginas individuais e listagens públicas.
 - `sitemaps.js`: sitemap e news sitemap.
 - `rss.js`: feed RSS.
 - `newsletter-send.js`: envio de newsletter.
@@ -41,6 +41,10 @@ Responsável por:
 - sitemaps;
 - RSS;
 - headers de segurança.
+
+As rotas públicas de conteúdo principal usam renderização no servidor: o HTML inicial já contém os registros publicados, sem depender de JavaScript. O navegador mantém as interações e complementa o conteúdo sem repetir a consulta principal quando a resposta SSR está completa. Respostas completas usam cache de 60 segundos com revalidação por mais 60; falhas e respostas parciais não são armazenadas.
+
+Para conferir o HTML local sem executar JavaScript, inicie `node scripts/serve-public-ssr-local.mjs 4178` e rode `node scripts/check-local-ssr.mjs http://127.0.0.1:4178`.
 
 ## Cron
 

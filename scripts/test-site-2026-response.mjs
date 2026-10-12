@@ -13,11 +13,12 @@ const legacy = `<!doctype html><html><head>
   <title>Conteúdo real</title>
   <meta name="description" content="Descrição real">
   <link rel="canonical" href="https://euamourania.com.br/teste">
-  <script id="initial-guide-data" type="application/json">{}</script>
-  <script id="initial-tourism-data" type="application/json">{}</script>
 </head><body>LEGADO</body></html>`;
 
-for (const type of ["news", "guia", "turismo", "iniciativa"]) {
+for (const type of ["news", "guia", "turismo"]) {
+  must(compose(type, legacy) === legacy, `Sem dados SSR, ${type} deveria preservar o HTML legado.`);
+}
+for (const type of ["iniciativa"]) {
   const html = compose(type, legacy);
   must(html !== legacy, `Template novo não foi aplicado: ${type}.`);
   must(html.includes("<title>Conteúdo real</title>"), `Metadados reais foram perdidos: ${type}.`);

@@ -5,7 +5,7 @@ import { responsiveImage } from "/assets/js/image-tools.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
 import "/preview/guia/banners-preview.js";
 
-const root=document.getElementById("agenda-edition-details"),params=new URLSearchParams(location.search),slug=params.get("slug")||"",year=params.get("ano")||"";
+const root=document.getElementById("agenda-edition-details"),params=new URLSearchParams(location.search),publicRoute=location.pathname.match(/^\/eventos\/([^/]+)\/(\d{4})\/?$/),slug=params.get("slug")||publicRoute?.[1]||"",year=params.get("ano")||publicRoute?.[2]||"";
 const esc=(value="")=>String(value??"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const strip=value=>textoPuro(value||"").replace(/\s+/g," ").trim();
 const safeImage=(value,options={})=>/^https?:\/\//i.test(value||"")||/^\/?assets\//i.test(value||"")?esc(responsiveImage(value,{width:1200,height:820,quality:80,...options})):"";
@@ -19,6 +19,14 @@ function contentSection(kicker,title,html,className=""){return html?`<section cl
 function galleryMarkup(item,title="Galeria da edição"){const images=parseList(item.galeria).map(value=>safeImage(typeof value==="string"?value:value?.url||value?.imagem_url,{width:760,height:560,quality:76})).filter(Boolean).slice(0,8);if(!images.length)return "";return `<section class="edition-gallery"><header><p class="event-kicker">Registros</p><h2>${esc(title)}.</h2></header><div>${images.map((image,index)=>`<button type="button" aria-label="Ampliar foto ${index+1}"><img src="${image}" alt="Registro ${index+1} desta edição" width="760" height="560" loading="lazy" decoding="async"></button>`).join("")}</div></section>`;}
 function sponsorsMarkup(raw){const items=parseList(raw);if(!items.length)return "";return `<section class="edition-sponsors"><header><p class="event-kicker">Apoio</p><h2>Patrocinadores e parceiros.</h2></header><div>${items.map(item=>{const name=typeof item==="string"?item:item.nome||item.titulo||"Parceiro",logo=safeImage(typeof item==="object"?(item.logo||item.imagem||item.url):"");return `<article>${logo?`<img src="${logo}" alt="${esc(name)}" width="160" height="90" loading="lazy">`:""}<strong>${esc(name)}</strong></article>`;}).join("")}</div></section>`;}
 async function render(){
+  if(root?.dataset.serverRendered==="true"){
+    const title=root.querySelector("h1")?.textContent?.trim()||"Evento em Urânia",summary=root.querySelector(".event-detail-intro > p")?.textContent?.trim()||"",canonical=document.querySelector('link[rel="canonical"]')?.href||location.href;
+    root.querySelector("[data-share-event]")?.addEventListener("click",async eventButton=>{try{if(navigator.share){await navigator.share({title,text:summary,url:canonical});return;}await navigator.clipboard.writeText(canonical);eventButton.currentTarget.classList.add("copied");}catch(error){if(error?.name!=="AbortError")location.href=`https://wa.me/?text=${encodeURIComponent(`${title}: ${canonical}`)}`;}});
+    const program=root.querySelector("#edition-program"),more=root.querySelector(".edition-read-more");
+    if(program&&more){program.classList.add("is-collapsed");more.hidden=false;more.style.removeProperty("display");}
+    root.querySelector(".edition-read-more")?.addEventListener("click",eventButton=>{const button=eventButton.currentTarget,content=root.querySelector("#edition-program"),expanded=button.getAttribute("aria-expanded")==="true";button.setAttribute("aria-expanded",String(!expanded));content?.classList.toggle("is-collapsed",expanded);button.querySelector("span").textContent=expanded?"Ver mais":"Ver menos";});
+    return;
+  }
   if(!publicSupabaseConfigured()||!slug||!year){root.innerHTML='<p class="event-detail-status">Edição não encontrada.</p>';return;}
   try{
     const [event]=await fetchPublicRows("eventos_principais",{select:"*",slug:`eq.${slug}`,ativo:"eq.true",limit:"1"});if(!event)throw new Error("event-not-found");

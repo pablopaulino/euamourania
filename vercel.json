@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/noticia.js": {
-      "includeFiles": "{preview/**/*,melhores-de-urania/**/*.html,eventos/**/*.html}"
+      "includeFiles": "{preview/**/*,news/index.html,guia.html,turismo.html,melhores-de-urania/**/*.html,eventos/**/*.html}"
     }
   },
   "crons": [
@@ -90,6 +90,12 @@
   ],
   "rewrites": [
     { "source": "/", "destination": "/api/home" },
+    { "source": "/news", "destination": "/api/noticia?tipo=news-list" },
+    { "source": "/news/", "destination": "/api/noticia?tipo=news-list" },
+    { "source": "/guia.html", "destination": "/api/noticia?tipo=guide-list" },
+    { "source": "/turismo.html", "destination": "/api/noticia?tipo=tourism-list" },
+    { "source": "/eventos", "destination": "/api/noticia?tipo=agenda-list" },
+    { "source": "/eventos/", "destination": "/api/noticia?tipo=agenda-list" },
     { "source": "/melhores-de-urania", "destination": "/api/noticia?tipo=social&mode=award-home" },
     { "source": "/melhores-de-urania/", "destination": "/api/noticia?tipo=social&mode=award-home" },
     { "source": "/admin", "destination": "/admin/index.html" },

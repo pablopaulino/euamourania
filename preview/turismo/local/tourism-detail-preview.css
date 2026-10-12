@@ -25,3 +25,4 @@ html{scroll-behavior:smooth}.tourism-detail-preview{overflow-x:hidden;background
 @media(max-width:900px){.place-hero{grid-template-rows:auto auto;height:auto}.place-hero-media{height:470px}.place-gallery-slide img{height:100%;min-height:0;aspect-ratio:auto}}
 @media(max-width:600px){.place-hero-media{height:auto;aspect-ratio:1.1}.place-gallery-slide img{height:100%;aspect-ratio:auto}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.place-photo-grid img,.place-tourism-card img{transition:none}}
+.read-more[hidden]{display:none}

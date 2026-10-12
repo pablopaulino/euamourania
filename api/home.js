@@ -13,6 +13,151 @@ const absolute = (v, domain) => {
     return v;
   }
 };
+const safeImage = value => {
+  const raw = String(value || "").trim();
+  return /^https:\/\//i.test(raw) || /^\/?assets\//i.test(raw)
+    ? (raw.startsWith("assets/") ? `/${raw}` : raw) : "";
+};
+const plain = value => String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+const shorten = (value, length) => {
+  const result = plain(value);
+  return result.length > length ? `${result.slice(0, length).trim()}…` : result;
+};
+const route = value => encodeURIComponent(value?.slug || value?.id || "");
+
+async function fetchPublicRows(table, params, timeout = 6000) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${new URLSearchParams(params)}`, {
+    headers: { apikey: KEY, Accept: "application/json" },
+    signal: AbortSignal.timeout(timeout)
+  });
+  if (!response.ok) throw new Error(`${table}: HTTP ${response.status}`);
+  const rows = await response.json();
+  if (!Array.isArray(rows)) throw new Error(`${table}: resposta inválida`);
+  return rows;
+}
+
+function replaceHomeSection(html, id, markup, state = "true") {
+  const pattern = new RegExp(`(<div\\b[^>]*\\bid="${id}"[^>]*)(>)[\\s\\S]*?(<\\/div>)`, "i");
+  if (!pattern.test(html)) throw new Error(`Bloco ${id} não encontrado`);
+  return html.replace(pattern, (_, start, end, close) => `${start} data-server-rendered="${state}"${end}${markup}${close}`);
+}
+
+function newsMarkup(rows) {
+  const items = rows.filter(item => safeImage(item.imagem_url)).slice(0, 3);
+  if (!items.length) return '<p class="loading">As notícias da cidade aparecerão aqui.</p>';
+  return items.map((item, index) => `<a class="news-card" href="/noticias/${route(item)}"><img src="${esc(safeImage(item.imagem_url))}" alt="" width="760" height="560" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><div class="news-copy"><small>${esc(item.categoria_nome || "Notícia")}</small><h3>${esc(item.titulo)}</h3></div></a>`).join("");
+}
+
+function businessMarkup(rows) {
+  if (!rows.length) return '<p class="loading">Os estabelecimentos do Guia aparecerão aqui.</p>';
+  return rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${item.slug ? `/guia/${encodeURIComponent(item.slug)}` : `/guia-details.html?slug=${encodeURIComponent(item.id || "")}`}">${safeImage(item.imagem_url) ? `<img src="${esc(safeImage(item.imagem_url))}" alt="" width="82" height="82" loading="lazy">` : '<span class="business-placeholder" aria-hidden="true"></span>'}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${esc(item.nome)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
+}
+
+function tourismMarkup(rows) {
+  if (!rows.length) return '<span>Os lugares de Urânia aparecerão aqui.</span>';
+  return rows.map(item => `<a href="/turismo/${route(item)}"><span>${esc(item.nome)}</span><small>${esc(item.categoria_nome || "Conhecer")}</small></a>`).join("");
+}
+
+function endOfCityDay(date) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+    year: "numeric", month: "2-digit", day: "2-digit", timeZone: "America/Sao_Paulo"
+  }).formatToParts(date).map(part => [part.type, part.value]));
+  const localEnd = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), 23, 59, 59, 999);
+  const offsetAt = timestamp => {
+    const label = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Sao_Paulo", timeZoneName: "shortOffset"
+    }).formatToParts(new Date(timestamp)).find(part => part.type === "timeZoneName")?.value || "";
+    const match = /^GMT([+-])(\d{1,2})(?::(\d{2}))?$/.exec(label);
+    if (!match) throw new Error("Fuso horário de Urânia indisponível");
+    return (match[1] === "+" ? 1 : -1) * (Number(match[2]) * 60 + Number(match[3] || 0)) * 60000;
+  };
+  const provisional = localEnd - offsetAt(localEnd);
+  return new Date(localEnd - offsetAt(provisional));
+}
+
+function occurrence(event, now) {
+  const date = event.data_inicio ? new Date(event.data_inicio) : null;
+  if (!date || Number.isNaN(date.getTime())) return null;
+  let end = event.data_fim ? new Date(event.data_fim) : endOfCityDay(date);
+  if (Number.isNaN(end.getTime())) end = new Date(date);
+  const type = event.recorrencia_tipo;
+  if (["semanal", "mensal", "anual"].includes(type) && end < now) {
+    // Skip old occurrences arithmetically, instead of stopping after a fixed
+    // number of iterations (old weekly events may still be current).
+    if (type === "semanal") {
+      const weeks = Math.max(0, Math.floor((now - end) / (7 * 86400000)));
+      date.setDate(date.getDate() + weeks * 7);
+      end.setDate(end.getDate() + weeks * 7);
+    } else if (type === "mensal") {
+      const months = Math.max(0, (now.getFullYear() - end.getFullYear()) * 12 + now.getMonth() - end.getMonth() - 1);
+      date.setMonth(date.getMonth() + months);
+      end.setMonth(end.getMonth() + months);
+    } else {
+      const years = Math.max(0, now.getFullYear() - end.getFullYear() - 1);
+      date.setFullYear(date.getFullYear() + years);
+      end.setFullYear(end.getFullYear() + years);
+    }
+    let guard = 0;
+    while (end < now && guard++ < 14) {
+      if (type === "semanal") { date.setDate(date.getDate() + 7); end.setDate(end.getDate() + 7); }
+      else if (type === "mensal") { date.setMonth(date.getMonth() + 1); end.setMonth(end.getMonth() + 1); }
+      else { date.setFullYear(date.getFullYear() + 1); end.setFullYear(end.getFullYear() + 1); }
+    }
+  }
+  const until = event.recorrencia_ate ? new Date(event.recorrencia_ate) : null;
+  if ((until && date > until) || end < now) return null;
+  return { ...event, nextDate: date, isOngoing: date <= now && end >= now };
+}
+
+function agendaMarkup(simpleRows, recurringRows, editionRows) {
+  const now = new Date();
+  const uniqueEvents = new Map([...simpleRows, ...recurringRows].map(item => [item.id, item]));
+  const simple = [...uniqueEvents.values()].map(item => occurrence(item, now)).filter(Boolean);
+  const editions = editionRows.map(item => {
+    const parent = item.eventos_principais;
+    return occurrence({ ...item, titulo: item.titulo || parent?.nome || "Evento",
+      eventHref: parent?.slug ? `/eventos/${encodeURIComponent(parent.slug)}/${encodeURIComponent(item.ano || item.slug || "")}` : "/eventos/" }, now);
+  }).filter(Boolean);
+  const items = [...simple, ...editions].sort((a, b) => Number(b.isOngoing) - Number(a.isOngoing) || a.nextDate - b.nextDate).slice(0, 3);
+  if (!items.length) return '<p class="loading">Nenhum evento futuro publicado no momento.</p>';
+  const day = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", timeZone: "America/Sao_Paulo" });
+  const month = new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone: "America/Sao_Paulo" });
+  const time = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
+  return items.map(item => `<a class="agenda-item" href="${item.eventHref || `/eventos/agenda/${route(item)}`}"><time class="agenda-date" datetime="${esc(item.nextDate.toISOString())}"><strong>${day.format(item.nextDate)}</strong><span>${esc(month.format(item.nextDate).replace(".", ""))}</span></time><div><h3>${esc(item.titulo)}</h3><p>${esc(item.local || "Urânia")} · ${item.isOngoing ? "Em andamento" : esc(time.format(item.nextDate))}</p></div><b aria-hidden="true">→</b></a>`).join("");
+}
+
+async function renderPrimaryContent(html) {
+  const now = new Date().toISOString();
+  const requests = {
+    news: fetchPublicRows("noticias", { select: "id,titulo,slug,imagem_url,categoria_nome", status: "eq.publicado", publicado_em: `lte.${now}`, order: "destaque.desc,publicado_em.desc", limit: "8" }),
+    businesses: fetchPublicRows("guia_comercial", { select: "id,nome,slug,categoria_nome,descricao,imagem_url,recomendado", status: "eq.publicado", order: "recomendado.desc,nome.asc", limit: "6" }),
+    tourism: fetchPublicRows("turismo", { select: "id,nome,slug,imagem_url,destaque,categoria_nome", status: "eq.publicado", order: "destaque.desc,nome.asc", limit: "5" }),
+    simpleEvents: fetchPublicRows("eventos", { select: "id,titulo,slug,local,data_inicio,data_fim,recorrencia_tipo,recorrencia_ate", status: "eq.publicado", order: "data_inicio.desc", limit: "80" })
+      .catch(() => fetchPublicRows("eventos", { select: "id,titulo,slug,local,data_inicio,data_fim", status: "eq.publicado", order: "data_inicio.desc", limit: "80" })),
+    recurringEvents: fetchPublicRows("eventos", { select: "id,titulo,slug,local,data_inicio,data_fim,recorrencia_tipo,recorrencia_ate", status: "eq.publicado", recorrencia_tipo: "in.(semanal,mensal,anual)", order: "data_inicio.desc", limit: "40" }, 1500),
+    editions: fetchPublicRows("eventos_edicoes", { select: "id,titulo,slug,ano,data_inicio,data_fim,local,status,eventos_principais!inner(nome,slug,ativo)", status: "in.(anunciado,confirmado,acontecendo)", "eventos_principais.ativo": "eq.true", order: "data_inicio.desc", limit: "40" }, 1500)
+  };
+  const entries = await Promise.all(Object.entries(requests).map(async ([key, request]) => {
+    try { return [key, await request]; }
+    catch (error) { console.error(`home SSR ${key}:`, error); return [key, null]; }
+  }));
+  const data = Object.fromEntries(entries);
+  let rendered = 0;
+  if (data.news) { html = replaceHomeSection(html, "home-news", newsMarkup(data.news)); rendered++; }
+  if (data.businesses) { html = replaceHomeSection(html, "home-businesses", businessMarkup(data.businesses)); rendered++; }
+  if (data.tourism) {
+    html = replaceHomeSection(html, "home-tourism", tourismMarkup(data.tourism));
+    const visual = data.tourism.find(item => safeImage(item.imagem_url));
+    if (visual) html = html.replace(/(<img id="tourism-image" src=")[^"]*(" alt=")[^"]*(")/, (_, open, middle, close) => `${open}${esc(safeImage(visual.imagem_url))}${middle}${esc(visual.nome || "Lugar para conhecer em Urânia")}${close}`);
+    rendered++;
+  }
+  if (data.simpleEvents) {
+    const agendaState = data.recurringEvents && data.editions ? "true" : "partial";
+    html = replaceHomeSection(html, "home-agenda", agendaMarkup(data.simpleEvents, data.recurringEvents || [], data.editions || []), agendaState);
+    rendered++;
+  }
+  return { html, complete: rendered === 4, cacheable: rendered === 4 && !!data.recurringEvents && !!data.editions, rendered };
+}
 
 function meta(html, key, value, property = false) {
   if (!value) return html;
@@ -42,11 +187,15 @@ module.exports = async (req, res) => {
     }
 
     const html = await readFile(path.join(process.cwd(), "index.html"), "utf8");
-
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/configuracoes_site?select=chave,valor&chave=in.(seo_titulo_padrao,seo_descricao_padrao,imagem_compartilhamento,dominio_principal,nome_site)`, {
-      headers: { apikey: KEY }
-    });
-    const rows = response.ok ? await response.json() : [];
+    // Main content and optional SEO configuration are fetched concurrently.
+    // A slow configuration read cannot delay the public records.
+    const contentPromise = renderPrimaryContent(html);
+    const configPromise = fetchPublicRows("configuracoes_site", {
+      select: "chave,valor",
+      chave: "in.(seo_titulo_padrao,seo_descricao_padrao,imagem_compartilhamento,dominio_principal,nome_site)"
+    }, 1500).catch(error => { console.warn("home SSR config:", error); return []; });
+    const content = await contentPromise;
+    const rows = await Promise.race([configPromise, new Promise(resolve => setTimeout(() => resolve([]), 150))]);
     const config = Object.fromEntries(rows.map(item => [item.chave, item.valor || ""]));
     const domain = /^https:\/\//.test(config.dominio_principal || "")
       ? config.dominio_principal.replace(/\/$/, "")
@@ -140,7 +289,7 @@ module.exports = async (req, res) => {
       }
     ];
 
-    let output = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
+    let output = content.html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
     output = meta(output, "description", description);
     output = meta(output, "keywords", "Urânia, Urânia SP, Urania, Eu Amo Urânia, notícias de Urânia, guia comercial de Urânia, turismo em Urânia, eventos em Urânia, história de Urânia");
     output = meta(output, "og:site_name", "Eu Amo Urânia", true);
@@ -151,14 +300,19 @@ module.exports = async (req, res) => {
     output = meta(output, "twitter:title", title);
     output = meta(output, "twitter:description", description);
     output = meta(output, "twitter:image", image);
-    output = output.replace(/<link[^>]+rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${esc(domain)}/">`);
+    const canonical = `<link rel="canonical" href="${esc(domain)}/">`;
+    const existingCanonical = /<link[^>]+rel=["']canonical["'][^>]*>/i;
+    output = existingCanonical.test(output)
+      ? output.replace(existingCanonical, canonical)
+      : output.replace("</head>", `${canonical}</head>`);
     output = replaceStructuredData(output, graph);
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
-    res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=3600");
-    return res.status(200).send(output);
+    res.setHeader("Cache-Control", content.cacheable ? "public, s-maxage=60, stale-while-revalidate=60" : "no-store");
+    return res.status(content.complete ? 200 : 503).send(output);
   } catch (error) {
     console.error("home:", error);
+    res.setHeader("Cache-Control", "no-store");
     return res.status(500).send("Não foi possível carregar a página inicial");
   }
 };

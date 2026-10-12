@@ -4,6 +4,15 @@ const { useSite2026Response } = require("../lib/site-2026-response.js");
 const DEFAULT_DOMAIN = "https://euamourania.com.br";
 const DEFAULT_LOGO = "/assets/1505%20-%20Urania%20-%20Logo%20Horizontal%20-%201.png";
 const DEFAULT_FAVICON = "/favicon.ico";
+const PUBLIC_DETAIL_FIELDS = {
+  news: "id,slug,titulo,subtitulo,resumo,conteudo_html,imagem_url,legenda_imagem,categoria_nome,autor,publicado_em,atualizado_em,seo_titulo,seo_descricao",
+  guia: "id,slug,nome,descricao,imagem_url,galeria_urls,categoria_nome,recomendado,recomendado_editorial,endereco,horario,opening_hours,opening_hours_note,whatsapp,telefone,instagram,facebook,site,mapa_url,seo_titulo,seo_descricao",
+  turismo: "id,slug,nome,descricao,conteudo_html,imagem_url,galeria_urls,categoria_id,categoria_nome,destaque,endereco,horario,opening_hours,opening_hours_note,whatsapp,instagram,facebook,site,mapa_url,seo_titulo,seo_descricao"
+};
+const publicDetail = (item, type) => Object.fromEntries(PUBLIC_DETAIL_FIELDS[type].split(",")
+  .filter(key => Object.hasOwn(item, key)).map(key => [key, item[key]]));
+const safeJson = value => JSON.stringify(value).replace(/</g, "\\u003c").replace(/>/g, "\\u003e")
+  .replace(/&/g, "\\u0026").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 
 const esc = (value = "") => String(value).replace(/[&<>'"]/g, char => ({
   "&": "&amp;",
@@ -86,7 +95,7 @@ function renderFooter({ siteName, logo }) {
 async function renderGuia(req, res, slug) {
   const [response, config] = await Promise.all([
     fetch(
-      `${SUPABASE_URL}/rest/v1/guia_comercial?slug=eq.${encodeURIComponent(slug)}&status=eq.publicado&select=*&limit=1`,
+      `${SUPABASE_URL}/rest/v1/guia_comercial?slug=eq.${encodeURIComponent(slug)}&status=eq.publicado&select=${PUBLIC_DETAIL_FIELDS.guia}&limit=1`,
       { headers: { apikey: SUPABASE_KEY } }
     ),
     getConfig()
@@ -131,12 +140,12 @@ async function renderGuia(req, res, slug) {
       }
     ]
   }).replace(/</g, "\\u003c");
-  const initialGuide = JSON.stringify(item).replace(/</g, "\\u003c");
+  const initialGuide = safeJson(publicDetail(item, "guia"));
   const categoryBadge = item.categoria_nome ? `<a href="/guia/categoria/${esc(slugify(item.categoria_nome))}">${esc(item.categoria_nome)}</a>` : "<span>Comércio local</span>";
   const serverContent = `<article class="guide-business" data-guide-id="${esc(item.id)}"><a class="guide-business-back" href="/guia.html"><span aria-hidden="true">←</span> Voltar ao Guia</a><section class="guide-business-hero"><div class="guide-business-media"><img src="${esc(image)}" alt="${esc(item.nome)}" decoding="async" fetchpriority="high"></div><div class="guide-business-intro"><div class="guide-business-badges">${categoryBadge}${item.recomendado ? "<strong>★ Recomendado</strong>" : ""}</div><p class="eyebrow">Guia comercial de Urânia</p><h1>${esc(item.nome)}</h1><p class="guide-business-summary">${esc(item.descricao || description)}</p></div></section></article>`;
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
+  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=60");
   return res.status(200).send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${esc(canonical)}"><meta property="og:type" content="business.business"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:image" content="${esc(image)}"><meta property="og:image:secure_url" content="${esc(image)}"><meta property="og:image:alt" content="${esc(item.nome)}"><meta property="og:url" content="${esc(canonical)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(image)}"><meta name="twitter:image:alt" content="${esc(item.nome)}"><meta name="theme-color" content="#0b4f6c"><script id="guide-structured-data" type="application/ld+json">${structured}</script><script id="initial-guide-data" type="application/json">${initialGuide}</script><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/inner-pages.css"><link rel="stylesheet" href="/assets/css/turismo-details-page.css"><link rel="stylesheet" href="/assets/css/guia-details-page.css"><link rel="icon" href="${esc(favicon)}" sizes="any"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="preload" as="image" href="${esc(image)}" fetchpriority="high"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></head><body class="inner-page tourism-detail-page guide-detail-page"><a class="skip-link" href="#guia-details">Pular para o conteúdo</a>${renderHeader({ siteName, logo, current: "guia" })}<main id="guia-details" class="tourism-detail-main" aria-live="polite">${serverContent}</main>${renderFooter({ siteName, logo })}<script src="/script.js"></script><script type="module" src="/assets/js/pages/guia-details-page.js"></script></body></html>`);
 }
 
@@ -249,14 +258,14 @@ async function renderGuiaCategoria(req, res, slug) {
   }).replace(/</g, "\\u003c");
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
+  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=60");
   return res.status(200).send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${esc(canonical)}"><meta property="og:type" content="website"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:image" content="${esc(image)}"><meta property="og:image:secure_url" content="${esc(image)}"><meta property="og:image:alt" content="${esc(categoryName)} em Urânia"><meta property="og:url" content="${esc(canonical)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(image)}"><meta name="twitter:image:alt" content="${esc(categoryName)} em Urânia"><meta name="theme-color" content="#0b4f6c"><script type="application/ld+json">${structured}</script><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/inner-pages.css"><link rel="icon" href="${esc(favicon)}" sizes="any"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="preload" as="image" href="${esc(image)}" fetchpriority="high"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></head><body class="inner-page guide-category-page"><a class="skip-link" href="#conteudo">Pular para o conteúdo</a>${renderHeader({ siteName, logo, current: "guia" })}<main id="conteudo"><section class="guide-category-hero"><div class="container guide-category-hero-grid"><div><nav class="guide-category-breadcrumb" aria-label="Caminho"><a href="/index.html">Início</a><span>/</span><a href="/guia.html">Guia</a><span>/</span><strong>${esc(categoryName)}</strong></nav><p class="eyebrow">Guia por categoria</p><h1>${esc(categoryName)} em Urânia</h1><p>${esc(topDescription || description)}</p><div class="guide-category-stats"><span><strong>${items.length}</strong> ${items.length === 1 ? "empresa encontrada" : "empresas encontradas"}</span>${updatedAt ? `<span>Atualizado em ${esc(formatDate(updatedAt))}</span>` : ""}</div></div><aside class="guide-category-card-mini"><span>Compre local</span><strong>Encontre empresas de Urânia em poucos cliques.</strong><a href="/guia.html">Ver Guia completo</a></aside></div></section><section class="guide-category-nav"><div class="container"><a href="/guia.html">Todas</a>${categoryLinks}</div></section><section class="guide-category-content"><div class="container guide-category-content-head"><div><p class="eyebrow">Empresas publicadas</p><h2>${esc(categoryName)}</h2></div><form class="guide-category-search" role="search"><label class="sr-only" for="guide-category-search">Buscar nesta categoria</label><input id="guide-category-search" type="search" placeholder="Buscar em ${esc(categoryName)}..." autocomplete="off"></form></div><div class="container guide-category-grid" id="guide-category-grid">${items.map(card).join("")}</div><p class="container guide-category-empty" id="guide-category-empty" hidden>Nenhuma empresa encontrada com esse termo.</p></section><section class="container guide-category-cta"><div><p class="eyebrow">Faltou alguma empresa?</p><h2>Ajude o Guia a ficar mais completo</h2><p>Se você conhece um comércio ou serviço de Urânia que deveria aparecer aqui, fale com a equipe do Eu Amo Urânia.</p></div><a class="button button-primary" href="https://wa.me/5517976005583" target="_blank" rel="noopener">Enviar sugestão</a></section></main>${renderFooter({ siteName, logo })}<script src="/script.js"></script><script type="module" src="/assets/js/pages/guia-categoria-page.js"></script></body></html>`);
 }
 
 async function renderTurismo(req, res, slug) {
   const [response, config] = await Promise.all([
     fetch(
-      `${SUPABASE_URL}/rest/v1/turismo?slug=eq.${encodeURIComponent(slug)}&status=eq.publicado&select=*&limit=1`,
+      `${SUPABASE_URL}/rest/v1/turismo?slug=eq.${encodeURIComponent(slug)}&status=eq.publicado&select=${PUBLIC_DETAIL_FIELDS.turismo}&limit=1`,
       { headers: { apikey: SUPABASE_KEY } }
     ),
     getConfig()
@@ -319,11 +328,11 @@ async function renderTurismo(req, res, slug) {
       }
     ]
   }).replace(/</g, "\\u003c");
-  const initialTourism = JSON.stringify(item).replace(/</g, "\\u003c");
+  const initialTourism = safeJson(publicDetail(item, "turismo"));
   const serverContent = `<article class="tourism-detail" data-tourism-id="${esc(item.id)}" data-server-rendered="true"><a class="tourism-detail-back" href="/turismo.html"><span aria-hidden="true">←</span> Voltar aos lugares</a><section class="tourism-detail-hero"><figure><img src="${esc(image)}" alt="${esc(item.nome)}" decoding="async" fetchpriority="high"></figure><header class="tourism-detail-header"><p class="eyebrow">Experiência em Urânia</p><h1>${esc(item.nome)}</h1>${description ? `<p class="tourism-detail-summary">${esc(description)}</p>` : ""}<span class="tourism-detail-label">Turismo local</span></header></section><div class="tourism-detail-layout"><section class="tourism-detail-copy" aria-labelledby="tourism-about-title"><p class="eyebrow">Sobre a experiência</p><h2 id="tourism-about-title">Conheça este lugar</h2><div class="article-copy">${articleText ? `<p>${esc(articleText)}</p>` : ""}</div></section><aside class="tourism-planner" aria-labelledby="tourism-planner-title"><p class="eyebrow">Informações úteis</p><h2 id="tourism-planner-title">Planeje sua visita</h2><div class="tourism-detail-facts">${item.endereco ? `<div><p><small>Endereço</small>${esc(item.endereco)}</p></div>` : ""}${item.horario ? `<div><p><small>Horário</small>${esc(item.horario)}</p></div>` : ""}</div></aside></div></article>`;
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
+  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=60");
   return res.status(200).send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${esc(canonical)}"><meta property="og:type" content="place"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:image" content="${esc(image)}"><meta property="og:image:secure_url" content="${esc(image)}"><meta property="og:image:alt" content="${esc(item.nome)}"><meta property="og:url" content="${esc(canonical)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(image)}"><meta name="twitter:image:alt" content="${esc(item.nome)}"><meta name="theme-color" content="#0b4f6c"><script id="tourism-structured-data" type="application/ld+json">${structured}</script><script id="initial-tourism-data" type="application/json">${initialTourism}</script><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/inner-pages.css"><link rel="stylesheet" href="/assets/css/turismo-details-page.css"><link rel="icon" href="${esc(favicon)}" sizes="any"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="preload" as="image" href="${esc(image)}" fetchpriority="high"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></head><body class="inner-page tourism-detail-page"><a class="skip-link" href="#turismo-details">Pular para o conteúdo</a>${renderHeader({ siteName, logo, current: "turismo" })}<main id="turismo-details" class="tourism-detail-main" aria-live="polite">${serverContent}</main>${renderFooter({ siteName, logo })}<script src="/script.js"></script><script type="module" src="/assets/js/pages/turismo-details-page.js"></script></body></html>`);
 }
 
@@ -331,7 +340,7 @@ async function renderNoticia(req, res, slug) {
   const now = encodeURIComponent(new Date().toISOString());
   const [response, config] = await Promise.all([
     fetch(
-      `${SUPABASE_URL}/rest/v1/noticias?slug=eq.${encodeURIComponent(slug)}&status=eq.publicado&publicado_em=lte.${now}&select=*&limit=1`,
+      `${SUPABASE_URL}/rest/v1/noticias?slug=eq.${encodeURIComponent(slug)}&status=eq.publicado&publicado_em=lte.${now}&select=${PUBLIC_DETAIL_FIELDS.news}&limit=1`,
       { headers: { apikey: SUPABASE_KEY } }
     ),
     getConfig()
@@ -394,11 +403,11 @@ async function renderNoticia(req, res, slug) {
       }
     ]
   }).replace(/</g, "\\u003c");
-  const initialNews = JSON.stringify(noticia).replace(/</g, "\\u003c");
+  const initialNews = safeJson(publicDetail(noticia, "news"));
   const serverArticle = `<article class="news-detail-container" data-server-rendered="true"><header class="article-header"><p class="eyebrow">${esc(noticia.categoria_nome || "Notícias de Urânia")}</p><h1>${esc(noticia.titulo)}</h1>${noticia.subtitulo ? `<p class="article-subtitle">${esc(noticia.subtitulo)}</p>` : ""}<p class="meta"><span>Por ${esc(noticia.autor || siteName)}</span><time datetime="${esc(noticia.publicado_em)}">${esc(formatDate(noticia.publicado_em))}</time></p></header>${noticia.imagem_url ? `<figure class="article-figure"><img src="${esc(absolute(noticia.imagem_url, domain))}" alt="${esc(noticia.legenda_imagem || noticia.titulo)}" class="main-image" decoding="async" fetchpriority="high">${noticia.legenda_imagem ? `<figcaption>${esc(noticia.legenda_imagem)}</figcaption>` : ""}</figure>` : ""}<div class="article-copy"><p>${esc(articleText)}</p></div></article>`;
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
+  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=60");
   return res.status(200).send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${esc(canonical)}"><meta property="og:type" content="article"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:title" content="${esc(noticia.titulo)}"><meta property="og:description" content="${esc(description)}"><meta property="og:image" content="${esc(image)}"><meta property="og:image:alt" content="${esc(noticia.legenda_imagem || noticia.titulo)}"><meta property="og:url" content="${esc(canonical)}"><meta property="article:published_time" content="${esc(noticia.publicado_em)}"><meta property="article:modified_time" content="${esc(noticia.atualizado_em || noticia.publicado_em)}"><meta property="article:section" content="${esc(noticia.categoria_nome || "Notícias")}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(noticia.titulo)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(image)}"><meta name="twitter:image:alt" content="${esc(noticia.legenda_imagem || noticia.titulo)}"><meta name="theme-color" content="#0b4f6c"><script id="news-structured-data" type="application/ld+json">${structured}</script><script id="initial-news-data" type="application/json">${initialNews}</script><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/inner-pages.css"><link rel="stylesheet" href="/assets/css/public-polish.css"><link rel="icon" href="${esc(favicon)}" sizes="any"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="alternate" type="application/rss+xml" title="Notícias do Eu Amo Urânia" href="${domain}/rss.xml"><link rel="preload" as="image" href="${esc(image)}" fetchpriority="high"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></head><body class="inner-page"><a class="skip-link" href="#newsDetails">Pular para a notícia</a>${renderHeader({ siteName, logo, current: "noticias" })}<main id="newsDetails" class="article-main" aria-live="polite">${serverArticle}</main>${renderFooter({ siteName, logo })}<script src="/script.js"></script><script type="module" src="/assets/js/pages/noticia-page.js"></script></body></html>`);
 }
 
@@ -438,6 +447,10 @@ async function renderIniciativa(req, res, slug) {
 
 module.exports = async (req, res) => {
   if (req.query.tipo === "social") return require("../lib/social-page.js")(req, res);
+  if (req.query.tipo === "news-list") return require("../lib/news-list-ssr.js").renderNewsList(req, res);
+  if (req.query.tipo === "guide-list") return require("../lib/guide-tourism-list-ssr.js").renderGuideList(req, res);
+  if (req.query.tipo === "tourism-list") return require("../lib/guide-tourism-list-ssr.js").renderTourismList(req, res);
+  if (req.query.tipo === "agenda-list") return require("../lib/agenda-list-ssr.js").renderAgendaList(req, res);
   const slug = String(req.query.slug || "").trim();
   if (!/^[a-z0-9-]+$/.test(slug)) {
     return res.status(404).send(req.query.tipo === "guia" ? "Empresa não encontrada" : "Notícia não encontrada");

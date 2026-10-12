@@ -137,6 +137,13 @@ function addStructuredData(item, image, canonical) {
 }
 
 async function loadItem() {
+  const initial=document.getElementById("initial-guide-data");
+  if(initial && root.querySelector('.business-page[data-server-rendered="true"]')){
+    try {
+      const item=JSON.parse(initial.textContent);
+      if(item?.id && (!requestedSlug || item.slug===requestedSlug || item.id===requestedSlug))return item;
+    } catch(error) { console.warn("Dados iniciais da empresa inválidos",error); }
+  }
   if (requestedSlug) {
     const query = /^[0-9a-f-]{20,}$/i.test(requestedSlug) ? { id:`eq.${requestedSlug}` } : { slug:`eq.${requestedSlug}` };
     return (await fetchPublicRows("guia_comercial", { select:"*", ...query, status:"eq.publicado", limit:"1" }))[0];
@@ -144,11 +151,51 @@ async function loadItem() {
   return (await fetchPublicRows("guia_comercial", { select:"*", status:"eq.publicado", order:"recomendado.desc,nome.asc", limit:"1" }))[0];
 }
 
+function hydrateServerBusiness(item) {
+  const canonical=`https://euamourania.com.br/guia/${encodeURIComponent(item.slug || item.id)}`;
+  const state=openingState(parseHours(item.opening_hours));
+  if(state){
+    root.querySelector(".opening-quick")?.remove();
+    const node=root.querySelector(".opening-state") || document.createElement("div");
+    node.className=`opening-state ${state.open ? "is-open" : "is-closed"}`;
+    node.innerHTML=`<i></i><strong>${state.label}</strong>${state.detail ? `<span>${esc(state.detail)}</span>` : ""}`;
+    if(!node.isConnected)root.querySelector(".business-address, .business-actions")?.before(node);
+  }
+  const hours=root.querySelector(".hours-panel");
+  if(hours && parseHours(item.opening_hours).length && !hours.querySelector(".hours-list")){
+    hours.querySelector(".hours-simple")?.remove();
+    hours.insertAdjacentHTML("beforeend",hoursMarkup(item));
+  }
+  root.querySelectorAll(".gallery-thumb").forEach(button=>button.addEventListener("click",()=>{
+    const image=root.querySelector("#business-main-image");
+    if(image)image.src=button.dataset.image;
+    root.querySelectorAll(".gallery-thumb").forEach(other=>other.classList.toggle("active",other===button));
+  }));
+  root.querySelector("#share-business")?.addEventListener("click",async event=>{
+    try {
+      if(navigator.share)return await navigator.share({title:`${item.nome} | Guia Eu Amo Urânia`,text:item.descricao || `Conheça ${item.nome}.`,url:canonical});
+      await navigator.clipboard.writeText(canonical);
+      event.currentTarget.classList.add("copied");
+      event.currentTarget.setAttribute("aria-label","Link copiado");
+    } catch { location.href=`https://wa.me/?text=${encodeURIComponent(`${item.nome} no Guia Eu Amo Urânia: ${canonical}`)}`; }
+  });
+  window.dispatchEvent(new CustomEvent("guia:renderizado",{detail:{id:item.id}}));
+  relatedData(item).then(related=>{
+    const target=root.querySelector("#guide-related-ssr"); if(!target)return;
+    target.innerHTML=`${related.companies.length ? `<section class="detail-related detail-container">${sectionHeading("Mais no Guia",`Outras opções em ${item.categoria_nome || "Urânia"}`,"Empresas e serviços que também podem ajudar você.","/preview/guia/")}<div class="company-related-grid">${related.companies.map(companyCard).join("")}</div></section>` : ""}${related.tourism.length ? `<section class="tourism-related"><div class="detail-container">${sectionHeading("Descubra Urânia","Tem sempre algo para conhecer.","Lugares, sabores e experiências perto de você.","/turismo.html")}<div class="tourism-related-grid">${related.tourism.map(tourismCard).join("")}</div></div></section>` : ""}${related.news.length ? `<section class="detail-related detail-container">${sectionHeading("Agora em Urânia","O que está acontecendo na cidade.","Informação local, direta e feita para quem vive aqui.","/news/")}<div class="news-related-grid">${related.news.map(newsCard).join("")}</div></section>` : ""}`;
+  }).catch(error=>console.warn("Conteúdos relacionados indisponíveis",error));
+}
+
 async function render() {
-  if (!publicSupabaseConfigured()) { root.innerHTML = '<p class="detail-error">Configure o Supabase para carregar a empresa.</p>'; return; }
+  const hasServerContent=Boolean(root.querySelector('.business-page[data-server-rendered="true"]'));
+  if (!hasServerContent && !publicSupabaseConfigured()) { root.innerHTML = '<p class="detail-error">Configure o Supabase para carregar a empresa.</p>'; return; }
   try {
     const item = await loadItem();
-    if (!item) { root.innerHTML = '<p class="detail-error">Empresa não encontrada.</p>'; return; }
+    if (!item) { if (!hasServerContent) root.innerHTML = '<p class="detail-error">Empresa não encontrada.</p>'; return; }
+    if(hasServerContent){
+      hydrateServerBusiness(item);
+      return;
+    }
     const related = await relatedData(item);
     const images = gallery(item);
     const mainImage = images[0] || fallbackImage;
@@ -217,7 +264,7 @@ async function render() {
     window.dispatchEvent(new CustomEvent("guia:renderizado", { detail:{ id:item.id } }));
   } catch (error) {
     console.error(error);
-    root.innerHTML = '<p class="detail-error">Não foi possível carregar esta empresa.</p>';
+    if (!hasServerContent) root.innerHTML = '<p class="detail-error">Não foi possível carregar esta empresa.</p>';
   }
 }
 

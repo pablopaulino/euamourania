@@ -5,7 +5,7 @@ import { responsiveImage } from "/assets/js/image-tools.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
 import "/preview/guia/banners-preview.js";
 
-const root=document.getElementById("agenda-tradition-details"),slug=new URLSearchParams(location.search).get("slug")||"";
+const root=document.getElementById("agenda-tradition-details"),slug=new URLSearchParams(location.search).get("slug")||location.pathname.match(/^\/eventos\/(?!agenda\/)([^/]+)\/?$/)?.[1]||"";
 const esc=(value="")=>String(value??"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const strip=value=>textoPuro(value||"").replace(/\s+/g," ").trim();
 const safeImage=(value,options={})=>/^https?:\/\//i.test(value||"")||/^\/?assets\//i.test(value||"")?esc(responsiveImage(value,{width:1200,height:820,quality:80,...options})):"";
@@ -19,6 +19,14 @@ function galleryMarkup(event){const images=parseList(event.galeria_historica).ma
 function fact(label,value){return value?`<div><small>${esc(label)}</small><strong>${esc(value)}</strong></div>`:"";}
 async function load(){return (await fetchPublicRows("eventos_principais",{select:"*",slug:`eq.${slug}`,ativo:"eq.true",limit:"1"}))[0];}
 async function render(){
+  if(root?.dataset.serverRendered==="true"){
+    const title=root.querySelector("h1")?.textContent?.trim()||"Evento em Urânia",summary=root.querySelector(".event-detail-intro > p")?.textContent?.trim()||"",canonical=document.querySelector('link[rel="canonical"]')?.href||location.href;
+    root.querySelector("[data-share-event]")?.addEventListener("click",async eventButton=>{try{if(navigator.share){await navigator.share({title,text:summary,url:canonical});return;}await navigator.clipboard.writeText(canonical);eventButton.currentTarget.classList.add("copied");}catch(error){if(error?.name!=="AbortError")location.href=`https://wa.me/?text=${encodeURIComponent(`${title}: ${canonical}`)}`;}});
+    const story=root.querySelector("#tradition-story"),more=root.querySelector(".tradition-read-more");
+    if(story&&more){story.classList.add("is-collapsed");more.hidden=false;more.style.removeProperty("display");}
+    root.querySelector(".tradition-read-more")?.addEventListener("click",eventButton=>{const button=eventButton.currentTarget,story=root.querySelector("#tradition-story"),expanded=button.getAttribute("aria-expanded")==="true";button.setAttribute("aria-expanded",String(!expanded));story?.classList.toggle("is-collapsed",expanded);button.querySelector("span").textContent=expanded?"Ver mais":"Ver menos";});
+    return;
+  }
   if(!publicSupabaseConfigured()||!slug){root.innerHTML='<p class="event-detail-status">Evento não encontrado.</p>';return;}
   try{
     const event=await load();if(!event){root.innerHTML='<p class="event-detail-status">Evento não encontrado.</p>';return;}

@@ -22,6 +22,14 @@ const icons={
 };
 
 async function findNews(){
+  const initial=document.getElementById("initial-news-data");
+  if(initial && container.querySelector('.article-reading[data-server-rendered="true"]')){
+    try {
+      const item=JSON.parse(initial.textContent);
+      const requested=query.get("slug")||pathSlug;
+      if(item?.slug && (!requested || item.slug===requested))return item;
+    } catch(error) { console.warn("Dados iniciais da notícia inválidos",error); }
+  }
   if(!publicSupabaseConfigured())return null;
   const slug=query.get("slug")||pathSlug;
   const options={select:"*",status:"eq.publicado",publicado_em:`lte.${new Date().toISOString()}`,limit:"1"};
@@ -31,6 +39,7 @@ async function findNews(){
 }
 
 function structuredData(news,canonical,description,image){
+  if(document.getElementById("news-structured-data"))return;
   const node=document.createElement("script"); node.type="application/ld+json"; node.id="news-structured-data";
   node.textContent=JSON.stringify({"@context":"https://schema.org","@graph":[{"@type":"NewsArticle","@id":`${canonical}#newsarticle`,headline:news.titulo,description,image:image?[image]:undefined,datePublished:news.publicado_em,dateModified:news.publicado_em,author:{"@type":"Organization",name:news.autor||"Redação Eu Amo Urânia",url:"https://euamourania.com.br/quem-somos.html"},publisher:{"@type":"Organization",name:"Eu Amo Urânia",url:"https://euamourania.com.br"},mainEntityOfPage:{"@type":"WebPage","@id":canonical},articleSection:news.categoria_nome||"Notícias",articleBody:textoPuro(news.conteudo_html||news.resumo||"")||undefined,isAccessibleForFree:true,inLanguage:"pt-BR"},{"@type":"BreadcrumbList",itemListElement:[{"@type":"ListItem",position:1,name:"Início",item:"https://euamourania.com.br/"},{"@type":"ListItem",position:2,name:"Notícias",item:"https://euamourania.com.br/news/"},{"@type":"ListItem",position:3,name:news.titulo,item:canonical}]}]});
   document.head.appendChild(node);
@@ -79,6 +88,18 @@ function render(news){
   definirMeta({titulo:`${news.seo_titulo||news.titulo} | Eu Amo Urânia`,descricao:description,imagem:image,url:canonical}); structuredData(news,canonical,description,image);
   const content=sanitizeArticleHtml(news.conteudo_html)||`<p>${esc(summary(news))}</p>`,words=textoPuro(content).split(/\s+/).filter(Boolean).length,minutes=Math.max(1,Math.ceil(words/220));
   const category=news.categoria_nome||"Notícias",hero=safeImage(news.imagem_url,{width:1600,height:960,quality:84});
+  const serverArticle=container.querySelector('.article-reading[data-server-rendered="true"]');
+  if(serverArticle){
+    const copy=serverArticle.querySelector(".article-copy");
+    if(copy)copy.innerHTML=content;
+    const share=serverArticle.querySelector(".article-share");
+    if(share)share.outerHTML=shareMarkup(news,canonical);
+    normalizeMedia(); readingProgress(); bindShare(news,canonical);
+    window.dispatchEvent(new CustomEvent("noticia:renderizada"));
+    document.dispatchEvent(new CustomEvent("noticia:renderizada"));
+    loadRelated(news);
+    return;
+  }
   container.innerHTML=`<article class="article-reading"><nav class="article-breadcrumb" aria-label="Navegação da notícia"><a href="/preview/noticias/">Notícias</a><i>/</i><a href="${categoryUrl(category)}">${esc(category)}</a></nav><header class="article-header"><p class="article-category">${esc(category)}</p><h1>${esc(news.titulo)}</h1>${news.subtitulo?`<p class="article-subtitle">${esc(news.subtitulo)}</p>`:""}<div class="article-meta"><span>Por ${esc(news.autor||"Eu Amo Urânia")}</span><time datetime="${esc(news.publicado_em)}">${esc(formatarData(news.publicado_em))}</time><span>${minutes} min de leitura</span></div>${shareMarkup(news,canonical)}</header>${hero?`<figure class="article-hero"><img src="${hero}" alt="${esc(news.legenda_imagem||news.titulo)}" width="1600" height="960" fetchpriority="high" decoding="async">${news.legenda_imagem?`<figcaption>${esc(news.legenda_imagem)}</figcaption>`:""}</figure>`:""}<div class="article-copy" data-ad-eligible="${words>=280}">${content}</div><footer class="article-correction"><a href="/news/correcoes-transparencia-contato/">Encontrou algum erro? Solicitar correção <span aria-hidden="true">→</span></a></footer></article><section class="editorial-contact"><div><p>Colabore com a redação</p><h2>Tem uma história relevante para Urânia?</h2><span>Envie pautas, fotos ou informações. A conversa continua depois da leitura.</span></div><a href="https://wa.me/5517976005583" target="_blank" rel="noopener">Falar com a redação <b aria-hidden="true">→</b></a></section><div id="article-related" class="article-related" aria-live="polite"><p class="article-loading">Organizando outras leituras…</p></div>`;
   normalizeMedia(); readingProgress(); bindShare(news,canonical); window.dispatchEvent(new CustomEvent("noticia:renderizada")); document.dispatchEvent(new CustomEvent("noticia:renderizada")); loadRelated(news);
 }
@@ -96,8 +117,9 @@ header?.querySelector(".header-search-close")?.addEventListener("click",closeSea
 document.getElementById("year").textContent=new Date().getFullYear(); getAppDownloadConfig().then(app=>document.querySelectorAll("[data-app-download]").forEach(link=>{link.href=app.googlePlayUrl||app.appStoreUrl||app.appPageUrl||"/app.html";})).catch(()=>{});
 
 async function load(){
+  const hasServerContent=Boolean(container.querySelector('.article-reading[data-server-rendered="true"]'));
   try{const news=await findNews();if(!news)throw new Error("not-found");render(news);await Promise.allSettled([import("/assets/js/pages/site-config-page.js"),import("/assets/js/pages/analytics-page.js"),import("/assets/js/pages/newsletter-public.js"),import("/assets/js/pages/google-analytics-page.js"),import("/assets/js/pages/smart-app-banner.js"),import("/assets/js/pages/error-monitor.js")]);configureNewsletter();}
-  catch(error){console.error(error);container.innerHTML='<div class="article-empty"><strong>Notícia não encontrada.</strong><p>Ela pode ter sido removida ou ainda não está disponível.</p><a href="/preview/noticias/">Voltar às notícias</a></div>';}
+  catch(error){console.error(error);if(!hasServerContent)container.innerHTML='<div class="article-empty"><strong>Notícia não encontrada.</strong><p>Ela pode ter sido removida ou ainda não está disponível.</p><a href="/preview/noticias/">Voltar às notícias</a></div>';}
 }
 function configureNewsletter(){const signup=document.querySelector(".newsletter-signup");if(!signup)return;const title=signup.querySelector("h2"),description=signup.querySelector(".newsletter-box > div > p:last-child"),name=signup.querySelector('input[name="nome"]');if(title)title.textContent="Urânia direto no seu e-mail.";if(description)description.textContent="Receba notícias importantes, novidades da cidade e conteúdos do Eu Amo Urânia.";if(name){name.placeholder="Seu nome";name.required=true;}}
 load();

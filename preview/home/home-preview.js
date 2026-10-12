@@ -47,6 +47,7 @@ function fallbackMessage(element, message) {
 
 async function renderNews() {
   const root = document.getElementById("home-news");
+  if (root?.dataset.serverRendered === "true") return;
   try {
     const rows = await fetchPublicRows("noticias", {
       select: "id,titulo,slug,resumo,conteudo_html,imagem_url,categoria_nome,publicado_em,destaque",
@@ -63,6 +64,7 @@ async function renderNews() {
 
 async function renderBusinesses() {
   const root = document.getElementById("home-businesses");
+  if (root?.dataset.serverRendered === "true") return;
   try {
     const rows = await fetchPublicRows("guia_comercial", {
       select: "id,nome,slug,categoria_nome,descricao,imagem_url,recomendado",
@@ -96,6 +98,7 @@ function occurrence(event, now = new Date()) {
 
 async function renderAgenda() {
   const root = document.getElementById("home-agenda");
+  if (root?.dataset.serverRendered === "true") return;
   try {
     let rows;
     try {
@@ -135,6 +138,7 @@ async function renderAgenda() {
 
 async function renderTourism() {
   const root = document.getElementById("home-tourism");
+  if (root?.dataset.serverRendered === "true") return;
   try {
     const rows = await fetchPublicRows("turismo", { select: "id,nome,slug,descricao,imagem_url,destaque,categoria_nome", status: "eq.publicado", order: "destaque.desc,nome.asc", limit: "5" }, { ttl: 180000 });
     if (!rows.length) { root.innerHTML = "<span>Os lugares de Urânia aparecerão aqui.</span>"; return; }
@@ -235,8 +239,7 @@ async function renderAwards() {
 }
 
 async function init() {
-  try {
-    await import("/assets/js/pages/newsletter-public.js");
+  import("/assets/js/pages/newsletter-public.js").then(() => {
     const signup = document.querySelector(".newsletter-signup");
     if (signup) {
       signup.querySelector("h2").textContent = "Urânia direto no seu e-mail.";
@@ -244,8 +247,12 @@ async function init() {
       const name = signup.querySelector('input[name="nome"]');
       if (name) { name.placeholder = "Seu nome"; name.required = true; }
     }
-  } catch {}
-  try { const app = await getAppDownloadConfig(); const href = app.googlePlayUrl || app.appStoreUrl || app.appPageUrl || "/app.html"; document.getElementById("app-download").href = href; document.getElementById("header-app").href = href; } catch {}
+  }).catch(() => {});
+  getAppDownloadConfig().then(app => {
+    const href = app.googlePlayUrl || app.appStoreUrl || app.appPageUrl || "/app.html";
+    document.getElementById("app-download").href = href;
+    document.getElementById("header-app").href = href;
+  }).catch(() => {});
   if (!publicSupabaseConfigured()) return;
   await Promise.allSettled([renderNews(), renderBusinesses(), renderAgenda(), renderTourism(), renderAds(), renderAwards()]);
 }

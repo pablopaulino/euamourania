@@ -111,14 +111,82 @@ function addStructuredData(item,image,canonical) {
 }
 
 async function loadItem() {
+  const initial=document.getElementById("initial-tourism-data");
+  if(initial && root.querySelector('.tourism-place[data-server-rendered="true"]')){
+    try {
+      const item=JSON.parse(initial.textContent);
+      if(item?.id && (!requestedSlug || item.slug===requestedSlug || item.id===requestedSlug))return item;
+    } catch(error) { console.warn("Dados iniciais do lugar inválidos",error); }
+  }
   if (requestedSlug) { const query=/^[0-9a-f-]{20,}$/i.test(requestedSlug) ? { id:`eq.${requestedSlug}` } : { slug:`eq.${requestedSlug}` }; return (await fetchPublicRows("turismo", { select:"*", ...query, status:"eq.publicado", limit:"1" }))[0]; }
   return (await fetchPublicRows("turismo", { select:"*", status:"eq.publicado", order:"destaque.desc,nome.asc", limit:"1" }))[0];
 }
 
+function hydrateServerPlace(item) {
+  const canonical=`https://euamourania.com.br/turismo/${encodeURIComponent(item.slug || item.id)}`;
+  const content=root.querySelector("#place-article");
+  if(content)content.innerHTML=sanitizeArticleHtml(item.conteudo_html || `<p>${esc(item.descricao || "")}</p>`);
+  const hours=parseHours(item.opening_hours),state=openingState(hours);
+  if(state){
+    const quick=root.querySelector(".place-quick-info .opening-state");
+    if(quick){
+      quick.className=`opening-state ${state.open ? "is-open" : "is-closed"}`;
+      quick.innerHTML=`<i></i><span><strong>${state.label}</strong>${state.detail ? `<small>${esc(state.detail)}</small>` : ""}</span>`;
+    }
+    const fact=[...root.querySelectorAll(".visit-fact")].find(node=>node.querySelector("small")?.textContent==="Horários");
+    const status=fact?.querySelector("strong.open, strong.closed");
+    if(status){status.className=state.open ? "open" : "closed";status.textContent=`${state.label}${state.detail ? ` · ${state.detail}` : ""}`;}
+  }
+  const more=root.querySelector(".read-more");
+  if(more && content){content.classList.add("is-collapsed");more.hidden=false;more.style.removeProperty("display");}
+  const track=root.querySelector(".place-gallery-track");
+  const images=gallery(item); if(!images.length)images.push(fallbackImage);
+  const setSlide=index=>{
+    if(!track)return;
+    const clamped=(index+images.length)%images.length;
+    track.scrollTo({left:clamped*track.clientWidth,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+    const node=root.querySelector("[data-gallery-current]"); if(node)node.textContent=String(clamped+1);
+  };
+  root.querySelector("[data-gallery-prev]")?.addEventListener("click",()=>setSlide(Math.round(track.scrollLeft/track.clientWidth)-1));
+  root.querySelector("[data-gallery-next]")?.addEventListener("click",()=>setSlide(Math.round(track.scrollLeft/track.clientWidth)+1));
+  track?.addEventListener("scroll",()=>{const node=root.querySelector("[data-gallery-current]");if(node)node.textContent=String(Math.round(track.scrollLeft/track.clientWidth)+1);},{passive:true});
+  root.querySelectorAll("[data-gallery-jump]").forEach(button=>button.addEventListener("click",()=>{
+    setSlide(Number(button.dataset.galleryJump));
+    root.querySelector(".place-hero")?.scrollIntoView({behavior:"smooth",block:"start"});
+  }));
+  root.querySelector(".read-more")?.addEventListener("click",event=>{
+    const open=event.currentTarget.getAttribute("aria-expanded")==="true";
+    content?.classList.toggle("is-collapsed",open);
+    event.currentTarget.setAttribute("aria-expanded",String(!open));
+    event.currentTarget.innerHTML=open ? 'Ver mais <span aria-hidden="true">↓</span>' : 'Ver menos <span aria-hidden="true">↓</span>';
+  });
+  root.querySelectorAll("[data-share-place]").forEach(button=>button.addEventListener("click",async()=>{
+    try {
+      if(navigator.share)return await navigator.share({title:`${item.nome} | Turismo em Urânia`,text:item.descricao || `Conheça ${item.nome} em Urânia.`,url:canonical});
+      await navigator.clipboard.writeText(canonical);
+      button.classList.add("copied"); button.setAttribute("aria-label","Link copiado");
+    } catch(error) { if(error?.name!=="AbortError")location.href=`https://wa.me/?text=${encodeURIComponent(`${item.nome}: ${canonical}`)}`; }
+  }));
+  window.dispatchEvent(new CustomEvent("turismo:renderizado",{detail:{id:item.id}}));
+  categoryName(item).then(name=>{
+    const badge=root.querySelector(".place-badges a");
+    if(badge){badge.textContent=name;badge.href=`/preview/turismo/?busca=${encodeURIComponent(name)}`;}
+  }).catch(()=>{});
+  relatedData(item).then(related=>{
+    const target=root.querySelector(".place-relations"); if(!target)return;
+    target.innerHTML=`${section("Guia da cidade","Onde comer por perto","Poucas escolhas para completar o passeio.",related.food.map(companyCard),"is-guide")}${section("Planeje sua visita","Onde se hospedar","Opções reais cadastradas no Guia de Urânia.",related.stay.map(companyCard),"is-guide")}${section("Continue explorando","Mais lugares para conhecer","Outras experiências para descobrir na cidade.",related.attractions.map(tourismCard),"is-tourism")}${section("Agora em Urânia","O que acontece por aqui","Informação local para acompanhar sem tirar o foco do passeio.",related.news.map(newsCard),"is-news")}`;
+  }).catch(error=>console.warn("Conteúdos relacionados indisponíveis",error));
+}
+
 async function render() {
-  if (!publicSupabaseConfigured()) { root.innerHTML='<p class="detail-error">Configure o Supabase para carregar este lugar.</p>'; return; }
+  const hasServerContent=Boolean(root.querySelector('.tourism-place[data-server-rendered="true"]'));
+  if (!hasServerContent && !publicSupabaseConfigured()) { root.innerHTML='<p class="detail-error">Configure o Supabase para carregar este lugar.</p>'; return; }
   try {
-    const item=await loadItem(); if (!item) { root.innerHTML='<p class="detail-error">Ponto turístico não encontrado.</p>'; return; }
+    const item=await loadItem(); if (!item) { if (!hasServerContent) root.innerHTML='<p class="detail-error">Ponto turístico não encontrado.</p>'; return; }
+    if(hasServerContent){
+      hydrateServerPlace(item);
+      return;
+    }
     const [category,related]=await Promise.all([categoryName(item),relatedData(item)]);
     const images=gallery(item); if (!images.length) images.push(fallbackImage);
     const structuredHours=parseHours(item.opening_hours), state=openingState(structuredHours), map=mapsUrl(item);
@@ -167,7 +235,7 @@ async function render() {
     root.querySelector(".read-more")?.addEventListener("click",event=>{ const article=root.querySelector("#place-article"),open=event.currentTarget.getAttribute("aria-expanded") === "true"; article?.classList.toggle("is-collapsed",open); event.currentTarget.setAttribute("aria-expanded",String(!open)); event.currentTarget.innerHTML=open ? 'Ver mais <span aria-hidden="true">↓</span>' : 'Ver menos <span aria-hidden="true">↓</span>'; });
     root.querySelectorAll("[data-share-place]").forEach(button=>button.addEventListener("click",async()=>{ try { if (navigator.share) return await navigator.share({ title:`${item.nome} | Turismo em Urânia`,text:item.descricao || `Conheça ${item.nome} em Urânia.`,url:canonical }); await navigator.clipboard.writeText(canonical); button.classList.add("copied"); button.setAttribute("aria-label","Link copiado"); } catch(error) { if (error?.name !== "AbortError") location.href=`https://wa.me/?text=${encodeURIComponent(`${item.nome}: ${canonical}`)}`; } }));
     window.dispatchEvent(new CustomEvent("turismo:renderizado",{detail:{id:item.id}}));
-  } catch(error) { console.error(error); root.innerHTML='<p class="detail-error">Não foi possível carregar este ponto turístico.</p>'; }
+  } catch(error) { console.error(error); if (!hasServerContent) root.innerHTML='<p class="detail-error">Não foi possível carregar este ponto turístico.</p>'; }
 }
 
 const header=document.querySelector(".site-header"),menu=document.getElementById("menu-principal"),menuButton=header?.querySelector(".menu-toggle"),searchTrigger=header?.querySelector(".search-trigger"),searchInput=document.getElementById("header-search-input");

@@ -11,10 +11,10 @@ const strip=value=>String(value||"").replace(/<[^>]+>/g," ").replace(/\s+/g," ")
 const compact=(value,limit=150)=>{const text=strip(value);return text.length>limit?`${text.slice(0,limit).trim()}…`:text;};
 const safeImage=(value,options={})=>/^https?:\/\//i.test(value||"")||/^\/?assets\//i.test(value||"")?esc(responsiveImage(value,options)):"";
 const safeHttp=value=>/^https?:\/\//i.test(value||"")?esc(value):"";
-const eventUrl=item=>`/preview/agenda/evento/?slug=${encodeURIComponent(item.slug)}`;
+const eventUrl=item=>`/eventos/agenda/${encodeURIComponent(item.slug)}`;
 const publicEventUrl=item=>`/eventos/agenda/${encodeURIComponent(item.slug)}`;
-const archiveUrl=item=>`/preview/agenda/tradicao/?slug=${encodeURIComponent(item.slug)}`;
-const editionUrl=(item,year)=>`/preview/agenda/edicao/?slug=${encodeURIComponent(item.slug)}&ano=${encodeURIComponent(year)}`;
+const archiveUrl=item=>`/eventos/${encodeURIComponent(item.slug)}`;
+const editionUrl=(item,year)=>`/eventos/${encodeURIComponent(item.slug)}/${encodeURIComponent(year)}`;
 const recurrenceLabel=type=>({semanal:"Semanal",mensal:"Mensal",anual:"Anual"})[type]||"";
 
 function dateInfo(value){
@@ -41,25 +41,27 @@ async function fetchSimpleEvents(){
   }
 }
 
-function addRecurrenceDate(date,type){const next=new Date(date);if(type==="semanal")next.setDate(next.getDate()+7);else if(type==="mensal")next.setMonth(next.getMonth()+1);else if(type==="anual")next.setFullYear(next.getFullYear()+1);return next;}
+function addRecurrenceDate(date,type){const next=new Date(date);if(type==="semanal")next.setUTCDate(next.getUTCDate()+7);else if(type==="mensal")next.setUTCMonth(next.getUTCMonth()+1);else if(type==="anual")next.setUTCFullYear(next.getUTCFullYear()+1);return next;}
 
 function expandRecurringEvents(events,now=new Date()){
   const horizon=new Date(now);horizon.setMonth(horizon.getMonth()+12);
-  const today=new Date(now);today.setHours(0,0,0,0);
+  const cityDay=value=>new Intl.DateTimeFormat("sv-SE",{year:"numeric",month:"2-digit",day:"2-digit",timeZone:"America/Sao_Paulo"}).format(value);
   return events.map(event=>{
     const originalStart=event.data_inicio?new Date(event.data_inicio):null;
-    if(!originalStart||Number.isNaN(originalStart.getTime())||!["semanal","mensal","anual"].includes(event.recorrencia_tipo))return event;
+    if(!originalStart||Number.isNaN(originalStart.getTime()))return null;
     const originalEnd=event.data_fim?new Date(event.data_fim):null;
     const duration=originalEnd&&!Number.isNaN(originalEnd.getTime())?originalEnd-originalStart:null;
+    if(!["semanal","mensal","anual"].includes(event.recorrencia_tipo))return originalEnd?originalEnd>=now?event:null:cityDay(originalStart)>=cityDay(now)?event:null;
     const recurrenceEnd=event.recorrencia_ate?new Date(event.recorrencia_ate):horizon;
     const limit=recurrenceEnd<horizon?recurrenceEnd:horizon;
     let occurrence=new Date(originalStart),guard=0;
-    while(occurrence<=limit&&guard<80){
-      if(occurrence>=today)return {...event,id:`${event.id}-${occurrence.toISOString()}`,original_id:event.id,data_inicio:occurrence.toISOString(),data_fim:duration?new Date(occurrence.getTime()+duration).toISOString():event.data_fim,recorrencia_label:recurrenceLabel(event.recorrencia_tipo)};
+    while(occurrence<=limit&&guard<1040){
+      const end=duration?new Date(occurrence.getTime()+duration):null;
+      if(end?end>=now:cityDay(occurrence)>=cityDay(now))return {...event,id:`${event.id}-${occurrence.toISOString()}`,original_id:event.id,data_inicio:occurrence.toISOString(),data_fim:end?end.toISOString():null,recorrencia_label:recurrenceLabel(event.recorrencia_tipo)};
       occurrence=addRecurrenceDate(occurrence,event.recorrencia_tipo);guard+=1;
     }
-    return event;
-  }).sort((a,b)=>new Date(a.data_inicio||0)-new Date(b.data_inicio||0));
+    return null;
+  }).filter(Boolean).sort((a,b)=>new Date(a.data_inicio||0)-new Date(b.data_inicio||0));
 }
 
 function mapUrl(item){
@@ -103,13 +105,18 @@ function renderStructuredData(items){
   document.head.append(script);
 }
 
-function render(events,principals,editions){
+function render(events,principals,editions,{skipCurrent=false,skipArchive=false}={}){
   const now=new Date();
-  const active=expandRecurringEvents(events,now).filter(item=>!item.data_fim||new Date(item.data_fim)>=now);
-  currentList.innerHTML=active.length?active.slice(0,8).map(eventCard).join(""):`<div class="agenda-empty"><strong>Nada marcado por enquanto.</strong><p>A agenda será atualizada assim que novos eventos forem confirmados.</p><a href="/cadastrar-evento.html">Cadastrar evento <span aria-hidden="true">→</span></a></div>`;
-  const editionsByEvent=new Map();editions.forEach(edition=>editionsByEvent.set(edition.evento_id,[...(editionsByEvent.get(edition.evento_id)||[]),edition]));
-  archiveList.innerHTML=principals.length?principals.map(item=>archiveCard(item,editionsByEvent.get(item.id)||[])).join(""):`<div class="agenda-empty archive-empty"><strong>O acervo está sendo organizado.</strong><p>As tradições e edições anteriores aparecerão aqui.</p></div>`;
-  status.hidden=true;renderStructuredData(active);
+  if(!skipCurrent){
+    const active=expandRecurringEvents(events,now);
+    currentList.innerHTML=active.length?active.slice(0,8).map(eventCard).join(""):`<div class="agenda-empty"><strong>Nada marcado por enquanto.</strong><p>A agenda será atualizada assim que novos eventos forem confirmados.</p><a href="/cadastrar-evento.html">Cadastrar evento <span aria-hidden="true">→</span></a></div>`;
+    renderStructuredData(active);
+  }
+  if(!skipArchive){
+    const editionsByEvent=new Map();editions.forEach(edition=>editionsByEvent.set(edition.evento_id,[...(editionsByEvent.get(edition.evento_id)||[]),edition]));
+    archiveList.innerHTML=principals.length?principals.map(item=>archiveCard(item,editionsByEvent.get(item.id)||[])).join(""):`<div class="agenda-empty archive-empty"><strong>O acervo está sendo organizado.</strong><p>As tradições e edições anteriores aparecerão aqui.</p></div>`;
+  }
+  status.hidden=true;
   document.dispatchEvent(new CustomEvent("agenda:renderizada"));
 }
 
@@ -125,9 +132,14 @@ getAppDownloadConfig().then(app=>document.querySelectorAll("[data-app-download]"
 function configureNewsletter(){const signup=document.querySelector(".newsletter-signup");if(!signup)return;const title=signup.querySelector("h2"),description=signup.querySelector(".newsletter-box > div > p:last-child"),name=signup.querySelector('input[name="nome"]');if(title)title.textContent="Urânia direto no seu e-mail.";if(description)description.textContent="Receba notícias importantes, novidades da cidade e conteúdos do Eu Amo Urânia.";if(name){name.placeholder="Seu nome";name.required=true;}}
 
 async function init(){
-  if(!publicSupabaseConfigured()){status.textContent="Configure o Supabase para carregar a Agenda.";return;}
-  const [events,principals,editions]=await Promise.all([fetchSimpleEvents(),safeRows("eventos_principais",{select:"*",ativo:"eq.true",order:"destaque.desc,atualizado_em.desc"}),safeRows("eventos_edicoes",{select:"*",order:"ano.desc,data_inicio.desc"})]);
-  render(events,principals,editions);
+  const skipCurrent=currentList?.dataset.serverRendered==="true",skipArchive=archiveList?.dataset.serverRendered==="true";
+  if(!publicSupabaseConfigured()&&!skipCurrent){status.textContent="Configure o Supabase para carregar a Agenda.";return;}
+  const [events,principals,editions]=await Promise.all([
+    skipCurrent?[]:fetchSimpleEvents(),
+    skipArchive?[]:safeRows("eventos_principais",{select:"*",ativo:"eq.true",order:"destaque.desc,atualizado_em.desc"}),
+    skipArchive?[]:safeRows("eventos_edicoes",{select:"*",order:"ano.desc,data_inicio.desc"})
+  ]);
+  render(events,principals,editions,{skipCurrent,skipArchive});
   await Promise.allSettled([import("/assets/js/pages/site-config-page.js"),import("/assets/js/pages/analytics-page.js"),import("/assets/js/pages/newsletter-public.js"),import("/assets/js/pages/google-analytics-page.js"),import("/assets/js/pages/smart-app-banner.js"),import("/assets/js/pages/error-monitor.js")]);
   configureNewsletter();
 }

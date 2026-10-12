@@ -5,7 +5,7 @@ import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
 import "/preview/guia/banners-preview.js";
 
 const root=document.getElementById("agenda-event-details");
-const requestedSlug=new URLSearchParams(location.search).get("slug")||"";
+const requestedSlug=new URLSearchParams(location.search).get("slug")||location.pathname.match(/^\/eventos\/agenda\/([^/]+)/)?.[1]||"";
 const esc=(value="")=>String(value??"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const strip=value=>textoPuro(value||"").replace(/\s+/g," ").trim();
 const safeImage=value=>/^https?:\/\//i.test(value||"")||/^\/?assets\//i.test(value||"")?esc(responsiveImage(value,{width:1200,height:820,quality:80})):"";
@@ -26,16 +26,16 @@ function dateInfo(value){
   if(Number.isNaN(date.getTime()))return {day:"—",month:"A definir",weekday:"",long:"Data a confirmar",time:"",iso:""};
   return {day:new Intl.DateTimeFormat("pt-BR",{day:"2-digit",timeZone:zone}).format(date),month:new Intl.DateTimeFormat("pt-BR",{month:"short",timeZone:zone}).format(date).replace(".","").toUpperCase(),weekday:new Intl.DateTimeFormat("pt-BR",{weekday:"long",timeZone:zone}).format(date),long:new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"long",year:"numeric",timeZone:zone}).format(date),time:new Intl.DateTimeFormat("pt-BR",{hour:"2-digit",minute:"2-digit",timeZone:zone}).format(date),iso:date.toISOString()};
 }
-function addRecurrenceDate(date,type){const next=new Date(date);if(type==="semanal")next.setDate(next.getDate()+7);else if(type==="mensal")next.setMonth(next.getMonth()+1);else if(type==="anual")next.setFullYear(next.getFullYear()+1);return next;}
+function addRecurrenceDate(date,type){const next=new Date(date);if(type==="semanal")next.setUTCDate(next.getUTCDate()+7);else if(type==="mensal")next.setUTCMonth(next.getUTCMonth()+1);else if(type==="anual")next.setUTCFullYear(next.getUTCFullYear()+1);return next;}
 function currentOccurrence(item){
   const start=item.data_inicio?new Date(item.data_inicio):null;
   if(!start||Number.isNaN(start.getTime())||!["semanal","mensal","anual"].includes(item.recorrencia_tipo))return item;
-  const today=new Date();today.setHours(0,0,0,0);
+  const dayKey=value=>new Intl.DateTimeFormat("sv-SE",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(value),today=dayKey(new Date());
   const recurrenceEnd=item.recorrencia_ate?new Date(item.recorrencia_ate):null;
   const originalEnd=item.data_fim?new Date(item.data_fim):null;
   const duration=originalEnd&&!Number.isNaN(originalEnd.getTime())?originalEnd-start:null;
   let occurrence=new Date(start),guard=0;
-  while(occurrence<today&&guard<520){occurrence=addRecurrenceDate(occurrence,item.recorrencia_tipo);guard+=1;}
+  while(dayKey(occurrence)<today&&guard<520){occurrence=addRecurrenceDate(occurrence,item.recorrencia_tipo);guard+=1;}
   if(recurrenceEnd&&!Number.isNaN(recurrenceEnd.getTime())&&occurrence>recurrenceEnd)return item;
   return {...item,data_inicio:occurrence.toISOString(),data_fim:duration?new Date(occurrence.getTime()+duration).toISOString():item.data_fim};
 }
@@ -45,16 +45,27 @@ function structuredData(item,image,canonical){const script=document.createElemen
 
 async function loadEvent(){const query=requestedSlug?{slug:`eq.${requestedSlug}`}:{order:"data_inicio.asc"};return (await fetchPublicRows("eventos",{select:"*",status:"eq.publicado",...query,limit:"1"}))[0];}
 async function loadRelatedEvents(current){
-  const rows=await fetchPublicRows("eventos",{select:"*",status:"eq.publicado",order:"data_inicio.asc",limit:"12"}).catch(()=>[]);
+  const rows=await fetchPublicRows("eventos",{select:"id,slug,titulo,imagem_url,data_inicio,data_fim,recorrencia_tipo,recorrencia_ate,local",status:"eq.publicado",order:"data_inicio.asc",limit:"12"}).catch(()=>[]);
   const now=new Date();
   return rows.filter(row=>row.id!==current.id).map(currentOccurrence).filter(row=>{const end=new Date(row.data_fim||row.data_inicio||0);return !Number.isNaN(end.getTime())&&end>=now;}).sort((a,b)=>new Date(a.data_inicio||0)-new Date(b.data_inicio||0)).slice(0,3);
 }
 function relatedEventsMarkup(items){
   if(!items.length)return "";
-  return `<section class="event-related"><header><div><p class="event-kicker">Na agenda</p><h2>Outros eventos.</h2></div><a href="/preview/agenda/">Ver agenda <span aria-hidden="true">→</span></a></header><div class="event-related-grid">${items.map(item=>{const date=dateInfo(item.data_inicio),image=safeImage(item.imagem_url),recurrence=recurrenceLabel(item.recorrencia_tipo);return `<a class="event-related-card" href="/preview/agenda/evento/?slug=${encodeURIComponent(item.slug)}">${image?`<img src="${image}" alt="" width="520" height="330" loading="lazy" decoding="async">`:""}<div><time datetime="${esc(date.iso)}"><strong>${esc(date.day)}</strong><span>${esc(date.month)}</span></time><section>${recurrence?`<small>${esc(recurrence)}</small>`:""}<h3>${esc(item.titulo)}</h3>${item.local?`<p>${esc(item.local)}</p>`:""}</section></div></a>`;}).join("")}</div></section>`;
+  const preview=location.pathname.startsWith("/preview/"),agenda=preview?"/preview/agenda/":"/eventos/";
+  return `<section class="event-related"><header><div><p class="event-kicker">Na agenda</p><h2>Outros eventos.</h2></div><a href="${agenda}">Ver agenda <span aria-hidden="true">→</span></a></header><div class="event-related-grid">${items.map(item=>{const date=dateInfo(item.data_inicio),image=safeImage(item.imagem_url),recurrence=recurrenceLabel(item.recorrencia_tipo),href=preview?`/preview/agenda/evento/?slug=${encodeURIComponent(item.slug)}`:`/eventos/agenda/${encodeURIComponent(item.slug)}`;return `<a class="event-related-card" href="${href}">${image?`<img src="${image}" alt="" width="520" height="330" loading="lazy" decoding="async">`:""}<div><time datetime="${esc(date.iso)}"><strong>${esc(date.day)}</strong><span>${esc(date.month)}</span></time><section>${recurrence?`<small>${esc(recurrence)}</small>`:""}<h3>${esc(item.titulo)}</h3>${item.local?`<p>${esc(item.local)}</p>`:""}</section></div></a>`;}).join("")}</div></section>`;
 }
 
 async function render(){
+  if(root?.dataset.serverRendered==="true"){
+    const title=root.querySelector("h1")?.textContent?.trim()||"Evento em Urânia";
+    const summary=root.querySelector(".event-detail-intro > p")?.textContent?.trim()||"";
+    const canonical=document.querySelector('link[rel="canonical"]')?.href||location.href;
+    root.querySelector("[data-share-event]")?.addEventListener("click",async event=>{try{if(navigator.share){await navigator.share({title,text:summary,url:canonical});return;}await navigator.clipboard.writeText(canonical);event.currentTarget.classList.add("copied");event.currentTarget.setAttribute("aria-label","Link copiado");}catch(error){if(error?.name!=="AbortError")location.href=`https://wa.me/?text=${encodeURIComponent(`${title}: ${canonical}`)}`;}});
+    window.dispatchEvent(new CustomEvent("evento:renderizado",{detail:{id:root.querySelector("[data-event-id]")?.dataset.eventId}}));
+    const id=root.querySelector("[data-event-id]")?.dataset.eventId;
+    if(id)loadRelatedEvents({id}).then(items=>{if(items.length&&!root.querySelector(".event-related"))root.querySelector("article.event-detail")?.insertAdjacentHTML("beforeend",relatedEventsMarkup(items));}).catch(()=>{});
+    return;
+  }
   if(!publicSupabaseConfigured()){root.innerHTML='<p class="event-detail-status">Configure o Supabase para carregar este evento.</p>';return;}
   try{
     const loadedItem=await loadEvent();if(!loadedItem){root.innerHTML='<p class="event-detail-status">Evento não encontrado.</p>';return;}const item=currentOccurrence(loadedItem),related=await loadRelatedEvents(loadedItem);

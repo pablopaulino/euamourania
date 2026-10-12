@@ -19,10 +19,19 @@ const safeImage = v => /^https?:\/\//i.test(v || "") || /^\/?assets\//.test(v ||
 const placeholder = '<div class="media-placeholder"><img src="/assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56" loading="lazy" decoding="async"></div>';
 const normalize = v => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const PAGE_SIZE = 6;
+const LIST_SELECT = "id,nome,slug,categoria_nome,descricao,imagem_url,whatsapp,endereco,horario,recomendado";
+const LIST_QUERY = { select: LIST_SELECT, status: "eq.publicado", order: "recomendado.desc,nome.asc" };
+let initialData = null;
+try { initialData = JSON.parse(document.getElementById("initial-guide-list-data")?.textContent || "null"); } catch {}
 let itens = [];
 let itensFiltrados = [];
 let quantidadeVisivel = PAGE_SIZE;
 let carregandoAutomatico = false;
+let listaCompleta = false;
+let temMaisPaginas = false;
+let buscaCompleta = null;
+let revisaoLista = 0;
+let categoriasAtivas = [];
 let categoriaAtual = "";
 let termoAtual = normalize(new URLSearchParams(location.search).get("busca"));
 
@@ -41,7 +50,11 @@ function atualizarStatusDeCarga(restantes = 0) {
         : "";
 }
 
-function aplicarFiltros() {
+async function aplicarFiltros() {
+  if (!listaCompleta && (categoriaAtual || termoAtual)) {
+    try { await carregarTodos(); }
+    catch (error) { console.error(error); loadStatus.textContent = "Não foi possível filtrar agora. Tente novamente."; return; }
+  }
   const filtrados = itens.filter(item => {
     const categoriaCorresponde = !categoriaAtual || item.categoria_nome === categoriaAtual;
     const textoCorresponde = !termoAtual || normalize(`${item.nome} ${item.descricao || ""} ${item.categoria_nome || ""} ${item.endereco || ""}`).includes(termoAtual);
@@ -60,7 +73,7 @@ function mobileTags(item) {
 }
 
 function cardMarkup(item) {
-  const detalhes = `/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}`;
+  const detalhes = `/guia/${encodeURIComponent(item.slug || item.id)}`;
   return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}"${item.recomendado ? ' data-guide-featured="true"' : ""}>${item.recomendado ? '<span class="badge-destaque">Recomendado</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" width="420" height="320" loading="lazy" decoding="async">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao || "Conheça este estabelecimento no Guia de Urânia.")}</p>${mobileTags(item)}<div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes <span aria-hidden="true">→</span></a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp" aria-label="Falar com ${esc(item.nome)} pelo WhatsApp">WhatsApp</a>` : ""}</div></div></article>`;
 }
 
@@ -70,9 +83,9 @@ function prepararImagens(root = container) {
 
 function atualizarControles(dados, visiveis) {
   const restantes = Math.max(0, dados.length - visiveis.length);
-  loadMore.hidden = restantes === 0;
-  loadMore.textContent = restantes ? `Carregando mais estabelecimentos (${restantes})` : "Todos os estabelecimentos foram exibidos";
-  atualizarStatusDeCarga(restantes);
+  loadMore.hidden = restantes === 0 && !temMaisPaginas;
+  loadMore.textContent = restantes || temMaisPaginas ? "Ver mais estabelecimentos" : "Todos os estabelecimentos foram exibidos";
+  atualizarStatusDeCarga(restantes || Number(temMaisPaginas));
   document.dispatchEvent(new CustomEvent("guia:renderizado"));
 }
 
@@ -94,20 +107,22 @@ function renderizar(dados) {
 }
 
 function renderizarFiltros(categorias) {
+  categoriasAtivas = categorias;
   const cadastradas = categorias.map(item => item.nome);
   const extras = [...new Set(itens.map(item => item.categoria_nome).filter(Boolean))]
     .filter(nome => !cadastradas.includes(nome))
     .sort((a, b) => a.localeCompare(b, "pt-BR"));
   const nomes = [...cadastradas, ...extras];
-  filters.innerHTML = `<button class="btn-filtro ativo" type="button" data-category="">Todos</button>${nomes.map(nome => `<button class="btn-filtro" type="button" data-category="${esc(nome)}">${esc(nome)}</button>`).join("")}`;
-  filters.addEventListener("click", event => {
-    const button = event.target.closest("[data-category]");
-    if (!button) return;
-    filters.querySelectorAll(".btn-filtro").forEach(item => item.classList.toggle("ativo", item === button));
-    categoriaAtual = button.dataset.category;
-    aplicarFiltros();
-  });
+  filters.innerHTML = `<button class="btn-filtro${categoriaAtual ? "" : " ativo"}" type="button" data-category="">Todos</button>${nomes.map(nome => `<button class="btn-filtro${categoriaAtual === nome ? " ativo" : ""}" type="button" data-category="${esc(nome)}">${esc(nome)}</button>`).join("")}`;
 }
+
+filters?.addEventListener("click", event => {
+  const button = event.target.closest("[data-category]");
+  if (!button) return;
+  filters.querySelectorAll(".btn-filtro").forEach(item => item.classList.toggle("ativo", item === button));
+  categoriaAtual = button.dataset.category;
+  aplicarFiltros();
+});
 
 searchForm?.addEventListener("submit", event => {
   event.preventDefault();
@@ -121,11 +136,32 @@ searchInput?.addEventListener("input", () => {
   aplicarFiltros();
 });
 
-function carregarMais(scroll = false) {
+async function carregarMais(scroll = false) {
   if (loadMore.hidden || carregandoAutomatico) return;
   carregandoAutomatico = true;
   document.body.classList.add("is-loading-more");
   atualizarStatusDeCarga(Math.max(0, itensFiltrados.length - quantidadeVisivel));
+  if (!listaCompleta && temMaisPaginas) {
+    const revisao = revisaoLista;
+    try {
+      const page = await fetchPublicRows("guia_comercial", { ...LIST_QUERY, limit: String(PAGE_SIZE + 1), offset: String(itens.length) });
+      if (revisao !== revisaoLista) {
+        document.body.classList.remove("is-loading-more");
+        carregandoAutomatico = false;
+        return;
+      }
+      const novos = page.slice(0, PAGE_SIZE);
+      temMaisPaginas = page.length > PAGE_SIZE;
+      itens.push(...novos);
+      itensFiltrados = itens;
+    } catch (error) {
+      console.error(error);
+      loadStatus.textContent = "Não foi possível carregar mais empresas. Tente novamente.";
+      document.body.classList.remove("is-loading-more");
+      carregandoAutomatico = false;
+      return;
+    }
+  }
   const inicio = quantidadeVisivel;
   quantidadeVisivel += PAGE_SIZE;
   requestAnimationFrame(() => {
@@ -136,7 +172,7 @@ function carregarMais(scroll = false) {
     document.body.classList.remove("is-loading-more");
     carregandoAutomatico = false;
     atualizarStatusDeCarga(Math.max(0, itensFiltrados.length - quantidadeVisivel));
-    if (scroll) container.children[Math.max(0, quantidadeVisivel - PAGE_SIZE)]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (scroll) container.querySelectorAll(".card-guia")[Math.max(0, inicio)]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
 }
 
@@ -151,18 +187,58 @@ if ("IntersectionObserver" in window) {
   observer.observe(loadMore);
 }
 
+async function carregarTodos() {
+  if (listaCompleta) return;
+  revisaoLista += 1;
+  if (!buscaCompleta) buscaCompleta = fetchPublicRows("guia_comercial", LIST_QUERY);
+  try {
+    itens = await buscaCompleta;
+    listaCompleta = true;
+    temMaisPaginas = false;
+    renderizarFiltros(categoriasAtivas);
+  } catch (error) {
+    buscaCompleta = null;
+    throw error;
+  }
+}
+
 async function carregar() {
+  if (initialData?.items && container?.dataset.serverRendered === "true") {
+    itens = initialData.items;
+    itensFiltrados = itens;
+    temMaisPaginas = Boolean(initialData.hasMore);
+    listaCompleta = !temMaisPaginas;
+    renderizarFiltros(initialData.categories || []);
+    if (!initialData.categories?.length && publicSupabaseConfigured()) {
+      fetchPublicRows("categorias", { select:"nome,slug,ordem", tipo:"eq.guia", status:"eq.ativo", order:"ordem.asc,nome.asc" }, { ttl:180000 })
+        .then(renderizarFiltros).catch(() => {});
+    }
+    prepararImagens();
+    status.hidden = Boolean(itens.length);
+    atualizarControles(itens, itens);
+    if (termoAtual || location.hash.startsWith("#guia-")) {
+      try {
+        await carregarTodos();
+        if (searchInput) searchInput.value = new URLSearchParams(location.search).get("busca") || "";
+        const iniciais = termoAtual ? itens.filter(item => normalize(`${item.nome} ${item.descricao || ""} ${item.categoria_nome || ""} ${item.endereco || ""}`).includes(termoAtual)) : itens;
+        const alvo = location.hash.startsWith("#guia-") ? itens.findIndex(item => `#guia-${item.id}` === location.hash) : -1;
+        quantidadeVisivel = alvo >= 0 ? Math.max(PAGE_SIZE, alvo + 1) : PAGE_SIZE;
+        renderizar(iniciais);
+        if (alvo >= 0) requestAnimationFrame(() => document.querySelector(location.hash)?.scrollIntoView({ behavior: "smooth", block: "center" }));
+      } catch (error) {
+        console.error(error);
+        loadStatus.textContent = "Não foi possível atualizar a busca agora. Tente novamente.";
+      }
+    }
+    return;
+  }
   if (!publicSupabaseConfigured()) {
     status.textContent = "Configure o Supabase para carregar o guia.";
     return;
   }
   try {
     const [dados, categorias] = await Promise.all([
-      fetchPublicRows("guia_comercial", {
-        select: "id,nome,slug,categoria_nome,descricao,imagem_url,whatsapp,endereco,horario,recomendado",
-        status: "eq.publicado",
-        order: "recomendado.desc,nome.asc"
-      }),
+      fetchPublicRows("guia_comercial", { ...LIST_QUERY, limit: String(PAGE_SIZE + 1) }),
       fetchPublicRows("categorias", {
         select: "nome,slug,ordem",
         tipo: "eq.guia",
@@ -170,9 +246,12 @@ async function carregar() {
         order: "ordem.asc,nome.asc"
       })
     ]);
-    itens = dados;
+    itens = dados.slice(0, PAGE_SIZE);
+    temMaisPaginas = dados.length > PAGE_SIZE;
+    listaCompleta = !temMaisPaginas;
     renderizarFiltros(categorias);
     if (searchInput) searchInput.value = new URLSearchParams(location.search).get("busca") || "";
+    if (termoAtual || location.hash.startsWith("#guia-")) await carregarTodos();
     const iniciais = termoAtual ? itens.filter(item => normalize(`${item.nome} ${item.descricao || ""} ${item.categoria_nome || ""} ${item.endereco || ""}`).includes(termoAtual)) : itens;
     const alvo = location.hash.startsWith("#guia-") ? itens.findIndex(item => `#guia-${item.id}` === location.hash) : -1;
     quantidadeVisivel = alvo >= 0 ? Math.max(PAGE_SIZE, alvo + 1) : PAGE_SIZE;
