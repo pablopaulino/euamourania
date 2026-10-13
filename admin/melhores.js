@@ -6,6 +6,7 @@ import {
   obterResumoMelhores,
   obterAudienciaMelhores,
   listarEdicoes,
+  edicaoTemHistoricoOficial,
   listarEdicoesParaCopiaCategorias,
   salvarEdicao,
   excluirEdicao,
@@ -548,7 +549,7 @@ function editionRow(item) {
 
 function isHistoricalEdition(itemOrId) {
   const item = typeof itemOrId === "string" ? state.edicoes.find(edition => edition.id === itemOrId) : itemOrId;
-  return Boolean(item && (item.resultado_publicado_em || ["resultado_publicado", "arquivada"].includes(item.status)));
+  return edicaoTemHistoricoOficial(item);
 }
 
 async function loadCategories() {

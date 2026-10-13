@@ -117,13 +117,26 @@ export async function obterAudienciaMelhores({ edicaoId = "", dias = 30 } = {}) 
   };
 }
 
+export function edicaoTemHistoricoOficial(edicao) {
+  if (!edicao) return false;
+  return ["resultado_publicado", "arquivada"].includes(edicao.status)
+    || edicao.tem_resultados_publicados === true
+    // Without an authenticated results check, retain the conservative lock.
+    || (edicao.tem_resultados_publicados === undefined && Boolean(edicao.resultado_publicado_em));
+}
+
 export async function listarEdicoes() {
   const { data, error } = await db()
     .from("melhores_edicoes")
-    .select("*")
+    .select("*, melhores_resultados(publicado)")
     .order("ano", { ascending: false });
   if (error) throw error;
-  return data || [];
+  return (data || []).map(({ melhores_resultados, ...edicao }) => ({
+    ...edicao,
+    tem_resultados_publicados: Array.isArray(melhores_resultados)
+      ? melhores_resultados.some(resultado => resultado.publicado === true)
+      : undefined
+  }));
 }
 
 export async function listarEdicoesParaCopiaCategorias() {
@@ -159,7 +172,7 @@ async function garantirEdicaoMutavel(edicaoId) {
     .eq("edicao_id", edicaoId)
     .eq("publicado", true);
   if (resultsError) throw resultsError;
-  if (edicao.resultado_publicado_em || ["resultado_publicado", "arquivada"].includes(edicao.status) || count > 0) {
+  if (edicaoTemHistoricoOficial({ ...edicao, tem_resultados_publicados: count == null ? undefined : count > 0 })) {
     throw new Error("Esta edição tem resultados oficiais e deve permanecer no histórico.");
   }
 }
