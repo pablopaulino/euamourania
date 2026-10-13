@@ -69,6 +69,46 @@ try {
   assert.equal(calls.find(call => call.table === "guia_comercial")?.query.get("limit"), "6");
   assert.equal(calls.find(call => call.table === "turismo")?.query.get("limit"), "5");
 
+  assert.match(res.body, /media="print" onload="this.media='all'"/);
+  assert.match(res.body, /<noscript><link[^>]+fonts.googleapis.com/);
+  assert.match(res.body, /class="hero-photo"><img[^>]+loading="lazy"/);
+
+  const storageImage = "https://omhcpbphvtihqwdkbsbf.supabase.co/storage/v1/object/public/cms-media/test.jpg";
+  globalThis.fetch = async url => {
+    const table = new URL(url).pathname.split("/").at(-1);
+    return fakeResponse(rows[table].map(row => ({ ...row, imagem_url: storageImage })));
+  };
+  const optimized = response();
+  await handleHome({ method: "GET", query: {} }, optimized);
+  assert.equal(optimized.code, 200);
+  assert.match(optimized.body, /render\/image\/public\/cms-media\/test.jpg\?width=180&amp;quality=78/);
+  assert.match(optimized.body, /srcset="[^"]+480w[^"]+760w[^"]+1200w/);
+  assert.match(optimized.body, /width=900&amp;quality=78/);
+
+  // Timeouts, network failures and 5xx must not trigger a second six-second wait.
+  for (const failure of [new Error("network"), { status: 500 }, { status: 400, code: "42703", message: "column recorrencia_tipo does not exist" }]) {
+    let attempts = 0;
+    globalThis.fetch = async url => {
+      const parsed = new URL(url);
+      const table = parsed.pathname.split("/").at(-1);
+      if (table === "eventos" && !parsed.searchParams.has("recorrencia_tipo")) {
+        attempts++;
+        if (attempts === 1) {
+          if (failure instanceof Error) throw failure;
+          return { ok: false, status: failure.status, json: async () => failure };
+        }
+      }
+      return fakeResponse(rows[table]);
+    };
+    const result = response();
+    const log = console.error;
+    console.error = () => {};
+    try { await handleHome({ method: "GET", query: {} }, result); }
+    finally { console.error = log; }
+    assert.equal(attempts, failure.code === "42703" ? 2 : 1);
+    assert.equal(result.code, failure.code === "42703" ? 200 : 503);
+  }
+
   globalThis.fetch = async url => {
     const table = new URL(url).pathname.split("/").at(-1);
     if (table === "eventos_edicoes") throw new Error("Edições indisponíveis no teste");

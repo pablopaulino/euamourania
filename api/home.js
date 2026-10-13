@@ -30,10 +30,31 @@ async function fetchPublicRows(table, params, timeout = 6000) {
     headers: { apikey: KEY, Accept: "application/json" },
     signal: AbortSignal.timeout(timeout)
   });
-  if (!response.ok) throw new Error(`${table}: HTTP ${response.status}`);
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}));
+    throw Object.assign(new Error(`${table}: HTTP ${response.status}`), { code: detail.code, detail: detail.message });
+  }
   const rows = await response.json();
   if (!Array.isArray(rows)) throw new Error(`${table}: resposta inválida`);
   return rows;
+}
+
+function homeImage(value, width) {
+  const original = safeImage(value);
+  if (!original) return "";
+  const url = new URL(original, "https://euamourania.com.br");
+  if (url.origin !== new URL(SUPABASE_URL).origin || !url.pathname.includes("/storage/v1/object/public/")) return original;
+  url.pathname = url.pathname.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
+  url.searchParams.set("width", String(width));
+  url.searchParams.set("quality", "78");
+  url.searchParams.set("resize", "contain");
+  return url.href;
+}
+
+function newsImageAttributes(value) {
+  const source = homeImage(value, 760);
+  if (source === safeImage(value)) return `src="${esc(source)}"`;
+  return `src="${esc(source)}" srcset="${[480, 760, 1200].map(width => `${esc(homeImage(value, width))} ${width}w`).join(", ")}" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1000px) 60vw, 760px"`;
 }
 
 function replaceHomeSection(html, id, markup, state = "true") {
@@ -45,11 +66,12 @@ function replaceHomeSection(html, id, markup, state = "true") {
 function newsMarkup(rows) {
   const items = rows.filter(item => safeImage(item.imagem_url)).slice(0, 3);
   if (!items.length) return '<p class="loading">As notícias da cidade aparecerão aqui.</p>';
-  return items.map((item, index) => `<a class="news-card" href="/noticias/${route(item)}"><img src="${esc(safeImage(item.imagem_url))}" alt="" width="760" height="560" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><div class="news-copy"><small>${esc(item.categoria_nome || "Notícia")}</small><h3>${esc(item.titulo)}</h3></div></a>`).join("");
+  return items.map((item, index) => `<a class="news-card" href="/noticias/${route(item)}"><img ${newsImageAttributes(item.imagem_url)} alt="" width="760" height="560" decoding="async" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><div class="news-copy"><small>${esc(item.categoria_nome || "Notícia")}</small><h3>${esc(item.titulo)}</h3></div></a>`).join("");
 }
 
 function businessMarkup(rows) {
   if (!rows.length) return '<p class="loading">Os estabelecimentos do Guia aparecerão aqui.</p>';
+  rows = rows.map(item => ({ ...item, imagem_url: homeImage(item.imagem_url, 180) }));
   return rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${item.slug ? `/guia/${encodeURIComponent(item.slug)}` : `/guia-details.html?slug=${encodeURIComponent(item.id || "")}`}">${safeImage(item.imagem_url) ? `<img src="${esc(safeImage(item.imagem_url))}" alt="" width="82" height="82" loading="lazy">` : '<span class="business-placeholder" aria-hidden="true"></span>'}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${esc(item.nome)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
 }
 
@@ -133,7 +155,11 @@ async function renderPrimaryContent(html) {
     businesses: fetchPublicRows("guia_comercial", { select: "id,nome,slug,categoria_nome,descricao,imagem_url,recomendado", status: "eq.publicado", order: "recomendado.desc,nome.asc", limit: "6" }),
     tourism: fetchPublicRows("turismo", { select: "id,nome,slug,imagem_url,destaque,categoria_nome", status: "eq.publicado", order: "destaque.desc,nome.asc", limit: "5" }),
     simpleEvents: fetchPublicRows("eventos", { select: "id,titulo,slug,local,data_inicio,data_fim,recorrencia_tipo,recorrencia_ate", status: "eq.publicado", order: "data_inicio.desc", limit: "80" })
-      .catch(() => fetchPublicRows("eventos", { select: "id,titulo,slug,local,data_inicio,data_fim", status: "eq.publicado", order: "data_inicio.desc", limit: "80" })),
+      .catch(error => {
+        // Only legacy schemas need a second query. Never repeat a timeout or outage.
+        if (!["42703", "PGRST204"].includes(error.code) || !/recorrencia_(tipo|ate)/.test(error.detail || "")) throw error;
+        return fetchPublicRows("eventos", { select: "id,titulo,slug,local,data_inicio,data_fim", status: "eq.publicado", order: "data_inicio.desc", limit: "80" });
+      }),
     recurringEvents: fetchPublicRows("eventos", { select: "id,titulo,slug,local,data_inicio,data_fim,recorrencia_tipo,recorrencia_ate", status: "eq.publicado", recorrencia_tipo: "in.(semanal,mensal,anual)", order: "data_inicio.desc", limit: "40" }, 1500),
     editions: fetchPublicRows("eventos_edicoes", { select: "id,titulo,slug,ano,data_inicio,data_fim,local,status,eventos_principais!inner(nome,slug,ativo)", status: "in.(anunciado,confirmado,acontecendo)", "eventos_principais.ativo": "eq.true", order: "data_inicio.desc", limit: "40" }, 1500)
   };
@@ -147,7 +173,8 @@ async function renderPrimaryContent(html) {
   if (data.businesses) { html = replaceHomeSection(html, "home-businesses", businessMarkup(data.businesses)); rendered++; }
   if (data.tourism) {
     html = replaceHomeSection(html, "home-tourism", tourismMarkup(data.tourism));
-    const visual = data.tourism.find(item => safeImage(item.imagem_url));
+    const visualSource = data.tourism.find(item => safeImage(item.imagem_url));
+    const visual = visualSource && { ...visualSource, imagem_url: homeImage(visualSource.imagem_url, 900) };
     if (visual) html = html.replace(/(<img id="tourism-image" src=")[^"]*(" alt=")[^"]*(")/, (_, open, middle, close) => `${open}${esc(safeImage(visual.imagem_url))}${middle}${esc(visual.nome || "Lugar para conhecer em Urânia")}${close}`);
     rendered++;
   }
