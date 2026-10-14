@@ -69,7 +69,8 @@ h2 { max-width: 700px; margin-bottom: 0; font-size: clamp(35px, 4.2vw, 58px); li
 .hero-copy > p:not(.eyebrow) { max-width: 570px; margin: 27px 0 0; color: var(--muted); font-size: 19px; line-height: 1.6; }
 .hero-actions { display: flex; gap: 25px; align-items: center; margin-top: 35px; }
 .hero-photo { position: relative; margin: 0; padding: 9px; border: 1px solid rgba(17,18,20,.08); border-radius: 30px; background: rgba(255,255,255,.64); box-shadow: var(--shadow); transform: rotate(1.25deg); }
-.hero-photo > img { width: 100%; height: 568px; border-radius: 22px; object-fit: cover; }
+.hero-photo > picture { display: block; }
+.hero-photo > img, .hero-photo > picture > img { width: 100%; height: 568px; border-radius: 22px; object-fit: cover; }
 .hero-photo figcaption { position: absolute; top: 24px; left: 24px; display: flex; flex-direction: column; gap: 2px; padding: 11px 14px; border: 1px solid rgba(255,255,255,.72); border-radius: 13px; color: var(--ink); background: rgba(255,255,255,.82); box-shadow: 0 8px 25px rgba(17,18,20,.08); backdrop-filter: blur(14px); }
 .hero-photo figcaption span { color: var(--muted); font-size: 12px; }
 .hero-shortcuts { position: absolute; right: 24px; bottom: 24px; left: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
@@ -267,7 +268,7 @@ h2 { max-width: 700px; margin-bottom: 0; font-size: clamp(35px, 4.2vw, 58px); li
   .site-header { grid-template-columns: 1fr auto; }
   .menu-toggle { display: block; }
   .hero-grid { grid-template-columns: 1fr .75fr; gap: 45px; }
-  .hero-photo > img { height: 480px; }
+  .hero-photo > img, .hero-photo > picture > img { height: 480px; }
   .business-grid { grid-template-columns: repeat(2,1fr); }
 }
 @media (max-width: 760px) {

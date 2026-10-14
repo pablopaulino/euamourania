@@ -51,6 +51,13 @@ try {
   const res = response();
   await handleHome({ method: "GET", query: {} }, res);
   assert.equal(res.code, 200);
+  assert.match(res.body, /action="\/buscar\.html"/);
+  assert.match(res.body, /href="\/cadastrar-evento\.html"/);
+  assert.match(res.body, /href="\/cadastrar-empresa\.html"/);
+  assert.doesNotMatch(res.body, /<(?:a|form)\b[^>]*(?:href|action)="\/preview\//);
+  const searchHtml = readFileSync(new URL("../buscar.html", import.meta.url), "utf8");
+  assert.match(searchHtml, /action="\/buscar\.html"/);
+  assert.doesNotMatch(searchHtml, /<(?:a|form)\b[^>]*(?:href|action)="\/preview\//);
   assert.match(res.headers["Cache-Control"], /s-maxage=60/);
   assert.match(res.body, /<link rel="canonical" href="https:\/\/euamourania\.com\.br\/">/);
   assert.equal((res.body.match(/rel="canonical"/g) || []).length, 1);
@@ -71,7 +78,12 @@ try {
 
   assert.match(res.body, /media="print" onload="this.media='all'"/);
   assert.match(res.body, /<noscript><link[^>]+fonts.googleapis.com/);
-  assert.match(res.body, /class="hero-photo"><img[^>]+loading="lazy"/);
+  const hero = res.body.match(/<figure class="hero-photo">([\s\S]*?)<\/figure>/)?.[1];
+  assert.ok(hero);
+  assert.doesNotMatch(hero, /loading="lazy"/);
+  assert.match(hero, /<img[^>]+fetchpriority="high"[^>]+decoding="async"/);
+  assert.match(hero, /<source media="\(max-width: 760px\)" srcset="data:image\/gif;base64,/);
+  assert.match(hero, /<img src="\/assets\/AD3A1763-min%20\(1\)\.jpg"/);
 
   const storageImage = "https://omhcpbphvtihqwdkbsbf.supabase.co/storage/v1/object/public/cms-media/test.jpg";
   globalThis.fetch = async url => {

@@ -1,4 +1,6 @@
-const URL = "https://omhcpbphvtihqwdkbsbf.supabase.co";
+const SUPABASE_URL = "https://omhcpbphvtihqwdkbsbf.supabase.co";
+const SITE_ORIGIN = "https://euamourania.com.br";
+const REDIRECT_HOSTS = new Set(["euamourania.com.br", "www.euamourania.com.br"]);
 const KEY = "sb_publishable_m02B2sC8Ddh4fCtnvsGePg_TqwUanoM";
 const PIXEL = Buffer.from("R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=", "base64");
 const uuidRe = /^[0-9a-f-]{36}$/i;
@@ -7,7 +9,7 @@ async function registerEvent(req, tipo) {
   const c = String(req.query.c || "");
   const t = String(req.query.t || "");
   if (!uuidRe.test(c) || !uuidRe.test(t)) return;
-  await fetch(`${URL}/rest/v1/rpc/registrar_evento_newsletter`, {
+  await fetch(`${SUPABASE_URL}/rest/v1/rpc/registrar_evento_newsletter`, {
     method: "POST",
     headers: {
       apikey: KEY,
@@ -19,11 +21,16 @@ async function registerEvent(req, tipo) {
 }
 
 function safeRedirectTarget(value) {
+  if (typeof value !== "string" || /[\\\u0000-\u0020\u007f]/.test(value)) return SITE_ORIGIN;
+  // Accept root-relative paths, never protocol-relative URLs or arbitrary hosts.
+  const internalPath = value.startsWith("/") && !value.startsWith("//");
+  if (!internalPath && !/^https:\/\//i.test(value)) return SITE_ORIGIN;
   try {
-    const url = new URL(String(value || ""));
-    if (["http:", "https:"].includes(url.protocol)) return url.href;
+    const url = new URL(value, SITE_ORIGIN);
+    if (url.protocol === "https:" && REDIRECT_HOSTS.has(url.hostname)
+      && !url.username && !url.password && !url.port) return url.href;
   } catch {}
-  return "https://euamourania.com.br";
+  return SITE_ORIGIN;
 }
 
 module.exports = async (req, res) => {
