@@ -55,10 +55,7 @@ if(acesso?.guia){
     const title=document.createElement('strong');title.textContent=isCover?'Capa do Guia':`Foto ${index+1}`;
     const tag=document.createElement('span');tag.className='photo-status';tag.textContent=isCover&&published?'No aplicativo':'Já cadastrada';
     const actions=document.createElement('div');actions.className='photo-actions';
-    actions.append(replaceAction('Trocar foto',async nextUrl=>{
-      if(isCover)await persist(nextUrl,extras);
-      else await persist(capa,extras.map((value,i)=>i===index?nextUrl:value));
-    }));
+    if(isCover)actions.append(replaceAction('Trocar capa',async nextUrl=>persist(nextUrl,extras)));
     if(!isCover)actions.append(action('Usar como capa',async()=>{
       try{await persist(url,[...(capa?[capa]:[]),...extras.filter((_,i)=>i!==index)]);}catch(error){notice(error.message,true);}
     }));
@@ -84,8 +81,10 @@ if(acesso?.guia){
     else{
       const empty=document.createElement('div');empty.className='photo-empty';empty.textContent='Nenhuma outra foto cadastrada.';grid.append(empty);
     }
-    document.querySelector('#photo-count').textContent=`${extras.length} de 10 fotos extras`;
-    form.hidden=extras.length>=10&&Boolean(capa);
+    document.querySelector('#photo-count').textContent=extras.length>=4
+      ?`${extras.length} fotos extras salvas · remova uma antes de adicionar outra`
+      :`${extras.length} de 4 fotos extras`;
+    form.hidden=extras.length>=4&&Boolean(capa);
   }
 
   form.addEventListener('submit',async event=>{
@@ -94,7 +93,7 @@ if(acesso?.guia){
     try{
       const file=form.querySelector('input').files?.[0];
       if(!file)throw Error('Escolha uma imagem.');
-      if(capa&&extras.length>=10)throw Error('Limite de 10 fotos extras atingido.');
+      if(capa&&extras.length>=4)throw Error('Remova uma foto extra antes de adicionar outra.');
       const url=await upload(file);
       await persist(capa||url,capa?[...extras,url]:extras);
       form.reset();

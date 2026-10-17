@@ -8,14 +8,14 @@
   <link rel="stylesheet" href="/parceiro/parceiro.css">
 </head><body class="partner-dashboard-page">
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
-  <header><strong id="partner-name">Parceiro</strong><button id="logout">Sair</button></header>
-  <nav aria-label="Navegação do parceiro"><a href="/parceiro" aria-current="page">Início</a><a href="/parceiro/perfil">Perfil</a><a href="/parceiro/horarios">Horários</a><a href="/parceiro/galeria">Fotos</a><a href="/parceiro/vantagens">Promoções</a></nav>
+  <header class="partner-header"><a class="partner-header-brand" href="/parceiro"><img src="/assets/viva-origem-colorido.svg" alt="" width="34" height="30"><span>viva<small>URÂNIA · PARCEIROS</small></span></a><strong id="partner-name">Parceiro</strong><button id="logout">Sair</button></header>
+  <nav class="partner-nav" aria-label="Navegação do parceiro"><a href="/parceiro" aria-current="page">Início</a><a href="/parceiro/perfil">Perfil</a><a href="/parceiro/horarios">Horários</a><a href="/parceiro/galeria">Fotos</a><a href="/parceiro/vantagens">Promoções</a></nav>
   <main id="conteudo" data-needs-guide>
     <section class="dashboard-hero" aria-labelledby="dashboard-title">
       <div class="dashboard-hero-copy">
         <span class="eyebrow eyebrow-light"><span class="eyebrow-dot"></span> SUA EMPRESA NO VIVA</span>
-        <h1 id="dashboard-title">Seu espaço,<br><em>do seu jeito.</em></h1>
-        <p id="dashboard-intro-copy">Veja o que já está no aplicativo e atualize apenas o que precisar.</p>
+        <h1 id="dashboard-title">Seu painel.</h1>
+        <p id="dashboard-intro-copy">Tudo o que sua empresa já tem no Viva, em um só lugar. Edite quando precisar.</p>
         <a class="hero-action" href="/parceiro/perfil">Ver dados da empresa <span aria-hidden="true">↗</span></a>
       </div>
       <div class="dashboard-hero-art" aria-hidden="true"><img id="dashboard-cover" src="/assets/viva-origem-colorido.svg" alt=""></div>
@@ -40,12 +40,10 @@
       document.querySelector('#dashboard-business').textContent=g.nome||'Sua empresa';
       document.querySelector('#dashboard-publication').textContent=g.status==='publicado'?'Publicado no aplicativo':'Cadastro salvo';
       if(g.imagem_url){const cover=document.querySelector('#dashboard-cover');cover.src=g.imagem_url;cover.classList.add('business-cover');}
-      const {data:summary,error}=await db.rpc('parceiro_resumo',{p_guia_id:g.id});
-      if(error)notice(error.message,true);
       const fields=[
         {label:'Categoria',value:g.categoria_nome||'Guia Comercial',note:'Como sua empresa aparece no Guia',accent:'orange'},
-        {label:'Visualizações neste mês',value:summary?.visualizacoes_mes??'—',note:'Exibições da empresa no Guia',accent:'red'},
-        {label:'Última edição',value:summary?.ultima_alteracao?new Date(summary.ultima_alteracao).toLocaleDateString('pt-BR'):'Ainda não editado',note:'Alteração feita neste painel',accent:'navy'}
+        {label:'Visualizações neste mês',value:'—',note:'Exibições da empresa no Guia',accent:'red'},
+        {label:'Última edição',value:'—',note:'Alteração feita neste painel',accent:'navy'}
       ];
       for(const field of fields){
         const card=document.createElement('article');card.className=`card stat-card stat-${field.accent}`;
@@ -55,6 +53,13 @@
         card.append(label,value,note);document.querySelector('#cards').append(card);
       }
       if(g.verification_status==='needs_update')document.querySelector('#alert').textContent='Seu cadastro precisa ser atualizado. Revise o perfil e os horários.';
+      const {data:summary,error}=await db.rpc('parceiro_resumo',{p_guia_id:g.id});
+      if(error)notice(error.message,true);
+      else{
+        const values=document.querySelectorAll('#cards .stat-card strong');
+        values[1].textContent=summary?.visualizacoes_mes??'—';
+        values[2].textContent=summary?.ultima_alteracao?new Date(summary.ultima_alteracao).toLocaleDateString('pt-BR'):'Ainda não editado';
+      }
     }
   </script>
 </body></html>

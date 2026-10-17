@@ -8,11 +8,14 @@ if(acesso){
   const header=document.querySelector('body > header');
   if(header){
     header.classList.add('partner-header');
-    const brand=document.createElement('a');
-    brand.className='partner-header-brand';
+    let brand=header.querySelector('.partner-header-brand');
+    if(!brand){
+      brand=document.createElement('a');
+      brand.className='partner-header-brand';
+      brand.innerHTML='<img src="/assets/viva-origem-colorido.svg" alt="" width="34" height="30"><span>viva<small>URÂNIA · PARCEIROS</small></span>';
+      header.prepend(brand);
+    }
     brand.href=partnerPath();
-    brand.innerHTML='<img src="/assets/viva-origem-colorido.svg" alt="" width="34" height="30"><span>viva<small>URÂNIA · PARCEIROS</small></span>';
-    header.prepend(brand);
   }
   document.querySelector('body > nav')?.classList.add('partner-nav');
   document.querySelector('#partner-name').textContent=acesso.guia?.nome||'Aguardando vínculo do cadastro';
