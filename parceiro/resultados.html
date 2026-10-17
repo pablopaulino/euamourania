@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+  <title>Resultados | Viva Urânia Parceiros</title>
+  <link rel="icon" href="/assets/viva-origem-colorido.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/parceiro/parceiro.css"><link rel="stylesheet" href="/parceiro/resultados.css">
+</head><body class="partner-results-page">
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <header class="partner-header"><a class="partner-header-brand" href="/parceiro"><img src="/assets/viva-origem-colorido.svg" alt="" width="34" height="30"><span>viva<small>URÂNIA · PARCEIROS</small></span></a><strong id="partner-name">Parceiro</strong><button id="logout">Sair</button></header>
+  <nav class="partner-nav" aria-label="Navegação do parceiro"><a href="/parceiro">Início</a><a href="/parceiro/resultados" aria-current="page">Resultados</a><a href="/parceiro/perfil">Perfil</a><a href="/parceiro/horarios">Horários</a><a href="/parceiro/galeria">Fotos</a><a href="/parceiro/vantagens">Promoções</a></nav>
+  <main id="conteudo" data-needs-guide>
+    <div class="inner-page-heading"><div><span class="section-kicker">SUA PRESENÇA NO VIVA</span><h1>Resultados da sua empresa</h1><p>Veja como as pessoas encontram sua empresa e procuram seus contatos.</p></div></div>
+    <div class="results-toolbar"><label for="periodo">Período <select id="periodo"><option value="total">Total acumulado</option><option value="30">Últimos 30 dias</option></select></label><button id="refresh-results" type="button">Atualizar</button></div>
+    <p id="notice" role="status" aria-live="polite">Carregando resultados…</p>
+    <section id="results-content" aria-busy="true" aria-label="Indicadores da sua empresa">
+      <div class="results-cards">
+        <article><span>Visualizações no aplicativo</span><strong data-metric="visualizacoes_app">—</strong><p>Aberturas da página da sua empresa.</p></article>
+        <article><span>Exibições no site</span><strong data-metric="visualizacoes_site">—</strong><p>Exibições no Guia e na página da empresa.</p></article>
+        <article><span>Cliques em contatos</span><strong data-metric="cliques_contato">—</strong><p>WhatsApp, Instagram e telefone somados.</p></article>
+      </div>
+      <section class="results-channels" aria-labelledby="channels-title"><h2 id="channels-title">Onde as pessoas clicam</h2>
+        <dl>
+          <div><dt>WhatsApp<small>Aplicativo e site</small></dt><dd data-metric="whatsapp">—</dd></div>
+          <div><dt>Instagram<small>Registros do site</small></dt><dd data-metric="instagram">—</dd></div>
+          <div><dt>Telefone<small>Registros do aplicativo</small></dt><dd data-metric="telefone">—</dd></div>
+          <div><dt>Como chegar<small>Aberturas do mapa no aplicativo</small></dt><dd data-metric="mapa">—</dd></div>
+          <div><dt>Outros links<small>Links externos no site, como site da empresa e mapa</small></dt><dd data-metric="links_site">—</dd></div>
+        </dl>
+      </section>
+      <div class="results-impressions"><div><h2>Presença na tela inicial do app</h2><p>Vezes em que o cartão da empresa foi exibido.</p></div><strong data-metric="impressoes_app">—</strong></div>
+      <p id="results-empty" hidden>Nenhuma interação registrada neste período. Os números aparecem aqui conforme novos eventos são registrados.</p>
+      <p id="results-updated" class="results-note"></p>
+      <details class="results-explanation"><summary>Como ler estes números</summary><p>Os totais usam os eventos registrados para a sua empresa. Uma mesma pessoa pode gerar mais de uma interação; cliques não significam conversas iniciadas ou vendas.</p><p>“Total acumulado” reúne todo o histórico disponível no banco. “Últimos 30 dias” considera os 30 dias anteriores à consulta. O Instagram aparece com os registros do site: o aplicativo ainda não possui um evento específico para esse botão.</p><p>Exibições de cartões e aberturas de páginas são mostradas separadamente. Cliques gerais no Guia não são somados aos contatos, para evitar contar o mesmo clique duas vezes.</p></details>
+    </section>
+  </main><script type="module" src="/parceiro/resultados.js"></script>
+</body></html>

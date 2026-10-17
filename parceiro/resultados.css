@@ -1,0 +1,24 @@
+.partner-results-page main{max-width:1080px}
+.results-toolbar{display:flex;align-items:center;gap:.75rem;margin:1.6rem 0}
+.results-toolbar label{display:flex;align-items:center;gap:.7rem;font-size:.8rem;font-weight:700}
+.results-toolbar select{padding:.65rem .85rem;border:1px solid #dddcd6;border-radius:9px;background:#fff;color:#343b3e;font:inherit}
+.results-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.results-cards article{padding:1.5rem;background:#fff;border:1px solid #e9e7e1;border-radius:14px}
+.results-cards article>span{font-size:.8rem;color:#5e686b}
+.results-cards strong{display:block;margin:.5rem 0;font-size:2.7rem;line-height:1.1;letter-spacing:-.05em;color:#242b2e;font-variant-numeric:tabular-nums}
+.results-cards p,.results-impressions p{margin:0;font-size:.78rem;color:#687377}
+.results-channels{margin:2rem 0;background:#fff;border:1px solid #e9e7e1;border-radius:14px;padding:1.5rem}
+.results-channels h2,.results-impressions h2{margin:0;font-size:1.1rem;color:#242b2e;letter-spacing:-.025em}
+.results-channels dl{margin:1rem 0 0}
+.results-channels dl>div{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 0;border-top:1px solid #f0efea}
+.results-channels dt{font-size:.9rem;font-weight:650;color:#343b3e}
+.results-channels small{display:block;margin-top:.15rem;font-size:.73rem;font-weight:400;color:#687377}
+.results-channels dd{margin:0;color:#242b2e;font-size:1.5rem;font-weight:750;font-variant-numeric:tabular-nums}
+.results-impressions{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.25rem 0;border-top:1px solid #e2e1dc}
+.results-impressions strong{font-size:1.8rem;color:#343b3e}
+.results-impressions p{margin-top:.3rem}
+.results-note,#results-empty,.results-explanation{font-size:.75rem;color:#687377;line-height:1.7}
+.results-explanation summary{cursor:pointer;color:#343b3e;font-weight:650}
+.results-explanation p{max-width:800px}
+#results-empty{padding:1rem;border-radius:10px;background:#fff4e6;color:#784700}
+@media(max-width:680px){.results-cards{grid-template-columns:1fr}.results-cards article{padding:1.1rem}.results-cards strong{font-size:2.2rem}.results-toolbar{flex-wrap:wrap}.results-channels{padding:1.1rem}.results-impressions{align-items:flex-start}}
