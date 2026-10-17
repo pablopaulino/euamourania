@@ -35,6 +35,54 @@
       "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
       "permanent": true
     },
+    {
+      "source": "/parceiro/index.html",
+      "has": [{ "type": "host", "value": "euamourania.com.br" }],
+      "destination": "https://parceiros.euamourania.com.br/",
+      "permanent": true
+    },
+    {
+      "source": "/parceiro/:page.html",
+      "has": [{ "type": "host", "value": "euamourania.com.br" }],
+      "destination": "https://parceiros.euamourania.com.br/:page",
+      "permanent": true
+    },
+    {
+      "source": "/parceiro",
+      "has": [{ "type": "host", "value": "euamourania.com.br" }],
+      "destination": "https://parceiros.euamourania.com.br/",
+      "permanent": true
+    },
+    {
+      "source": "/parceiro/:path*",
+      "has": [{ "type": "host", "value": "euamourania.com.br" }],
+      "destination": "https://parceiros.euamourania.com.br/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/parceiro/index.html",
+      "has": [{ "type": "host", "value": "www.euamourania.com.br" }],
+      "destination": "https://parceiros.euamourania.com.br/",
+      "permanent": true
+    },
+    {
+      "source": "/parceiro/:page.html",
+      "has": [{ "type": "host", "value": "www.euamourania.com.br" }],
+      "destination": "https://parceiros.euamourania.com.br/:page",
+      "permanent": true
+    },
+    {
+      "source": "/parceiro",
+      "has": [{ "type": "host", "value": "www.euamourania.com.br" }],
+      "destination": "https://parceiros.euamourania.com.br/",
+      "permanent": true
+    },
+    {
+      "source": "/parceiro/:path*",
+      "has": [{ "type": "host", "value": "www.euamourania.com.br" }],
+      "destination": "https://parceiros.euamourania.com.br/:path*",
+      "permanent": true
+    },
     { "source": "/index.html", "destination": "/", "permanent": true },
     { "source": "/urania.html", "destination": "/urania/", "permanent": true },
     { "source": "/links/", "destination": "/links", "permanent": true },
@@ -89,6 +137,7 @@
     { "source": "/categorias/:categoria/", "destination": "/news/:categoria", "permanent": true }
   ],
   "routes": [
+    { "src": "^/$", "methods": ["GET", "HEAD"], "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "dest": "/parceiro/index.html" },
     { "src": "^/$", "methods": ["GET", "HEAD"], "dest": "/api/home" },
     { "src": "^/news/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=news-list" },
     { "src": "^/guia\\.html$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=guide-list" },
@@ -96,6 +145,14 @@
     { "src": "^/eventos/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=agenda-list" }
   ],
   "rewrites": [
+    { "source": "/api/admin-criar-parceiro", "destination": "/api/admin-users?operacao=criar-parceiro" },
+    { "source": "/", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/index.html" },
+    { "source": "/login", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/login.html" },
+    { "source": "/perfil", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/perfil.html" },
+    { "source": "/horarios", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/horarios.html" },
+    { "source": "/galeria", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/galeria.html" },
+    { "source": "/vantagens", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/vantagens.html" },
+    { "source": "/vantagem-form", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/vantagem-form.html" },
     { "source": "/", "destination": "/api/home" },
     { "source": "/news", "destination": "/api/noticia?tipo=news-list" },
     { "source": "/news/", "destination": "/api/noticia?tipo=news-list" },
@@ -106,6 +163,14 @@
     { "source": "/melhores-de-urania", "destination": "/api/noticia?tipo=social&mode=award-home" },
     { "source": "/melhores-de-urania/", "destination": "/api/noticia?tipo=social&mode=award-home" },
     { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/parceiro", "destination": "/parceiro/index.html" },
+    { "source": "/parceiro/", "destination": "/parceiro/index.html" },
+    { "source": "/parceiro/login", "destination": "/parceiro/login.html" },
+    { "source": "/parceiro/perfil", "destination": "/parceiro/perfil.html" },
+    { "source": "/parceiro/horarios", "destination": "/parceiro/horarios.html" },
+    { "source": "/parceiro/galeria", "destination": "/parceiro/galeria.html" },
+    { "source": "/parceiro/vantagens", "destination": "/parceiro/vantagens.html" },
+    { "source": "/parceiro/vantagem-form", "destination": "/parceiro/vantagem-form.html" },
     { "source": "/admin/", "destination": "/admin/index.html" },
     { "source": "/admin/noticias", "destination": "/admin/index.html" },
     { "source": "/admin/aprovacoes", "destination": "/admin/index.html" },
@@ -216,6 +281,21 @@
     },
     {
       "source": "/admin/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/parceiro/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }],
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
         { "key": "Cache-Control", "value": "no-store" }

@@ -1061,6 +1061,8 @@ async function resourceList(table) {
   try {
     const rows=await listarTabela(databaseTable(table),{ordem:config.order,crescente:config.ascending||false});
     const statuses = [...new Set(rows.map(resourceRowStatus).filter(Boolean))].sort((a,b) => a.localeCompare(b, "pt-BR"));
+    const partnerRows = table === 'guia_comercial' ? await getSupabase().from('parceiros').select('guia_id,ativo').eq('ativo',true) : {data:[]};
+    const partnerIds = new Set((partnerRows.data || []).map(item => item.guia_id));
     app.innerHTML=`
       <section class="admin-page admin-page-wide">
         <section class="panel admin-list-panel">
@@ -1072,7 +1074,7 @@ async function resourceList(table) {
           ${rows.length ?`
             <div class="table-wrap admin-data-table-wrap">
               <table class="admin-data-table">
-                <thead><tr><th>Registro</th><th>Status</th><th>Atualização</th><th>Ações</th></tr></thead>
+                <thead><tr><th>Registro</th><th>Status</th>${table==='guia_comercial'?'<th>Parceiro</th>':''}<th>Atualização</th><th>Ações</th></tr></thead>
                 <tbody>
                   ${rows.map(row=>{
                     const status = resourceRowStatus(row);
@@ -1081,6 +1083,7 @@ async function resourceList(table) {
                     return `<tr data-admin-row data-search="${escapeHtml(resourceRowSearch(row, config))}" data-status="${escapeHtml(status)}">
                       <td class="admin-title-cell"><strong>${escapeHtml(titleValue)}</strong>${subtitle ?`<small>${escapeHtml(subtitle)}</small>` : ""}</td>
                       <td><span class="status-pill ${escapeHtml(status)}">${escapeHtml(status || "—")}</span></td>
+                      ${table==='guia_comercial'?`<td title="${partnerIds.has(row.id)?'Parceiro ativo':'Sem parceiro'}">${partnerIds.has(row.id)?'🟢':'⚪'}</td>`:''}
                       <td>${resourceUpdatedAt(row)}</td>
                       <td><div class="admin-row-actions"><button type="button" data-edit="${table}" data-id="${row.id}">Editar</button><button type="button" class="danger" data-delete="${table}" data-id="${row.id}">Excluir</button></div></td>
                     </tr>`;
@@ -1540,7 +1543,18 @@ async function editForm(table,id) {
           </div>
         </footer>
       </form>
+      ${table==='guia_comercial' && id && temPermissao(painelAccess?.admin,'guia_comercial','editar')?`<section class="panel admin-form-section" id="partner-access"><h3>Acesso do Parceiro</h3><p id="partner-access-status">Carregando...</p><button type="button" class="admin-button" id="partner-create" hidden>Criar acesso do parceiro</button><button type="button" class="admin-button secondary" id="partner-revoke" hidden>Revogar acesso</button><a href="/admin/parceiros-log.html?guia_id=${encodeURIComponent(id)}">Ver últimas alterações do parceiro</a><p id="partner-access-message" role="status"></p><dialog id="partner-dialog"><form id="partner-invite-form"><h3>Convidar parceiro</h3><label>E-mail<input type="email" name="email" required></label><button class="admin-button" type="submit">Criar convite</button><button class="admin-button secondary" type="button" id="partner-cancel">Cancelar</button></form></dialog></section>`:''}
     </section>`;
+  if(table==='guia_comercial' && id && app.querySelector('#partner-access')){
+    const status=app.querySelector('#partner-access-status'),create=app.querySelector('#partner-create'),revoke=app.querySelector('#partner-revoke'),message=app.querySelector('#partner-access-message');
+    const refresh=async()=>{const {data,error}=await getSupabase().from('parceiros').select('id,email,criado_em,ativo').eq('guia_id',id).eq('ativo',true).maybeSingle();if(error){status.textContent=error.message;return;}status.textContent=data?`${data.email} · criado em ${new Date(data.criado_em).toLocaleDateString('pt-BR')}`:'Nenhum parceiro ativo';create.hidden=!!data;revoke.hidden=!data;revoke.dataset.id=data?.id||'';};
+    const dialog=app.querySelector('#partner-dialog');
+    create.addEventListener('click',()=>dialog.showModal());
+    app.querySelector('#partner-cancel').addEventListener('click',()=>dialog.close());
+    app.querySelector('#partner-invite-form').addEventListener('submit',async event=>{event.preventDefault();const email=new FormData(event.currentTarget).get('email');try{const {data:{session}}=await getSupabase().auth.getSession();const response=await fetch('/api/admin-criar-parceiro',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({guia_id:id,email})});const result=await response.json();if(!response.ok)throw Error(result.error);message.textContent=result.invite_link?`Convite criado. Copie o link: ${result.invite_link}`:'Conta criada. Gere o link de recuperação no Supabase.';dialog.close();await refresh();}catch(error){message.textContent=error.message;dialog.close();}});
+    revoke.addEventListener('click',async()=>{if(!confirm('Revogar o acesso deste parceiro?'))return;const {error}=await getSupabase().from('parceiros').update({ativo:false,atualizado_em:new Date().toISOString()}).eq('id',revoke.dataset.id);message.textContent=error?.message||'Acesso revogado.';if(!error)await refresh();});
+    refresh();
+  }
   normalizeCoordinateInputs(app);
   if (table === 'guia_comercial' && id) {
     const countElement = app.querySelector('[data-company-catalog-count]');

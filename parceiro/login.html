@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><title>Entrar | Painel do Parceiro</title>
+  <link rel="stylesheet" href="/parceiro/parceiro.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head><body>
+  <header><strong>Eu Amo Urânia · Parceiros</strong></header>
+  <main><h1>Entrar no painel</h1>
+    <form id="login">
+      <label>E-mail<input type="email" name="email" required autocomplete="username"></label>
+      <label>Senha<input type="password" name="password" required autocomplete="current-password"></label>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAD26Y5R0gI5oNxwX"></div>
+      <button>Entrar</button>
+    </form>
+    <form id="new-password" hidden>
+      <label>Nova senha<input type="password" name="password" minlength="8" required autocomplete="new-password"></label>
+      <button>Definir senha</button>
+    </form>
+    <button id="reset" type="button">Esqueci a senha</button>
+    <p id="notice" role="status"></p>
+  </main>
+  <script type="module" src="/parceiro/login.js"></script>
+</body></html>

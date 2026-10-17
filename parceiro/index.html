@@ -1,0 +1,28 @@
+<!doctype html><html lang="pt-BR"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><title>Painel do Parceiro</title>
+  <link rel="stylesheet" href="/parceiro/parceiro.css">
+</head><body>
+  <header><strong id="partner-name">Parceiro</strong><button id="logout">Sair</button></header>
+  <nav><a href="/parceiro" aria-current="page">Início</a><a href="/parceiro/perfil">Perfil</a><a href="/parceiro/horarios">Horários</a><a href="/parceiro/galeria">Galeria</a><a href="/parceiro/vantagens">Promoções</a></nav>
+  <main data-needs-guide><h1>Visão geral</h1><p id="notice" role="status"></p>
+    <div class="cards" id="cards"></div><p id="alert"></p>
+    <div class="cards"><a class="button" href="/parceiro/perfil">Editar perfil</a><a class="button" href="/parceiro/horarios">Editar horários</a><a class="button" href="/parceiro/galeria">Galeria</a><a class="button" href="/parceiro/vantagens">Minhas promoções</a></div>
+  </main>
+  <script type="module">
+    import{acesso,db,notice}from'/parceiro/_layout.js';
+    if(acesso?.guia){
+      const g=acesso.guia;
+      const {data:summary,error}=await db.rpc('parceiro_resumo',{p_guia_id:g.id});
+      if(error)notice(error.message,true);
+      const fields=[['Estabelecimento',g.nome],['Categoria',g.categoria_nome],['Publicação',g.status],['Verificação',g.verification_status],['Última alteração pelo parceiro',summary?.ultima_alteracao?new Date(summary.ultima_alteracao).toLocaleDateString('pt-BR'):'—'],['Visualizações no mês',summary?.visualizacoes_mes??'—']];
+      for(const[label,value]of fields){
+        const card=document.createElement('div');card.className='card';
+        const title=document.createElement('strong');title.textContent=label;
+        const detail=document.createElement('p');detail.textContent=value||'—';
+        card.append(title,detail);document.querySelector('#cards').append(card);
+      }
+      if(g.verification_status==='needs_update')document.querySelector('#alert').textContent='Seu cadastro precisa ser atualizado. Revise o perfil e os horários.';
+    }
+  </script>
+</body></html>
