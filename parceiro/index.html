@@ -1,26 +1,57 @@
 <!doctype html><html lang="pt-BR"><head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="noindex,nofollow"><title>Painel do Parceiro</title>
+  <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#062f40">
+  <title>Início | Viva Urânia Parceiros</title>
+  <link rel="icon" href="/assets/viva-origem-colorido.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/parceiro/parceiro.css">
-</head><body>
+</head><body class="partner-dashboard-page">
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
   <header><strong id="partner-name">Parceiro</strong><button id="logout">Sair</button></header>
-  <nav><a href="/parceiro" aria-current="page">Início</a><a href="/parceiro/perfil">Perfil</a><a href="/parceiro/horarios">Horários</a><a href="/parceiro/galeria">Galeria</a><a href="/parceiro/vantagens">Promoções</a></nav>
-  <main data-needs-guide><h1>Visão geral</h1><p id="notice" role="status"></p>
-    <div class="cards" id="cards"></div><p id="alert"></p>
-    <div class="cards"><a class="button" href="/parceiro/perfil">Editar perfil</a><a class="button" href="/parceiro/horarios">Editar horários</a><a class="button" href="/parceiro/galeria">Galeria</a><a class="button" href="/parceiro/vantagens">Minhas promoções</a></div>
+  <nav aria-label="Navegação do parceiro"><a href="/parceiro" aria-current="page">Início</a><a href="/parceiro/perfil">Perfil</a><a href="/parceiro/horarios">Horários</a><a href="/parceiro/galeria">Galeria</a><a href="/parceiro/vantagens">Promoções</a></nav>
+  <main id="conteudo" data-needs-guide>
+    <section class="dashboard-hero" aria-labelledby="dashboard-title">
+      <div class="dashboard-hero-copy">
+        <span class="eyebrow eyebrow-light"><span class="eyebrow-dot"></span> PAINEL DO PARCEIRO</span>
+        <h1 id="dashboard-title">Sua empresa no<br><em>ritmo da cidade.</em></h1>
+        <p>Seu espaço para manter a vitrine da empresa atualizada no Viva Urânia. Pequenas mudanças fazem sua presença valer mais.</p>
+        <a class="hero-action" href="/parceiro/perfil">Atualizar meu perfil <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="dashboard-hero-art" aria-hidden="true"><div class="dashboard-orbit"></div><img src="/assets/viva-origem-colorido.svg" alt=""><span>VIVA<br>URÂNIA</span></div>
+    </section>
+    <div class="dashboard-intro"><div><span class="section-kicker">SEU PAINEL</span><h2>Bom ter você por aqui.</h2><p id="dashboard-business">Carregando informações da empresa...</p></div><span class="dashboard-status">Parceiro Viva Urânia <span aria-hidden="true">✦</span></span></div>
+    <p id="notice" role="status"></p><p id="alert" class="dashboard-alert" role="status"></p>
+    <section class="dashboard-overview" aria-label="Visão geral do estabelecimento"><div class="cards" id="cards"></div></section>
+    <section class="dashboard-next" aria-labelledby="next-title"><div class="section-heading"><div><span class="section-kicker">MANTENHA SUA VITRINE EM DIA</span><h2 id="next-title">O que vamos fazer hoje?</h2></div><p>As informações que você atualiza ajudam as pessoas a encontrar sua empresa.</p></div>
+      <div class="action-grid">
+        <a class="action-card" href="/parceiro/perfil"><span class="action-icon">01</span><strong>Meu perfil</strong><span>Descrição, endereço e canais de contato.</span><i aria-hidden="true">↗</i></a>
+        <a class="action-card" href="/parceiro/horarios"><span class="action-icon">02</span><strong>Horários</strong><span>Mostre quando sua empresa está aberta.</span><i aria-hidden="true">↗</i></a>
+        <a class="action-card" href="/parceiro/galeria"><span class="action-icon">03</span><strong>Galeria</strong><span>Deixe suas fotos contarem sua história.</span><i aria-hidden="true">↗</i></a>
+        <a class="action-card" href="/parceiro/vantagens"><span class="action-icon">04</span><strong>Promoções</strong><span>Crie ofertas para revisão da equipe Viva.</span><i aria-hidden="true">↗</i></a>
+      </div>
+    </section>
+    <footer class="dashboard-footer"><img src="/assets/viva-origem-colorido.svg" alt="" width="28" height="24"><span>Mais presença para quem faz Urânia acontecer.</span></footer>
   </main>
   <script type="module">
     import{acesso,db,notice}from'/parceiro/_layout.js';
     if(acesso?.guia){
       const g=acesso.guia;
+      document.querySelector('#dashboard-business').textContent=`${g.nome||'Sua empresa'} · ${g.categoria_nome||'Guia Comercial'}`;
       const {data:summary,error}=await db.rpc('parceiro_resumo',{p_guia_id:g.id});
       if(error)notice(error.message,true);
-      const fields=[['Estabelecimento',g.nome],['Categoria',g.categoria_nome],['Publicação',g.status],['Verificação',g.verification_status],['Última alteração pelo parceiro',summary?.ultima_alteracao?new Date(summary.ultima_alteracao).toLocaleDateString('pt-BR'):'—'],['Visualizações no mês',summary?.visualizacoes_mes??'—']];
-      for(const[label,value]of fields){
-        const card=document.createElement('div');card.className='card';
-        const title=document.createElement('strong');title.textContent=label;
-        const detail=document.createElement('p');detail.textContent=value||'—';
-        card.append(title,detail);document.querySelector('#cards').append(card);
+      const fields=[
+        {label:'Estabelecimento',value:g.nome||'—',note:'Sua vitrine no Viva',accent:'orange'},
+        {label:'Publicação',value:g.status||'—',note:'Situação no Guia Comercial',accent:'red'},
+        {label:'Visualizações no mês',value:summary?.visualizacoes_mes??'—',note:'Pessoas que viram seu perfil',accent:'blue'},
+        {label:'Última atualização',value:summary?.ultima_alteracao?new Date(summary.ultima_alteracao).toLocaleDateString('pt-BR'):'—',note:'Alteração feita pelo parceiro',accent:'navy'}
+      ];
+      for(const field of fields){
+        const card=document.createElement('article');card.className=`card stat-card stat-${field.accent}`;
+        const label=document.createElement('span');label.className='stat-label';label.textContent=field.label;
+        const value=document.createElement('strong');value.textContent=field.value;
+        const note=document.createElement('small');note.textContent=field.note;
+        card.append(label,value,note);document.querySelector('#cards').append(card);
       }
       if(g.verification_status==='needs_update')document.querySelector('#alert').textContent='Seu cadastro precisa ser atualizado. Revise o perfil e os horários.';
     }

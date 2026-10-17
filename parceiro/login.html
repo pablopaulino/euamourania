@@ -1,24 +1,58 @@
 <!doctype html>
 <html lang="pt-BR"><head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="noindex,nofollow"><title>Entrar | Painel do Parceiro</title>
+  <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#062f40">
+  <title>Entrar | Viva Urânia Parceiros</title>
+  <link rel="icon" href="/assets/viva-origem-colorido.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/parceiro/parceiro.css">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-</head><body>
-  <header><strong>Eu Amo Urânia · Parceiros</strong></header>
-  <main><h1>Entrar no painel</h1>
-    <form id="login">
-      <label>E-mail<input type="email" name="email" required autocomplete="username"></label>
-      <label>Senha<input type="password" name="password" required autocomplete="current-password"></label>
-      <div class="cf-turnstile" data-sitekey="0x4AAAAAAD26Y5R0gI5oNxwX"></div>
-      <button>Entrar</button>
-    </form>
-    <form id="new-password" hidden>
-      <label>Nova senha<input type="password" name="password" minlength="8" required autocomplete="new-password"></label>
-      <button>Definir senha</button>
-    </form>
-    <button id="reset" type="button">Esqueci a senha</button>
-    <p id="notice" role="status"></p>
+</head><body class="partner-login-page">
+  <a class="skip-link" href="#acesso">Ir para o acesso</a>
+  <main class="login-shell">
+    <section class="login-story" aria-labelledby="login-story-title">
+      <div class="login-story-inner">
+        <div class="partner-brand partner-brand-light"><img src="/assets/viva-origem-colorido.svg" alt="" width="44" height="38"><span>viva<span class="brand-city">URÂNIA</span></span><span class="brand-divider" aria-hidden="true"></span><span class="brand-area">PARCEIROS</span></div>
+        <div class="login-story-copy">
+          <span class="eyebrow eyebrow-light"><span class="eyebrow-dot"></span> O seu espaço no aplicativo da cidade</span>
+          <h1 id="login-story-title">Sua empresa<br><em>mais perto</em><br>de Urânia.</h1>
+          <p>Cuide da presença do seu negócio no Viva Urânia. Atualize informações, horários, fotos e promoções em um só lugar.</p>
+          <div class="login-story-tags"><span>Seu perfil</span><span>Sua vitrine</span><span>Sua cidade</span></div>
+        </div>
+        <div class="login-story-footer"><span class="story-line" aria-hidden="true"></span> Uma parceria que movimenta o comércio local.</div>
+      </div>
+      <div class="login-visual" aria-hidden="true">
+        <div class="visual-halo"></div>
+        <div class="visual-heart"><img src="/assets/viva-origem-colorido.svg" alt=""></div>
+        <div class="visual-phone"><img src="/assets/app/viva-urania-home.jpeg" alt=""></div>
+        <div class="visual-chip visual-chip-top"><span class="chip-spark">✦</span> Sua vitrine no Viva</div>
+        <div class="visual-chip visual-chip-bottom"><span class="chip-pulse"></span> Conectado à cidade</div>
+      </div>
+    </section>
+    <section class="login-access" id="acesso" aria-labelledby="login-title">
+      <div class="login-access-top"><div class="partner-brand partner-brand-mobile"><img src="/assets/viva-origem-colorido.svg" alt="" width="36" height="31"><span>viva<span class="brand-city">URÂNIA</span></span></div><span class="access-exclusive">Acesso exclusivo para parceiros</span></div>
+      <div class="login-panel">
+        <div class="login-panel-mark"><img src="/assets/viva-origem-colorido.svg" alt="" width="32" height="28"></div>
+        <span class="eyebrow">PORTAL DO PARCEIRO</span>
+        <h2 id="login-title">Bom ter você<br><em>por aqui.</em></h2>
+        <p class="login-description">Entre para deixar sua empresa sempre atualizada no Viva Urânia.</p>
+        <form id="login">
+          <label>E-mail<input type="email" name="email" placeholder="voce@empresa.com.br" required autocomplete="username"></label>
+          <label>Senha<input type="password" name="password" placeholder="Sua senha de acesso" required autocomplete="current-password"></label>
+          <div class="captcha-wrap"><div class="cf-turnstile" data-sitekey="0x4AAAAAAD26Y5R0gI5oNxwX"></div></div>
+          <button type="submit" class="button-primary">Entrar no painel <span aria-hidden="true">↗</span></button>
+        </form>
+        <form id="new-password" hidden>
+          <p class="password-hint">Crie sua senha para ativar o acesso ao painel.</p>
+          <label>Nova senha<input type="password" name="password" minlength="8" required autocomplete="new-password" placeholder="No mínimo 8 caracteres"></label>
+          <button type="submit" class="button-primary">Definir senha <span aria-hidden="true">↗</span></button>
+        </form>
+        <button id="reset" class="text-button" type="button">Esqueci minha senha</button>
+        <p id="notice" role="status" aria-live="polite"></p>
+      </div>
+      <p class="login-access-footer">Seu acesso é fornecido pela equipe Viva Urânia a parceiros ativos.</p>
+    </section>
   </main>
   <script type="module" src="/parceiro/login.js"></script>
 </body></html>
