@@ -21,7 +21,7 @@ if(acesso?.guia){
   }
   if(g.status==='publicado'&&g.slug){
     const link=document.querySelector('#profile-public-link');
-    link.href=`/guia/${encodeURIComponent(g.slug)}`;link.hidden=false;
+    link.href=`https://euamourania.com.br/guia/${encodeURIComponent(g.slug)}`;link.hidden=false;
   }
   const updateCount=()=>document.querySelector('#count').textContent=`${form.elements.descricao.value.length}/1000`;
   form.elements.descricao.addEventListener('input',updateCount);updateCount();
@@ -42,6 +42,7 @@ if(acesso?.guia){
           else throw Error('Use um número ou link do WhatsApp (wa.me).');
         }
         number=number.replace(/\D/g,'');
+        if(/^\d{10,11}$/.test(number))number='55'+number;
         if(!/^55\d{10,11}$/.test(number))throw Error('WhatsApp deve incluir 55, DDD e número.');
         dados.whatsapp=number;
       }
