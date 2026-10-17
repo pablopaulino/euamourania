@@ -278,17 +278,17 @@ body:not(.partner-login-page) main>form{max-width:100%;box-shadow:none}
 body:not(.partner-login-page) form input:not([type=checkbox]),body:not(.partner-login-page) form textarea,body:not(.partner-login-page) form select{background:#fff;border-color:#dfe5e3}
 
 .partner-dashboard-page main{margin-top:1.4rem!important}
-.dashboard-hero{grid-template-columns:minmax(0,1.3fr) minmax(190px,.7fr);min-height:225px;border:1px solid #e9e5dc;background:#fff;box-shadow:none;color:var(--navy)}
+.dashboard-hero{grid-template-columns:minmax(0,1.3fr) minmax(240px,.7fr);min-height:290px;border:1px solid #e9e5dc;background:linear-gradient(120deg,#fffdf9,#f8f1e8);color:var(--navy);box-shadow:none}
 .dashboard-hero:before,.dashboard-hero-art:before{display:none}
 .dashboard-hero-copy{padding:clamp(1.6rem,3.5vw,3rem)}
 .dashboard-hero .eyebrow-light{color:#a54e06}
-.dashboard-hero h1{margin:.6rem 0 .5rem;font-size:clamp(2rem,2.8vw,3rem)}
+.dashboard-hero h1{margin:.7rem 0 .6rem;font-size:clamp(2.4rem,3.4vw,3.8rem)}
 .dashboard-hero h1 em{color:var(--red)}
 .dashboard-hero p{max-width:420px;color:#61747a;font-size:.88rem}
 .dashboard-hero .hero-action{margin-top:1.2rem;min-height:44px;background:var(--orange);box-shadow:none}
 .dashboard-hero-art{padding:1.25rem}
 .dashboard-hero-art img{width:125px;max-width:100%;filter:none;transform:none}
-.dashboard-hero-art img.business-cover{width:100%;height:185px;object-fit:cover;border-radius:15px;box-shadow:none}
+.dashboard-hero-art img.business-cover{width:100%;height:245px;object-fit:cover;border-radius:18px;box-shadow:0 8px 24px rgba(16,54,67,.09)}
 .dashboard-intro{margin:2rem 0 1rem}
 .dashboard-intro h2,.section-heading h2{font-size:clamp(1.6rem,2.2vw,2.25rem)}
 .dashboard-status{border-color:#e7ddd1;background:#fffaf1;color:#804400}
@@ -296,7 +296,7 @@ body:not(.partner-login-page) form input:not([type=checkbox]),body:not(.partner-
 .stat-card,.stat-card.stat-red,.stat-card.stat-blue,.stat-card.stat-navy{min-height:125px;gap:.35rem;border-top:1px solid var(--line)!important}
 .stat-card strong{font-size:clamp(1rem,1.45vw,1.45rem)}
 .dashboard-next{margin-top:2.7rem}
-.action-card{min-height:138px;gap:.4rem;box-shadow:none}
+.action-card{min-height:170px;gap:.6rem;box-shadow:none}
 .action-card:hover{transform:translateY(-2px);box-shadow:0 12px 25px rgba(6,47,64,.06)}
 .action-icon,.action-card:nth-child(2) .action-icon,.action-card:nth-child(3) .action-icon,.action-card:nth-child(4) .action-icon{width:30px;height:30px;border-radius:8px;background:#f7f3ec;color:#8c5a2d}
 .action-card strong{font-size:1rem}
