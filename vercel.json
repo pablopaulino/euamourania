@@ -146,6 +146,7 @@
   ],
   "rewrites": [
     { "source": "/api/admin-criar-parceiro", "destination": "/api/admin-users?operacao=criar-parceiro" },
+    { "source": "/api/parceiro-impacto", "destination": "/api/admin-users?operacao=impacto-parceiro" },
     { "source": "/", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/index.html" },
     { "source": "/login", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/login.html" },
     { "source": "/perfil", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/perfil.html" },

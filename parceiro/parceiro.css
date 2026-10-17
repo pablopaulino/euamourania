@@ -210,10 +210,11 @@ th{background:#f4f8f8;color:#5d7780;font-size:.7rem;letter-spacing:.08em;text-tr
   .login-story-copy h1{color:var(--navy);font-size:clamp(3.1rem,4.7vw,5.7rem)}
   .login-story-copy h1 em{color:var(--red)}
   .login-story-copy>p{max-width:420px;color:#5d7077}
-  .login-visual{right:0;bottom:0;width:min(35%,300px);height:66%;opacity:.8}
+  .login-visual{right:0;bottom:0;width:min(40%,320px);height:100%;opacity:.9}
   .visual-halo{background:radial-gradient(circle,rgba(255,137,0,.14),transparent 70%)}
   .visual-heart{opacity:.13}
-  .visual-phone{right:-8%;width:min(74%,200px);height:60%;border-color:#fff;box-shadow:0 23px 55px rgba(6,47,64,.14)}
+  .visual-phone{top:auto;right:-10%;bottom:4%;width:min(80%,245px);height:auto;aspect-ratio:740/1600;border-color:#fff;box-shadow:0 23px 55px rgba(6,47,64,.14)}
+  .visual-phone img{display:block;width:100%;height:100%;object-fit:contain}
   .login-access{padding-top:6.5rem;background:#fff}
   .login-access-top,.login-panel-mark,.login-panel>.eyebrow{display:none}
   .login-access-footer{color:#9aa4a8}
@@ -222,9 +223,11 @@ th{background:#f4f8f8;color:#5d7780;font-size:.7rem;letter-spacing:.08em;text-tr
   .login-proof-heading h2{margin:.5rem 0 0;color:var(--navy);font-size:clamp(2rem,3vw,3.3rem);font-weight:900;letter-spacing:-.065em;line-height:1.12}
   .login-proof-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.9rem}
   .proof-card{display:flex;flex-direction:column;min-height:190px;padding:1.35rem;border:1px solid var(--line);border-radius:18px;background:#fbf9f4}
+  .proof-card[hidden]{display:none}
   .proof-card strong{color:var(--navy);font-size:2.35rem;font-weight:900;letter-spacing:-.07em;line-height:1}
   .proof-card span{margin-top:.35rem;color:var(--red);font-size:.83rem;font-weight:850}
   .proof-card p{max-width:270px;margin:auto 0 0;color:var(--muted);font-size:.79rem;line-height:1.5}
+  .login-proof-note{margin:0;color:var(--muted);font-size:.78rem}
 }
 @media(min-width:681px) and (max-height:720px){
   .login-topbar{height:64px}
@@ -236,5 +239,6 @@ th{background:#f4f8f8;color:#5d7780;font-size:.7rem;letter-spacing:.08em;text-tr
   .login-story-inner{padding-top:4rem}
   .login-story-copy h1{font-size:clamp(2.55rem,3.8vw,3.9rem)}
   .login-access{padding-top:4.1rem}
+  .visual-phone{bottom:-18%;width:min(75%,225px)}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
