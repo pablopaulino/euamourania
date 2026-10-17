@@ -42,8 +42,8 @@
       if(g.imagem_url){const cover=document.querySelector('#dashboard-cover');cover.src=g.imagem_url;cover.classList.add('business-cover');}
       const fields=[
         {label:'Categoria',value:g.categoria_nome||'Guia Comercial',note:'Como sua empresa aparece no Guia',accent:'orange'},
-        {label:'Visualizações neste mês',value:'—',note:'Exibições da empresa no Guia',accent:'red'},
-        {label:'Última edição',value:'—',note:'Alteração feita neste painel',accent:'navy'}
+        {label:'Impressões registradas',value:'—',note:'Site + aplicativo · total acumulado',accent:'red'},
+        {label:'Cliques registrados',value:'—',note:'Site + aplicativo · total acumulado',accent:'navy'}
       ];
       for(const field of fields){
         const card=document.createElement('article');card.className=`card stat-card stat-${field.accent}`;
@@ -53,12 +53,16 @@
         card.append(label,value,note);document.querySelector('#cards').append(card);
       }
       if(g.verification_status==='needs_update')document.querySelector('#alert').textContent='Seu cadastro precisa ser atualizado. Revise o perfil e os horários.';
-      const {data:summary,error}=await db.rpc('parceiro_resumo',{p_guia_id:g.id});
+      const {data:summary,error}=await db.rpc('parceiro_totais',{p_guia_id:g.id,p_dias:null});
       if(error)notice(error.message,true);
       else{
         const values=document.querySelectorAll('#cards .stat-card strong');
-        values[1].textContent=summary?.visualizacoes_mes??'—';
-        values[2].textContent=summary?.ultima_alteracao?new Date(summary.ultima_alteracao).toLocaleDateString('pt-BR'):'Ainda não editado';
+        const format=new Intl.NumberFormat('pt-BR');
+        values[1].textContent=format.format(summary.impressoes_total);
+        values[2].textContent=format.format(summary.cliques_total);
+        const notes=document.querySelectorAll('#cards .stat-card small');
+        notes[1].textContent=`Site: ${format.format(summary.impressoes_site)} · App: ${format.format(summary.impressoes_app)} · Acumulado`;
+        notes[2].textContent=`Site: ${format.format(summary.cliques_site)} · App: ${format.format(summary.cliques_app)} · Acumulado`;
       }
     }
   </script>

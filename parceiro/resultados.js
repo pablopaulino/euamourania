@@ -14,7 +14,10 @@ if(acesso?.guia){
     document.querySelector('#results-empty').hidden=true;
     document.querySelector('#results-updated').textContent='';
     try{
-      const {data,error}=await db.rpc('parceiro_resultados',{p_guia_id:acesso.guia.id,p_dias:period.value==='30'?30:null});
+      const params={p_guia_id:acesso.guia.id,p_dias:period.value==='30'?30:null};
+      const [details,totals]=await Promise.all([db.rpc('parceiro_resultados',params),db.rpc('parceiro_totais',params)]);
+      const data=details.data&&totals.data?{...details.data,...totals.data}:null;
+      const error=details.error||totals.error;
       if(current!==request)return;
       if(error||!data)throw error||new Error('Resposta indisponível');
       document.querySelectorAll('[data-metric]').forEach(el=>{el.textContent=number.format(data[el.dataset.metric]??0);});
