@@ -38,3 +38,10 @@ document.querySelector('#new-password').addEventListener('submit',async event=>{
     location.replace(partnerPath());
   }catch(error){show(error.message,true);}
 });
+if(document.querySelector('#published-companies')&&window.matchMedia('(min-width:681px)').matches){
+  db.from('guia_comercial').select('id',{count:'exact',head:true}).eq('status','publicado').then(({count,error})=>{
+    if(error||!Number.isFinite(count))return;
+    document.querySelector('#published-count').textContent=new Intl.NumberFormat('pt-BR').format(count);
+    document.querySelector('#published-companies').hidden=false;
+  }).catch(()=>{});
+}
