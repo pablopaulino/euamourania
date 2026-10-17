@@ -17,7 +17,6 @@ test('revogar e convidar novamente o mesmo e-mail reutiliza a conta',async()=>{
     if(path==='/auth/v1/user')data={id:'staff-id'};
     else if(path==='/rest/v1/usuarios_admin')data=[{id:'staff-id'}];
     else if(path==='/rest/v1/rpc/tem_permissao_admin')data=true;
-    else if(path==='/rest/v1/rpc/parceiro_consumir_convite_limite')data=true;
     else if(path==='/rest/v1/guia_comercial')data=[{id:guide}];
     else if(path==='/rest/v1/parceiros'&&options.method==='PATCH'){
       partner.ativo=JSON.parse(options.body).ativo;
@@ -44,6 +43,7 @@ test('revogar e convidar novamente o mesmo e-mail reutiliza a conta',async()=>{
     assert.equal(result.data.invite_link,'https://example.test/recovery');
     assert.equal(partner.ativo,true);
     assert.equal(authCreates,0);
+    for(let index=0;index<6;index++)assert.equal((await invoke({action:'resend'})).code,200);
   }finally{
     global.fetch=previousFetch;
     if(previousKey===undefined)delete process.env.SUPABASE_SERVICE_ROLE_KEY;
