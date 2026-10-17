@@ -39,16 +39,20 @@ document.querySelector('#new-password').addEventListener('submit',async event=>{
   }catch(error){show(error.message,true);}
 });
 if(document.querySelector('#published-companies')&&window.matchMedia('(min-width:681px)').matches){
-  fetch('/api/parceiro-impacto').then(async response=>{
+  const atualizarImpacto=()=>fetch('/api/parceiro-impacto').then(async response=>{
     if(!response.ok)throw Error('Dados indisponíveis');
     return response.json();
   }).then(data=>{
     const metrics=[['empresas','#published-count','#published-companies'],['visualizacoes','#guide-views-count','#guide-views'],['cliquesWhatsapp','#whatsapp-clicks-count','#whatsapp-clicks']];
     if(!metrics.every(([key])=>Number.isSafeInteger(data[key])&&data[key]>=0))throw Error('Dados inválidos');
     for(const [key,valueSelector,cardSelector] of metrics){
-      document.querySelector(valueSelector).textContent=new Intl.NumberFormat('pt-BR').format(data[key]);
+      document.querySelector(valueSelector).textContent='+'+new Intl.NumberFormat('pt-BR').format(data[key]);
       document.querySelector(cardSelector).hidden=false;
     }
-    document.querySelector('#impact-fallback').textContent='Totais acumulados desde o início do registro no Guia.';
-  }).catch(()=>{document.querySelector('#impact-fallback').textContent='Dados do Guia temporariamente indisponíveis.';});
+    document.querySelector('#impact-fallback').textContent='Totais acumulados desde o início do registro no Guia. Atualizados a cada 15 minutos.';
+  }).catch(()=>{
+    if(document.querySelector('#published-companies').hidden)document.querySelector('#impact-fallback').textContent='Dados do Guia temporariamente indisponíveis.';
+  });
+  atualizarImpacto();
+  window.setInterval(atualizarImpacto,15*60*1000);
 }
