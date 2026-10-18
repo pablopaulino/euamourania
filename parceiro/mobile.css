@@ -82,3 +82,8 @@
  .partner-promotions td a{display:inline-flex;align-items:center;min-height:44px;padding:8px}
 }
 
+@media(max-width:680px){
+ .results-channels th:first-child{width:30%}
+ .results-channels th:nth-child(3){width:30%}
+ .results-channels th:nth-child(2),.results-channels th:nth-child(4){width:20%}
+}
