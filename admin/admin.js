@@ -1,8 +1,8 @@
-﻿import { exigirAdministrador, sair, temPermissao } from "./auth.js";
+import { exigirAdministrador, sair, temPermissao } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { listarTabela, salvarRegistro, excluirRegistro } from "../assets/js/services/baseService.js";
 import { gerarSlug } from "../assets/js/utils.js";
-import { ADMIN_PAGE_ROUTES, adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js?v=20260911-home-suggestions";
+import { adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js?v=20261018-viva-shell";
 import { summarizeBusinessQuality } from "./business-quality.js";
 import { ADMIN_MODULE_LIST, adminModulesForNavigation, getAdminModule, renderAdminModuleIcon } from "./admin-modules.js?v=20260911-home-suggestions";
 
@@ -28,6 +28,7 @@ let shellPrimaryActionCleanup = null;
 
 const unifiedModuleViews = new Set([
   "publicidade",
+  "viva_assinaturas",
   "melhores",
   "comunicacao",
   "notificacoes",
@@ -99,6 +100,11 @@ const moduleRoutes = {
     label: "Publicidade",
     hint: "Campanhas, posições, mídia e métricas dos anúncios internos do portal.",
     module: () => import("./publicidade.js")
+  },
+  viva_assinaturas: {
+    label: "Assinaturas Viva",
+    hint: "Planos, vigência, pagamentos e ativação dos parceiros do Guia e App.",
+    module: () => import("./viva-assinaturas.js")
   },
   usuarios: {
     label: "Usuários administrativos",
@@ -1543,7 +1549,7 @@ async function editForm(table,id) {
           </div>
         </footer>
       </form>
-      ${table==='guia_comercial' && id && temPermissao(painelAccess?.admin,'guia_comercial','editar')?`<section class="panel admin-form-section" id="partner-access"><header class="admin-form-section-head"><span>↗</span><div><h3>Acesso do Parceiro</h3><p>Convide uma pessoa para cuidar das informações deste estabelecimento.</p></div></header><div class="partner-access-content"><div class="partner-access-current"><span class="partner-access-label">Acesso atual</span><p id="partner-access-status">Carregando...</p></div><div class="partner-access-actions"><button type="button" class="admin-button" id="partner-create" hidden>Criar acesso do parceiro</button><button type="button" class="admin-button secondary" id="partner-resend" hidden>Gerar novo link</button><button type="button" class="admin-button secondary" id="partner-revoke" hidden>Revogar acesso</button><a class="admin-button secondary" href="/admin/parceiros-log.html?guia_id=${encodeURIComponent(id)}">Ver alterações</a><a class="admin-button secondary" href="/admin/viva-assinaturas.html?guia_id=${encodeURIComponent(id)}">Plano Viva</a></div><p id="partner-access-message" class="partner-access-message" role="status"></p><div id="partner-invite-result" class="partner-invite-result" hidden><label for="partner-invite-link">Link de acesso</label><div><input id="partner-invite-link" type="text" readonly autocomplete="off"><button type="button" class="admin-button secondary" id="partner-copy-link">Copiar link</button></div><small>Envie este link somente para o parceiro. Você pode gerar outro link depois.</small></div></div><dialog id="partner-dialog" class="partner-dialog"><form id="partner-invite-form"><h3>Convidar parceiro</h3><p>Informe um e-mail diferente do usado pela equipe administrativa.</p><label>E-mail<input type="email" name="email" required autocomplete="email"></label><div class="partner-dialog-actions"><button class="admin-button" type="submit">Criar convite</button><button class="admin-button secondary" type="button" id="partner-cancel">Cancelar</button></div></form></dialog></section>`:''}
+      ${table==='guia_comercial' && id && temPermissao(painelAccess?.admin,'guia_comercial','editar')?`<section class="panel admin-form-section" id="partner-access"><header class="admin-form-section-head"><span>↗</span><div><h3>Acesso do Parceiro</h3><p>Convide uma pessoa para cuidar das informações deste estabelecimento.</p></div></header><div class="partner-access-content"><div class="partner-access-current"><span class="partner-access-label">Acesso atual</span><p id="partner-access-status">Carregando...</p></div><div class="partner-access-actions"><button type="button" class="admin-button" id="partner-create" hidden>Criar acesso do parceiro</button><button type="button" class="admin-button secondary" id="partner-resend" hidden>Gerar novo link</button><button type="button" class="admin-button secondary" id="partner-revoke" hidden>Revogar acesso</button><a class="admin-button secondary" href="/admin/parceiros-log.html?guia_id=${encodeURIComponent(id)}">Ver alterações</a><a class="admin-button secondary" href="/admin/viva-assinaturas?guia_id=${encodeURIComponent(id)}">Plano Viva</a></div><p id="partner-access-message" class="partner-access-message" role="status"></p><div id="partner-invite-result" class="partner-invite-result" hidden><label for="partner-invite-link">Link de acesso</label><div><input id="partner-invite-link" type="text" readonly autocomplete="off"><button type="button" class="admin-button secondary" id="partner-copy-link">Copiar link</button></div><small>Envie este link somente para o parceiro. Você pode gerar outro link depois.</small></div></div><dialog id="partner-dialog" class="partner-dialog"><form id="partner-invite-form"><h3>Convidar parceiro</h3><p>Informe um e-mail diferente do usado pela equipe administrativa.</p><label>E-mail<input type="email" name="email" required autocomplete="email"></label><div class="partner-dialog-actions"><button class="admin-button" type="submit">Criar convite</button><button class="admin-button secondary" type="button" id="partner-cancel">Cancelar</button></div></form></dialog></section>`:''}
     </section>`;
   if(table==='guia_comercial' && id && app.querySelector('#partner-access')){
     const status=app.querySelector('#partner-access-status'),create=app.querySelector('#partner-create'),resend=app.querySelector('#partner-resend'),revoke=app.querySelector('#partner-revoke'),message=app.querySelector('#partner-access-message');
@@ -1735,12 +1741,6 @@ async function mountShellModule(view, options = {}) {
 }
 
 async function navigateToView(view, options = {}) {
-  const viewPath = adminPathForView(view);
-  const targetPage = ADMIN_PAGE_ROUTES[view] || (String(viewPath).endsWith(".html") ? viewPath : null);
-  if (targetPage) {
-    location.href = targetPage;
-    return true;
-  }
   if (view === "midia") {
     clearMountedModule();
     currentView = view;

@@ -15,7 +15,7 @@
   eventos_principais: "/admin/eventos-principais",
   eventos_edicoes: "/admin/edicoes",
   publicidade: "/admin/publicidade",
-  viva_assinaturas: "/admin/viva-assinaturas.html",
+  viva_assinaturas: "/admin/viva-assinaturas",
   comunicacao: "/admin/comunicacao",
   notificacoes: "/admin/viva-urania",
   melhores: "/admin/melhores",

@@ -169,6 +169,7 @@
     { "source": "/melhores-de-urania", "destination": "/api/noticia?tipo=social&mode=award-home" },
     { "source": "/melhores-de-urania/", "destination": "/api/noticia?tipo=social&mode=award-home" },
     { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/admin/viva-assinaturas", "destination": "/admin/index.html" },
     { "source": "/parceiro", "destination": "/parceiro/index.html" },
     { "source": "/parceiro/", "destination": "/parceiro/index.html" },
     { "source": "/parceiro/login", "destination": "/parceiro/login.html" },
