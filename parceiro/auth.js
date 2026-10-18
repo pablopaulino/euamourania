@@ -15,5 +15,11 @@ export async function verificarParceiro(){
 export async function exigirParceiro(){
   const acesso=await verificarParceiro();
   if(!acesso){location.replace(partnerPath('login'));return null;}
+  if(acesso.guia){
+    const {data,error}=await getSupabase().rpc('parceiro_plano_viva',{p_guia_id:acesso.guia.id});
+    acesso.plano=data;acesso.planoErro=Boolean(error);
+    const planPage=/\/plano(?:\.html)?\/?$/.test(location.pathname);
+    if(!planPage&&(error||!data?.ativo)){location.replace(partnerPath('plano'));return null;}
+  }
   return acesso;
 }
