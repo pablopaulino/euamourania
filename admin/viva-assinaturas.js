@@ -6,12 +6,13 @@ if(access){
  const {data,error}=await db.from('guia_comercial').select('id,nome').order('nome').limit(5000);
  if(error)message.textContent='Não foi possível carregar as empresas: '+error.message;
  else for(const g of data)company.add(new Option(g.nome,g.id));
- async function load(){const seq=++request;save.disabled=true;form.reset();company.value=selected;document.querySelector('#subscription-history').replaceChildren();message.textContent='';if(!selected)return;
+ async function load(){const seq=++request;save.disabled=true;form.reset();company.value=selected;document.querySelector('#subscription-history').replaceChildren();message.textContent='';if(!selected){document.querySelector('#current-state').textContent='Selecione uma empresa para começar.';return;}
   const [{data:s,error:e},{data:history,error:he}]=await Promise.all([db.from('viva_assinaturas').select('*').eq('guia_id',selected).maybeSingle(),db.from('viva_assinaturas_historico').select('criado_em,novo').eq('guia_id',selected).order('criado_em',{ascending:false}).limit(20)]);
   if(seq!==request)return;if(e){message.textContent='Consulta indisponível: '+e.message;return;}
   document.querySelector('#current-state').textContent=s?'Registro: '+s.status+' · '+s.periodo+' · validade '+s.validade:'Sem assinatura Viva vinculada.';
   if(s){for(const key of ['periodo','status','inicio','validade'])form.elements[key].value=s[key];form.elements.pago.checked=Boolean(s.pagamento_confirmado_em);}else form.elements.inicio.value=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date());
   if(he)message.textContent='Assinatura carregada; histórico indisponível.';
+  if(!he&&!history?.length){const empty=document.createElement('li');empty.textContent='Nenhuma alteração registrada para esta empresa.';document.querySelector('#subscription-history').append(empty);}
   for(const row of history||[]){const li=document.createElement('li');li.textContent=new Date(row.criado_em).toLocaleString('pt-BR')+' · '+row.novo.status+' · '+row.novo.periodo+' · até '+row.novo.validade;document.querySelector('#subscription-history').append(li);}save.disabled=false;
  }
  let selected=new URLSearchParams(location.search).get('guia_id')||'';company.value=selected;selected=company.value;company.onchange=()=>{selected=company.value;load();};

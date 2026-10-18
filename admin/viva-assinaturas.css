@@ -1,0 +1,30 @@
+body.viva-subscriptions-admin{background:var(--admin-bg,#f5f5f7);color:var(--admin-text,#111827);font-family:Inter,system-ui,sans-serif}
+.viva-admin-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px max(24px,calc((100% - 1200px)/2));background:#fff;border-bottom:1px solid var(--admin-border)}
+.viva-admin-brand{display:flex;align-items:center;gap:12px;color:var(--admin-text);font-size:16px;font-weight:800;text-decoration:none;letter-spacing:-.035em}
+.viva-admin-brand span{padding:5px 7px;border-radius:6px;background:var(--admin-surface-secondary);font-size:10px;letter-spacing:.08em;color:var(--admin-text-secondary)}
+.viva-admin-content{max-width:1248px;margin:auto;padding:28px 24px 48px}
+.viva-breadcrumb{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--admin-text-muted);margin-bottom:28px}.viva-breadcrumb a{color:var(--admin-text-secondary);text-decoration:none}
+.viva-eyebrow{font-size:10px;letter-spacing:.12em;font-weight:800;color:var(--admin-accent)}
+.viva-page-heading{margin-bottom:26px}.viva-page-heading h1{font-size:30px;letter-spacing:-.045em;margin:8px 0;color:var(--admin-text)}.viva-page-heading p{font-size:14px;color:var(--admin-text-secondary);line-height:1.6;margin:0}
+.viva-admin-grid{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:24px;align-items:start}
+.viva-admin-panel{min-width:0;background:#fff;border:1px solid var(--admin-border);border-radius:16px;box-shadow:0 4px 18px #10182804;overflow:hidden}
+.viva-form-section{padding:24px;border-bottom:1px solid var(--admin-divider)}
+.viva-form-section>header{display:flex;gap:12px;align-items:start;margin-bottom:22px}.viva-step{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:10px;background:var(--admin-accent-soft);color:var(--admin-accent);font-size:11px;font-weight:800}
+.viva-admin-panel h2{font-size:16px;letter-spacing:-.02em;margin:0;color:var(--admin-text)}.viva-form-section header p{margin:5px 0 0;font-size:12px;line-height:1.5;color:var(--admin-text-secondary)}
+.viva-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.viva-subscriptions-admin label{font-size:12px;font-weight:650;color:var(--admin-text-secondary);display:flex;flex-direction:column;gap:8px;margin:0 0 16px}
+.viva-subscriptions-admin label small{font-size:10px;font-weight:400;display:inline;margin:0}
+.viva-subscriptions-admin input:not([type=checkbox]),.viva-subscriptions-admin select{width:100%;min-width:0;min-height:44px;border:1px solid #d9dde3;border-radius:9px;padding:11px 12px;background:#fff;color:var(--admin-text);font-size:14px}
+.viva-subscriptions-admin input:focus-visible,.viva-subscriptions-admin select:focus-visible,.viva-subscriptions-admin a:focus-visible,.viva-subscriptions-admin button:focus-visible{outline:3px solid #f2672244;outline-offset:2px;border-color:var(--admin-accent)}
+.viva-current-state{background:var(--admin-surface-secondary);border-radius:8px;padding:12px;font-size:12px;line-height:1.6;color:var(--admin-text-secondary);margin:0 0 20px;overflow-wrap:anywhere}
+.viva-fields label:has(input[type=date]){justify-content:end}.viva-fields label small{display:none}
+.viva-subscriptions-admin .viva-payment-check{flex-direction:row;align-items:start;gap:12px;padding:16px;background:#fafaf9;border:1px solid var(--admin-border);border-radius:10px;font-size:13px;line-height:1.6}
+.viva-payment-check input[type=checkbox]{width:18px;height:18px;flex:0 0 18px;margin:2px 0 0;accent-color:var(--admin-accent)}
+.viva-field-help{font-size:12px;color:var(--admin-text-secondary);line-height:1.6;margin:0}
+.viva-save-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;background:#fcfcfd}.viva-save-bar span{font-size:11px;color:var(--admin-text-muted)}
+.viva-subscriptions-admin .admin-button{font-size:12px;min-height:42px;border-radius:9px;background:var(--admin-accent);color:white}.viva-subscriptions-admin .admin-button:hover{background:var(--admin-accent-strong)}.viva-subscriptions-admin .admin-button.secondary{background:var(--admin-surface-secondary);color:var(--admin-text-secondary)}.viva-subscriptions-admin .admin-button.secondary:hover{background:#e8eaed}.viva-subscriptions-admin button:disabled{opacity:.45;cursor:not-allowed}
+.viva-side{display:grid;gap:20px}.viva-guidance,.viva-history{padding:22px}.viva-guidance h2{margin-top:10px}.viva-guidance p,.viva-guidance li,.viva-history>p{font-size:12px;color:var(--admin-text-secondary);line-height:1.8}.viva-guidance ol{padding-left:18px}
+.viva-history ul{padding:0;margin:16px 0 0;list-style:none}.viva-history li{padding:12px 0;border-top:1px solid var(--admin-divider);font-size:12px;line-height:1.7;color:var(--admin-text-secondary);overflow-wrap:anywhere}.viva-history ul:empty:after{content:'Selecione uma empresa para consultar os registros.';display:block;font-size:12px;color:var(--admin-text-muted);line-height:1.6}
+.viva-form-notice:not(:empty){padding:16px;border:1px solid #e8d6bc;border-radius:12px;background:#fff8ec;font-size:13px;line-height:1.6}.viva-form-notice:empty{display:none}
+@media(max-width:900px){.viva-admin-grid{grid-template-columns:1fr}.viva-side{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.viva-admin-topbar{padding:14px 16px}.viva-admin-brand{font-size:14px;gap:8px}.viva-admin-brand span{display:none}.viva-admin-content{padding:22px 16px 36px}.viva-page-heading h1{font-size:26px}.viva-fields,.viva-side{grid-template-columns:1fr}.viva-form-section{padding:20px}.viva-save-bar{flex-direction:column;align-items:stretch;padding:18px 20px}.viva-subscriptions-admin input:not([type=checkbox]),.viva-subscriptions-admin select{font-size:16px;min-height:48px}.viva-subscriptions-admin .admin-button{min-height:44px}.viva-fields{gap:0}}
