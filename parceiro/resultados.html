@@ -11,11 +11,11 @@
   <nav class="partner-nav" aria-label="Navegação do parceiro"><a href="/parceiro">Início</a><a href="/parceiro/resultados" aria-current="page">Resultados</a><a href="/parceiro/perfil">Perfil</a><a href="/parceiro/horarios">Horários</a><a href="/parceiro/galeria">Fotos</a><a href="/parceiro/vantagens">Promoções</a></nav>
   <main id="conteudo" data-needs-guide>
     <div class="inner-page-heading"><div><span class="section-kicker">SUA PRESENÇA NO VIVA</span><h1>Resultados da sua empresa</h1><p>Veja como as pessoas encontram sua empresa e procuram seus contatos.</p></div></div>
-    <div class="results-toolbar"><label for="periodo">Período <select id="periodo"><option value="total">Total acumulado</option><option value="30">Últimos 30 dias</option></select></label><button id="refresh-results" type="button">Atualizar</button></div>
+    <section class="results-insight" aria-label="Resumo do período"><span class="section-kicker">CADA CONTATO CONTA</span><h2 id="hero-insight" aria-live="polite">Vamos olhar seus resultados?</h2><p>Interações registradas com sua empresa no período selecionado.</p></section><div class="results-toolbar"><label for="periodo">Período <select id="periodo"><option value="total">Total acumulado</option><option value="30">Últimos 30 dias</option></select></label><button id="refresh-results" type="button">Atualizar</button></div>
     <p id="notice" role="status" aria-live="polite">Carregando resultados…</p>
     <section id="results-content" aria-busy="true" aria-label="Indicadores da sua empresa">
       <section class="results-channels" aria-labelledby="sources-title"><h2 id="sources-title">Sua empresa no site e no aplicativo</h2><p class="results-note">Somente registros vinculados à sua empresa. Os totais abaixo somam as duas fontes no período selecionado.</p>
-        <div style="overflow-x:auto"><table><thead><tr><th scope="col">Indicador</th><th scope="col">Site</th><th scope="col">Aplicativo</th><th scope="col">Total</th></tr></thead><tbody>
+        <div class="source-comparison"><p id="source-caption"></p><div class="source-track" aria-hidden="true"><span id="source-site"></span><span id="source-app"></span></div></div><div style="overflow-x:auto"><table><thead><tr><th scope="col">Indicador</th><th scope="col">Site</th><th scope="col">Aplicativo</th><th scope="col">Total</th></tr></thead><tbody>
           <tr><th scope="row">Impressões registradas</th><td data-metric="impressoes_site">—</td><td data-metric="impressoes_app">—</td><td data-metric="impressoes_total">—</td></tr>
           <tr><th scope="row">Cliques registrados</th><td data-metric="cliques_site">—</td><td data-metric="cliques_app">—</td><td data-metric="cliques_total">—</td></tr>
         </tbody></table></div>
@@ -27,7 +27,7 @@
         <article><span>Cliques em contatos</span><strong data-metric="cliques_contato">—</strong><p>WhatsApp, Instagram e telefone somados.</p></article>
       </div>
       <section class="results-channels" aria-labelledby="channels-title"><h2 id="channels-title">Onde as pessoas clicam</h2>
-        <dl>
+        <p class="results-note">Distribuição dos cliques identificados nos cinco canais abaixo.</p><dl>
           <div><dt>WhatsApp<small>Aplicativo e site</small></dt><dd data-metric="whatsapp">—</dd></div>
           <div><dt>Instagram<small>Site · aplicativo ainda sem captura específica</small></dt><dd data-metric="instagram">—</dd></div>
           <div><dt>Telefone<small>Botão Ligar do aplicativo · sem detalhamento do site</small></dt><dd data-metric="telefone">—</dd></div>
@@ -37,7 +37,7 @@
       </section>
       <div class="results-impressions"><div><h2>Presença na tela inicial do app</h2><p>Vezes em que o cartão da empresa foi exibido.</p></div><strong data-metric="impressoes_app">—</strong></div>
       <p id="results-empty" hidden>Nenhuma interação registrada neste período. Os números aparecem aqui conforme novos eventos são registrados.</p>
-      <p id="results-updated" class="results-note"></p>
+      <section class="results-tips"><h2>Pequenos cuidados, mais oportunidades</h2><ul><li>Mantenha seus horários atualizados, inclusive nos feriados.</li><li>Use fotos nítidas para mostrar seus produtos e seu espaço.</li><li>Crie uma promoção e envie para aprovação da equipe.</li></ul></section><p id="results-updated" class="results-note"></p>
       <details class="results-explanation"><summary>De onde vêm os dados e o que é capturado</summary><p><strong>Site Eu Amo Urânia:</strong> exibições da empresa no Guia e na página de detalhes, cliques em links do Guia, WhatsApp, Instagram e links externos. O site agrupa repetições da mesma interação por empresa na sessão; os números não representam cada toque repetido.</p><p><strong>Aplicativo Viva Urânia:</strong> exibições do cartão na home, aberturas da empresa, botão de WhatsApp, botão Ligar, rota e compartilhamentos registrados. As aberturas da empresa ficam separadas das impressões de cartões.</p><p><strong>Cobertura atual:</strong> Instagram, Facebook, site da empresa e o telefone da seção de canais do app ainda não têm captura específica. Isso exige atualização do aplicativo. Ausência de captura não significa ausência de cliques. O histórico não registrado não pode ser recuperado.</p><p>“Cliques registrados” inclui os cliques gerais do Guia, os canais e os compartilhamentos da empresa no app. Quando um registro geral do Guia acompanha um registro de canal da mesma sessão em até cinco segundos, ele é descartado da soma para reduzir duplicação. O detalhamento por canal representa apenas os canais identificados e não precisa somar o total geral.</p><p>“Total acumulado” reúne todo o histórico disponível. “Últimos 30 dias” usa os 30 dias anteriores à consulta. Uma pessoa pode gerar várias interações; estes números não são pessoas únicas, conversas ou vendas.</p></details>
     </section>
   </main><script type="module" src="/parceiro/resultados.js"></script>

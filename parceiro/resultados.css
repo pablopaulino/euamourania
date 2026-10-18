@@ -22,3 +22,18 @@
 .results-explanation p{max-width:800px}
 #results-empty{padding:1rem;border-radius:10px;background:#fff4e6;color:#784700}
 @media(max-width:680px){.results-cards{grid-template-columns:1fr}.results-cards article{padding:1.1rem}.results-cards strong{font-size:2.2rem}.results-toolbar{flex-wrap:wrap}.results-channels{padding:1.1rem}.results-impressions{align-items:flex-start}}
+.results-insight{padding:28px;border:1px solid #eadfce;border-radius:20px;background:linear-gradient(120deg,#fffdf7,#fff2e1)}
+.results-insight h2{max-width:720px;font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.25;letter-spacing:-.045em;margin:12px 0}
+.results-insight p{font-size:13px;color:var(--muted)}
+.results-channels dl>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px}
+.channel-bar{grid-column:1/-1;height:7px;border-radius:8px;overflow:hidden;background:#f0eee8}
+.channel-bar i{display:block;height:100%;width:0;background:#a28b70;border-radius:8px;transition:width .35s ease}
+.channel-whatsapp i{background:#31965c}.channel-telefone i{background:#4e83af}.channel-mapa i{background:#f09830}.channel-instagram i{background:#bc678c}
+.channel-percent{grid-column:1/-1}
+.source-comparison{margin:20px 0}.source-comparison p{font-size:12px;color:var(--muted)}
+.source-track{display:flex;height:10px;overflow:hidden;border-radius:8px;background:#f0eee8}
+#source-site{background:#f09830}#source-app{background:#657f9b}
+.results-tips{padding:20px;border:1px solid #e9e7e1;border-radius:14px;background:#fffdf8;margin:20px 0}
+.results-tips h2{font-size:17px}.results-tips ul{padding-left:20px;color:var(--muted);font-size:13px;line-height:1.8}
+@media(max-width:680px){.results-insight{padding:20px}.partner-profile-page .profile-progress{padding:16px}.partner-hours-page .hours-tools button{white-space:normal;text-align:left}}
+@media(prefers-reduced-motion:reduce){.channel-bar i{transition:none}}
