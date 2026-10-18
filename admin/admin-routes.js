@@ -8,7 +8,7 @@ ADMIN_INDEX_ROUTES.insights = ADMIN_INDEX_ROUTES.audiencia;
 ADMIN_INDEX_ROUTES.midia = "/admin/midia";
 ADMIN_INDEX_ROUTES.banners = "/admin/banners";
 
-export const ADMIN_PAGE_ROUTES = {};
+export const ADMIN_PAGE_ROUTES = { viva_assinaturas: "/admin/viva-assinaturas.html" };
 
 const PATH_TO_VIEW = Object.entries(ADMIN_INDEX_ROUTES).reduce((acc, [view, path]) => {
   acc[trimSlash(path)] = view === "insights" ? "audiencia" : view;
@@ -25,6 +25,7 @@ const PATH_TO_PAGE = Object.entries(ADMIN_PAGE_ROUTES).reduce((acc, [key, path])
   return acc;
 }, {
   "/admin/publicidade.html": "publicidade",
+  "/admin/viva-assinaturas.html": "viva_assinaturas",
   "/admin/comunicacao.html": "comunicacao",
   "/admin/notificacoes-app.html": "notificacoes",
   "/admin/melhores.html": "melhores",

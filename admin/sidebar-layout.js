@@ -15,6 +15,7 @@
   eventos_principais: "/admin/eventos-principais",
   eventos_edicoes: "/admin/edicoes",
   publicidade: "/admin/publicidade",
+  viva_assinaturas: "/admin/viva-assinaturas.html",
   comunicacao: "/admin/comunicacao",
   notificacoes: "/admin/viva-urania",
   melhores: "/admin/melhores",
@@ -30,6 +31,7 @@ const sidebarPathToModule = Object.entries(sidebarAdminRoutes).reduce((acc, [key
 }, {
   "/admin/index.html": "dashboard",
   "/admin/publicidade.html": "publicidade",
+  "/admin/viva-assinaturas.html": "viva_assinaturas",
   "/admin/comunicacao.html": "comunicacao",
   "/admin/notificacoes-app.html": "notificacoes",
   "/admin/melhores.html": "melhores",
@@ -120,6 +122,7 @@ const fullSidebarMenu = [
   { label: "Eventos principais", href: adminPathForModule("eventos_principais"), icon: "event", module: "eventos", view: "eventos_principais" },
   { label: "Edições", href: adminPathForModule("eventos_edicoes"), icon: "editions", module: "eventos", view: "eventos_edicoes" },
   { label: "Publicidade", href: adminPathForModule("publicidade"), icon: "ads", module: "publicidade", view: "publicidade" },
+  { label: "Assinaturas Viva", href: adminPathForModule("viva_assinaturas"), icon: "checkStore", module: "guia_comercial", view: "viva_assinaturas" },
   { label: "Comunicação", href: adminPathForModule("comunicacao"), icon: "mail", module: "comunicacao", view: "comunicacao" },
   { label: "Notificações do Viva Urânia", href: adminPathForModule("notificacoes"), icon: "bell", module: "notificacoes", view: "notificacoes" },
   { label: "Melhores de Urânia", href: adminPathForModule("melhores"), icon: "award", module: "melhores", view: "melhores" },

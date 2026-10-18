@@ -5,7 +5,13 @@
 <main class="admin-main viva-admin-content">
 <nav class="viva-breadcrumb" aria-label="Localização"><a href="/admin/guia">Guia comercial</a><span aria-hidden="true">/</span><span aria-current="page">Assinaturas Viva</span></nav>
 <div class="viva-page-heading"><span class="viva-eyebrow">GESTÃO DE PARCEIROS</span><h1>Plano Parceiro Viva</h1><p>Gerencie o período contratado, a validade e a confirmação de pagamento de cada empresa.</p></div>
-<div class="viva-admin-grid">
+<section class="viva-metrics" aria-label="Resumo das assinaturas">
+<article class="viva-admin-panel viva-metric"><span>Assinaturas ativas</span><strong id="metric-active">—</strong></article>
+<article class="viva-admin-panel viva-metric"><span>Vencendo nos próximos 15 dias</span><strong id="metric-expiring">—</strong><small>Priorize o contato para renovação via WhatsApp.</small></article>
+<article class="viva-admin-panel viva-metric"><span>Aguardando pagamento</span><strong id="metric-pending">—</strong></article>
+</section>
+<section class="viva-admin-panel viva-list-panel" aria-labelledby="subscription-list-title"><div class="viva-list-heading"><div><h2 id="subscription-list-title">Assinaturas das empresas</h2><p>Selecione uma linha para editar ou renovar.</p></div><div class="viva-filters"><input id="subscription-search" type="search" placeholder="Buscar empresa" aria-label="Buscar por empresa"><select id="subscription-status" aria-label="Filtrar por status"><option value="">Todos os status</option><option value="ativa">Ativa</option><option value="pendente">Aguardando pagamento</option><option value="pausada">Pausada</option><option value="cancelada">Cancelada</option><option value="vencida">Vencida</option><option value="sem-plano">Sem plano</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>Período</th><th>Início</th><th>Validade</th><th>Status</th><th>Ação</th></tr></thead><tbody id="subscription-rows"><tr><td colspan="6">Carregando assinaturas…</td></tr></tbody></table></div><p id="list-count" class="viva-list-count" role="status"></p></section>
+<div class="viva-admin-grid" id="subscription-editor">
 <form id="subscription-form" class="viva-admin-panel">
 <section class="viva-form-section"><header><span class="viva-step">01</span><div><h2>Empresa e contratação</h2><p>Selecione o cadastro para consultar a assinatura atual.</p></div></header>
 <label>Empresa<select id="company" required><option value="">Selecione uma empresa</option></select></label><p id="current-state" class="viva-current-state" role="status">Selecione uma empresa para começar.</p>
@@ -15,6 +21,6 @@
 <footer class="viva-save-bar"><span>As alterações ficam registradas no histórico.</span><button class="admin-button" type="submit" disabled>Salvar assinatura</button></footer>
 </form>
 <aside class="viva-side"><section class="viva-admin-panel viva-guidance"><span class="viva-eyebrow">COMO FUNCIONA</span><h2>Do contrato ao acesso</h2><ol><li>Escolha a empresa e o período.</li><li>Confira a validade contratada.</li><li>Confirme o pagamento e selecione “Ativa”.</li></ol><p>A assinatura libera o painel durante a vigência. Ajuda e renovação continuam disponíveis após o vencimento.</p><p>Esta gestão é exclusiva do Viva. Os contratos de publicidade permanecem separados.</p></section><section class="viva-admin-panel viva-history"><h2>Histórico da assinatura</h2><p>Últimas alterações desta empresa.</p><ul id="subscription-history"></ul></section></aside>
-</div><p id="notice" class="viva-form-notice" role="status" aria-live="polite"></p>
+</div><p id="notice" class="viva-form-notice" role="status" aria-live="polite"></p><div id="subscription-toasts" class="viva-toast-stack" aria-live="polite"></div>
 </main><script type="module" src="/admin/viva-assinaturas.js"></script></body></html>
 

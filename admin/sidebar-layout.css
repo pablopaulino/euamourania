@@ -144,7 +144,7 @@
   .admin-nav :is(button, a):hover,
   .admin-nav :is(button, a).active {
     color: var(--navy) !important;
-    background: #ffe58a !important;
+    background: rgba(242,103,34,.12) !important;
     font-weight: 850;
   }
 
@@ -403,7 +403,7 @@
   .admin-nav :is(button, a):hover,
   .admin-nav :is(button, a).active {
     color: var(--navy) !important;
-    background: #ffe58a !important;
+    background: rgba(242,103,34,.12) !important;
   }
 
   .admin-sidebar-footer {
@@ -412,3 +412,4 @@
     border-top: 1px solid var(--line) !important;
   }
 }
+.admin-nav :is(button,a).active,.admin-nav :is(button,a):hover{color:#111827!important;background:rgba(242,103,34,.12)!important;font-weight:750!important}.admin-nav :is(button,a).active{position:relative}.admin-nav :is(button,a).active::before{content:"";position:absolute;left:0;top:25%;height:50%;width:3px;border-radius:3px;background:#f26722}
