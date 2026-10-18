@@ -1,0 +1,35 @@
+.partner-resources-page main{max-width:1120px}
+.resource-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.resource-card{min-width:0;margin-bottom:20px;padding:26px;border:1px solid #e6e5df;border-radius:20px;background:#fff}
+.resource-card h2{font-size:24px;letter-spacing:-.045em;line-height:1.2;margin:12px 0}
+.resource-card h3{font-size:17px;letter-spacing:-.025em}
+.resource-card p,.resource-card small{font-size:14px;line-height:1.65;color:var(--muted)}
+.resource-card .resource-note,.resource-note{font-size:12px;color:var(--muted)}
+.resource-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.resource-actions button{flex:1;min-width:140px}
+.counter-sign{text-align:center;padding:24px 20px;border:1px solid #ecdcc5;border-radius:14px;background:#fffdf7;margin-top:24px}
+.sign-brand{display:flex;justify-content:center;align-items:center;gap:10px}.sign-brand strong{font-size:36px;line-height:.9;letter-spacing:-.08em}.sign-brand small{display:block;font-size:9px;letter-spacing:.3em;color:var(--ink)}
+.counter-sign .sign-eyebrow{font-size:10px;letter-spacing:.12em;color:#a85b00;font-weight:800;margin-top:24px}
+.counter-sign h2{font-size:28px;overflow-wrap:anywhere}.counter-sign>img{display:block;width:230px;height:230px;margin:20px auto;max-width:100%;object-fit:contain;background:white}
+.counter-sign a{font-size:11px;overflow-wrap:anywhere}
+.verified-seal{display:flex;align-items:center;flex-direction:column;gap:20px;text-align:center;padding:42px 20px;background:#fbf5e9;border-radius:14px;margin:24px 0;border-top:4px solid var(--orange)}
+.verified-seal>span{font-size:10px;letter-spacing:.12em;font-weight:800}.verified-seal strong{font-size:26px;letter-spacing:-.04em}.verified-seal strong span{color:#ad6518}.verified-seal p{font-size:18px;overflow-wrap:anywhere;margin:0}
+.copy-text{padding:16px;background:#f8f7f3;border:1px solid #eee9dd;border-radius:10px;overflow-wrap:anywhere;user-select:all}
+.plan-hero{background:linear-gradient(110deg,#fffdf8,#fff1db)}
+.benefit-grid{list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:26px}
+.benefit-grid li{position:relative;padding-left:30px;font-size:14px;font-weight:700}.benefit-grid li:before{content:'✓';position:absolute;left:0;color:#2c7c4d;background:#edf6ef;border-radius:50%;width:21px;height:21px;text-align:center}.benefit-grid small{display:block;font-weight:400;font-size:12px;margin-top:5px}
+.resource-faq details{border-top:1px solid #eeece6;padding:16px 0}.resource-faq summary{cursor:pointer;font-size:14px;font-weight:650;min-height:32px}.resource-faq details p{margin-bottom:0}
+.tips-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-top:24px}.tips-grid article>span{font-size:12px;color:#a26523;font-weight:800}
+@media(max-width:680px){.resource-grid,.benefit-grid,.tips-grid{grid-template-columns:1fr}.resource-card{padding:20px;border-radius:16px}.resource-card h2{font-size:22px}.resource-actions{flex-direction:column}.resource-actions button{width:100%}.counter-sign{padding:20px 12px}.resource-card .button{white-space:normal;text-align:center}.resource-faq summary{min-height:44px}}
+@media print{
+ @page{size:A4 portrait;margin:18mm}
+ body.partner-resources-page{background:white!important}
+ .partner-resources-page header,.partner-resources-page nav,.partner-resources-page .skip-link,.partner-resources-page main>*,#kit-content>*{display:none!important}
+ .partner-resources-page main{width:100%!important;margin:0!important;max-width:none!important}
+ .partner-resources-page main>#kit-content,#kit-content>.resource-grid{display:block!important}
+ #kit-content>.resource-grid>.resource-card{display:none!important}
+ #kit-content>.resource-grid>.resource-card:first-child{display:block!important;padding:0;border:0;margin:0}
+ #kit-content>.resource-grid>.resource-card:first-child>*{display:none!important}
+ #kit-content #counter-sign{display:block!important;border:2px solid #ff8900;border-radius:10mm;padding:15mm;break-inside:avoid;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ #counter-sign h2{font-size:28pt}#counter-sign>img{width:65mm;height:65mm;margin:8mm auto}#counter-sign p{font-size:13pt}#counter-sign a{font-size:9pt}
+}

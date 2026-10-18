@@ -145,6 +145,10 @@
     { "src": "^/eventos/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=agenda-list" }
   ],
   "rewrites": [
+    { "source": "/divulgacao", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/divulgacao.html" },
+    { "source": "/parceiro/divulgacao", "destination": "/parceiro/divulgacao.html" },
+    { "source": "/plano", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/plano.html" },
+    { "source": "/parceiro/plano", "destination": "/parceiro/plano.html" },
     { "source": "/api/admin-criar-parceiro", "destination": "/api/admin-users?operacao=criar-parceiro" },
     { "source": "/api/parceiro-impacto", "destination": "/api/admin-users?operacao=impacto-parceiro" },
     { "source": "/", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/index.html" },

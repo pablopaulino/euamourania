@@ -87,3 +87,5 @@
  .results-channels th:nth-child(3){width:30%}
  .results-channels th:nth-child(2),.results-channels th:nth-child(4){width:20%}
 }
+/* Oito destinos, sem esconder atalhos no celular. */
+@media(max-width:680px){.partner-nav{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;padding:8px}.partner-nav a{font-size:11px;padding:8px 2px}}
