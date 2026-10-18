@@ -351,3 +351,15 @@ body:not(.partner-login-page) .partner-edit-form{max-width:920px;margin-top:1rem
 @media(max-width:900px){.dashboard-hero-art img.business-cover{height:210px}.dashboard-overview .cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:680px){.dashboard-hero{grid-template-columns:1fr;min-height:0}.dashboard-hero-art{display:none}.dashboard-overview .cards{grid-template-columns:1fr}.action-grid{grid-template-columns:1fr 1fr}.photo-cover{grid-template-columns:1fr}.photo-cover>img{height:220px}.photo-upload{flex-wrap:wrap}.photo-upload>div{width:100%}.inner-page-heading{align-items:start;flex-direction:column}.form-two-columns{grid-template-columns:1fr}.profile-current{flex-wrap:wrap}.form-actions{align-items:start;flex-direction:column}#days .card{grid-template-columns:1fr 1fr}#days .card>strong{grid-column:1/-1}}
 @media(max-width:470px){.action-grid{grid-template-columns:1fr}}
+
+/* Confirmações visíveis mesmo quando a pessoa está no início do formulário. */
+body:not(.partner-login-page) #notice.partner-feedback{position:fixed;z-index:100;right:24px;bottom:24px;display:flex;align-items:center;gap:14px;width:min(420px,calc(100% - 32px));margin:0;padding:18px;border:1px solid #eadac4;border-left:4px solid var(--orange);border-radius:16px;background:#fffdf8;color:var(--ink);box-shadow:0 12px 40px rgba(20,35,40,.16)}
+.feedback-icon{display:grid;place-items:center;flex:0 0 40px;height:40px;border-radius:50%;background:#fff0d9;color:#995000;font-size:24px;font-weight:800}
+.feedback-copy{display:grid;gap:4px;min-width:0;flex:1;overflow-wrap:anywhere}
+.feedback-copy strong{font-size:15px;color:var(--navy)}
+.feedback-copy>span{font-size:13px;font-weight:500;line-height:1.5}
+body:not(.partner-login-page) #notice.error.partner-feedback{border-color:#f0c6cc;border-left-color:#bf3044;background:#fffafa}
+.error .feedback-icon{background:#ffe7eb;color:#aa2639}
+body:not(.partner-login-page) button.feedback-close{flex:0 0 44px;min-height:44px;padding:0;background:transparent;color:#687377;font-size:24px;font-weight:400}
+body:not(.partner-login-page) button.feedback-close:hover{background:#f3eee5}
+@media(max-width:680px){body:not(.partner-login-page) #notice.partner-feedback{right:16px;bottom:max(16px,env(safe-area-inset-bottom));padding:14px;gap:10px}}

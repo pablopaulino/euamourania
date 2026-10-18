@@ -9,7 +9,7 @@ if(acesso?.guia){
   async function load(){
     const current=++request;
     content.setAttribute('aria-busy','true');refresh.disabled=true;
-    notice('Carregando resultados…');
+    notice('Carregando resultados…',false,'info');
     document.querySelectorAll('[data-metric]').forEach(el=>el.textContent='—');
     document.querySelector('#results-empty').hidden=true;
     document.querySelector('#results-updated').textContent='';
