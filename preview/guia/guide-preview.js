@@ -1,3 +1,4 @@
+import { verifiedBadge } from "/assets/js/viva-verified.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/publicDataService.js";
 import "./banners-preview.js";
 
@@ -19,7 +20,7 @@ const safeImage = v => /^https?:\/\//i.test(v || "") || /^\/?assets\//.test(v ||
 const placeholder = '<div class="media-placeholder"><img src="/assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56" loading="lazy" decoding="async"></div>';
 const normalize = v => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const PAGE_SIZE = 6;
-const LIST_SELECT = "id,nome,slug,categoria_nome,descricao,imagem_url,whatsapp,endereco,horario,recomendado";
+const LIST_SELECT = "id,nome,slug,categoria_nome,descricao,imagem_url,whatsapp,endereco,horario,recomendado,verificado";
 const LIST_QUERY = { select: LIST_SELECT, status: "eq.publicado", order: "recomendado.desc,nome.asc" };
 let initialData = null;
 try { initialData = JSON.parse(document.getElementById("initial-guide-list-data")?.textContent || "null"); } catch {}
@@ -74,7 +75,7 @@ function mobileTags(item) {
 
 function cardMarkup(item) {
   const detalhes = `/guia/${encodeURIComponent(item.slug || item.id)}`;
-  return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}"${item.recomendado ? ' data-guide-featured="true"' : ""}>${item.recomendado ? '<span class="badge-destaque">Recomendado</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" width="420" height="320" loading="lazy" decoding="async">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a></h2><p class="card-text">${esc(item.descricao || "Conheça este estabelecimento no Guia de Urânia.")}</p>${mobileTags(item)}<div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes <span aria-hidden="true">→</span></a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp" aria-label="Falar com ${esc(item.nome)} pelo WhatsApp">WhatsApp</a>` : ""}</div></div></article>`;
+  return `<article class="card-guia" id="guia-${esc(item.id)}" data-guide-id="${esc(item.id)}"${item.recomendado ? ' data-guide-featured="true"' : ""}>${item.recomendado ? '<span class="badge-destaque">Recomendado</span>' : ""}<a class="card-media guide-card-link" href="${detalhes}" aria-label="Ver detalhes de ${esc(item.nome)}">${safeImage(item.imagem_url) ? `<img src="${safeImage(item.imagem_url)}" class="card-img-top" alt="${esc(item.nome)}" width="420" height="320" loading="lazy" decoding="async">` : placeholder}</a><div class="card-body">${item.categoria_nome ? `<p class="guide-category">${esc(item.categoria_nome)}</p>` : ""}<h2 class="card-title"><a href="${detalhes}">${esc(item.nome)}</a>${verifiedBadge(item.verificado)}</h2><p class="card-text">${esc(item.descricao || "Conheça este estabelecimento no Guia de Urânia.")}</p>${mobileTags(item)}<div class="guide-card-actions"><a href="${detalhes}" class="btn-guide-details">Ver detalhes <span aria-hidden="true">→</span></a>${item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}" target="_blank" rel="noopener" class="btn-whatsapp" aria-label="Falar com ${esc(item.nome)} pelo WhatsApp">WhatsApp</a>` : ""}</div></div></article>`;
 }
 
 function prepararImagens(root = container) {

@@ -1,5 +1,8 @@
+import { verifiedBadge } from "/assets/js/viva-verified.js";
 import {acesso} from './_layout.js';
 if(acesso?.guia){
+ document.querySelector('#plan-verified-badge').innerHTML=verifiedBadge(acesso.plano?.ativo);
+ if(acesso.plano?.ativo)document.querySelector('#plan-verification-note').textContent='Sua empresa possui o Selo Oficial de Verificação. Ele aparece no Guia após a publicação do cadastro e permanece enquanto seu plano estiver ativo.';
  const g=acesso.guia;document.querySelector('#plan-name').textContent=g.nome;
  document.querySelector('#publication-note').textContent=g.status==='publicado'?'Sua vitrine está publicada no Guia.':'Seu cadastro ainda aguarda publicação. Os materiais públicos serão liberados quando a equipe publicar sua vitrine.';
  const official='5517976005583';

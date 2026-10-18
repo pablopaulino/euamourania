@@ -69,7 +69,8 @@ export async function fetchPublicRows(table, params = {}, { ttl = 120000, timeou
     if (value !== undefined && value !== null && value !== "") query.set(key, String(value));
   });
   const url = `${SUPABASE_URL}/rest/v1/${table}?${query}`;
-  const cached = readStored(url);
+  const liveVerification = table === "guia_comercial" && String(params.select || "").split(",").includes("verificado");
+  const cached = liveVerification ? null : readStored(url);
   if (cached) return cached;
   if (pending.has(url)) return pending.get(url);
 
@@ -84,14 +85,15 @@ export async function fetchPublicRows(table, params = {}, { ttl = 120000, timeou
           Accept: "application/json"
         },
         credentials: "omit",
+        cache: liveVerification ? "no-store" : "default",
         signal: controller.signal
       });
       if (!response.ok) throw new Error(`Conteúdo indisponível (${response.status}).`);
       const data = await response.json();
-      store(url, data, ttl);
+      if (!liveVerification) store(url, data, ttl);
       return data;
     } catch (error) {
-      const stale = readStored(url, true);
+      const stale = liveVerification ? null : readStored(url, true);
       if (stale) return stale;
       if (error?.name === "AbortError") throw new Error("A consulta demorou além do esperado.");
       throw error;

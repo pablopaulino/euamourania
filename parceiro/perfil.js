@@ -1,3 +1,4 @@
+import { verifiedBadge } from "/assets/js/viva-verified.js";
 import {isOpen} from './hours.js';
 import {acesso,db,salvar,notice} from './_layout.js';
 
@@ -32,6 +33,7 @@ if(acesso?.guia){
   const copy=document.querySelector('#copy-profile-link');copy.hidden=!publicUrl;
   copy.onclick=async()=>{try{await navigator.clipboard.writeText(publicUrl);notice('Link copiado!');}catch{notice('Não foi possível copiar. Abra “Ver no Guia” e copie o endereço.',true);}};
   document.querySelector('#preview-name').textContent=g.nome;
+  document.querySelector('#preview-name').insertAdjacentHTML('beforeend', verifiedBadge(acesso.plano?.ativo));
   if(g.imagem_url)document.querySelector('#preview-cover').src=g.imagem_url;
   function preview(){
     document.querySelector('#preview-category').textContent=category.selectedOptions[0]?.textContent||'Categoria';

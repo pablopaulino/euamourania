@@ -1,3 +1,4 @@
+import { verifiedBadge } from "/assets/js/viva-verified.js";
 import { definirMeta, textoPuro } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 
@@ -143,7 +144,7 @@ async function carregar() {
   try {
     const query = /^[0-9a-f-]{20,}$/i.test(slug) ? { id: `eq.${slug}` } : { slug: `eq.${slug}` };
     const [item] = await fetchPublicRows("guia_comercial", {
-      select: "*",
+      select: "*,verificado",
       ...query,
       status: "eq.publicado",
       limit: "1"
@@ -175,7 +176,7 @@ async function carregar() {
             ${item.recomendado ? `<strong>${icons.star} Recomendado</strong>` : ""}
           </div>
           <p class="eyebrow">Guia comercial de Urânia</p>
-          <h1>${escapeHtml(item.nome)}</h1>
+          <h1>${escapeHtml(item.nome)}${verifiedBadge(item.verificado)}</h1>
           ${item.descricao ? `<p class="guide-business-summary">${escapeHtml(item.descricao)}</p>` : `<p class="guide-business-summary">Empresa cadastrada no Guia do Eu Amo Urânia para facilitar o contato com moradores e visitantes.</p>`}
           <div class="guide-business-actions">
             ${whatsapp ? `<a class="guide-business-action whatsapp" target="_blank" rel="noopener" href="${whatsapp}">${icons.whatsapp}<span>Chamar no WhatsApp</span></a>` : ""}
