@@ -22,7 +22,9 @@ if(acesso){
   document.querySelector('#logout')?.addEventListener('click',async()=>{await db.auth.signOut({scope:'local'});location.replace(partnerPath('login'));});
   document.querySelectorAll('main[data-needs-guide]').forEach(el=>{if(!acesso.guia)el.innerHTML='<p>Seu acesso foi criado. Aguarde o vínculo com o estabelecimento pelo atendimento.</p>';});
 }
+let noticeTimer;
 export function notice(message,error=false,kind='success'){
+ clearTimeout(noticeTimer);
  const el=document.querySelector('#notice');if(!el)return;
  el.replaceChildren();el.className=error?'error':kind;
  el.setAttribute('role',error?'alert':'status');el.setAttribute('aria-live',error?'assertive':'polite');el.setAttribute('aria-atomic','true');
@@ -36,6 +38,7 @@ export function notice(message,error=false,kind='success'){
  const close=document.createElement('button');close.type='button';close.className='feedback-close';close.setAttribute('aria-label','Fechar aviso');close.textContent='×';
  close.addEventListener('click',()=>{if(el.contains(document.activeElement))document.querySelector('main form button')?.focus();notice('');});
  el.append(icon,copy,close);
+ if(!error&&kind==='success')noticeTimer=setTimeout(()=>notice(''),3000);
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
  el.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'translateY(0)'}],{duration:240,easing:'ease-out'});
  icon.animate([{transform:'scale(.7)'},{transform:'scale(1.12)'},{transform:'scale(1)'}],{duration:320,easing:'ease-out'});
