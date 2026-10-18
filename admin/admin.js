@@ -2,7 +2,7 @@
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { listarTabela, salvarRegistro, excluirRegistro } from "../assets/js/services/baseService.js";
 import { gerarSlug } from "../assets/js/utils.js";
-import { adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js?v=20260911-home-suggestions";
+import { ADMIN_PAGE_ROUTES, adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js?v=20260911-home-suggestions";
 import { summarizeBusinessQuality } from "./business-quality.js";
 import { ADMIN_MODULE_LIST, adminModulesForNavigation, getAdminModule, renderAdminModuleIcon } from "./admin-modules.js?v=20260911-home-suggestions";
 
@@ -1735,6 +1735,12 @@ async function mountShellModule(view, options = {}) {
 }
 
 async function navigateToView(view, options = {}) {
+  const viewPath = adminPathForView(view);
+  const targetPage = ADMIN_PAGE_ROUTES[view] || (String(viewPath).endsWith(".html") ? viewPath : null);
+  if (targetPage) {
+    location.href = targetPage;
+    return true;
+  }
   if (view === "midia") {
     clearMountedModule();
     currentView = view;
