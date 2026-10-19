@@ -36,10 +36,11 @@ function destination(notification){
   if(notification.destino_tipo==="melhores"&&value)return`/melhores/${value}`;
   if(notification.destino_tipo==="melhores")return"/melhores";
   if(notification.destino_tipo==="telefones_uteis")return"/telefones-uteis";
+  if(notification.destino_tipo==="achados_perdidos"&&notification.destino_id)return`/achados-perdidos/${notification.destino_id}`;
   return"/";
 }
 function isSafePath(path){
-  return /^(\/|\/empresa\/[a-z0-9-]+|\/turismo\/[a-z0-9-]+|\/eventos\/[a-z0-9-]+(?:--[a-z0-9-]+)?|\/noticias\/[a-z0-9-]+|\/melhores(?:\/[0-9a-f-]{36})?|\/telefones-uteis)$/i.test(String(path||""));
+  return /^(\/|\/empresa\/[a-z0-9-]+|\/turismo\/[a-z0-9-]+|\/eventos\/[a-z0-9-]+(?:--[a-z0-9-]+)?|\/noticias\/[a-z0-9-]+|\/melhores(?:\/[0-9a-f-]{36})?|\/telefones-uteis|\/achados-perdidos\/[0-9a-f-]{36})$/i.test(String(path||""));
 }
 function deepLinkFor(path){
   return `euamourania://${String(path||"/").replace(/^\/+/,"")}`;
@@ -77,6 +78,13 @@ module.exports=async(req,res)=>{
     const notification=(await rest(`app_notificacoes?id=eq.${encodeURIComponent(id)}&select=*`,{token}))?.[0];
     if(!notification)return res.status(404).json({error:"Notificação não encontrada."});
     if(!["rascunho","falhou"].includes(notification.status))return res.status(409).json({error:"Esta notificação já foi processada."});
+    if(notification.tema==="achados_perdidos"){
+      const item=(await rest(`achados_perdidos?id=eq.${encodeURIComponent(notification.destino_id||"")}&status=eq.ativo&select=id`,{token}))?.[0];
+      if(!item)return res.status(409).json({error:"O anúncio não está publicado; a notificação não pode ser enviada."});
+      const since=encodeURIComponent(new Date(Date.now()-60*60*1000).toISOString());
+      const recent=await rest(`app_notificacoes?tema=eq.achados_perdidos&status=eq.enviado&enviado_em=gte.${since}&select=id&limit=3`,{token});
+      if(recent.length>=3)return res.status(429).json({error:"Limite de avisos do mural nesta hora. Tente mais tarde."});
+    }
 
     await rest(`app_notificacoes?id=eq.${id}`,{method:"PATCH",token,body:{status:"enviando",total_erros:0,total_aceitos:0,total_destinatarios:0}});
     const devices=await rest("rpc/app_push_tokens_para_notificacao",{method:"POST",token,body:{p_notificacao_id:notification.id}});

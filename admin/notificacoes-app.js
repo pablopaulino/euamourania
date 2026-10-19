@@ -71,6 +71,7 @@ function destinationTypeLabel(type) {
     noticia: "Notícia",
     melhores: "Melhores",
     telefones_uteis: "Telefones úteis",
+    achados_perdidos: "Achados e Perdidos",
   })[type] || type || "Início";
 }
 
@@ -83,6 +84,7 @@ function topicLabel(topic) {
     comunidade: "Comunidade",
     melhores: "Melhores de Urânia",
     parceiros_ofertas: "Novidades de parceiros",
+    achados_perdidos: "Achados e Perdidos",
   })[topic] || "Informação geral";
 }
 
