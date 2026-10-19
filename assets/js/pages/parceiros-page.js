@@ -1,5 +1,6 @@
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 import { registrarEventoSite } from "../services/analyticsService.js";
+import { verifiedBadge } from "/assets/js/viva-verified.js";
 
 const compactGrid = document.getElementById("partners-grid");
 const featuredGrid = document.getElementById("partners-featured-grid");
@@ -45,7 +46,7 @@ function featuredCard(item) {
       <img src="${safeImage(item.imagem_url)}" alt="${escapeHtml(item.nome)}" width="720" height="520" loading="lazy" decoding="async">
       <div class="viva-featured-card-copy">
         <small>${escapeHtml(item.categoria_nome || "Parceiro do Viva")}</small>
-        <h3>${escapeHtml(item.nome)}</h3>
+        <h3>${escapeHtml(item.nome)}${verifiedBadge(item.verificado)}</h3>
         ${item.descricao ? `<p>${escapeHtml(item.descricao)}</p>` : ""}
       </div>
     </a>
@@ -101,7 +102,7 @@ async function init() {
   }
   try {
     rows = await fetchPublicRows("guia_comercial", {
-      select: "id,nome,slug,descricao,imagem_url,categoria_nome,recomendado",
+      select: "id,nome,slug,descricao,imagem_url,categoria_nome,recomendado,verificado",
       status: "eq.publicado",
       order: "recomendado.desc,nome.asc",
       limit: "200"
