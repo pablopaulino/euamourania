@@ -1,7 +1,7 @@
 import { definirMeta, textoPuro } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 import { sanitizeArticleHtml } from "../security/sanitize-html.js";
-import { verifiedBadge } from "/assets/js/viva-verified.js";
+import { verifiedName } from "/assets/js/viva-verified.js";
 
 const container = document.getElementById("turismo-details");
 const pathParts = location.pathname.split("/").filter(Boolean);
@@ -101,7 +101,7 @@ function companyCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="tourism-related-card compact" href="/guia/${encodeURIComponent(item.slug || item.id)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" width="420" height="280" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Guia</div>`}
-    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${escapeHtml(item.nome)}${verifiedBadge(item.verificado)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco, 92))}</p>${item.endereco ? `<em>${icons.pin}${escapeHtml(firstLine(item.endereco))}</em>` : ""}<span>Ver empresa</span></div>
+    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${verifiedName(escapeHtml(item.nome), item.verificado)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco, 92))}</p>${item.endereco ? `<em>${icons.pin}${escapeHtml(firstLine(item.endereco))}</em>` : ""}<span>Ver empresa</span></div>
   </a>`;
 }
 

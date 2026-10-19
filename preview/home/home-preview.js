@@ -1,6 +1,6 @@
 import { callPublicRpc, fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/publicDataService.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
-import { verifiedBadge } from "/assets/js/viva-verified.js";
+import { verifiedName } from "/assets/js/viva-verified.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 const plain = value => String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
@@ -74,7 +74,7 @@ async function renderBusinesses() {
       limit: "6"
     }, { ttl: 180000 });
     if (!rows.length) return fallbackMessage(root, "Os estabelecimentos do Guia aparecerão aqui.");
-    root.innerHTML = rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${guideUrl(item)}">${safeUrl(item.imagem_url) ? `<img src="${esc(safeUrl(item.imagem_url))}" alt="" width="82" height="82" loading="lazy">` : `<span class="business-placeholder" aria-hidden="true"></span>`}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${esc(item.nome)}${verifiedBadge(item.verificado)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
+    root.innerHTML = rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${guideUrl(item)}">${safeUrl(item.imagem_url) ? `<img src="${esc(safeUrl(item.imagem_url))}" alt="" width="82" height="82" loading="lazy">` : `<span class="business-placeholder" aria-hidden="true"></span>`}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
   } catch { fallbackMessage(root, "Não foi possível carregar o Guia agora."); }
 }
 

@@ -1,5 +1,5 @@
 import { searchPortal } from "../services/searchService.js";
-import { verifiedBadge } from "/assets/js/viva-verified.js";
+import { verifiedName } from "/assets/js/viva-verified.js";
 
 const esc = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
@@ -53,7 +53,7 @@ function renderResults(results, query) {
     container.innerHTML = `<p class="global-search-message">Nenhum resultado para “${esc(query)}”. Tente outra palavra.</p>`;
     return;
   }
-  container.innerHTML = `${results.slice(0, 8).map((item) => `<a class="global-search-suggestion" href="${esc(item.url)}"><span class="global-search-thumb">${item.image ? `<img src="${esc(item.image)}" alt="" width="72" height="72" loading="lazy" decoding="async">` : esc(item.typeLabel)}</span><span class="global-search-copy"><span class="global-search-kind">${esc(item.typeLabel)}</span><span class="global-search-title">${esc(item.title)}${item.type === "guia" && item.verificado ? verifiedBadge(item.verificado) : ""}</span><span class="global-search-meta">${esc(resultMeta(item))}</span></span><span class="global-search-arrow" aria-hidden="true">→</span></a>`).join("")}<a class="global-search-all" href="/buscar.html?q=${encodeURIComponent(query)}"><span>Ver todos os ${results.length} resultados</span><span aria-hidden="true">→</span></a>`;
+  container.innerHTML = `${results.slice(0, 8).map((item) => `<a class="global-search-suggestion" href="${esc(item.url)}"><span class="global-search-thumb">${item.image ? `<img src="${esc(item.image)}" alt="" width="72" height="72" loading="lazy" decoding="async">` : esc(item.typeLabel)}</span><span class="global-search-copy"><span class="global-search-kind">${esc(item.typeLabel)}</span><span class="global-search-title">${verifiedName(esc(item.title), item.type === "guia" && item.verificado)}</span><span class="global-search-meta">${esc(resultMeta(item))}</span></span><span class="global-search-arrow" aria-hidden="true">→</span></a>`).join("")}<a class="global-search-all" href="/buscar.html?q=${encodeURIComponent(query)}"><span>Ver todos os ${results.length} resultados</span><span aria-hidden="true">→</span></a>`;
 }
 
 async function updateSuggestions(input) {

@@ -1,4 +1,4 @@
-import { verifiedBadge } from "/assets/js/viva-verified.js";
+import { verifiedName } from "/assets/js/viva-verified.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/publicDataService.js";
 import { definirMeta, textoPuro } from "/assets/js/utils.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
@@ -102,7 +102,7 @@ function hoursMarkup(item) {
 
 function companyCard(item) {
   const image = safeImage(item.imagem_url);
-  return `<a class="related-company" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="360" height="250" loading="lazy">` : `<span class="related-placeholder">Eu Amo Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${esc(item.nome)}${verifiedBadge(item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco, 80))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
+  return `<a class="related-company" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="360" height="250" loading="lazy">` : `<span class="related-placeholder">Eu Amo Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco, 80))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
 }
 
 function tourismCard(item) {
@@ -223,7 +223,7 @@ async function render() {
         <div class="business-intro">
           <div class="business-badges">${item.categoria_nome ? `<a href="/preview/guia/?busca=${encodeURIComponent(item.categoria_nome)}">${esc(item.categoria_nome)}</a>` : ""}${item.recomendado_editorial || item.recomendado ? `<strong>Recomendado</strong>` : ""}</div>
           <p class="business-kicker">Guia de Urânia</p>
-          <h1>${esc(item.nome)}${verifiedBadge(item.verificado)}</h1>
+          <h1>${verifiedName(esc(item.nome), item.verificado)}</h1>
           ${item.descricao ? `<p class="business-summary">${esc(item.descricao)}</p>` : ""}
           ${state ? `<div class="opening-state ${state.open ? "is-open" : "is-closed"}"><i></i><strong>${state.label}</strong>${state.detail ? `<span>${state.detail}</span>` : ""}</div>` : item.horario ? `<div class="opening-quick">${icons.clock}<span>${esc(item.horario)}</span></div>` : ""}
           ${item.endereco ? `<p class="business-address">${icons.pin}<span>${esc(item.endereco)}</span></p>` : ""}

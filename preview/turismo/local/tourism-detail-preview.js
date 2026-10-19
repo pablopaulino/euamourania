@@ -2,7 +2,7 @@ import { fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/p
 import { definirMeta, textoPuro } from "/assets/js/utils.js";
 import { sanitizeArticleHtml } from "/assets/js/security/sanitize-html.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
-import { verifiedBadge } from "/assets/js/viva-verified.js";
+import { verifiedName } from "/assets/js/viva-verified.js";
 import "/preview/guia/banners-preview.js";
 
 const root = document.getElementById("turismo-details");
@@ -74,7 +74,7 @@ function instagramUrl(value) { if (!value) return ""; if (/^https?:\/\//i.test(v
 
 function companyCard(item) {
   const image=safeImage(item.imagem_url);
-  return `<a class="place-company-card" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="410" height="270" loading="lazy" decoding="async">` : `<span class="media-placeholder">Guia de Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${esc(item.nome)}${verifiedBadge(item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco,82))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
+  return `<a class="place-company-card" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="410" height="270" loading="lazy" decoding="async">` : `<span class="media-placeholder">Guia de Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco,82))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
 }
 function tourismCard(item) {
   const image=safeImage(item.imagem_url);

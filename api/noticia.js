@@ -1,4 +1,4 @@
-const { verifiedBadge } = require("../lib/viva-verified.js");
+const { verifiedName } = require("../lib/viva-verified.js");
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://omhcpbphvtihqwdkbsbf.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || "sb_publishable_m02B2sC8Ddh4fCtnvsGePg_TqwUanoM";
 const { useSite2026Response } = require("../lib/site-2026-response.js");
@@ -143,7 +143,7 @@ async function renderGuia(req, res, slug) {
   }).replace(/</g, "\\u003c");
   const initialGuide = safeJson(publicDetail(item, "guia"));
   const categoryBadge = item.categoria_nome ? `<a href="/guia/categoria/${esc(slugify(item.categoria_nome))}">${esc(item.categoria_nome)}</a>` : "<span>Comércio local</span>";
-  const serverContent = `<article class="guide-business" data-guide-id="${esc(item.id)}"><a class="guide-business-back" href="/guia.html"><span aria-hidden="true">←</span> Voltar ao Guia</a><section class="guide-business-hero"><div class="guide-business-media"><img src="${esc(image)}" alt="${esc(item.nome)}" decoding="async" fetchpriority="high"></div><div class="guide-business-intro"><div class="guide-business-badges">${categoryBadge}${item.recomendado ? "<strong>★ Recomendado</strong>" : ""}</div><p class="eyebrow">Guia comercial de Urânia</p><h1>${esc(item.nome)}${verifiedBadge(item.verificado)}</h1><p class="guide-business-summary">${esc(item.descricao || description)}</p></div></section></article>`;
+  const serverContent = `<article class="guide-business" data-guide-id="${esc(item.id)}"><a class="guide-business-back" href="/guia.html"><span aria-hidden="true">←</span> Voltar ao Guia</a><section class="guide-business-hero"><div class="guide-business-media"><img src="${esc(image)}" alt="${esc(item.nome)}" decoding="async" fetchpriority="high"></div><div class="guide-business-intro"><div class="guide-business-badges">${categoryBadge}${item.recomendado ? "<strong>★ Recomendado</strong>" : ""}</div><p class="eyebrow">Guia comercial de Urânia</p><h1>${verifiedName(esc(item.nome), item.verificado)}</h1><p class="guide-business-summary">${esc(item.descricao || description)}</p></div></section></article>`;
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
@@ -207,7 +207,7 @@ async function renderGuiaCategoria(req, res, slug) {
       </a>
       <div class="guide-category-card-body">
         <p class="guide-category-label">${esc(item.categoria_nome || categoryName)}</p>
-        <h2><a href="${esc(itemUrl)}">${esc(item.nome)}</a>${verifiedBadge(item.verificado)}</h2>
+        <h2><a href="${esc(itemUrl)}">${verifiedName(esc(item.nome), item.verificado)}</a></h2>
         ${item.descricao ? `<p>${esc(item.descricao)}</p>` : ""}
         <div class="guide-category-facts">
           ${item.endereco ? `<span>${esc(item.endereco)}</span>` : ""}

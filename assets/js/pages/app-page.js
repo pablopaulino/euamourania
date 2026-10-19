@@ -1,7 +1,7 @@
 import { getAppDownloadConfig } from "../services/appDownloadConfig.js";
 import { registrarEventoSite } from "../services/analyticsService.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
-import { verifiedBadge } from "/assets/js/viva-verified.js";
+import { verifiedName } from "/assets/js/viva-verified.js";
 
 const escapeHtml = (value = "") => String(value ?? "").replace(/[&<>'"]/g, char => ({
   "&": "&amp;",
@@ -84,7 +84,7 @@ function partnerCard(item) {
         <img src="${safeImage(item.imagem_url)}" alt="${escapeHtml(item.nome)}" width="180" height="180" loading="lazy" decoding="async">
       </span>
       <span class="viva-partner-body">
-        <strong>${escapeHtml(item.nome)}${verifiedBadge(item.verificado)}</strong>
+        <strong>${verifiedName(escapeHtml(item.nome), item.verificado)}</strong>
         <small>Parceiro do Viva</small>
       </span>
     </a>

@@ -1,4 +1,4 @@
-import { verifiedBadge } from "/assets/js/viva-verified.js";
+import { verifiedName } from "/assets/js/viva-verified.js";
 import { definirMeta, textoPuro } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 
@@ -82,7 +82,7 @@ function companyCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="guide-related-card compact" href="/guia/${encodeURIComponent(item.slug || item.id)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" width="420" height="280" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Guia</div>`}
-    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${escapeHtml(item.nome)}${verifiedBadge(item.verificado)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco))}</p><span>Ver empresa</span></div>
+    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${verifiedName(escapeHtml(item.nome), item.verificado)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco))}</p><span>Ver empresa</span></div>
   </a>`;
 }
 
@@ -176,7 +176,7 @@ async function carregar() {
             ${item.recomendado ? `<strong>${icons.star} Recomendado</strong>` : ""}
           </div>
           <p class="eyebrow">Guia comercial de Urânia</p>
-          <h1>${escapeHtml(item.nome)}${verifiedBadge(item.verificado)}</h1>
+          <h1>${verifiedName(escapeHtml(item.nome), item.verificado)}</h1>
           ${item.descricao ? `<p class="guide-business-summary">${escapeHtml(item.descricao)}</p>` : `<p class="guide-business-summary">Empresa cadastrada no Guia do Eu Amo Urânia para facilitar o contato com moradores e visitantes.</p>`}
           <div class="guide-business-actions">
             ${whatsapp ? `<a class="guide-business-action whatsapp" target="_blank" rel="noopener" href="${whatsapp}">${icons.whatsapp}<span>Chamar no WhatsApp</span></a>` : ""}

@@ -1,6 +1,6 @@
 import { searchPortal, searchTypeCounts } from "/assets/js/services/searchService.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
-import { verifiedBadge } from "/assets/js/viva-verified.js";
+import { verifiedName } from "/assets/js/viva-verified.js";
 
 const form = document.getElementById("portal-search-form");
 const input = document.getElementById("portal-search-input");
@@ -39,7 +39,7 @@ function previewUrl(item) {
 
 function card(item) {
   const meta = [item.typeLabel, item.category, dateLabel(item.date)].filter(Boolean).join(" · ");
-  return `<a class="search-result" href="${esc(previewUrl(item))}"><span class="search-result-media">${item.image ? `<img src="${esc(item.image)}" alt="" width="260" height="210" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='/assets/compartilhamento-logo.png';this.classList.add('is-fallback')">` : esc(item.typeLabel)}</span><span class="search-result-copy"><span class="search-result-kind">${esc(meta)}</span><h3>${esc(item.title)}${item.type === "guia" ? verifiedBadge(item.verificado) : ""}</h3>${item.description ? `<span class="search-result-description">${esc(item.description)}</span>` : ""}</span><span class="search-result-arrow">→</span></a>`;
+  return `<a class="search-result" href="${esc(previewUrl(item))}"><span class="search-result-media">${item.image ? `<img src="${esc(item.image)}" alt="" width="260" height="210" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='/assets/compartilhamento-logo.png';this.classList.add('is-fallback')">` : esc(item.typeLabel)}</span><span class="search-result-copy"><span class="search-result-kind">${esc(meta)}</span><h3>${verifiedName(esc(item.title), item.type === "guia" && item.verificado)}</h3>${item.description ? `<span class="search-result-description">${esc(item.description)}</span>` : ""}</span><span class="search-result-arrow">→</span></a>`;
 }
 
 function filtered() { return selectedType ? allResults.filter(item => item.type === selectedType) : allResults; }
