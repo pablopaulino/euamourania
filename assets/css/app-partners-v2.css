@@ -48,7 +48,7 @@ body.viva-partners-page {
 .viva-partners-hero h1 {
   margin: 0;
   color: var(--landing-ink);
-  font-size: clamp(4rem, 8vw, 7.4rem);
+  font-size: clamp(3.5rem, 6vw, 5.8rem);
   font-weight: 750;
   line-height: .88;
   letter-spacing: -.078em;
