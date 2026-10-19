@@ -2,6 +2,7 @@ import { fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/p
 import { definirMeta, textoPuro } from "/assets/js/utils.js";
 import { sanitizeArticleHtml } from "/assets/js/security/sanitize-html.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
+import { verifiedBadge } from "/assets/js/viva-verified.js";
 import "/preview/guia/banners-preview.js";
 
 const root = document.getElementById("turismo-details");
@@ -73,7 +74,7 @@ function instagramUrl(value) { if (!value) return ""; if (/^https?:\/\//i.test(v
 
 function companyCard(item) {
   const image=safeImage(item.imagem_url);
-  return `<a class="place-company-card" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="410" height="270" loading="lazy" decoding="async">` : `<span class="media-placeholder">Guia de Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${esc(item.nome)}</h3><p>${esc(truncate(item.descricao || item.endereco,82))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
+  return `<a class="place-company-card" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="410" height="270" loading="lazy" decoding="async">` : `<span class="media-placeholder">Guia de Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${esc(item.nome)}${verifiedBadge(item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco,82))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
 }
 function tourismCard(item) {
   const image=safeImage(item.imagem_url);
@@ -95,8 +96,8 @@ async function categoryName(item) {
 }
 async function relatedData(item) {
   const [food,stay,attractions,news] = await Promise.all([
-    fetchPublicRows("guia_comercial", { select:"id,nome,slug,descricao,imagem_url,categoria_nome,endereco", status:"eq.publicado", or:"(categoria_nome.ilike.*aliment*,categoria_nome.ilike.*restaurante*,categoria_nome.ilike.*pizz*,categoria_nome.ilike.*lanche*,categoria_nome.ilike.*bar*,nome.ilike.*restaurante*,nome.ilike.*pizz*)", order:"recomendado.desc,nome.asc", limit:"3" }, { ttl:180000 }).catch(() => []),
-    fetchPublicRows("guia_comercial", { select:"id,nome,slug,descricao,imagem_url,categoria_nome,endereco", status:"eq.publicado", or:"(categoria_nome.ilike.*hotel*,categoria_nome.ilike.*hosped*,categoria_nome.ilike.*pousada*,nome.ilike.*hotel*,nome.ilike.*pousada*)", order:"recomendado.desc,nome.asc", limit:"3" }, { ttl:180000 }).catch(() => []),
+    fetchPublicRows("guia_comercial", { select:"id,nome,slug,descricao,imagem_url,categoria_nome,endereco,verificado", status:"eq.publicado", or:"(categoria_nome.ilike.*aliment*,categoria_nome.ilike.*restaurante*,categoria_nome.ilike.*pizz*,categoria_nome.ilike.*lanche*,categoria_nome.ilike.*bar*,nome.ilike.*restaurante*,nome.ilike.*pizz*)", order:"recomendado.desc,nome.asc", limit:"3" }, { ttl:180000 }).catch(() => []),
+    fetchPublicRows("guia_comercial", { select:"id,nome,slug,descricao,imagem_url,categoria_nome,endereco,verificado", status:"eq.publicado", or:"(categoria_nome.ilike.*hotel*,categoria_nome.ilike.*hosped*,categoria_nome.ilike.*pousada*,nome.ilike.*hotel*,nome.ilike.*pousada*)", order:"recomendado.desc,nome.asc", limit:"3" }, { ttl:180000 }).catch(() => []),
     fetchPublicRows("turismo", { select:"id,nome,slug,descricao,imagem_url", status:"eq.publicado", id:`neq.${item.id}`, order:"destaque.desc,nome.asc", limit:"3" }, { ttl:180000 }).catch(() => []),
     fetchPublicRows("noticias", { select:"id,titulo,slug,imagem_url,categoria_nome,publicado_em", status:"eq.publicado", publicado_em:`lte.${nowIso()}`, order:"publicado_em.desc", limit:"3" }, { ttl:180000 }).catch(() => [])
   ]);

@@ -82,7 +82,7 @@ function companyCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="guide-related-card compact" href="/guia/${encodeURIComponent(item.slug || item.id)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" width="420" height="280" loading="lazy" decoding="async">` : `<div class="guide-related-placeholder">Guia</div>`}
-    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco))}</p><span>Ver empresa</span></div>
+    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${escapeHtml(item.nome)}${verifiedBadge(item.verificado)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco))}</p><span>Ver empresa</span></div>
   </a>`;
 }
 
@@ -91,7 +91,7 @@ async function relatedBlocks(item) {
     fetchPublicRows("noticias", { select: "id,titulo,slug,resumo,conteudo_html,imagem_url,categoria_nome,publicado_em", status: "eq.publicado", publicado_em: `lte.${today()}`, order: "publicado_em.desc", limit: "3" }, { ttl: 180000 }).catch(() => []),
     fetchPublicRows("turismo", { select: "id,nome,slug,descricao,imagem_url", status: "eq.publicado", order: "destaque.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => []),
     fetchPublicRows("eventos", { select: "id,titulo,slug,descricao,imagem_url,data_inicio,data_fim,local", status: "eq.publicado", order: "data_inicio.asc", limit: "5" }, { ttl: 180000 }).catch(() => []),
-    fetchPublicRows("guia_comercial", { select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco", status: "eq.publicado", id: `neq.${item.id}`, ...(item.categoria_nome ? { categoria_nome: `eq.${item.categoria_nome}` } : {}), order: "recomendado.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => [])
+    fetchPublicRows("guia_comercial", { select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco,verificado", status: "eq.publicado", id: `neq.${item.id}`, ...(item.categoria_nome ? { categoria_nome: `eq.${item.categoria_nome}` } : {}), order: "recomendado.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => [])
   ]);
   const now = Date.now();
   const events = eventsRaw.filter(event => !event.data_fim || new Date(event.data_fim).getTime() >= now).slice(0, 3);

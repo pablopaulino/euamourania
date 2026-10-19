@@ -1,6 +1,7 @@
 import { definirMeta, textoPuro } from "../utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "../services/publicDataService.js";
 import { sanitizeArticleHtml } from "../security/sanitize-html.js";
+import { verifiedBadge } from "/assets/js/viva-verified.js";
 
 const container = document.getElementById("turismo-details");
 const pathParts = location.pathname.split("/").filter(Boolean);
@@ -100,7 +101,7 @@ function companyCard(item) {
   const image = safeImage(item.imagem_url);
   return `<a class="tourism-related-card compact" href="/guia/${encodeURIComponent(item.slug || item.id)}">
     ${image ? `<img src="${image}" alt="${escapeHtml(item.nome)}" width="420" height="280" loading="lazy" decoding="async">` : `<div class="tourism-related-placeholder">Guia</div>`}
-    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${escapeHtml(item.nome)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco, 92))}</p>${item.endereco ? `<em>${icons.pin}${escapeHtml(firstLine(item.endereco))}</em>` : ""}<span>Ver empresa</span></div>
+    <div><small>${escapeHtml(item.categoria_nome || "Guia")}</small><h3>${escapeHtml(item.nome)}${verifiedBadge(item.verificado)}</h3><p>${escapeHtml(truncate(item.descricao || item.endereco, 92))}</p>${item.endereco ? `<em>${icons.pin}${escapeHtml(firstLine(item.endereco))}</em>` : ""}<span>Ver empresa</span></div>
   </a>`;
 }
 
@@ -144,8 +145,8 @@ async function currentTourismCategory(item) {
 
 async function relatedBlocks(item) {
   const [food, stay, attractions, news] = await Promise.all([
-    fetchPublicRows("guia_comercial", { select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco", status: "eq.publicado", or: "(categoria_nome.ilike.*aliment*,categoria_nome.ilike.*restaurante*,categoria_nome.ilike.*pizz*,categoria_nome.ilike.*lanche*,categoria_nome.ilike.*bar*,nome.ilike.*restaurante*,nome.ilike.*pizz*)", order: "recomendado.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => []),
-    fetchPublicRows("guia_comercial", { select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco", status: "eq.publicado", or: "(categoria_nome.ilike.*hotel*,categoria_nome.ilike.*hosped*,categoria_nome.ilike.*pousada*,nome.ilike.*hotel*,nome.ilike.*pousada*)", order: "recomendado.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => []),
+    fetchPublicRows("guia_comercial", { select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco,verificado", status: "eq.publicado", or: "(categoria_nome.ilike.*aliment*,categoria_nome.ilike.*restaurante*,categoria_nome.ilike.*pizz*,categoria_nome.ilike.*lanche*,categoria_nome.ilike.*bar*,nome.ilike.*restaurante*,nome.ilike.*pizz*)", order: "recomendado.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => []),
+    fetchPublicRows("guia_comercial", { select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco,verificado", status: "eq.publicado", or: "(categoria_nome.ilike.*hotel*,categoria_nome.ilike.*hosped*,categoria_nome.ilike.*pousada*,nome.ilike.*hotel*,nome.ilike.*pousada*)", order: "recomendado.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => []),
     fetchPublicRows("turismo", { select: "id,nome,slug,descricao,imagem_url", status: "eq.publicado", id: `neq.${item.id}`, order: "destaque.desc,nome.asc", limit: "3" }, { ttl: 180000 }).catch(() => []),
     fetchPublicRows("noticias", { select: "id,titulo,slug,resumo,conteudo_html,imagem_url,categoria_nome,publicado_em", status: "eq.publicado", publicado_em: `lte.${today()}`, order: "publicado_em.desc", limit: "3" }, { ttl: 180000 }).catch(() => [])
   ]);

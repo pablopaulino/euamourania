@@ -1,5 +1,6 @@
 const { readFile } = require("node:fs/promises");
 const path = require("node:path");
+const { verifiedBadge } = require("../lib/viva-verified.js");
 const { handlePublicSubmission } = require("../lib/public-submission-handler.js");
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://omhcpbphvtihqwdkbsbf.supabase.co";
@@ -72,7 +73,7 @@ function newsMarkup(rows) {
 function businessMarkup(rows) {
   if (!rows.length) return '<p class="loading">Os estabelecimentos do Guia aparecerão aqui.</p>';
   rows = rows.map(item => ({ ...item, imagem_url: homeImage(item.imagem_url, 180) }));
-  return rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${item.slug ? `/guia/${encodeURIComponent(item.slug)}` : `/guia-details.html?slug=${encodeURIComponent(item.id || "")}`}">${safeImage(item.imagem_url) ? `<img src="${esc(safeImage(item.imagem_url))}" alt="" width="82" height="82" loading="lazy">` : '<span class="business-placeholder" aria-hidden="true"></span>'}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${esc(item.nome)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
+  return rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${item.slug ? `/guia/${encodeURIComponent(item.slug)}` : `/guia-details.html?slug=${encodeURIComponent(item.id || "")}`}">${safeImage(item.imagem_url) ? `<img src="${esc(safeImage(item.imagem_url))}" alt="" width="82" height="82" loading="lazy">` : '<span class="business-placeholder" aria-hidden="true"></span>'}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${esc(item.nome)}${verifiedBadge(item.verificado)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
 }
 
 function tourismMarkup(rows) {
@@ -152,7 +153,7 @@ async function renderPrimaryContent(html) {
   const now = new Date().toISOString();
   const requests = {
     news: fetchPublicRows("noticias", { select: "id,titulo,slug,imagem_url,categoria_nome", status: "eq.publicado", publicado_em: `lte.${now}`, order: "destaque.desc,publicado_em.desc", limit: "8" }),
-    businesses: fetchPublicRows("guia_comercial", { select: "id,nome,slug,categoria_nome,descricao,imagem_url,recomendado", status: "eq.publicado", order: "recomendado.desc,nome.asc", limit: "6" }),
+    businesses: fetchPublicRows("guia_comercial", { select: "id,nome,slug,categoria_nome,descricao,imagem_url,recomendado,verificado", status: "eq.publicado", order: "recomendado.desc,nome.asc", limit: "6" }),
     tourism: fetchPublicRows("turismo", { select: "id,nome,slug,imagem_url,destaque,categoria_nome", status: "eq.publicado", order: "destaque.desc,nome.asc", limit: "5" }),
     simpleEvents: fetchPublicRows("eventos", { select: "id,titulo,slug,local,data_inicio,data_fim,recorrencia_tipo,recorrencia_ate", status: "eq.publicado", order: "data_inicio.desc", limit: "80" })
       .catch(error => {

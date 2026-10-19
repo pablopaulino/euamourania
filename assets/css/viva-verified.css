@@ -1,5 +1,5 @@
-.viva-verified{display:inline-flex!important;position:relative;vertical-align:middle;margin-left:4px;width:18px;height:18px;flex:0 0 18px;line-height:1;cursor:help}
-.viva-verified>img{display:block!important;width:18px!important;height:18px!important;max-width:none!important;object-fit:contain!important;border:0!important;border-radius:0!important;margin:0!important;box-shadow:none!important}
+.viva-verified{display:inline-flex!important;position:relative;vertical-align:-0.12em;margin-left:0.25em;width:0.95em;height:0.95em;flex:0 0 0.95em;line-height:1;cursor:help}
+.viva-verified>img,.viva-verified>svg{display:block!important;width:100%!important;height:100%!important;max-width:none!important;object-fit:contain!important;border:0!important;border-radius:0!important;margin:0!important;box-shadow:none!important}
 .viva-verified-tooltip{display:none;position:absolute;z-index:100;top:calc(100% + 8px);right:0;width:210px;padding:9px 12px;background:#17212b;color:#fff;border-radius:8px;font:500 12px/1.5 Inter,Arial,sans-serif;white-space:normal;text-align:left;letter-spacing:normal;box-shadow:0 4px 18px #0002}
 .viva-verified:hover>.viva-verified-tooltip,.viva-verified:focus>.viva-verified-tooltip{display:block}
 .viva-verified:focus-visible{outline:2px solid #0095f6;outline-offset:3px;border-radius:50%}

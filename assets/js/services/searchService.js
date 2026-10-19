@@ -31,6 +31,7 @@ function makeItem(type, row) {
     },
     guia: {
       label: "Guia",
+      verificado: row.verificado === true,
       title: row.nome,
       description: row.descricao,
       url: `/guia/${encodeURIComponent(row.slug)}`,
@@ -97,6 +98,7 @@ function makeItem(type, row) {
     meta: config.meta || "",
     date: config.date || null,
     actionLabel: config.action,
+    verificado: config.verificado === true,
     featured: Boolean(row.destaque || row.recomendado),
     normalizedTitle: normalize(config.title),
     searchable
@@ -217,7 +219,7 @@ async function buildIndex() {
       limit: "250"
     }, { ttl: 300000 }),
     fetchPublicRows("guia_comercial", {
-      select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco,recomendado",
+      select: "id,nome,slug,descricao,imagem_url,categoria_nome,endereco,recomendado,verificado",
       status: "eq.publicado",
       order: "recomendado.desc,nome.asc",
       limit: "300"

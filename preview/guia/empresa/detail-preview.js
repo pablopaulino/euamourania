@@ -102,7 +102,7 @@ function hoursMarkup(item) {
 
 function companyCard(item) {
   const image = safeImage(item.imagem_url);
-  return `<a class="related-company" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="360" height="250" loading="lazy">` : `<span class="related-placeholder">Eu Amo Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${esc(item.nome)}</h3><p>${esc(truncate(item.descricao || item.endereco, 80))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
+  return `<a class="related-company" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="360" height="250" loading="lazy">` : `<span class="related-placeholder">Eu Amo Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${esc(item.nome)}${verifiedBadge(item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco, 80))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
 }
 
 function tourismCard(item) {
@@ -117,7 +117,7 @@ function newsCard(item, index) {
 
 async function relatedData(item) {
   const [companies, tourism, news] = await Promise.all([
-    fetchPublicRows("guia_comercial", { select:"id,nome,slug,descricao,imagem_url,categoria_nome,endereco,recomendado", status:"eq.publicado", id:`neq.${item.id}`, ...(item.categoria_nome ? { categoria_nome:`eq.${item.categoria_nome}` } : {}), order:"recomendado.desc,nome.asc", limit:"3" }, { ttl:180000 }).catch(() => []),
+    fetchPublicRows("guia_comercial", { select:"id,nome,slug,descricao,imagem_url,categoria_nome,endereco,recomendado,verificado", status:"eq.publicado", id:`neq.${item.id}`, ...(item.categoria_nome ? { categoria_nome:`eq.${item.categoria_nome}` } : {}), order:"recomendado.desc,nome.asc", limit:"3" }, { ttl:180000 }).catch(() => []),
     fetchPublicRows("turismo", { select:"id,nome,slug,descricao,imagem_url", status:"eq.publicado", order:"destaque.desc,nome.asc", limit:"3" }, { ttl:180000 }).catch(() => []),
     fetchPublicRows("noticias", { select:"id,titulo,slug,resumo,conteudo_html,imagem_url,categoria_nome,publicado_em", status:"eq.publicado", publicado_em:`lte.${nowIso()}`, order:"publicado_em.desc", limit:"3" }, { ttl:180000 }).catch(() => [])
   ]);
