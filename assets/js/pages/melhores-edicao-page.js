@@ -1,10 +1,20 @@
-import { obterEdicaoPorAno, listarCategoriasPublicas, listarIndicadosPublicos, enviarVotoMelhores, enviarIndicacaoMelhores } from "../services/melhoresPublicService.js";
+import { obterEdicaoPorAno, listarCategoriasPublicas, listarIndicadosPublicos, enviarVotoMelhores, enviarIndicacaoMelhores, consultarPeriodoVotacao } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
+import { getAppDownloadConfig } from "../services/appDownloadConfig.js";
 import { TURNSTILE_SITE_KEY } from "../supabase-config.js";
 import { sharePage } from "../services/shareService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
+let voteClock = null;
+let appDownload = null;
+const serverNow = () => voteClock ? voteClock.agora + (performance.now() - voteClock.recebido) : Date.now();
+const appHref = () => {
+  const ios = /iPad|iPhone|iPod/i.test(navigator.userAgent || "");
+  const android = /Android/i.test(navigator.userAgent || "") && !ios;
+  const href = android ? appDownload?.googlePlayUrl : appDownload?.appPageUrl;
+  return /^https:\/\//.test(href || "") ? href : "https://euamourania.com.br/app";
+};
 const key = editionId => `euamourania:melhores:votos:${editionId}`;
 const resultsUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
   ? `/melhores-de-urania/resultados.html?ano=${encodeURIComponent(edition.ano)}`
@@ -31,6 +41,15 @@ function saveVote(editionId, categoryId, nomineeId) {
   if (!current.includes(nomineeId)) current.push(nomineeId);
   votes[categoryId] = current;
   localStorage.setItem(key(editionId), JSON.stringify(votes));
+}
+
+function reconcileVotes(editionId, confirmed = []) {
+  const votes = {};
+  for (const row of confirmed) {
+    if (!row.categoria_id || !row.indicado_id) continue;
+    (votes[row.categoria_id] ||= []).push(row.indicado_id);
+  }
+  try { localStorage.setItem(key(editionId), JSON.stringify(votes)); } catch {}
 }
 
 function formatDate(value) {
@@ -65,10 +84,12 @@ function editionTitle(edition) {
 }
 
 function isVotingOpen(edition) {
-  const now = Date.now();
+  const now = serverNow();
   return edition?.status === "votacao_aberta"
-    && (!edition.votacao_inicio || new Date(edition.votacao_inicio).getTime() <= now)
-    && (!edition.votacao_fim || new Date(edition.votacao_fim).getTime() >= now);
+    && !!edition.votacao_inicio_site
+    && new Date(edition.votacao_inicio_site).getTime() <= now
+    && !!edition.votacao_fim
+    && new Date(edition.votacao_fim).getTime() >= now;
 }
 
 function isIndicationOpen(edition) {
@@ -144,24 +165,22 @@ async function getTurnstileToken(action = "vote") {
   });
 }
 
-function showPostVotePanel(editionId) {
+function showPostVotePanel(editionId, voteButton) {
   const existing = document.querySelector(".awards-post-vote");
   existing?.remove();
-  const url = location.href.split("#")[0];
   const panel = document.createElement("div");
   panel.className = "awards-post-vote";
   panel.innerHTML = `
     <button type="button" class="awards-post-close" aria-label="Fechar">×</button>
-    <strong>Voto registrado!</strong>
-    <p>Ajude mais pessoas de Urânia a participar da votação.</p>
+    <strong>Seu voto foi registrado!</strong>
+    <p>Obrigado por participar! Você também pode participar pelo aplicativo Viva Urânia.</p>
     <div>
-      <button type="button" class="button button-primary" data-awards-share="native">Compartilhar</button>
-      <a class="button button-secondary" href="https://api.whatsapp.com/send?text=${encodeURIComponent(`Vote também no Melhores de Urânia: ${url}`)}" target="_blank" rel="noopener" data-awards-share="whatsapp">WhatsApp</a>
-      <a class="button button-secondary" href="/news/">Ver notícias</a>
+      <a class="button button-secondary" href="${esc(appHref())}" target="_blank" rel="noopener noreferrer">Conhecer o Viva Urânia</a>
+      <button type="button" class="button button-primary" data-awards-share="native">Compartilhar votação</button>
     </div>
   `;
   panel.dataset.editionId = editionId || "";
-  document.body.append(panel);
+  voteButton?.closest(".awards-nominee-card")?.after(panel);
 }
 
 function setMeta(edition) {
@@ -191,10 +210,11 @@ function renderHeroOld(edition, open) {
       <h2>Status da edição</h2>
       <div class="awards-status-line">
         <span class="awards-chip ${open ? "open" : "closed"}">${esc(edition.status.replaceAll("_", " "))}</span>
-        <span class="awards-chip">Votação: ${esc(formatDate(edition.votacao_inicio))}</span>
+        <span class="awards-chip">App: ${esc(formatDate(edition.votacao_inicio))}</span>
+        <span class="awards-chip">Site: ${esc(formatDate(edition.votacao_inicio_site))}</span>
       </div>
       <p><strong>Encerramento:</strong> ${esc(formatDate(edition.votacao_fim || edition.encerramento_em))}</p>
-      <p><strong>Pesos:</strong> Site ${Number(edition.peso_site || 0)}% · Instagram ${Number(edition.peso_instagram || 0)}%</p>`;
+      <p><strong>Pesos:</strong> Site + app ${Number(edition.peso_site || 0)}% · Instagram ${Number(edition.peso_instagram || 0)}%</p>`;
   }
 }
 
@@ -252,7 +272,7 @@ function phaseInfo(edition) {
     return {
       label: "Votação aberta",
       title: "Vote nos seus favoritos",
-      text: `Período: ${formatPeriod(edition.votacao_inicio, edition.votacao_fim)}.`,
+      text: `Período no site: ${formatPeriod(edition.votacao_inicio_site, edition.votacao_fim)}.`,
       href: `/melhores-de-urania/${edition.ano}/votacao/`,
       cta: "Participar da votação"
     };
@@ -334,14 +354,14 @@ function renderEditionHub(edition, categories, nominees) {
 function nomineeCard(edition, category, nominee, open, votedId) {
   const votedList = Array.isArray(votedId) ? votedId : (votedId ? [votedId] : []);
   const voted = votedList.includes(nominee.id);
-  const maxChoices = category.permite_multiplos_votos ? Math.max(1, Number(category.max_escolhas || 1)) : 1;
+  const maxChoices = 1;
   const reachedLimit = votedList.length >= maxChoices;
   const img = image(nominee.imagem_url);
   return `<article class="awards-nominee-card ${voted ? "awards-voted" : ""}" data-awards-nominee-card data-edition-id="${edition.id}" data-category-id="${category.id}" data-nominee-id="${nominee.id}">
     ${img ? `<img src="${img}" alt="${esc(nominee.nome)}" loading="lazy">` : ""}
     <div class="awards-card-body">
       <h3>${esc(nominee.nome)}</h3>
-      <button class="button button-primary awards-vote-button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" data-multiple="${category.permite_multiplos_votos ? "true" : "false"}" ${open && !voted && !reachedLimit ? "" : "disabled"}>
+      <button class="button button-primary awards-vote-button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" ${open && !voted && !reachedLimit ? "" : "disabled"}>
         ${voted ? "Voto registrado" : open ? "Votar" : "Votação fechada"}
       </button>
     </div>
@@ -352,7 +372,7 @@ function renderVoting(edition, categories, nominees) {
   const area = document.getElementById("vote-area");
   const open = isVotingOpen(edition);
   const section = area?.closest(".awards-section");
-  if (section && !open) {
+  if (section && !open && !nominees.length) {
     section.hidden = true;
     area.innerHTML = "";
     return;
@@ -372,15 +392,15 @@ function renderVoting(edition, categories, nominees) {
     const callout = `<article class="awards-edition-vote-callout">
       <div>
         <p class="eyebrow">Ambiente de votação</p>
-        <h3>Vote do seu jeito</h3>
-        <p>Use a central para acompanhar o progresso ou vote direto nas categorias abaixo.</p>
+        <h3>${open ? "Vote do seu jeito" : "Conheça os indicados"}</h3>
+        <p>${open ? "Use a central para acompanhar o progresso ou vote direto nas categorias abaixo." : "Confira as categorias e os indicados publicados. A votação pelo site ainda não começou."}</p>
       </div>
       <div class="awards-edition-vote-stats">
         <span><strong>${categories.length}</strong><small>categorias</small></span>
         <span><strong>${nominees.length}</strong><small>indicados</small></span>
         <span><strong>${completed}</strong><small>votadas neste aparelho</small></span>
       </div>
-      <a class="button button-primary" href="/melhores-de-urania/${edition.ano}/votacao/" data-awards-edition-cta data-edition-id="${edition.id}">Abrir central</a>
+      <a class="button button-primary" href="/melhores-de-urania/${edition.ano}/votacao/" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Abrir central" : "Ver período de votação"}</a>
     </article>`;
     const grouped = new Map(categories.map(category => [category.id, nominees.filter(n => n.categoria_id === category.id)]));
     area.innerHTML = `${callout}<aside class="awards-category-nav" aria-label="Categorias">${categories.map((category, index) => {
@@ -495,6 +515,32 @@ function orderSectionsForPhase(edition) {
   indicationSection.after(voteSection);
 }
 
+function renderEditionAppInvite(edition) {
+  if (Number(edition.ano) !== 2026) return;
+  document.querySelector(".awards-edition-app-invite")?.remove();
+  const now = serverNow();
+  const ended = edition.votacao_fim && now > new Date(edition.votacao_fim).getTime();
+  const appOpen = edition.status === "votacao_aberta" && edition.votacao_inicio && now >= new Date(edition.votacao_inicio).getTime();
+  const siteOpen = isVotingOpen(edition);
+  const dateLabel = value => value ? new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }).format(new Date(value)) : "data a confirmar";
+  const copy = ended
+    ? ["Acompanhe o Viva Urânia", "A votação foi encerrada. Acompanhe as novidades do prêmio pelo aplicativo.", "Conhecer o Viva Urânia"]
+    : edition.status !== "votacao_aberta" && edition.votacao_inicio && now >= new Date(edition.votacao_inicio).getTime()
+      ? ["Aguarde a abertura oficial", "A votação ainda não foi ativada. Conheça o Viva Urânia enquanto preparamos a premiação.", "Conhecer o Viva Urânia"]
+      : !appOpen
+        ? ["Vote primeiro pelo Viva Urânia!", `A votação do Melhores de Urânia 2026 começa em ${dateLabel(edition.votacao_inicio)} pelo aplicativo. Baixe agora e prepare-se para participar!`, "Baixar o Viva Urânia"]
+        : !siteOpen
+          ? ["A votação já começou no Viva Urânia!", `Você já pode participar pelo aplicativo. A votação no site Eu Amo Urânia começa em ${dateLabel(edition.votacao_inicio_site)}.`, "Votar pelo aplicativo"]
+          : ["Você também pode votar pelo Viva Urânia!", "Além do site, o aplicativo Viva Urânia também participa da votação do Melhores de Urânia 2026.", "Baixar o aplicativo"];
+  const ios = /iPad|iPhone|iPod/i.test(navigator.userAgent || "");
+  const card = document.createElement("aside");
+  card.className = "awards-edition-app-invite";
+  card.setAttribute("aria-label", "Viva Urânia");
+  card.innerHTML = `<div><strong>${esc(copy[0])}</strong><p>${esc(copy[1])}</p>${ios ? "<small>O aplicativo ainda não está disponível para iOS.</small>" : ""}</div>
+    <a href="${esc(appHref())}" target="_blank" rel="noopener noreferrer">${esc(ios ? "Conhecer o Viva Urânia" : copy[2])} ↗</a>`;
+  document.querySelector(".awards-public-hero")?.after(card);
+}
+
 async function init() {
   try {
     const year = getYear();
@@ -504,6 +550,14 @@ async function init() {
       document.getElementById("indication-area").innerHTML = '<div class="awards-empty">Indicações indisponíveis para esta edição.</div>';
       return;
     }
+    const [period, download] = await Promise.all([consultarPeriodoVotacao(edition.id), getAppDownloadConfig()]);
+    voteClock = { agora: new Date(period.agora).getTime(), recebido: performance.now() };
+    reconcileVotes(edition.id, period.votos_site);
+    edition.status = period.status;
+    edition.votacao_inicio = period.votacao_inicio_app;
+    edition.votacao_inicio_site = period.votacao_inicio_site;
+    edition.votacao_fim = period.votacao_fim;
+    appDownload = download;
     const open = isVotingOpen(edition);
     registrarEventoMelhores("melhores_edition_view", {
       edicaoId: edition.id,
@@ -518,9 +572,27 @@ async function init() {
     enrichHeroStats(edition, categories, nominees);
     renderEditionHub(edition, categories, nominees);
     orderSectionsForPhase(edition);
+    renderEditionAppInvite(edition);
     renderVoting(edition, categories, nominees);
     observeNomineeImpressions();
     renderIndications(edition, categories);
+    const initialPhase = () => [edition.status, isVotingOpen(edition),
+      !!(edition.votacao_inicio && serverNow() >= new Date(edition.votacao_inicio).getTime()),
+      !!(edition.votacao_fim && serverNow() > new Date(edition.votacao_fim).getTime())].join("|");
+    let previousPhase = initialPhase();
+    window.setInterval(async () => {
+      try {
+        const latest = await consultarPeriodoVotacao(edition.id);
+        voteClock = { agora: new Date(latest.agora).getTime(), recebido: performance.now() };
+        edition.status = latest.status;
+        edition.votacao_inicio = latest.votacao_inicio_app;
+        edition.votacao_inicio_site = latest.votacao_inicio_site;
+        edition.votacao_fim = latest.votacao_fim;
+        const phase = initialPhase();
+        if (phase !== previousPhase) location.reload();
+        previousPhase = phase;
+      } catch { /* Falha de atualização não libera votação no backend. */ }
+    }, 60000);
   } catch (error) {
     console.error("Melhores de Urânia:", error);
     document.getElementById("vote-area").innerHTML = '<div class="awards-empty">Não foi possível carregar esta edição agora.</div>';
@@ -580,7 +652,7 @@ document.addEventListener("click", async event => {
       metadados: { categoria_id: vote.dataset.category, indicado_id: vote.dataset.nominee }
     });
     toast("Voto registrado com sucesso. Obrigado por participar!");
-    showPostVotePanel(vote.dataset.edition);
+    showPostVotePanel(vote.dataset.edition, vote);
   } catch (error) {
     activeVoteAttempt = null;
     vote.disabled = false;
@@ -589,7 +661,9 @@ document.addEventListener("click", async event => {
       edicaoId: vote.dataset.edition,
       metadados: { categoria_id: vote.dataset.category, indicado_id: vote.dataset.nominee, erro: error.message }
     });
-    toast(error.message);
+    toast(error instanceof TypeError
+      ? "Não foi possível confirmar a resposta. Tente novamente; um voto já salvo não será duplicado."
+      : error.message);
   }
 });
 

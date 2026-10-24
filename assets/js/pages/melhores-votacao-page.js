@@ -2,9 +2,11 @@ import {
   obterEdicaoPorAno,
   listarCategoriasPublicas,
   listarIndicadosPublicos,
-  enviarVotoMelhores
+  enviarVotoMelhores,
+  consultarPeriodoVotacao
 } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
+import { getAppDownloadConfig } from "../services/appDownloadConfig.js";
 import { TURNSTILE_SITE_KEY } from "../supabase-config.js";
 
 const root = document.getElementById("awards-voting-root");
@@ -13,6 +15,38 @@ const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(
 const voteStorageKey = editionId => `euamourania:melhores:votos:${editionId}`;
 const sessionVotes = new Map();
 const voteFeedback = new Map();
+let voteClock = null;
+let appDownload = null;
+const serverNow = () => voteClock ? voteClock.agora + (performance.now() - voteClock.recebido) : Date.now();
+const appStart = edition => edition.votacao_inicio;
+const siteStart = edition => edition.votacao_inicio_site;
+function appInvite(edition, compact = false, afterVote = false) {
+  if (Number(edition.ano) !== 2026 || !appDownload) return "";
+  const ios = /iPad|iPhone|iPod/i.test(navigator.userAgent || "");
+  const android = /Android/i.test(navigator.userAgent || "") && !ios;
+  const destination = ios ? appDownload.appPageUrl : android ? appDownload.googlePlayUrl : appDownload.appPageUrl;
+  const href = /^https:\/\//.test(destination || "") ? destination : appDownload.appPageUrl;
+  const now = serverNow();
+  const appOpen = edition.status === "votacao_aberta" && appStart(edition) && now >= new Date(appStart(edition)).getTime();
+  const siteOpen = isVotingOpen(edition);
+  const ended = edition.votacao_fim && now > new Date(edition.votacao_fim).getTime();
+  const dateLabel = value => value ? new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }).format(new Date(value)) : "data a confirmar";
+  const copy = afterVote
+    ? ["Seu voto foi registrado!", "Obrigado por participar! Você também pode participar pelo aplicativo Viva Urânia.", "Conhecer o Viva Urânia"]
+    : ended
+      ? ["Acompanhe o Viva Urânia", "A votação foi encerrada. Conheça o aplicativo e acompanhe as novidades do prêmio.", "Conhecer o Viva Urânia"]
+      : edition.status !== "votacao_aberta" && appStart(edition) && now >= new Date(appStart(edition)).getTime()
+      ? ["Aguarde a abertura oficial", "A votação ainda não foi ativada. Conheça o Viva Urânia enquanto preparamos a premiação.", "Conhecer o Viva Urânia"]
+      : !appOpen
+      ? ["Vote primeiro pelo Viva Urânia!", `A votação do Melhores de Urânia 2026 começa em ${dateLabel(appStart(edition))} pelo aplicativo. Baixe agora e prepare-se para participar!`, "Baixar o Viva Urânia"]
+      : !siteOpen
+        ? ["A votação já começou no Viva Urânia!", `Você já pode participar pelo aplicativo. A votação no site Eu Amo Urânia começa em ${dateLabel(siteStart(edition))}.`, "Votar pelo aplicativo"]
+        : ["Você também pode votar pelo Viva Urânia!", "Além do site, o aplicativo Viva Urânia também participa da votação do Melhores de Urânia 2026.", "Baixar o aplicativo"];
+  return `<aside class="vote-app-invite ${compact ? "is-compact" : ""}" aria-label="Viva Urânia">
+    <div><strong>${esc(copy[0])}</strong><p>${esc(copy[1])}</p>${ios ? '<small>O aplicativo ainda não está disponível para iOS.</small>' : ""}</div>
+    <a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(ios ? "Conhecer o Viva Urânia" : copy[2])}<span aria-hidden="true"> ↗</span></a>
+  </aside>`;
+}
 
 function getYear() {
   const match = location.pathname.match(/melhores-de-urania\/(\d{4})/);
@@ -47,11 +81,23 @@ function saveVote(editionId, categoryId, nomineeId) {
   try { localStorage.setItem(voteStorageKey(editionId), JSON.stringify(votes)); } catch {}
 }
 
+function reconcileVotes(editionId, confirmed = []) {
+  const votes = {};
+  for (const row of confirmed) {
+    if (!row.categoria_id || !row.indicado_id) continue;
+    (votes[row.categoria_id] ||= []).push(row.indicado_id);
+  }
+  sessionVotes.set(editionId, votes);
+  try { localStorage.setItem(voteStorageKey(editionId), JSON.stringify(votes)); } catch {}
+}
+
 function isVotingOpen(edition) {
-  const now = Date.now();
+  const now = serverNow();
   return edition?.status === "votacao_aberta"
-    && (!edition.votacao_inicio || new Date(edition.votacao_inicio).getTime() <= now)
-    && (!edition.votacao_fim || new Date(edition.votacao_fim).getTime() >= now);
+    && !!edition.votacao_inicio_site
+    && new Date(edition.votacao_inicio_site).getTime() <= now
+    && !!edition.votacao_fim
+    && new Date(edition.votacao_fim).getTime() >= now;
 }
 
 function formatDate(value) {
@@ -70,7 +116,7 @@ function getVotableCategories(categories, nominees) {
 function progressFor(edition, categories, nominees) {
   const votes = readVotes(edition.id);
   const votable = getVotableCategories(categories, nominees);
-  const completed = votable.filter(category => votesFor(votes, category.id).length > 0);
+  const completed = votable.filter(category => votesFor(votes, category.id).length >= 1);
   const total = votable.length;
   const percent = total ? Math.round((completed.length / total) * 100) : 0;
   const next = votable.find(category => votesFor(votes, category.id).length === 0) || null;
@@ -192,14 +238,15 @@ export function renderHub(edition, categories, nominees) {
   setMeta(edition, "Central da votação");
   const open = isVotingOpen(edition);
   if (!open) {
+    const ended = edition.votacao_fim && serverNow() > new Date(edition.votacao_fim).getTime();
     root.innerHTML = `
       <section class="vote-closed">
         <div class="vote-brand"><span class="vote-brand-symbol" aria-hidden="true">✦</span><span>Prêmio Melhores de Urânia <b>${esc(edition.ano)}</b></span></div>
         <p class="vote-kicker">Votação oficial</p>
         <h1>${esc(edition.nome)}</h1>
-        <p>A votação não está aberta agora. Período previsto: ${esc(formatDate(edition.votacao_inicio))} até ${esc(formatDate(edition.votacao_fim))}.</p>
+        <p>${ended ? "A votação pelo site foi encerrada." : "A votação pelo site ainda não começou."} Período previsto: ${esc(formatDate(edition.votacao_inicio_site))} até ${esc(formatDate(edition.votacao_fim))}.</p>
         <a class="button button-primary vote-primary" href="${editionUrl(edition)}">Voltar para a edição</a>
-      </section>`;
+      </section>${appInvite(edition)}`;
     return;
   }
 
@@ -213,6 +260,7 @@ export function renderHub(edition, categories, nominees) {
   const grouped = new Map(categories.map(category => [category.id, nominees.filter(item => item.categoria_id === category.id)]));
   root.innerHTML = `
     ${progressCard(edition, categories, nominees)}
+    ${appInvite(edition)}
     <section class="vote-hub-list" aria-labelledby="vote-category-list-title">
       <h2 id="vote-category-list-title">Categorias</h2>
       <div class="vote-category-list">
@@ -233,7 +281,7 @@ export function renderHub(edition, categories, nominees) {
 function nomineeButton(category, nominee, votes) {
   const votedList = votesFor(votes, category.id);
   const voted = votedList.includes(nominee.id);
-  const maxChoices = category.permite_multiplos_votos ? Math.max(1, Number(category.max_escolhas || 1)) : 1;
+  const maxChoices = 1;
   const reachedLimit = votedList.length >= maxChoices;
   const img = image(nominee.imagem_url);
   const initial = esc(String(nominee.nome || "?").trim().charAt(0).toUpperCase());
@@ -263,7 +311,7 @@ export function renderCategory(edition, categories, nominees, slug) {
   const previous = index > 0 ? progress.votable[index - 1] : null;
   const nextToVisit = progress.votable.find(item => item.id !== category.id && votesFor(progress.votes, item.id).length === 0) || null;
   const categoryVotes = votesFor(progress.votes, category.id);
-  const maxChoices = category.permite_multiplos_votos ? Math.max(1, Number(category.max_escolhas || 1)) : 1;
+  const maxChoices = 1;
   const reachedLimit = categoryVotes.length >= maxChoices;
   const votedNames = categoryVotes.map(id => items.find(item => item.id === id)?.nome).filter(Boolean);
   const nextHref = nextToVisit ? votingUrl(edition, nextToVisit) : `${hubUrl(edition)}?concluido=1`;
@@ -295,7 +343,7 @@ export function renderCategory(edition, categories, nominees, slug) {
         <span class="vote-saved-icon" aria-hidden="true">✓</span>
         <div class="vote-saved-copy"><h2>Voto enviado.</h2><p>${esc(feedback)}</p></div>
         ${selectedNominee ? `<div class="vote-saved-nominee"><span class="vote-saved-photo">${selectedImage ? `<img src="${selectedImage}" alt="">` : `<span aria-hidden="true">${esc(selectedNominee.nome.trim().charAt(0).toUpperCase())}</span>`}</span><span>Sua escolha<strong>${esc(selectedNominee.nome)}</strong></span></div>` : votedNames.length ? `<p class="vote-saved-list">Você escolheu: <strong>${votedNames.map(esc).join(", ")}</strong></p>` : ""}
-      </div>` : `
+      </div>${appInvite(edition, true, true)}` : `
         ${categoryVotes.length ? `<div class="vote-confirmation" role="status"><span aria-hidden="true">✓</span><p>${esc(feedback)} ${votedNames.length ? `<strong>${votedNames.map(esc).join(", ")}</strong>` : ""}</p></div>` : ""}
         ${items.length ? `<div class="vote-nominees">${items.map(nominee => nomineeButton(category, nominee, progress.votes)).join("")}</div>` : `<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>`}
       `}
@@ -310,7 +358,7 @@ export function renderCategory(edition, categories, nominees, slug) {
           ${categoryVotes.length ? `<button type="button" data-share-category data-share-url="${categoryShareUrl}" data-category-name="${esc(category.nome)}">Compartilhar</button><a href="/app.html">Baixar o app</a>` : ""}
         </div>
       </div>
-    </section>`;
+    </section>${!reachedLimit ? appInvite(edition, true) : ""}`;
 
   const confirmButton = root.querySelector("[data-vote]");
   root.querySelectorAll("[data-select-nominee]").forEach(choice => {
@@ -407,7 +455,9 @@ async function handleVote(event, edition, categories, nominees) {
       edicaoId: button.dataset.edition,
       metadados: { categoria_id: button.dataset.category, indicado_id: button.dataset.nominee, erro: error.message, origem_fluxo: "central_votacao" }
     });
-    toast(error.message);
+    toast(error instanceof TypeError
+      ? "Não foi possível confirmar a resposta. Tente novamente; se o voto já foi salvo, ele não será duplicado."
+      : error.message);
   }
 }
 
@@ -441,10 +491,19 @@ async function init() {
       root.innerHTML = `<div class="awards-empty">Edição não encontrada ou ainda não publicada.</div>`;
       return;
     }
-    const [categories, nominees] = await Promise.all([
+    const [period, download, categories, nominees] = await Promise.all([
+      consultarPeriodoVotacao(edition.id),
+      getAppDownloadConfig(),
       listarCategoriasPublicas(edition.id),
       listarIndicadosPublicos(edition.id)
     ]);
+    voteClock = { agora: new Date(period.agora).getTime(), recebido: performance.now() };
+    reconcileVotes(edition.id, period.votos_site);
+    edition.status = period.status;
+    edition.votacao_inicio = period.votacao_inicio_app;
+    edition.votacao_inicio_site = period.votacao_inicio_site;
+    edition.votacao_fim = period.votacao_fim;
+    appDownload = download;
     registrarEventoMelhores("melhores_voting_center_view", {
       edicaoId: edition.id,
       metadados: { ano: edition.ano, categoria: getCategorySlug() || null }
@@ -459,6 +518,21 @@ async function init() {
       handleCategoryShare(event, edition);
       handleVote(event, edition, categories, nominees);
     });
+    const refreshPeriod = async () => {
+      try {
+        const latest = await consultarPeriodoVotacao(edition.id);
+        voteClock = { agora: new Date(latest.agora).getTime(), recebido: performance.now() };
+        reconcileVotes(edition.id, latest.votos_site);
+        edition.status = latest.status;
+        edition.votacao_inicio = latest.votacao_inicio_app;
+        edition.votacao_inicio_site = latest.votacao_inicio_site;
+        edition.votacao_fim = latest.votacao_fim;
+        if (getCategorySlug()) renderCategory(edition, categories, nominees, getCategorySlug());
+        else renderHub(edition, categories, nominees);
+      } catch { /* A API de voto continua sendo a autoridade para aceitar votos. */ }
+    };
+    window.setInterval(refreshPeriod, 60000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshPeriod(); });
   } catch (error) {
     console.error("Central de votação:", error);
     root.innerHTML = `<div class="awards-empty">Não foi possível carregar a votação agora.</div>`;

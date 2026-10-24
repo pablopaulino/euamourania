@@ -4,6 +4,8 @@ const SUPABASE_URL = process.env.SUPABASE_URL || "https://omhcpbphvtihqwdkbsbf.s
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 const HASH_SECRET = process.env.MELHORES_VOTO_SECRET || "";
 const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET_KEY || process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || "";
+const TURNSTILE_HOSTNAMES = (process.env.TURNSTILE_ALLOWED_HOSTNAMES || "euamourania.com.br,www.euamourania.com.br,melhores.euamourania.com.br")
+  .split(",").map(value => value.trim().toLowerCase()).filter(Boolean);
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const json = (res, status, body, headers = {}) => {
@@ -16,10 +18,11 @@ const firstIp = req => (getHeader(req, "x-forwarded-for").split(",")[0] || req.s
 const cookieValue = (req, name) => {
   const cookie = getHeader(req, "cookie");
   const found = cookie.split(";").map(v => v.trim()).find(v => v.startsWith(`${name}=`));
-  return found ? decodeURIComponent(found.slice(name.length + 1)) : "";
+  try { return found ? decodeURIComponent(found.slice(name.length + 1)) : ""; }
+  catch { return ""; }
 };
 const hash = value => crypto.createHmac("sha256", HASH_SECRET).update(String(value)).digest("hex");
-const cookie = value => `euam_melhores_vid=${encodeURIComponent(value)}; Path=/; Max-Age=31536000; SameSite=Lax; Secure; HttpOnly`;
+const cookie = value => `euam_melhores_vid=${encodeURIComponent(`${value}.${hash(`visitor:${value}`)}`)}; Path=/; Max-Age=31536000; SameSite=Lax; Secure; HttpOnly`;
 
 async function rest(path, { method = "GET", body } = {}) {
   if (!SERVICE_KEY) throw new Error("SUPABASE_SERVICE_ROLE_KEY ausente.");
@@ -59,18 +62,23 @@ async function verifyTurnstile(token, ip) {
     body
   });
   const data = await response.json().catch(() => ({}));
-  return { ok: data.success === true, reason: data["error-codes"]?.join(",") || "invalid-token" };
+  const hostname = String(data.hostname || "").toLowerCase();
+  return {
+    ok: data.success === true && data.action === "vote" && TURNSTILE_HOSTNAMES.includes(hostname),
+    reason: data["error-codes"]?.join(",") || "invalid-token"
+  };
 }
 
 async function handleCleanup(req, res) {
-  const url = new URL(req.url || "/", `https://${req.headers.host || "localhost"}`);
-  const fromVercelCron = getHeader(req, "x-vercel-cron") === "1";
-  const secret = process.env.MELHORES_CRON_SECRET || process.env.CRON_SECRET || "";
-  const provided = url.searchParams.get("secret") || "";
-  if (!fromVercelCron && (!secret || provided !== secret)) {
+  const secret = process.env.CRON_SECRET || process.env.MELHORES_CRON_SECRET || "";
+  const provided = getHeader(req, "authorization");
+  const expected = secret ? `Bearer ${secret}` : "";
+  if (!expected || provided.length !== expected.length ||
+      !crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(expected))) {
     return json(res, 404, { ok: false, message: "Rotina não encontrada." });
   }
   const total = await rest("rpc/melhores_limpar_votos_expirados", { method: "POST", body: {} });
+  await rest("rpc/melhores_voto_rate_limpar", { method: "POST", body: {} });
   return json(res, 200, {
     ok: true,
     rotina: "melhores_limpar_votos_expirados",
@@ -81,10 +89,19 @@ async function handleCleanup(req, res) {
 
 function votingOpen(edition) {
   const now = Date.now();
-  const start = edition.votacao_inicio ? new Date(edition.votacao_inicio).getTime() : 0;
-  const end = edition.votacao_fim ? new Date(edition.votacao_fim).getTime() : Infinity;
+  const start = edition.votacao_inicio_site ? new Date(edition.votacao_inicio_site).getTime() : Infinity;
+  const end = edition.votacao_fim ? new Date(edition.votacao_fim).getTime() : -Infinity;
   return edition.status === "votacao_aberta" && start <= now && now <= end;
 }
+
+const visitorFromRequest = req => {
+  const [value, signature] = cookieValue(req, "euam_melhores_vid").split(".");
+  if (uuidRe.test(value || "") && /^[a-f0-9]{64}$/.test(signature || "")) {
+    const expected = hash(`visitor:${value}`);
+    if (crypto.timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expected, "hex"))) return value;
+  }
+  return crypto.randomUUID();
+};
 
 module.exports = async (req, res) => {
   if (req.method === "GET") {
@@ -96,6 +113,24 @@ module.exports = async (req, res) => {
         console.error("melhores-limpeza:", error?.message || error);
         return json(res, 500, { ok: false, message: "Não foi possível executar a limpeza automática." });
       }
+    }
+    const edicaoId = url.searchParams.get("edicao_id") || "";
+    if (!uuidRe.test(edicaoId)) return json(res, 400, { ok: false, message: "Edição inválida." });
+    if (!HASH_SECRET) return json(res, 503, { ok: false, message: "Votação temporariamente indisponível." });
+    try {
+      const [edition] = await rest(`melhores_edicoes?select=id,status,votacao_inicio,votacao_inicio_site,votacao_fim&limit=1&id=eq.${edicaoId}`);
+      if (!edition) return json(res, 404, { ok: false, message: "Edição não encontrada." });
+      const visitor = visitorFromRequest(req);
+      const identifier = hash([edicaoId, visitor].join("|"));
+      const votos = await rest(`melhores_votos?select=categoria_id,indicado_id&edicao_id=eq.${edicaoId}&identificador_hash=eq.${identifier}&origem=eq.site&status=in.(valido,suspeito)`);
+      return json(res, 200, { ok: true, agora: new Date().toISOString(),
+        status: edition.status, votacao_inicio_app: edition.votacao_inicio,
+        votacao_inicio_site: edition.votacao_inicio_site, votacao_fim: edition.votacao_fim,
+        votacao_site_aberta: votingOpen(edition), votos_site: votos },
+      { "Set-Cookie": cookie(visitor), "Cache-Control": "no-store" });
+    } catch (error) {
+      console.error("melhores-status:", error?.message || error);
+      return json(res, 503, { ok: false, message: "Não foi possível consultar o período de votação." });
     }
   }
   if (req.method !== "POST") {
@@ -111,7 +146,12 @@ module.exports = async (req, res) => {
       console.error("melhores-votar: TURNSTILE_SECRET_KEY ausente.");
       return json(res, 500, { ok: false, message: "Votação temporariamente indisponível. Verificação de segurança ausente." });
     }
-    const payload = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
+    let payload;
+    try { payload = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {}); }
+    catch { return json(res, 400, { ok: false, message: "Requisição inválida." }); }
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return json(res, 400, { ok: false, message: "Requisição inválida." });
+    }
     const edicaoId = String(payload.edicao_id || "");
     const categoriaId = String(payload.categoria_id || "");
     const indicadoId = String(payload.indicado_id || "");
@@ -119,92 +159,62 @@ module.exports = async (req, res) => {
       return json(res, 400, { ok: false, message: "Voto inválido." });
     }
 
-    let visitor = cookieValue(req, "euam_melhores_vid");
-    const newVisitor = !visitor;
-    if (!visitor) visitor = crypto.randomUUID();
+    const visitor = visitorFromRequest(req);
+    const responseHeaders = { "Set-Cookie": cookie(visitor), "Cache-Control": "no-store" };
 
     const ua = getHeader(req, "user-agent").slice(0, 260);
     const ip = firstIp(req);
+    const identifier = hash([edicaoId, visitor].join("|"));
+    const uaHash = hash(ua || "sem-user-agent");
+    const ipHash = hash(ip || "sem-ip");
+    const [visitorAllowed, ipAllowed] = await Promise.all([
+      rest("rpc/melhores_voto_rate_check", { method: "POST", body: { p_chave: hash(`voto:visitante:${visitor}`), p_limite: 40, p_janela_segundos: 600 } }),
+      ip ? rest("rpc/melhores_voto_rate_check", { method: "POST", body: { p_chave: hash(`voto:ip:${ip}`), p_limite: 200, p_janela_segundos: 600 } }) : Promise.resolve(true)
+    ]);
+    if (!visitorAllowed || !ipAllowed) {
+      return json(res, 429, { ok: false, message: "Muitas tentativas. Aguarde alguns minutos e tente novamente." }, responseHeaders);
+    }
     const turnstile = await verifyTurnstile(payload.turnstile_token || payload.cf_turnstile_response, ip);
     if (!turnstile.ok) {
-      return json(res, 403, { ok: false, message: "Confirmação de segurança inválida. Atualize a página e tente novamente." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
+      return json(res, 403, { ok: false, message: "Confirmação de segurança inválida. Atualize a página e tente novamente." }, responseHeaders);
     }
-    const identifier = hash([edicaoId, categoriaId, visitor, ip, ua].join("|"));
-    const uaHash = hash(ua || "sem-user-agent");
 
-    const [edition] = await rest(`melhores_edicoes?select=id,status,votacao_inicio,votacao_fim,encerramento_em&limit=1&id=eq.${edicaoId}`);
+    const [edition] = await rest(`melhores_edicoes?select=id,status,votacao_inicio_site,votacao_fim&limit=1&id=eq.${edicaoId}`);
     if (!edition || !votingOpen(edition)) {
-      return json(res, 403, { ok: false, message: "A votação não está aberta neste momento." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
+      return json(res, 403, { ok: false, message: "A votação no site não está aberta neste momento." }, responseHeaders);
     }
 
     const [category] = await rest(`melhores_categorias?select=id,edicao_id,status,visibilidade_publica,permite_multiplos_votos,max_escolhas&limit=1&id=eq.${categoriaId}&edicao_id=eq.${edicaoId}`);
     if (!category || category.status !== "ativo" || category.visibilidade_publica !== true) {
-      return json(res, 400, { ok: false, message: "Categoria indisponível para votação." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
+      return json(res, 400, { ok: false, message: "Categoria indisponível para votação." }, responseHeaders);
     }
 
     const [nominee] = await rest(`melhores_indicados?select=id,edicao_id,categoria_id,status,aprovado&limit=1&id=eq.${indicadoId}&categoria_id=eq.${categoriaId}&edicao_id=eq.${edicaoId}`);
     if (!nominee || nominee.status !== "ativo" || nominee.aprovado !== true) {
-      return json(res, 400, { ok: false, message: "Indicado indisponível para votação." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
+      return json(res, 400, { ok: false, message: "Indicado indisponível para votação." }, responseHeaders);
     }
 
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-    const recent = await rest(`melhores_votos?select=id,status&edicao_id=eq.${edicaoId}&identificador_hash=eq.${identifier}&criado_em=gte.${encodeURIComponent(tenMinutesAgo)}&limit=40`);
-    const status = recent.length > 30 ? "bloqueado" : recent.length > 20 ? "suspeito" : "valido";
-    const previousVotes = await rest(`melhores_votos?select=id,indicado_id,status&edicao_id=eq.${edicaoId}&categoria_id=eq.${categoriaId}&identificador_hash=eq.${identifier}&status=in.(valido,suspeito)&limit=20`);
-    if (previousVotes.some(v => v.indicado_id === indicadoId)) {
-      return json(res, 409, { ok: false, message: "Você já votou neste indicado." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
-    }
-    const maxChoices = category.permite_multiplos_votos ? Math.max(1, Number(category.max_escolhas || 1)) : 1;
-    if (previousVotes.length >= maxChoices) {
-      return json(res, 409, { ok: false, message: category.permite_multiplos_votos ? `Você já atingiu o limite de ${maxChoices} escolha(s) nesta categoria.` : "Você já votou nesta categoria." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
-    }
-    if (status === "bloqueado") {
-      await rest("melhores_votos", {
-        method: "POST",
-        body: [{
-          edicao_id: edicaoId,
-          categoria_id: categoriaId,
-          indicado_id: indicadoId,
-          identificador_hash: identifier,
-          user_agent_hash: uaHash,
-          origem: "site",
-          status: "bloqueado",
-          motivo_bloqueio: "muitas_tentativas",
-          metadados: { pagina: payload.pagina || null }
-        }]
-      }).catch(() => null);
-      return json(res, 429, { ok: false, message: "Muitas tentativas em sequência. Tente novamente mais tarde." }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
-    }
-
-    const [vote] = await rest("melhores_votos", {
+    const vote = await rest("rpc/melhores_site_registrar_voto", {
       method: "POST",
-      body: [{
-        edicao_id: edicaoId,
-        categoria_id: categoriaId,
-        indicado_id: indicadoId,
-        identificador_hash: identifier,
-        user_agent_hash: uaHash,
-        origem: "site",
-        status,
-        metadados: {
-          pagina: payload.pagina || null,
-          ip_hash: hash(ip || "sem-ip"),
-          accept_language_hash: hash(getHeader(req, "accept-language") || "sem-idioma"),
-          vercel_country: getHeader(req, "x-vercel-ip-country") || null,
-          turnstile: "validado"
-        }
-      }]
+      body: { p_edicao_id: edicaoId, p_categoria_id: categoriaId,
+        p_indicado_id: indicadoId, p_identificador_hash: identifier,
+        p_user_agent_hash: uaHash, p_ip_hash: ipHash,
+        p_pagina: String(payload.pagina || "").slice(0, 300) }
     });
 
     return json(res, 200, {
       ok: true,
-      voto_id: vote.id,
-      status,
-      message: status === "suspeito" ? "Voto recebido para revisão." : "Voto registrado com sucesso."
-    }, newVisitor ? { "Set-Cookie": cookie(visitor) } : {});
+      voto_id: vote.voto_id,
+      status: vote.status,
+      ja_registrado: vote.ja_registrado === true,
+      message: vote.ja_registrado ? "Seu voto nesta categoria já estava registrado." : "Voto registrado com sucesso."
+    }, responseHeaders);
   } catch (error) {
-    if (error.status === 409 || String(error.details?.message || "").includes("duplicate key")) {
+    if (error.details?.code === "23505" || error.status === 409) {
       return json(res, 409, { ok: false, message: "Você já votou nesta categoria." });
+    }
+    if (error.details?.code === "22023") {
+      return json(res, 403, { ok: false, message: error.details.message || "Votação indisponível." });
     }
     console.error("melhores-votar:", error?.message || error);
     return json(res, 500, { ok: false, message: "Não foi possível registrar o voto agora." });

@@ -13,7 +13,7 @@ const statusPublicos = [
 export async function listarEdicoesPublicas() {
   const status = statusPublicos.join(",");
   return fetchPublicRows("melhores_edicoes", {
-    select: "id,nome,ano,slug,descricao,imagem_capa_url,status,indicacoes_inicio,indicacoes_fim,votacao_inicio,votacao_fim,divulgacao_em,resultado_publicado_em,peso_site,peso_instagram,mostrar_votos_publicamente",
+    select: "id,nome,ano,slug,descricao,imagem_capa_url,status,indicacoes_inicio,indicacoes_fim,votacao_inicio,votacao_inicio_site,votacao_fim,divulgacao_em,resultado_publicado_em,peso_site,peso_instagram,mostrar_votos_publicamente",
     status: `in.(${status})`,
     order: "ano.desc"
   }, { ttl: 5000 });
@@ -97,10 +97,20 @@ export async function enviarVotoMelhores(payload) {
     body: JSON.stringify(payload)
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok || data?.ok === false) {
-    throw new Error(data?.message || "Não foi possível registrar seu voto agora.");
+  if (!response.ok || data?.ok !== true || !data?.voto_id) {
+    throw new Error(data?.message || (response.ok
+      ? "Não foi possível confirmar a resposta. Tente novamente; um voto já salvo não será duplicado."
+      : "Não foi possível registrar seu voto agora."));
   }
   return data;
+}
+
+export async function consultarPeriodoVotacao(edicaoId) {
+  const response = await fetch(`/api/melhores-votar?edicao_id=${encodeURIComponent(edicaoId)}`, {
+    credentials: "same-origin", cache: "no-store"
+  });
+  if (!response.ok) throw new Error("Não foi possível consultar o período de votação.");
+  return response.json();
 }
 
 export async function enviarIndicacaoMelhores(payload) {

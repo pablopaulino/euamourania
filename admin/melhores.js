@@ -28,6 +28,8 @@ import {
   publicarResultado,
   listarResultados,
   listarVotos,
+  listarVotosAuditoria,
+  confirmarExportacaoVotos,
   listarAuditoria,
   limparVotosManual,
   listarCampanhasApp,
@@ -205,13 +207,29 @@ function fmtDate(value) {
 
 function fmtDateInput(value) {
   if (!value) return "";
-  const date = new Date(value);
-  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-  return date.toISOString().slice(0, 16);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit",
+    day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+  }).formatToParts(new Date(value));
+  const pick = type => parts.find(part => part.type === type)?.value || "00";
+  return `${pick("year")}-${pick("month")}-${pick("day")}T${pick("hour")}:${pick("minute")}`;
 }
 
 function toIso(value) {
-  return value ? new Date(value).toISOString() : null;
+  if (!value) return null;
+  const [year, month, day, hour, minute] = value.match(/\d+/g).map(Number);
+  const desired = Date.UTC(year, month - 1, day, hour, minute);
+  let instant = desired + 3 * 60 * 60 * 1000;
+  for (let step = 0; step < 3; step++) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit",
+      day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+    }).formatToParts(new Date(instant));
+    const pick = type => Number(parts.find(part => part.type === type)?.value || 0);
+    const shown = Date.UTC(pick("year"), pick("month") - 1, pick("day"), pick("hour"), pick("minute"));
+    instant += desired - shown;
+  }
+  return new Date(instant).toISOString();
 }
 
 function validReference(value) {
@@ -355,8 +373,9 @@ async function loadDashboard() {
             </div>
             <div class="awards-kv" style="margin-top:1rem">
               <div><span>Indicações</span><strong>${fmtDate(edicao.indicacoes_inicio)} — ${fmtDate(edicao.indicacoes_fim)}</strong></div>
-              <div><span>Votação</span><strong>${fmtDate(edicao.votacao_inicio)} — ${fmtDate(edicao.votacao_fim)}</strong></div>
-              <div><span>Pesos</span><strong>Site ${edicao.peso_site}% · Instagram ${edicao.peso_instagram}%</strong></div>
+              <div><span>App</span><strong>${fmtDate(edicao.votacao_inicio)} — ${fmtDate(edicao.votacao_fim)}</strong></div>
+              <div><span>Site</span><strong>${fmtDate(edicao.votacao_inicio_site)} — ${fmtDate(edicao.votacao_fim)}</strong></div>
+              <div><span>Pesos</span><strong>Site + app ${edicao.peso_site}% · Instagram ${edicao.peso_instagram}%</strong></div>
             </div>
           ` : '<div class="awards-empty">Nenhuma edição ativa. Crie uma edição ou altere o status de uma existente.</div>'}
         </article>
@@ -405,6 +424,8 @@ async function loadDashboardV2() {
       tasks.push({ title: "Criar edição ativa", text: "Nenhuma edição em andamento aparece para operação.", action: "Nova edição", tab: "editions", tone: "warning" });
     } else {
       if (!resumo.categorias) tasks.push({ title: "Adicionar categorias", text: "A edição ativa ainda não tem categorias cadastradas.", action: "Abrir categorias", tab: "categories", tone: "warning" });
+      if (Number(edicao.ano) === 2026 && resumo.categorias !== 22) tasks.push({ title: "Conferir 22 categorias", text: `A edição 2026 tem ${resumo.categorias} categoria(s) cadastrada(s); são previstas 22.`, action: "Abrir categorias", tab: "categories", tone: "warning" });
+      if (!edicao.votacao_inicio_site) tasks.push({ title: "Definir abertura do site", text: "A abertura do site não foi configurada. Votos no site permanecem bloqueados.", action: "Ver edição", tab: "editions", tone: "warning" });
       if (!resumo.indicadosAtivos) tasks.push({ title: "Cadastrar indicados", text: "Sem indicados ativos para exibir ou votar nesta edição.", action: "Abrir indicados", tab: "nominees", tone: "warning" });
       if (resumo.indicacoesPendentes) tasks.push({ title: "Revisar indicações", text: `${resumo.indicacoesPendentes} indicação${resumo.indicacoesPendentes === 1 ? "" : "ões"} aguardando moderação.`, action: "Moderar", tab: "indications", tone: "attention" });
       if (status === "votacao_encerrada") tasks.push({ title: "Iniciar apuração", text: "A votação foi encerrada e os resultados podem ser revisados.", action: "Apurar", tab: "apuration", tone: "attention" });
@@ -415,7 +436,8 @@ async function loadDashboardV2() {
 
     const timeline = edicao ? [
       ["Indicações", edicao.indicacoes_inicio, edicao.indicacoes_fim],
-      ["Votação", edicao.votacao_inicio, edicao.votacao_fim],
+      ["Votação no app", edicao.votacao_inicio, edicao.votacao_fim],
+      ["Votação no site", edicao.votacao_inicio_site, edicao.votacao_fim],
       ["Divulgação", edicao.divulgacao_em || edicao.resultado_publicado_em, ""]
     ].filter(([, start, end]) => start || end) : [];
 
@@ -465,7 +487,7 @@ async function loadDashboardV2() {
             <div class="awards-kv awards-dashboard-kv" style="margin-top:1rem">
               <div><span>Indicações</span><strong>${fmtDate(edicao.indicacoes_inicio)} — ${fmtDate(edicao.indicacoes_fim)}</strong></div>
               <div><span>Votação</span><strong>${fmtDate(edicao.votacao_inicio)} — ${fmtDate(edicao.votacao_fim)}</strong></div>
-              <div><span>Pesos</span><strong>Site ${edicao.peso_site}% · Instagram ${edicao.peso_instagram}%</strong></div>
+              <div><span>Pesos</span><strong>Site + app ${edicao.peso_site}% · Instagram ${edicao.peso_instagram}%</strong></div>
               <div><span>Retenção de votos</span><strong>7 dias após encerramento</strong></div>
             </div>
           ` : '<div class="awards-empty">Nenhuma edição ativa. Crie uma edição ou altere o status de uma existente.</div>'}
@@ -541,8 +563,8 @@ function editionRow(item) {
   return `<tr>
     <td><div class="awards-name">${item.imagem_capa_url ? `<img class="awards-thumb" src="${escapeHtml(item.imagem_capa_url)}" alt="">` : '<span class="awards-thumb"></span>'}<div><strong>${escapeHtml(item.nome)}</strong><small>${escapeHtml(item.slug)} · ${item.ano}</small></div></div></td>
     <td><span class="awards-status ${escapeHtml(item.status)}">${escapeHtml(item.status.replaceAll("_", " "))}</span></td>
-    <td>${fmtDate(item.votacao_inicio)}<br><small>${fmtDate(item.votacao_fim)}</small></td>
-    <td>Site ${item.peso_site}%<br><small>Instagram ${item.peso_instagram}%</small></td>
+    <td>App: ${fmtDate(item.votacao_inicio)}<br>Site: ${fmtDate(item.votacao_inicio_site)}<br><small>Fim: ${fmtDate(item.votacao_fim)}</small></td>
+    <td>Site + app ${item.peso_site}%<br><small>Instagram ${item.peso_instagram}%</small></td>
     <td><div class="awards-actions"><button data-edit-edition="${item.id}">${historical ? "Ver / arquivar" : "Editar"}</button>${historical ? '<small>Histórico preservado</small>' : `<button class="danger" data-delete-edition="${item.id}">Excluir</button>`}</div></td>
   </tr>`;
 }
@@ -746,7 +768,7 @@ async function loadVotes() {
       <article class="awards-card">
         <div class="awards-panel-head">
           <div><h3>Votação</h3><p>Acompanhe votos individuais enquanto estiverem dentro do período de auditoria. Dados pessoais não são exibidos.</p></div>
-          <button class="admin-button secondary" data-manual-cleanup-votes>Limpeza manual Super Admin</button>
+          <div class="awards-actions"><button class="admin-button secondary" data-export-votes>Exportar evidência</button><button class="admin-button secondary" data-manual-cleanup-votes>Limpeza manual Super Admin</button></div>
         </div>
         <div class="awards-grid">${totals.map(([label, value]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong></article>`).join("")}</div>
         <div class="awards-toolbar" style="margin-top:1rem">
@@ -776,6 +798,45 @@ function voteRow(item) {
     <td><span class="awards-status ${escapeHtml(item.status)}">${escapeHtml(item.status)}</span>${item.motivo_bloqueio ? `<br><small>${escapeHtml(item.motivo_bloqueio)}</small>` : ""}</td>
     <td>${fmtDate(item.criado_em)}</td>
   </tr>`;
+}
+
+async function exportVotesEvidence() {
+  const edicaoId = $("#votes-edition-filter")?.value || state.edicoes[0]?.id;
+  if (!edicaoId) throw new Error("Selecione uma edição.");
+  const rows = await listarVotosAuditoria(edicaoId);
+  const columns = ["id","edicao_id","categoria_id","indicado_id","origem","status","motivo_bloqueio","criado_em"];
+  const cell = value => `"${String(value ?? "").replace(/^[=+@-]/, "'$&").replaceAll('"', '""')}"`;
+  const csv = [columns.join(","), ...rows.map(row => columns.map(key => cell(row[key])).join(","))].join("\r\n");
+  const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(csv))))
+    .map(byte => byte.toString(16).padStart(2, "0")).join("");
+  const totals = {};
+  for (const row of rows) {
+    const key = `${row.categoria_id}|${row.origem}|${row.status}`;
+    totals[key] = (totals[key] || 0) + 1;
+  }
+  const manifest = { edicao_id: edicaoId, exportado_em: new Date().toISOString(),
+    total_linhas: rows.length, sha256_csv: hash, totais_por_categoria_origem_status: totals,
+    observacao: "Exportação administrativa; conferir totais e resultado antes da limpeza. Não inclui identificadores de navegador." };
+  const download = (name, data, mime) => {
+    const url = URL.createObjectURL(new Blob([data], { type: mime }));
+    const link = document.createElement("a");
+    link.href = url; link.download = name; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
+  const name = `melhores-${edicaoId}-${new Date().toISOString().slice(0,10)}`;
+  download(`${name}-votos.csv`, csv, "text/csv;charset=utf-8");
+  download(`${name}-manifesto.json`, JSON.stringify(manifest, null, 2), "application/json");
+  const edition = (await listarEdicoes()).find(item => item.id === edicaoId);
+  if (!["resultado_publicado", "arquivada"].includes(edition?.status)) {
+    toast(`${rows.length} votos exportados. Repita e confirme a exportação após publicar os resultados.`);
+    return;
+  }
+  if (confirm(`Confirme que salvou os dois arquivos e conferiu o SHA-256 do CSV:\n${hash}\n\nRegistrar esta exportação para a política de retenção?`)) {
+    await confirmarExportacaoVotos(edicaoId, hash, rows.length);
+    toast(`${rows.length} votos exportados e manifesto confirmado para a política de retenção.`);
+  } else {
+    toast("Arquivos gerados. Exportação ainda não confirmada; a limpeza permanece bloqueada.");
+  }
 }
 
 async function loadInstagram() {
@@ -1019,7 +1080,7 @@ async function loadSettings() {
 function settingsRow(item) {
   return `<tr>
     <td><strong>${escapeHtml(item.nome)}</strong><br><small>${item.ano} · ${escapeHtml(item.status)}</small></td>
-    <td>Site ${Number(item.peso_site || 0)}%<br><small>Instagram ${Number(item.peso_instagram || 0)}%</small></td>
+    <td>Site + app ${Number(item.peso_site || 0)}%<br><small>Instagram ${Number(item.peso_instagram || 0)}%</small></td>
     <td>${fmtDate(item.indicacoes_inicio)}<br><small>${fmtDate(item.indicacoes_fim)}</small></td>
     <td>${fmtDate(item.votacao_inicio)}<br><small>${fmtDate(item.votacao_fim)}</small></td>
     <td>${item.votos_individuais_limpos_em ? `Limpos em ${fmtDate(item.votos_individuais_limpos_em)}` : "7 dias após publicação oficial"}</td>
@@ -1321,11 +1382,15 @@ async function editionForm(id) {
     ${field("criterio_desempate", "Critério de desempate", item.criterio_desempate || "")}
     ${field("indicacoes_inicio", "Início das indicações", fmtDateInput(item.indicacoes_inicio), "type='datetime-local'")}
     ${field("indicacoes_fim", "Fim das indicações", fmtDateInput(item.indicacoes_fim), "type='datetime-local'")}
-    ${field("votacao_inicio", "Início da votação", fmtDateInput(item.votacao_inicio), "type='datetime-local'")}
+    ${field("votacao_inicio", "Início da votação no app", fmtDateInput(item.votacao_inicio), "type='datetime-local'")}
+    ${field("votacao_inicio_site", "Início da votação no site", fmtDateInput(item.votacao_inicio_site), "type='datetime-local'")}
     ${field("votacao_fim", "Fim da votação", fmtDateInput(item.votacao_fim), "type='datetime-local'")}
+    ${field("retencao_dias", "Retenção dos votos individuais após a publicação (dias)", parseInt(item.votos_individuais_remover_apos, 10) || 30, "type='number' min='7' max='365' required")}
+    <p class="awards-note awards-field full">Horários em America/Sao_Paulo. Confira os instantes salvos antes de abrir a votação. Campo do site vazio mantém o site fechado.</p>
     ${field("divulgacao_em", "Data de divulgação", fmtDateInput(item.divulgacao_em), "type='datetime-local'")}
-    ${field("peso_site", "Peso do site (%)", item.peso_site ?? 50, "type='number' min='0' max='100' step='0.01' required")}
+    ${field("peso_site", "Peso do site + app (%)", item.peso_site ?? 50, "type='number' min='0' max='100' step='0.01' required")}
     ${field("peso_instagram", "Peso do Instagram (%)", item.peso_instagram ?? 50, "type='number' min='0' max='100' step='0.01' required")}
+    <div class="awards-checks"><label><input name="mostrar_indicados_antes_votacao" type="checkbox" ${item.mostrar_indicados_antes_votacao ? "checked" : ""}> Mostrar indicados aprovados após encerrar indicações, antes da votação</label></div>
     ${textarea("descricao", "Descrição", item.descricao || "")}
     <div class="awards-official-texts">
       <div>
@@ -1342,7 +1407,7 @@ async function editionForm(id) {
     const form = event.currentTarget;
     const pesoSite = Number(form.elements.peso_site.value || 0);
     const pesoInstagram = Number(form.elements.peso_instagram.value || 0);
-    if (Math.round((pesoSite + pesoInstagram) * 100) / 100 !== 100) return toast("Os pesos do site e Instagram precisam somar 100%.", "error");
+    if (Math.round((pesoSite + pesoInstagram) * 100) / 100 !== 100) return toast("Os pesos de site + app e Instagram precisam somar 100%.", "error");
     if (!validReference(form.elements.imagem_capa_url.value)) return toast("Use URL válida ou caminho interno em imagem de capa.", "error");
     await salvarEdicao({
       id: form.elements.id.value || undefined,
@@ -1355,10 +1420,13 @@ async function editionForm(id) {
       indicacoes_inicio: toIso(form.elements.indicacoes_inicio.value),
       indicacoes_fim: toIso(form.elements.indicacoes_fim.value),
       votacao_inicio: toIso(form.elements.votacao_inicio.value),
+      votacao_inicio_site: toIso(form.elements.votacao_inicio_site.value),
       votacao_fim: toIso(form.elements.votacao_fim.value),
+      votos_individuais_remover_apos: `${Number(form.elements.retencao_dias.value)} days`,
       divulgacao_em: toIso(form.elements.divulgacao_em.value),
       peso_site: pesoSite,
       peso_instagram: pesoInstagram,
+      mostrar_indicados_antes_votacao: form.elements.mostrar_indicados_antes_votacao.checked,
       descricao: form.elements.descricao.value.trim() || null,
       regulamento: form.elements.regulamento.value.trim() || null,
       metodologia: form.elements.metodologia.value.trim() || null,
@@ -1824,10 +1892,11 @@ async function init(context = {}) {
       }
       if (button.hasAttribute("data-refresh-nominees")) return loadNominees();
       if (button.hasAttribute("data-refresh-votes")) return loadVotes();
+      if (button.hasAttribute("data-export-votes")) return exportVotesEvidence();
       if (button.hasAttribute("data-manual-cleanup-votes")) {
         const edicaoId = $("#votes-edition-filter")?.value || state.edicoes[0]?.id;
         if (!edicaoId) return toast("Selecione uma edição.", "error");
-        if (!confirm("Executar limpeza manual dos votos individuais desta edição? Use somente após auditoria e publicação oficial.")) return;
+         if (!confirm("Confirme que exportou e conferiu os votos e o manifesto. A limpeza só é permitida após a publicação e o prazo de retenção. Continuar?")) return;
         const total = await limparVotosManual(edicaoId);
         toast(`${total || 0} voto(s) individual(is) removido(s) após consolidação.`);
         return loadVotes();

@@ -59,9 +59,9 @@ A decisão da organização sobre a homologação dos indicados é definitiva.
 
 A votação ocorrerá durante o período divulgado oficialmente.
 
-Os votos serão contabilizados por dois canais:
+Os votos serão contabilizados em dois blocos:
 
-Portal oficial do prêmio;
+Site Eu Amo Urânia e aplicativo Viva Urânia, somados no mesmo bloco;
 Enquetes oficiais do Instagram do Eu Amo Urânia.
 
 A participação é gratuita.
@@ -138,32 +138,32 @@ O objetivo é tornar a apuração mais equilibrada e transparente.
 
 Os votos são obtidos por meio de:
 
-Portal oficial do Melhores de Urânia;
+Site Eu Amo Urânia e aplicativo Viva Urânia;
 Enquetes oficiais realizadas no Instagram do Eu Amo Urânia.
 
 Somente votos realizados pelos canais oficiais são considerados.
 
 2. Peso da votação
 
-Cada canal possui um peso definido pela organização.
+Cada bloco possui um peso definido pela organização.
 
 Na edição inaugural:
 
-Portal oficial: 60%
+Site e aplicativo, juntos: 60%
 Instagram: 40%
 
 3. Como é feito o cálculo
 
-Os votos de cada canal são transformados em percentuais dentro da própria categoria.
+Os votos válidos do site e do aplicativo são somados por categoria e transformados em percentual. Os votos das enquetes do Instagram formam o outro percentual da categoria.
 
 Em seguida é aplicada a ponderação conforme os pesos oficiais.
 
 Exemplo simplificado:
 
-Portal: 60%
+Site e aplicativo: 60%
 Instagram: 40%
 
-O resultado final considera a participação dos dois canais, evitando que apenas um deles determine o vencedor.
+O resultado final considera os dois blocos de votação conforme os pesos oficiais.
 
 4. Auditoria
 

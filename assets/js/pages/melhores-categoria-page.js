@@ -1,8 +1,10 @@
-import { obterEdicaoPorAno, obterCategoriaPublica, listarIndicadosPorCategoria } from "../services/melhoresPublicService.js";
+import { obterEdicaoPorAno, obterCategoriaPublica, listarIndicadosPorCategoria, consultarPeriodoVotacao } from "../services/melhoresPublicService.js";
 import { sharePage } from "../services/shareService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
+let clock = null;
+const serverNow = () => clock ? clock.time + (performance.now() - clock.received) : 0;
 
 function params() {
   const path = location.pathname.match(/melhores-de-urania\/(\d{4})\/categorias\/([^/]+)/);
@@ -14,10 +16,12 @@ function params() {
 }
 
 function isVotingOpen(edition) {
-  const now = Date.now();
+  const now = serverNow();
   return edition?.status === "votacao_aberta"
-    && (!edition.votacao_inicio || new Date(edition.votacao_inicio).getTime() <= now)
-    && (!edition.votacao_fim || new Date(edition.votacao_fim).getTime() >= now);
+    && !!edition.votacao_inicio_site
+    && new Date(edition.votacao_inicio_site).getTime() <= now
+    && !!edition.votacao_fim
+    && new Date(edition.votacao_fim).getTime() >= now;
 }
 
 function formatDate(value) {
@@ -67,6 +71,13 @@ async function init() {
   const { ano, slug } = params();
   const nomineesContainer = document.getElementById("category-nominees");
   const edition = await obterEdicaoPorAno(ano);
+  if (edition) {
+    const periodState = await consultarPeriodoVotacao(edition.id);
+    clock = { time: new Date(periodState.agora).getTime(), received: performance.now() };
+    edition.status = periodState.status;
+    edition.votacao_inicio_site = periodState.votacao_inicio_site;
+    edition.votacao_fim = periodState.votacao_fim;
+  }
   if (!edition) {
     nomineesContainer.innerHTML = '<div class="awards-empty">Edição não encontrada.</div>';
     return;

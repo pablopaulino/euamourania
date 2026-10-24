@@ -37,8 +37,8 @@ must(api.includes('const HASH_SECRET = process.env.MELHORES_VOTO_SECRET || "";')
 must(api.includes("TURNSTILE_SECRET_KEY") && api.includes("missing-turnstile-secret"), "Turnstile precisa ser obrigatório na API de votação");
 must(!api.includes("turnstile.skipped") && !api.includes("nao_configurado"), "API não pode aceitar votação com Turnstile ignorado");
 must(api.includes("votingOpen") && api.includes("status === \"votacao_aberta\""), "API não valida período/status da votação");
-must(api.includes("identificador_hash") && api.includes("duplicate key"), "API não trata duplicidade de voto");
-must(api.includes("ip_hash") && !api.includes("ip:"), "API deve armazenar apenas hash de IP");
+must(api.includes("melhores_site_registrar_voto") && api.includes('error.details?.code === "23505"'), "API não trata duplicidade de voto");
+must(api.includes("p_ip_hash") && !api.includes("p_ip: ip"), "API deve armazenar apenas hash de IP");
 must(index.includes("Melhores de Urânia") && index.includes("awards-preview.js") && publicRenderer.includes('home:"melhores-index-page.js"'), "Página principal pública incompleta");
 must(edition.includes("awards-preview.js") && publicRenderer.includes('edition:"melhores-edicao-page.js"') && publicRenderer.includes('"vote-area"'), "Página de edição incompleta");
 must(publicRenderer.includes('home:[') && publicRenderer.includes('edition:[') && publicRenderer.includes('faqSection(page)'), "Perguntas frequentes devem permanecer na página principal e na edição");

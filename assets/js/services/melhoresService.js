@@ -431,6 +431,21 @@ export async function listarVotos({ edicaoId, status } = {}) {
   return data || [];
 }
 
+export async function listarVotosAuditoria(edicaoId) {
+  if (!edicaoId) throw new Error("Selecione uma edição para exportar.");
+  const rows = [];
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await db().from("melhores_votos")
+      .select("id,edicao_id,categoria_id,indicado_id,origem,status,motivo_bloqueio,criado_em")
+      .eq("edicao_id", edicaoId).order("criado_em", { ascending: true })
+      .order("id", { ascending: true }).range(offset, offset + 999);
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < 1000) break;
+  }
+  return rows;
+}
+
 export async function listarAuditoria(edicaoId) {
   let query = db()
     .from("melhores_auditoria")
@@ -447,6 +462,13 @@ export async function limparVotosManual(edicaoId) {
   const { data, error } = await db().rpc("melhores_limpar_votos_edicao_manual", { p_edicao: edicaoId });
   if (error) throw error;
   return data;
+}
+
+export async function confirmarExportacaoVotos(edicaoId, sha256Csv, totalLinhas) {
+  const { error } = await db().rpc("melhores_confirmar_exportacao_votos", {
+    p_edicao: edicaoId, p_sha256_csv: sha256Csv, p_total_linhas: totalLinhas
+  });
+  if (error) throw error;
 }
 
 function appTablesMissing(error) {

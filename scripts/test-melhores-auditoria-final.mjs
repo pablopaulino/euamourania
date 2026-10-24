@@ -18,6 +18,7 @@ const publicService = read("assets/js/services/melhoresPublicService.js");
 const adminHtml = read("admin/melhores.html");
 const adminJs = read("admin/melhores.js");
 const voteApi = read("api/melhores-votar.js");
+const voteMigration = read("supabase/migrations/20261023_melhores_votacao_canais_segura.sql");
 const indicationApi = read("api/melhores-indicar.js");
 const sitemap = read("api/sitemaps.js");
 const editionJs = read("assets/js/pages/melhores-edicao-page.js");
@@ -44,8 +45,8 @@ for (const tab of ['data-tab="votes"', 'data-tab="audit"', 'data-tab="settings"'
 must(adminJs.includes("loadVotes") && adminJs.includes("loadAudit") && adminJs.includes("loadSettings"), "Painel deve carregar abas novas com dados reais");
 must(adminJs.includes("data-manual-cleanup-votes") && adminJs.includes("limparVotosManual"), "Painel deve acionar limpeza manual protegida");
 
-must(voteApi.includes("permite_multiplos_votos") && voteApi.includes("max_escolhas"), "API de voto deve respeitar voto único/múltiplo");
-must(voteApi.includes("previousVotes") && voteApi.includes("Você já atingiu o limite"), "API deve bloquear votos acima do limite");
+must(voteApi.includes("melhores_site_registrar_voto") && voteMigration.includes("pg_advisory_xact_lock"), "Voto único do site deve ser transacional");
+must(voteMigration.includes("melhores_votos_site_v2_categoria_uidx"), "Banco deve impedir duplicidade do site");
 must(editionJs.includes("votesFor") && editionJs.includes("data-max-choices"), "Frontend deve suportar múltiplas escolhas por categoria");
 
 must(publicService.includes("obterCategoriaPublica") && publicService.includes("listarIndicadosPorCategoria"), "Serviço público deve carregar página de categoria");

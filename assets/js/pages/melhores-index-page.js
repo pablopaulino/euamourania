@@ -1,4 +1,4 @@
-import { listarEdicoesPublicas } from "../services/melhoresPublicService.js";
+import { listarEdicoesPublicas, consultarPeriodoVotacao } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
 
@@ -19,8 +19,10 @@ const votingUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname
 const resultsUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
   ? `/melhores-de-urania/resultados.html?ano=${encodeURIComponent(edition.ano)}`
   : `${editionUrl(edition)}resultados/`;
-const withinPeriod = (start, end) => (!start || Date.now() >= new Date(start).getTime())
-  && (!end || Date.now() <= new Date(end).getTime());
+let clock = null;
+const serverNow = () => clock ? clock.time + (performance.now() - clock.received) : 0;
+const withinPeriod = (start, end) => (!start || serverNow() >= new Date(start).getTime())
+  && (!end || serverNow() <= new Date(end).getTime());
 const phaseDetails = edition => {
   if (edition.status === "indicacoes_abertas") return {
     label: withinPeriod(edition.indicacoes_inicio, edition.indicacoes_fim) ? "Indicações abertas" : "Período de indicações",
@@ -29,10 +31,10 @@ const phaseDetails = edition => {
     href: withinPeriod(edition.indicacoes_inicio, edition.indicacoes_fim) ? indicationUrl(edition) : editionUrl(edition)
   };
   if (edition.status === "votacao_aberta") return {
-    label: withinPeriod(edition.votacao_inicio, edition.votacao_fim) ? "Votação aberta" : "Período de votação",
-    period: `Votação: ${period(edition.votacao_inicio, edition.votacao_fim)}`,
-    action: withinPeriod(edition.votacao_inicio, edition.votacao_fim) ? "Votar agora" : "Ver edição",
-    href: withinPeriod(edition.votacao_inicio, edition.votacao_fim) ? votingUrl(edition) : editionUrl(edition)
+    label: edition.votacao_inicio_site && withinPeriod(edition.votacao_inicio_site, edition.votacao_fim) ? "Votação no site aberta" : "Votação no aplicativo",
+    period: `Site: ${period(edition.votacao_inicio_site, edition.votacao_fim)}`,
+    action: edition.votacao_inicio_site && withinPeriod(edition.votacao_inicio_site, edition.votacao_fim) ? "Votar agora" : "Ver edição",
+    href: edition.votacao_inicio_site && withinPeriod(edition.votacao_inicio_site, edition.votacao_fim) ? votingUrl(edition) : editionUrl(edition)
   };
   if (edition.status === "resultado_publicado" || (edition.status === "arquivada" && edition.resultado_publicado_em)) return {
     label: edition.status === "arquivada" ? "Edição arquivada" : "Resultado publicado",
@@ -159,6 +161,12 @@ async function init() {
       return;
     }
     const active = activeEdition(editions);
+    const periodState = await consultarPeriodoVotacao(active.id);
+    clock = { time: new Date(periodState.agora).getTime(), received: performance.now() };
+    active.status = periodState.status;
+    active.votacao_inicio = periodState.votacao_inicio_app;
+    active.votacao_inicio_site = periodState.votacao_inicio_site;
+    active.votacao_fim = periodState.votacao_fim;
     const activePhase = phaseDetails(active);
     const indicating = active.status === "indicacoes_abertas" && withinPeriod(active.indicacoes_inicio, active.indicacoes_fim);
     const homePrimary = document.getElementById("awards-home-primary");
