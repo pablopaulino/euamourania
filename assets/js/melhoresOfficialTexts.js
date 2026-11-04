@@ -30,6 +30,8 @@ As categorias são definidas pela organização e podem ser alteradas, ampliadas
 
 Na edição inaugural serão contempladas as categorias oficiais divulgadas pela organização.
 
+A categoria Melhor Posto de Combustível foi retirada da edição 2026 antes do início da votação. A alteração não interfere nas demais categorias participantes.
+
 5. Indicações
 
 Antes da abertura da votação oficial será realizado um período de indicações.
@@ -100,7 +102,7 @@ A organização poderá invalidar votos que violem este regulamento.
 
 10. Divulgação
 
-Os vencedores serão divulgados no site e no Instagram em 3 de dezembro de 2026, a partir das 8h, no horário de Brasília (America/Sao_Paulo).
+Os vencedores serão divulgados pelos canais oficiais do Eu Amo Urânia, em data a ser informada pela organização.
 
 Após a publicação oficial, o resultado passa a integrar permanentemente o histórico do prêmio.
 

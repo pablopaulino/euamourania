@@ -305,7 +305,7 @@ function renderEditionHub(edition, categories, nominees) {
     {
       eyebrow: "Cronograma",
       title: "Fases da edição",
-      text: Number(edition.ano) === 2026 ? "App: 05/11 às 14h; site: 09/11 às 14h; Instagram: 09/11. Encerramento: 16/11 às 19h (Brasília). Vencedores: 03/12 a partir das 8h." : `Indicações: ${formatPeriod(edition.indicacoes_inicio, edition.indicacoes_fim)}`
+      text: Number(edition.ano) === 2026 ? "App: 05/11 às 14h; site: 09/11 às 14h; Instagram: 09/11. Encerramento: 16/11 às 19h (Brasília). Divulgação dos vencedores: data a definir." : `Indicações: ${formatPeriod(edition.indicacoes_inicio, edition.indicacoes_fim)}`
     },
     {
       eyebrow: "Categorias",

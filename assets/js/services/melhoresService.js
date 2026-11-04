@@ -31,7 +31,7 @@ export async function obterResumoMelhores() {
   const { data: edicaoAtiva, error: activeError } = await supabase
     .from("melhores_edicoes")
     .select("*")
-    .in("status", ["indicacoes_abertas", "votacao_aberta", "apuracao", "resultado_publicado"])
+    .in("status", ["indicacoes_abertas", "indicacoes_encerradas", "votacao_aberta", "votacao_encerrada", "apuracao", "resultado_publicado"])
     .order("ano", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -39,7 +39,7 @@ export async function obterResumoMelhores() {
 
   const [edicoes, categorias, indicados, ativos, indicacoesPendentes] = await Promise.all([
     countVisibleEditions(),
-    count("melhores_categorias", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id } : {}),
+    count("melhores_categorias", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id, status: "ativo", visibilidade_publica: true } : { status: "ativo", visibilidade_publica: true }),
     count("melhores_indicados", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id } : {}),
     count("melhores_indicados", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id, status: "ativo" } : { status: "ativo" }),
     count("melhores_indicacoes", edicaoAtiva?.id ? { edicao_id: edicaoAtiva.id, status: "pendente" } : { status: "pendente" })

@@ -424,7 +424,6 @@ async function loadDashboardV2() {
       tasks.push({ title: "Criar edição ativa", text: "Nenhuma edição em andamento aparece para operação.", action: "Nova edição", tab: "editions", tone: "warning" });
     } else {
       if (!resumo.categorias) tasks.push({ title: "Adicionar categorias", text: "A edição ativa ainda não tem categorias cadastradas.", action: "Abrir categorias", tab: "categories", tone: "warning" });
-      if (Number(edicao.ano) === 2026 && resumo.categorias !== 22) tasks.push({ title: "Conferir 22 categorias", text: `A edição 2026 tem ${resumo.categorias} categoria(s) cadastrada(s); são previstas 22.`, action: "Abrir categorias", tab: "categories", tone: "warning" });
       if (!edicao.votacao_inicio_site) tasks.push({ title: "Definir abertura do site", text: "A abertura do site não foi configurada. Votos no site permanecem bloqueados.", action: "Ver edição", tab: "editions", tone: "warning" });
       if (!resumo.indicadosAtivos) tasks.push({ title: "Cadastrar indicados", text: "Sem indicados ativos para exibir ou votar nesta edição.", action: "Abrir indicados", tab: "nominees", tone: "warning" });
       if (resumo.indicacoesPendentes) tasks.push({ title: "Revisar indicações", text: `${resumo.indicacoesPendentes} indicação${resumo.indicacoesPendentes === 1 ? "" : "ões"} aguardando moderação.`, action: "Moderar", tab: "indications", tone: "attention" });
