@@ -309,8 +309,8 @@ function renderEditionHub(edition, categories, nominees) {
     },
     {
       eyebrow: "Categorias",
-      title: `${categories.length} categorias`,
-      text: `${nominees.length} indicado${nominees.length === 1 ? "" : "s"} publicado${nominees.length === 1 ? "" : "s"} até agora.`,
+      title: categories.length ? `${categories.length} categorias` : "Categorias",
+      text: categories.length ? `${nominees.length} indicado${nominees.length === 1 ? "" : "s"} publicado${nominees.length === 1 ? "" : "s"} até agora.` : "As categorias serão exibidas quando estiverem disponíveis publicamente.",
       href: categories[0] ? `/melhores-de-urania/${edition.ano}/categorias/${encodeURIComponent(categories[0].slug)}/` : ""
     },
     {
