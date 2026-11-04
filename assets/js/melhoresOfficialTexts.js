@@ -57,12 +57,14 @@ A decisão da organização sobre a homologação dos indicados é definitiva.
 
 7. Votação
 
-A votação ocorrerá durante o período divulgado oficialmente.
+A votação pelo aplicativo Viva Urânia começa em 5 de novembro de 2026, às 14h. A votação pelo site começa em 9 de novembro de 2026, às 14h. As enquetes do Instagram começam em 9 de novembro de 2026. Os horários seguem o horário de Brasília (America/Sao_Paulo).
+
+A votação termina em 16 de novembro de 2026, às 19h, no horário de Brasília (America/Sao_Paulo).
 
 Os votos serão contabilizados em dois blocos:
 
-Site Eu Amo Urânia e aplicativo Viva Urânia, somados no mesmo bloco;
-Enquetes oficiais do Instagram do Eu Amo Urânia.
+Site Eu Amo Urânia e aplicativo Viva Urânia, somados no mesmo bloco: 60%;
+Enquetes oficiais do Instagram do Eu Amo Urânia: 40%.
 
 A participação é gratuita.
 
@@ -98,7 +100,7 @@ A organização poderá invalidar votos que violem este regulamento.
 
 10. Divulgação
 
-Os vencedores serão divulgados exclusivamente pelos canais oficiais do Eu Amo Urânia.
+Os vencedores serão divulgados no site e no Instagram em 3 de dezembro de 2026, a partir das 8h, no horário de Brasília (America/Sao_Paulo).
 
 Após a publicação oficial, o resultado passa a integrar permanentemente o histórico do prêmio.
 
