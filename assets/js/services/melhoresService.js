@@ -431,6 +431,19 @@ export async function listarVotos({ edicaoId, status } = {}) {
   return data || [];
 }
 
+export async function contarVotosPorStatus(edicaoId, statuses) {
+  return Promise.all(statuses.map(async status => {
+    let query = db().from("melhores_votos")
+      .select("id", { count: "exact", head: true })
+      .eq("status", status);
+    if (edicaoId) query = query.eq("edicao_id", edicaoId);
+    const { count, error } = await query;
+    if (error) throw error;
+    if (count === null) throw new Error("Não foi possível contar os votos.");
+    return [status, count];
+  }));
+}
+
 export async function listarVotosAuditoria(edicaoId) {
   if (!edicaoId) throw new Error("Selecione uma edição para exportar.");
   const rows = [];

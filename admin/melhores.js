@@ -28,6 +28,7 @@ import {
   publicarResultado,
   listarResultados,
   listarVotos,
+  contarVotosPorStatus,
   listarVotosAuditoria,
   confirmarExportacaoVotos,
   listarAuditoria,
@@ -761,12 +762,15 @@ async function loadVotes() {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
     const edicaoId = $("#votes-edition-filter")?.value || state.edicoes[0]?.id || "";
     const status = $("#votes-status-filter")?.value || "";
-    state.votos = await listarVotos({ edicaoId, status });
-    const totals = voteStatuses.map(s => [s, state.votos.filter(v => v.status === s).length]);
+    const [votos, totals] = await Promise.all([
+      listarVotos({ edicaoId, status }),
+      contarVotosPorStatus(edicaoId, voteStatuses)
+    ]);
+    state.votos = votos;
     $("#votes-view").innerHTML = `
       <article class="awards-card">
         <div class="awards-panel-head">
-          <div><h3>Votação</h3><p>Acompanhe votos individuais enquanto estiverem dentro do período de auditoria. Dados pessoais não são exibidos.</p></div>
+          <div><h3>Votação</h3><p>Os totais abrangem toda a edição. A lista mostra até 300 votos recentes do filtro selecionado, durante o período de auditoria. Dados pessoais não são exibidos.</p></div>
           <div class="awards-actions"><button class="admin-button secondary" data-export-votes>Exportar evidência</button><button class="admin-button secondary" data-manual-cleanup-votes>Limpeza manual Super Admin</button></div>
         </div>
         <div class="awards-grid">${totals.map(([label, value]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong></article>`).join("")}</div>
