@@ -412,7 +412,7 @@ function renderVoting(edition, categories, nominees) {
           const items = grouped.get(category.id) || [];
           return `<section class="awards-nominee-group" id="categoria-${category.id}">
             <header><h3><a class="awards-link" href="/melhores-de-urania/${edition.ano}/categorias/${encodeURIComponent(category.slug)}/">${esc(category.nome)}</a></h3><p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p></header>
-            ${items.length ? `<div class="awards-nominee-grid">${items.map(nominee => nomineeCard(edition, category, nominee, open, votesFor(votes, category.id))).join("")}</div>` : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>'}
+            ${items.length ? `<div class="awards-nominee-grid" tabindex="0" role="region" aria-label="Indicados de ${esc(category.nome)}">${items.map(nominee => nomineeCard(edition, category, nominee, open, votesFor(votes, category.id))).join("")}</div>` : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>'}
           </section>`;
         }).join("")}
       </div>`;
@@ -437,7 +437,7 @@ function renderVoting(edition, categories, nominees) {
         const items = grouped.get(category.id) || [];
         return `<section class="awards-nominee-group" id="categoria-${category.id}">
           <header><h3><a class="awards-link" href="/melhores-de-urania/${edition.ano}/categorias/${encodeURIComponent(category.slug)}/">${esc(category.nome)}</a></h3><p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p></header>
-          ${items.length ? `<div class="awards-nominee-grid">${items.map(nominee => nomineeCard(edition, category, nominee, open, votesFor(votes, category.id))).join("")}</div>` : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>'}
+          ${items.length ? `<div class="awards-nominee-grid" tabindex="0" role="region" aria-label="Indicados de ${esc(category.nome)}">${items.map(nominee => nomineeCard(edition, category, nominee, open, votesFor(votes, category.id))).join("")}</div>` : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>'}
         </section>`;
       }).join("")}
     </div>`;

@@ -83,3 +83,119 @@
 @media(max-width:900px){.awards-preview-page .awards-public-grid{grid-template-columns:1fr;gap:38px}}
 @media(max-width:760px){.awards-preview-page .awards-public-hero{padding:42px 0 50px}.awards-preview-page .awards-public-copy{text-align:center}.awards-preview-page .awards-public-copy h1{font-size:clamp(43px,13vw,57px)}.awards-preview-page .awards-public-copy p{font-size:14px}.awards-preview-page .awards-public-panel{padding:0}.awards-preview-page #rules-content.awards-document{padding:20px}}
 @media(max-width:620px){.awards-preview-page[data-awards-page="edition"] .awards-public-copy .hero-actions{display:grid;width:100%;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:18px}.awards-preview-page[data-awards-page="edition"] .awards-public-copy .hero-actions .button{width:100%;min-width:0;min-height:42px;padding:0 4px;border-radius:9px;font-size:clamp(10px,2.8vw,12px);white-space:nowrap}}
+
+/* Edição: categorias compactas ao lado dos indicados. */
+#vote-area {
+  display: grid !important;
+  grid-template-columns: minmax(170px, 210px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+#vote-area .awards-edition-vote-callout { grid-column: 1 / -1; }
+#vote-area .awards-category-nav {
+  position: sticky !important;
+  top: 90px;
+  z-index: 2;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 6px !important;
+  width: auto !important;
+  max-width: none !important;
+  max-height: min(65vh, 520px);
+  margin: 0 !important;
+  padding: 10px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border: 1px solid var(--award-line, rgba(17,18,20,.11)) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: none;
+  overscroll-behavior: contain;
+}
+#vote-area .awards-category-nav button {
+  display: grid;
+  min-width: 0 !important;
+  max-width: none !important;
+  width: 100%;
+  padding: 10px 11px !important;
+  border-radius: 11px !important;
+  white-space: normal;
+  line-height: 1.25;
+}
+#vote-area .awards-category-nav button span { white-space: normal; overflow: visible; text-overflow: clip; }
+#vote-area .awards-nominees { min-width: 0; width: 100%; }
+#vote-area .awards-nominee-group { min-width: 0; scroll-margin-top: 100px; }
+#vote-area .awards-nominee-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 12px;
+  justify-content: stretch;
+  align-items: stretch;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+#vote-area .awards-nominee-grid .awards-nominee-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: none;
+  height: auto;
+}
+#vote-area .awards-nominee-grid .awards-nominee-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  object-position: center;
+  background: #f5f1eb;
+}
+#vote-area .awards-nominee-grid .awards-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 2px 2px;
+}
+#vote-area .awards-nominee-grid .awards-card-body h3 {
+  display: block;
+  min-height: 0;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.25;
+}
+#vote-area .awards-nominee-grid .awards-vote-button { width: 100%; min-height: 42px; margin-top: auto; padding: 8px; font-size: 12px; line-height: 1.2; }
+@media (max-width: 720px) {
+  #vote-area { grid-template-columns: minmax(100px, 125px) minmax(0, 1fr); gap: 8px; }
+  #vote-area .awards-category-nav { position: sticky !important; top: 70px; max-height: 45vh; padding: 6px !important; }
+  #vote-area .awards-category-nav button { padding: 9px 7px !important; font-size: 11px; }
+  #vote-area .awards-category-nav button small { font-size: 10px; }
+  #vote-area .awards-nominee-group { margin: 0; padding: 12px; scroll-margin-top: 75px; }
+  #vote-area .awards-nominee-group > header { display: block; }
+  #vote-area .awards-nominee-group > header h3 { font-size: 19px; }
+  #vote-area .awards-nominee-group > header p { font-size: 12px; }
+  #vote-area .awards-nominee-grid { grid-template-columns: repeat(4, minmax(145px, 1fr)); }
+}
+/* Sobrepõe a apresentação antiga compacta dos cards no celular. */
+@media (max-width: 720px) {
+  #vote-area .awards-nominee-grid { grid-template-columns: repeat(4, minmax(145px, 1fr)) !important; gap: 12px !important; }
+  #vote-area .awards-nominee-grid .awards-nominee-card { display: flex !important; align-items: stretch; gap: 0; padding: 0; }
+  #vote-area .awards-nominee-grid .awards-nominee-card img { width: 100% !important; height: auto !important; }
+  #vote-area .awards-nominee-grid .awards-card-body { display: flex !important; padding: 12px 2px 2px !important; }
+  #vote-area .awards-nominee-grid .awards-card-body h3 { white-space: normal; overflow: visible; font-size: 14px !important; line-height: 1.25 !important; }
+  #vote-area .awards-nominee-grid .awards-vote-button { width: 100% !important; min-width: 0; min-height: 42px !important; padding: 8px !important; border-radius: 14px !important; color: #fff !important; font-size: 12px !important; }
+  #vote-area .awards-nominee-grid .awards-vote-button::after { content: none; }
+}
+@media (max-width: 980px) {
+  #vote-area .awards-nominee-group > header::after { content: 'Deslize para ver os indicados →'; display: block; margin-top: 8px; color: #716b61; font-size: 11px; line-height: 1.3; }
+  #vote-area .awards-nominee-group > header h3::before { content: none; }
+}
+#vote-area .awards-nominee-grid:focus-visible { outline: 2px solid var(--orange, #ed7900); outline-offset: 3px; }
