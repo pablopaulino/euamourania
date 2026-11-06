@@ -199,3 +199,11 @@
   #vote-area .awards-nominee-group > header h3::before { content: none; }
 }
 #vote-area .awards-nominee-grid:focus-visible { outline: 2px solid var(--orange, #ed7900); outline-offset: 3px; }
+
+/* No computador, as imagens dos indicados preenchem o quadro arredondado. */
+@media (min-width: 981px) {
+  #vote-area .awards-nominee-grid .awards-nominee-card img {
+    object-fit: cover;
+    border-radius: 16px;
+  }
+}
