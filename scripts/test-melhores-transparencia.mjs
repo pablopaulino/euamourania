@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { agruparResultados, montarCentralTransparencia } from '../assets/js/pages/melhores-transparencia.js';
+const edition = { ano: 2026, peso_site: 60, peso_instagram: 40 };
+const row = { categoria_id:'cat', colocacao:1, vencedor:true, melhores_categorias:{nome:'Comércio'}, melhores_indicados:{nome:'<Teste>'}, votos_site:0, votos_instagram:0, percentual_site:0, percentual_instagram:0, pontuacao_final:0 };
+assert.equal(agruparResultados([row, {...row, colocacao:2}]).get('cat').length,2);
+let root;
+globalThis.document = { getElementById:()=>null, head:{append(){}}, createElement(tag) { if(tag==='link') return {}; root={innerHTML:'', querySelector:()=>null}; return root; } };
+const container = { prepend(){} };
+montarCentralTransparencia(container, edition, [row]);
+assert.match(root.innerHTML, /0 votos contabilizados/);
+assert.match(root.innerHTML, /&lt;Teste&gt;/);
+assert.doesNotMatch(root.innerHTML, /NaN|Infinity/);
+montarCentralTransparencia(container, edition, [{...row,votos_site:null}]);
+assert.match(root.innerHTML, /Indisponível/);
+assert.doesNotMatch(root.innerHTML, /0 votos contabilizados/);
+montarCentralTransparencia(container, edition, []);
+assert.match(root.innerHTML, /após a publicação oficial/);
+console.log('Central: votos zero, dados ocultos, publicação e nomes validados.');

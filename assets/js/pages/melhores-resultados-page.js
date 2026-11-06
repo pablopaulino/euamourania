@@ -1,6 +1,7 @@
 import { obterEdicaoPorAno, listarResultadosPublicos, listarHistoricoVencedoresPublicos } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
+import { montarCentralTransparencia } from "./melhores-transparencia.js";
 
 export const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
@@ -203,6 +204,7 @@ async function init() {
       document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">${esc(phase)}</span><h1>${esc(edition.nome)}</h1><p>Os resultados desta edição ainda não estão disponíveis. A divulgação oficial acontecerá depois da apuração.</p><div class="hero-actions"><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/">Acompanhar edição</a></div>`;
       document.getElementById("results-panel").innerHTML = `<h2>Edição ${esc(String(edition.ano))}</h2><p>Assim que os resultados forem publicados, os vencedores de cada categoria aparecerão aqui.</p><div class="awards-status-line"><span class="awards-chip">${esc(phase)}</span></div>`;
       document.getElementById("results-list").innerHTML = '<div class="awards-empty">Nenhum resultado oficial publicado para esta edição.</div>';
+      if (edition.ano === 2026) montarCentralTransparencia(document.getElementById("results-list"), edition, []);
       return;
     }
 
@@ -231,6 +233,7 @@ async function init() {
       if (event.target.matches?.(".awards-winner-photo img")) event.target.remove();
     }, true);
     resultsList.innerHTML = renderResults(results, edition, history);
+    if (edition.ano === 2026) montarCentralTransparencia(resultsList, edition, results);
   } catch (error) {
     console.error("Resultados Melhores de Urânia:", error);
     document.getElementById("results-list").innerHTML = '<div class="awards-empty">Não foi possível carregar os resultados agora.</div>';
