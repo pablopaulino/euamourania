@@ -1,5 +1,6 @@
 ﻿import { exigirPermissao, sair, temPermissao } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
+import { uploadImagem, validarImagem } from "../assets/js/services/mediaService.js";
 
 let app = null;
 let db = null;
@@ -230,7 +231,7 @@ function render() {
   const rows = notifications.map(item => {
     const path = item.caminho || destinationPath(item.destino_tipo, item.destino_valor);
     return `<tr>
-        <td class="push-copy"><strong>${esc(item.titulo)}</strong><small>${esc(item.mensagem)}</small></td>
+        <td class="push-copy"><strong>${esc(item.titulo)}</strong><small>${esc(item.mensagem)}</small>${/^https:\/\//i.test(item.imagem_url || "") ? `<img class="push-history-image" src="${esc(item.imagem_url)}" alt="Imagem da notificação" loading="lazy">` : ""}</td>
         <td class="push-copy"><strong>${esc(destinationLabel(item))}</strong><small>${esc(destinationTypeLabel(item.destino_tipo))} · ${esc(topicLabel(item.tema))} · ${esc(path)}</small></td>
         <td>${esc(item.plataforma)}</td>
         <td><span class="status-pill ${esc(item.status)}">${esc(statusLabel(item.status))}</span></td>
@@ -275,6 +276,7 @@ function openForm() {
       </div>
       <div class="push-field full"><label>Título *</label><input name="titulo" maxlength="80" required placeholder="Ex.: Agenda do fim de semana"><small class="push-counter" id="title-count">0/80</small></div>
       <div class="push-field full"><label>Mensagem *</label><textarea name="mensagem" maxlength="220" required placeholder="Conte a novidade em poucas palavras."></textarea><small class="push-counter" id="body-count">0/220</small></div>
+      <div class="push-field full"><label for="push-image">Imagem da notificação (opcional)</label><input id="push-image" type="file" accept="image/jpeg,image/png"><button type="button" class="admin-button secondary" id="push-image-remove">Remover imagem</button><small>JPG ou PNG de até 1 MB. A imagem pode aparecer no Android; no iPhone depende de uma atualização do aplicativo.</small><small id="push-image-status" aria-live="polite"></small></div>
       <div class="push-field"><label>Público</label><select name="plataforma"><option value="todos">Android e iPhone</option><option value="android">Somente Android</option><option value="ios">Somente iPhone</option></select></div>
       <div class="push-field"><label>Interesse</label><select name="tema"><option value="geral">Informação geral (todos)</option><option value="agenda_eventos">Agenda e eventos</option><option value="noticias">Notícias importantes</option><option value="descobertas">Descobertas em Urânia</option><option value="comunidade">Comunidade</option><option value="melhores">Melhores de Urânia</option><option value="parceiros_ofertas">Novidades de parceiros</option></select><small>O envio respeita as escolhas feitas em Meu Viva.</small></div>
       <div class="push-field"><label>Ao tocar, abrir</label><select name="destino_tipo"><option value="home">Página inicial</option><option value="empresa">Empresa do guia</option><option value="turismo">Ponto turístico</option><option value="evento">Evento ou edição</option><option value="noticia">Notícia</option><option value="melhores">Melhores de Urânia</option><option value="telefones_uteis">Telefones úteis</option></select></div>
@@ -286,6 +288,7 @@ function openForm() {
           <div class="phone-preview-top"><span>Viva Urânia</span><small>agora</small></div>
           <strong id="preview-title">Título da notificação</strong>
           <p id="preview-body">A mensagem aparecerá aqui enquanto você escreve.</p>
+          <img id="preview-image" class="push-preview-image" alt="Prévia da imagem da notificação" hidden>
           <small id="preview-path">Abrirá: /</small>
         </div>
         <div class="push-audience-box">
@@ -303,6 +306,42 @@ function openForm() {
   const previewTitle = app.querySelector("#preview-title");
   const previewBody = app.querySelector("#preview-body");
   const previewPath = app.querySelector("#preview-path");
+  const imageInput = app.querySelector("#push-image");
+  const previewImage = app.querySelector("#preview-image");
+  const imageStatus = app.querySelector("#push-image-status");
+  let imageObjectUrl = "";
+  let uploadedFile = null;
+  let uploadedUrl = "";
+  const clearImagePreview = () => {
+    if (imageObjectUrl) URL.revokeObjectURL(imageObjectUrl);
+    imageObjectUrl = "";
+  };
+  addCleanup(clearImagePreview);
+  imageInput.addEventListener("change", () => {
+    clearImagePreview();
+    uploadedFile = null;
+    uploadedUrl = "";
+    const file = imageInput.files?.[0];
+    imageInput.setCustomValidity("");
+    previewImage.hidden = !file;
+    imageStatus.textContent = "";
+    if (!file) { previewImage.removeAttribute("src"); return; }
+    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 1024 * 1024) {
+      imageInput.value = "";
+      previewImage.hidden = true;
+      previewImage.removeAttribute("src");
+      imageStatus.textContent = "Escolha um arquivo JPG ou PNG de até 1 MB.";
+      imageInput.setCustomValidity(imageStatus.textContent);
+      return;
+    }
+    imageObjectUrl = URL.createObjectURL(file);
+    previewImage.src = imageObjectUrl;
+    imageStatus.textContent = file.name;
+  });
+  app.querySelector("#push-image-remove").addEventListener("click", () => {
+    imageInput.value = "";
+    imageInput.dispatchEvent(new Event("change"));
+  });
   const audienceEstimate = app.querySelector("#audience-estimate");
   const audienceDetail = app.querySelector("#audience-detail");
   const updatePreview = () => {
@@ -375,7 +414,7 @@ function openForm() {
       updatePreview();
     });
   });
-  app.querySelector("#cancel").addEventListener("click", render);
+  app.querySelector("#cancel").addEventListener("click", () => { clearImagePreview(); render(); });
   refreshDestination();
   updateAudience();
   updatePreview();
@@ -402,13 +441,29 @@ function openForm() {
       caminho: values.caminho || destinationPath(values.destino_tipo, values.destino_valor),
       criado_por: access.user.id,
     };
-    const { error } = await db.from("app_notificacoes").insert(payload);
-    if (error) {
-      toast(error.message, "error");
+    try {
+      const file = imageInput.files?.[0];
+      if (file) {
+        validarImagem(file);
+        if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 1024 * 1024) throw new Error("Escolha um arquivo JPG ou PNG de até 1 MB.");
+        if (uploadedFile !== file || !uploadedUrl) {
+          button.textContent = "Enviando imagem…";
+          const uploaded = await uploadImagem(file, "comunicacao/notificacoes");
+          uploadedFile = file;
+          uploadedUrl = uploaded.url;
+        }
+        payload.imagem_url = uploadedUrl;
+      }
+      button.textContent = "Salvando…";
+      const { error } = await db.from("app_notificacoes").insert(payload);
+      if (error) throw error;
+    } catch (error) {
+      toast(error.message || "Não foi possível salvar o rascunho.", "error");
       button.disabled = false;
       button.textContent = "Salvar rascunho";
       return;
     }
+    clearImagePreview();
     toast("Rascunho salvo. Revise e clique em Enviar.");
     await load();
   });

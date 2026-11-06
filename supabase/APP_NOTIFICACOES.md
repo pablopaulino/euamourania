@@ -60,6 +60,22 @@ Depois da migração e do deploy:
 
 O painel mostra aparelhos ativos, Android/iPhone, envios aceitos e falhas.
 
+### Imagem opcional
+
+A migração `20261106_app_notificacoes_imagem.sql` acrescenta uma URL opcional
+e protege imagens vinculadas a notificações contra exclusão pelo Storage.
+Ela precisa ser aplicada antes de criar rascunhos com imagem. A aplicação do
+SQL é separada do deploy do site. Não altera mensagens já existentes.
+
+No formulário, escolha um JPG ou PNG de até 1 MB e confira a prévia antes de
+salvar. O upload reutiliza `cms-media/comunicacao/notificacoes` e exige a
+permissão de mídia do módulo Comunicação. O servidor aceita apenas imagens
+desse caminho público e inclui a URL no envio à Expo. Notificações sem imagem
+continuam funcionando como antes. A imagem é destinada à exibição na
+notificação do Android; a aparência depende do aparelho. No iOS, é necessária
+uma extensão nativa de serviço de notificação e uma nova versão do aplicativo.
+Antes de enviar a uma audiência, confira o resultado em aparelho de teste.
+
 ## 5. Armazenamento
 
 Somente tokens ativos e falhas de envio são guardados. Não há rastreamento de

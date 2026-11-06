@@ -45,6 +45,13 @@ function isSafePath(path){
 function deepLinkFor(path){
   return `euamourania://${String(path||"/").replace(/^\/+/,"")}`;
 }
+function isSafeImageUrl(value){
+  try{
+    const url=new URL(value),supabase=new URL(SUPABASE_URL);
+    return url.protocol==="https:"&&url.origin===supabase.origin&&!url.username&&!url.password&&!url.search&&!url.hash
+      &&/^\/storage\/v1\/object\/public\/cms-media\/comunicacao\/notificacoes\/[a-zA-Z0-9/_-]+\.(?:jpg|png)$/.test(url.pathname);
+  }catch{return false}
+}
 async function sendBatch(messages){
   for(let attempt=0;attempt<3;attempt++){
     const response=await fetch(EXPO_ENDPOINT,{
@@ -78,6 +85,7 @@ module.exports=async(req,res)=>{
     const notification=(await rest(`app_notificacoes?id=eq.${encodeURIComponent(id)}&select=*`,{token}))?.[0];
     if(!notification)return res.status(404).json({error:"Notificação não encontrada."});
     if(!["rascunho","falhou"].includes(notification.status))return res.status(409).json({error:"Esta notificação já foi processada."});
+    if(notification.imagem_url&&!isSafeImageUrl(notification.imagem_url))return res.status(400).json({error:"Imagem da notificação inválida."});
     if(notification.tema==="achados_perdidos"){
       const item=(await rest(`achados_perdidos?id=eq.${encodeURIComponent(notification.destino_id||"")}&status=eq.ativo&select=id`,{token}))?.[0];
       if(!item)return res.status(409).json({error:"O anúncio não está publicado; a notificação não pode ser enviada."});
@@ -99,6 +107,7 @@ module.exports=async(req,res)=>{
       sound:"default",
       priority:"high",
       channelId:"novidades",
+      ...(notification.imagem_url?{richContent:{image:notification.imagem_url}}:{}),
       data:{
         path,
         deep_link:deepLinkFor(path),
