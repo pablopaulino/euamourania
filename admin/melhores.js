@@ -575,11 +575,12 @@ function isHistoricalEdition(itemOrId) {
 }
 
 async function loadCategories() {
+  const category_edition_filter = $("#category-edition-filter")?.value;
   setActiveTab("categories");
   $("#categories-view").innerHTML = '<div class="loading">Carregando categorias…</div>';
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-    const selected = $("#category-edition-filter")?.value || state.edicoes[0]?.id || "";
+    const selected = category_edition_filter || state.edicoes[0]?.id || "";
     const historical = isHistoricalEdition(selected);
     state.categorias = await listarCategorias(selected);
     $("#categories-view").innerHTML = `
@@ -622,12 +623,14 @@ function categoryRow(item) {
 }
 
 async function loadIndications() {
+  const indication_edition_filter = $("#indication-edition-filter")?.value;
+  const indication_status_filter = $("#indication-status-filter")?.value;
   setActiveTab("indications");
   $("#indications-view").innerHTML = '<div class="loading">Carregando indicações…</div>';
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-    const edicaoId = $("#indication-edition-filter")?.value || state.edicoes[0]?.id || "";
-    const status = $("#indication-status-filter")?.value || "";
+    const edicaoId = indication_edition_filter || state.edicoes[0]?.id || "";
+    const status = indication_status_filter || "";
     state.indicacoes = await listarIndicacoes({ edicaoId, status });
     $("#indications-view").innerHTML = `
       <article class="awards-card">
@@ -710,14 +713,16 @@ async function convertIndication(id) {
 }
 
 async function loadNominees() {
+  const nominee_edition_filter = $("#nominee-edition-filter")?.value;
+  const nominee_category_filter = $("#nominee-category-filter")?.value;
   setActiveTab("nominees");
   $("#nominees-view").innerHTML = '<div class="loading">Carregando indicados…</div>';
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-    const edicaoId = $("#nominee-edition-filter")?.value || state.edicoes[0]?.id || "";
+    const edicaoId = nominee_edition_filter || state.edicoes[0]?.id || "";
     const historical = isHistoricalEdition(edicaoId);
     if (!state.categorias.length || !state.categorias.some(c => c.edicao_id === edicaoId)) state.categorias = await listarCategorias(edicaoId);
-    const categoriaId = $("#nominee-category-filter")?.value || "";
+    const categoriaId = nominee_category_filter || "";
     state.indicados = await listarIndicados({ edicaoId, categoriaId });
     $("#nominees-view").innerHTML = `
       <article class="awards-card">
@@ -756,12 +761,14 @@ function nomineeRow(item) {
 }
 
 async function loadVotes() {
+  const votes_edition_filter = $("#votes-edition-filter")?.value;
+  const votes_status_filter = $("#votes-status-filter")?.value;
   setActiveTab("votes");
   $("#votes-view").innerHTML = '<div class="loading">Carregando votos…</div>';
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-    const edicaoId = $("#votes-edition-filter")?.value || state.edicoes[0]?.id || "";
-    const status = $("#votes-status-filter")?.value || "";
+    const edicaoId = votes_edition_filter || state.edicoes[0]?.id || "";
+    const status = votes_status_filter || "";
     const [votos, totals] = await Promise.all([
       listarVotos({ edicaoId, status }),
       contarVotosPorStatus(edicaoId, voteStatuses)
@@ -843,11 +850,12 @@ async function exportVotesEvidence() {
 }
 
 async function loadInstagram() {
+  const instagram_edition_filter = $("#instagram-edition-filter")?.value;
   setActiveTab("instagram");
   $("#instagram-view").innerHTML = '<div class="loading">Carregando votos do Instagram…</div>';
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-    const edicaoId = $("#instagram-edition-filter")?.value || state.edicoes[0]?.id || "";
+    const edicaoId = instagram_edition_filter || state.edicoes[0]?.id || "";
     if (!state.categorias.length || !state.categorias.some(c => c.edicao_id === edicaoId)) state.categorias = await listarCategorias(edicaoId);
     state.indicados = await listarIndicados({ edicaoId });
     state.instagram = await listarInstagramVotos(edicaoId);
@@ -887,11 +895,12 @@ function instagramRow(item) {
 }
 
 async function loadApuration() {
+  const apuration_edition_filter = $("#apuration-edition-filter")?.value;
   setActiveTab("apuration");
   $("#apuration-view").innerHTML = '<div class="loading">Calculando apuração…</div>';
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-    const edicaoId = $("#apuration-edition-filter")?.value || state.edicoes[0]?.id || "";
+    const edicaoId = apuration_edition_filter || state.edicoes[0]?.id || "";
     state.apuracao = edicaoId ? await obterApuracao(edicaoId) : [];
     const grouped = groupBy(state.apuracao, "categoria_id");
     const edition = state.edicoes.find(item => item.id === edicaoId);
@@ -937,11 +946,12 @@ function apurationGroup(_categoriaId, rows) {
 }
 
 async function loadResults() {
+  const results_edition_filter = $("#results-edition-filter")?.value;
   setActiveTab("results");
   $("#results-view").innerHTML = '<div class="loading">Carregando resultados…</div>';
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-    const edicaoId = $("#results-edition-filter")?.value || state.edicoes[0]?.id || "";
+    const edicaoId = results_edition_filter || state.edicoes[0]?.id || "";
     state.resultados = edicaoId ? await listarResultados(edicaoId) : [];
     const grouped = groupBy(state.resultados, "categoria_id");
     $("#results-view").innerHTML = `
@@ -971,12 +981,14 @@ function audienceRank(title, rows, labelKey = "label") {
 }
 
 async function loadAudience() {
+  const audience_edition_filter = $("#audience-edition-filter")?.value;
+  const audience_period_filter = $("#audience-period-filter")?.value;
   setActiveTab("audience");
   $("#audience-view").innerHTML = '<div class="loading">Carregando audiência do Melhores…</div>';
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-    const edicaoId = $("#audience-edition-filter")?.value || state.edicoes[0]?.id || "";
-    const dias = $("#audience-period-filter")?.value || "30";
+    const edicaoId = audience_edition_filter || state.edicoes[0]?.id || "";
+    const dias = audience_period_filter || "30";
     const data = await obterAudienciaMelhores({ edicaoId, dias });
     $("#audience-view").innerHTML = `
       <article class="awards-card">
@@ -1016,11 +1028,12 @@ async function loadAudience() {
 }
 
 async function loadAudit() {
+  const audit_edition_filter = $("#audit-edition-filter")?.value;
   setActiveTab("audit");
   $("#audit-view").innerHTML = '<div class="loading">Carregando auditoria…</div>';
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-    const edicaoId = $("#audit-edition-filter")?.value || state.edicoes[0]?.id || "";
+    const edicaoId = audit_edition_filter || state.edicoes[0]?.id || "";
     state.auditoria = await listarAuditoria(edicaoId);
     $("#audit-view").innerHTML = `
       <article class="awards-card">
@@ -1141,12 +1154,13 @@ function appInconsistencias(campaign, winners, categories = []) {
 }
 
 async function loadAppDisplay() {
+  const app_campaign_filter = $("#app-campaign-filter")?.value;
   setActiveTab("app");
   $("#app-view").innerHTML = '<div class="loading">Carregando exibição no aplicativo…</div>';
   try {
     if (!state.edicoes.length) state.edicoes = await listarEdicoes();
     state.appCampanhas = await listarCampanhasApp();
-    const selectedId = $("#app-campaign-filter")?.value || state.appCampanhas[0]?.id || "";
+    const selectedId = app_campaign_filter || state.appCampanhas[0]?.id || "";
     const selected = selectedId ? state.appCampanhas.find(item => item.id === selectedId) || await obterCampanhaApp(selectedId) : null;
     state.appVencedores = selected?.id ? await listarVencedoresApp(selected.id) : [];
     const categories = selected?.edicao_id ? await listarCategorias(selected.edicao_id) : [];
@@ -1277,7 +1291,7 @@ function bindSimpleSearch(prefix, rootId) {
     });
   };
   addListener(input, "input", filter);
-  addListener(category, "input", filter);
+  addListener(category, "change", filter);
 }
 
 function bindFilter(type) {
@@ -1292,7 +1306,7 @@ function bindFilter(type) {
     });
   };
   addListener(input, "input", filter);
-  addListener(status, "input", filter);
+  addListener(status, "change", filter);
 }
 
 function field(name, label, value = "", attrs = "") {
@@ -1976,12 +1990,16 @@ async function init(context = {}) {
     if (event.target.id === "category-edition-filter") loadCategories();
     if (event.target.id === "indication-edition-filter" || event.target.id === "indication-status-filter") loadIndications();
     if (event.target.id === "nominee-edition-filter" || event.target.id === "nominee-category-filter") {
-      if (event.target.id === "nominee-edition-filter") state.categorias = [];
+      if (event.target.id === "nominee-edition-filter") {
+        state.categorias = [];
+        const categoryFilter = $("#nominee-category-filter");
+        if (categoryFilter) categoryFilter.value = "";
+      }
       loadNominees();
     }
     if (event.target.id === "votes-edition-filter" || event.target.id === "votes-status-filter") loadVotes();
-    if (event.target.id === "instagram-edition-filter" || event.target.id === "instagram-category-filter") {
-      if (event.target.id === "instagram-edition-filter") state.categorias = [];
+    if (event.target.id === "instagram-edition-filter") {
+      state.categorias = [];
       loadInstagram();
     }
     if (event.target.id === "apuration-edition-filter") loadApuration();
