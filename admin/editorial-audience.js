@@ -1,6 +1,6 @@
 ﻿import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { obterAudienciaAvancada } from "../assets/js/services/analyticsService.js";
-import { obterAcessoAtual, temPermissao } from "./auth.js";
+import { exigirAdministrador, obterAcessoAtual, temPermissao } from "./auth.js";
 import { adminPathForView, adminViewFromLocation } from "./admin-routes.js";
 
 const db=getSupabase();
@@ -417,7 +417,7 @@ function isAppAudienceEvent(item){
   ["app_open","app_screen_view","empresa_view","empresa_whatsapp_click","empresa_phone_click","empresa_map_click","turismo_view","turismo_map_click","evento_view","noticia_view","favorite_add","favorite_remove","search","notification_open","share_click","telefone_util_view","telefone_util_call_click","telefone_util_whatsapp_click","ai_guide_question","ai_guide_itinerary_create","itinerary_save","itinerary_share"].includes(tipo);
 }
 async function appAudience(startString,endString){
- const admin=access()?.admin;
+ const admin=(access()||await exigirAdministrador())?.admin;
  if(!temPermissao(admin,"insights","ler")){
   return{available:false,error:"Seu perfil nao possui permissao para consultar audiência."};
  }
