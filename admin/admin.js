@@ -46,6 +46,7 @@ function setUnifiedModuleScope(view) {
 }
 
 const moduleRoutes = {
+  achados_perdidos: { label: "Achados e Perdidos", hint: "Revise os anúncios enviados pelo aplicativo.", module: () => import("./achados-perdidos.js") },
   catalogos: {
     label: "Catálogos",
     hint: "Produtos, categorias e opções das empresas do Guia Comercial.",
