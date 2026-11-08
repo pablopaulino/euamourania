@@ -939,7 +939,7 @@ function apurationGroup(_categoriaId, rows) {
           <td>${Number(row.votos_site || 0).toLocaleString("pt-BR")} <small>(${Number(row.percentual_site || 0).toFixed(2)}%)</small></td>
           <td>${Number(row.votos_instagram || 0).toLocaleString("pt-BR")} <small>(${Number(row.percentual_instagram || 0).toFixed(2)}%)</small></td>
           <td><strong>${Number(row.pontuacao_final || 0).toFixed(4)}</strong></td>
-          <td>${!hasVotes ? "Sem votos" : row.empate ? '<span class="awards-status planejamento">empate</span>' : Number(row.colocacao) === 1 ? '<span class="awards-status ativo">liderança parcial</span>' : ""}</td>
+          <td>${!hasVotes ? "Sem votos" : row.empate ? '<span class="awards-status planejamento">empate</span>' : Number(row.colocacao) === 1 ? '<span class="awards-status ativo">vencedor prévio</span>' : ""}</td>
         </tr>`).join("")}</tbody>
       </table>
     </div>

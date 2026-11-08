@@ -11,9 +11,9 @@ const row={categoria_nome:'Atendimento',indicado_nome:'Ana',votos_site:0,votos_i
 const empty=render('c',[row]);
 assert.match(empty, /Site \/ App/);
 assert.match(empty, /Sem votos/);
-assert.doesNotMatch(empty, /liderança parcial|planejamento">empate/);
+assert.doesNotMatch(empty, /vencedor prévio|planejamento">empate/);
 const leading=render('c',[{...row,votos_site:7,empate:false}]);
-assert.match(leading,/liderança parcial/);
+assert.match(leading,/vencedor prévio/);
 assert.match(leading,/>7 </);
 const tied=render('c',[{...row,votos_instagram:3}]);
 assert.match(tied,/planejamento">empate/);
