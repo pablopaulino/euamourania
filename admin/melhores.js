@@ -22,7 +22,7 @@ import {
   excluirIndicado,
   listarGuiaComercial,
   listarInstagramVotos,
-  salvarInstagramVoto,
+  salvarInstagramCategoria,
   excluirInstagramVoto,
   obterApuracao,
   publicarResultado,
@@ -862,19 +862,17 @@ async function loadInstagram() {
     $("#instagram-view").innerHTML = `
       <article class="awards-card">
         <div class="awards-panel-head">
-          <div><h3>Votos do Instagram</h3><p>Lance manualmente os votos coletados nas enquetes. O sistema normaliza por percentual na apuração.</p></div>
-          <button class="admin-button" data-new-instagram>Adicionar votos</button>
+          <div><h3>Votos do Instagram por categoria</h3><p>Abra uma categoria para registrar os votos dos indicados e até dois comprovantes.</p></div>
         </div>
         <div class="awards-toolbar">
-          <input id="instagram-search" type="search" placeholder="Pesquisar indicado ou categoria…">
+          <input id="instagram-search" type="search" placeholder="Pesquisar categoria…">
           <select id="instagram-edition-filter">${state.edicoes.map(e => `<option value="${e.id}" ${e.id === edicaoId ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join("")}</select>
-          <select id="instagram-category-filter"><option value="">Todas as categorias</option>${state.categorias.map(c => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")}</select>
           <button class="admin-button secondary" data-refresh-instagram>Atualizar</button>
         </div>
         <div class="awards-table-wrap">
           <table class="awards-table">
-            <thead><tr><th>Indicado</th><th>Categoria</th><th>Votos</th><th>Coleta</th><th>Ações</th></tr></thead>
-            <tbody id="instagram-rows">${state.instagram.length ? state.instagram.map(instagramRow).join("") : '<tr><td colspan="5"><div class="awards-empty">Nenhum voto do Instagram lançado.</div></td></tr>'}</tbody>
+            <thead><tr><th>Categoria</th><th>Indicados lançados</th><th>Votos registrados</th><th>Ações</th></tr></thead>
+            <tbody id="instagram-rows">${state.categorias.filter(c => c.edicao_id === edicaoId).map(instagramCategoryRow).join("") || '<tr><td colspan="4"><div class="awards-empty">Nenhuma categoria nesta edição.</div></td></tr>'}</tbody>
           </table>
         </div>
       </article>`;
@@ -884,13 +882,15 @@ async function loadInstagram() {
   }
 }
 
-function instagramRow(item) {
-  return `<tr data-search="${escapeHtml(`${item.melhores_indicados?.nome || ""} ${item.melhores_categorias?.nome || ""}`.toLowerCase())}" data-category="${escapeHtml(item.categoria_id)}">
-    <td><strong>${escapeHtml(item.melhores_indicados?.nome || "Indicado")}</strong>${item.comprovante_url ? `<br><small><a class="awards-link" href="${escapeHtml(item.comprovante_url)}" target="_blank" rel="noopener">Ver comprovante</a></small>` : ""}</td>
-    <td>${escapeHtml(item.melhores_categorias?.nome || "Categoria")}</td>
-    <td><strong>${Number(item.votos || 0).toLocaleString("pt-BR")}</strong></td>
-    <td>${fmtDate(item.coletado_em)}</td>
-    <td><div class="awards-actions"><button data-edit-instagram="${item.id}">Editar</button><button class="danger" data-delete-instagram="${item.id}">Excluir</button></div></td>
+function instagramCategoryRow(category) {
+  const rows = state.instagram.filter(item => item.categoria_id === category.id);
+  const total = rows.reduce((sum, item) => sum + Number(item.votos || 0), 0);
+  const nominees = state.indicados.filter(item => item.categoria_id === category.id);
+  return `<tr data-search="${escapeHtml(category.nome.toLowerCase())}" data-category="${escapeHtml(category.id)}">
+    <td><strong>${escapeHtml(category.nome)}</strong></td>
+    <td>${rows.length} de ${nominees.length}</td>
+    <td><strong>${total.toLocaleString("pt-BR")}</strong></td>
+    <td><div class="awards-actions"><button data-edit-instagram-category="${escapeHtml(category.id)}">${rows.length ? "Abrir / editar" : "Lançar votos"}</button></div></td>
   </tr>`;
 }
 
@@ -1630,52 +1630,56 @@ async function nomineeForm(id) {
   });
 }
 
-async function instagramForm(id) {
-  if (!state.edicoes.length) state.edicoes = await listarEdicoes();
-  const selectedEdition = $("#instagram-edition-filter")?.value || state.edicoes[0]?.id || "";
-  if (!state.categorias.length || !state.categorias.some(c => c.edicao_id === selectedEdition)) state.categorias = await listarCategorias(selectedEdition);
-  if (!state.indicados.length || !state.indicados.some(i => i.edicao_id === selectedEdition)) state.indicados = await listarIndicados({ edicaoId: selectedEdition });
-  const item = id ? state.instagram.find(x => x.id === id) || {} : { edicao_id: selectedEdition, votos: 0 };
-  const categories = item.edicao_id ? await listarCategorias(item.edicao_id) : state.categorias;
-  const nominees = item.edicao_id ? await listarIndicados({ edicaoId: item.edicao_id, categoriaId: item.categoria_id || categories[0]?.id }) : state.indicados;
-  showForm(id ? "Editar votos do Instagram" : "Adicionar votos do Instagram", `
-    <input type="hidden" name="id" value="${escapeHtml(id || "")}">
-    ${selectField("edicao_id", "Edição *", state.edicoes.map(e => `<option value="${e.id}" ${e.id === (item.edicao_id || selectedEdition) ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join(""))}
-    ${selectField("categoria_id", "Categoria *", categories.map(c => `<option value="${c.id}" ${c.id === item.categoria_id ? "selected" : ""}>${escapeHtml(c.nome)}</option>`).join(""))}
-    ${selectField("indicado_id", "Indicado *", nominees.map(n => `<option value="${n.id}" ${n.id === item.indicado_id ? "selected" : ""}>${escapeHtml(n.nome)}</option>`).join(""))}
-    ${field("votos", "Votos no Instagram *", item.votos || 0, "type='number' min='0' required")}
-    ${field("coletado_em", "Data da coleta", fmtDateInput(item.coletado_em), "type='datetime-local'")}
-    ${field("comprovante_url", "Comprovante/print", item.comprovante_url || "", "placeholder='https://... ou /assets/...'")}
-    ${textarea("observacao", "Observação", item.observacao || "")}
+async function instagramForm(categoryId) {
+  const category = state.categorias.find(item => item.id === categoryId);
+  if (!category) throw new Error("Categoria não encontrada. Atualize a lista e tente novamente.");
+  const nominees = state.indicados.filter(item => item.categoria_id === category.id && item.edicao_id === category.edicao_id);
+  const rows = state.instagram.filter(item => item.categoria_id === category.id && item.edicao_id === category.edicao_id);
+  const byNominee = new Map(rows.map(item => [item.indicado_id, item]));
+  const proofs = [...new Set(rows.flatMap(item => [item.comprovante_url, item.comprovante_url_2]).filter(Boolean))];
+  const initialProofs = [proofs[0] || "", proofs[1] || ""];
+  const edition = state.edicoes.find(item => item.id === category.edicao_id);
+  const legacyProofs = proofs.length > 2 ? `<p class="awards-note">Há comprovantes antigos diferentes por indicado. Eles serão preservados se você não alterar os campos abaixo.</p><div>${proofs.filter(validReference).map((url, index) => `<a class="awards-link" href="${escapeHtml(url)}" target="_blank" rel="noopener">Comprovante existente ${index + 1}</a>`).join(" · ")}</div>` : "";
+  showForm(`Instagram · ${category.nome}`, `
+    <p class="awards-note">${escapeHtml(edition?.nome || "Edição")} · Informe os votos de cada indicado. Deixe em branco os que ainda não foram apurados; use 0 para registrar zero votos.</p>
+    <div class="awards-table-wrap"><table class="awards-table"><thead><tr><th>Indicado</th><th>Votos no Instagram</th></tr></thead><tbody>
+      ${nominees.map(nominee => `<tr><td><strong>${escapeHtml(nominee.nome)}</strong>${byNominee.has(nominee.id) ? `<br><button type="button" class="awards-link" data-delete-instagram="${escapeHtml(byNominee.get(nominee.id).id)}">Excluir este lançamento</button>` : ""}</td><td><label class="awards-field"><span class="sr-only">Votos de ${escapeHtml(nominee.nome)}</span><input type="number" min="0" max="2147483647" step="1" inputmode="numeric" data-instagram-nominee="${escapeHtml(nominee.id)}" value="${byNominee.has(nominee.id) ? escapeHtml(byNominee.get(nominee.id).votos) : ""}" placeholder="Não lançado"></label></td></tr>`).join("") || '<tr><td colspan="2">Não há indicados nesta categoria.</td></tr>'}
+    </tbody></table></div>
+    ${legacyProofs}
+    ${field("comprovante_url", "Comprovante 1 (opcional)", initialProofs[0], "placeholder='Adicione uma imagem ou URL'")}
+    ${field("comprovante_url_2", "Comprovante 2 (opcional)", initialProofs[1], "placeholder='Adicione uma imagem ou URL'")}
+    <p class="awards-note">Os comprovantes são associados aos lançamentos desta categoria. Para removê-los, limpe os campos correspondentes. Imagens enviadas ficam na biblioteca pública de mídia do site.</p>
   `, async event => {
     event.preventDefault();
     const form = event.currentTarget;
-    if (!validReference(form.elements.comprovante_url.value)) return toast("Use URL válida ou caminho interno no comprovante.", "error");
-    await salvarInstagramVoto({
-      edicao_id: form.elements.edicao_id.value,
-      categoria_id: form.elements.categoria_id.value,
-      indicado_id: form.elements.indicado_id.value,
-      votos: Number(form.elements.votos.value || 0),
-      coletado_em: toIso(form.elements.coletado_em.value),
-      comprovante_url: form.elements.comprovante_url.value.trim() || null,
-      observacao: form.elements.observacao.value.trim() || null
+    if (form.querySelector(".cms-media-upload .busy")) return toast("Aguarde o envio dos comprovantes antes de salvar.", "error");
+    const currentProofs = [form.elements.comprovante_url.value.trim(), form.elements.comprovante_url_2.value.trim()];
+    if (!currentProofs.every(validReference)) return toast("Use imagens enviadas ou URLs válidas nos comprovantes.", "error");
+    const changedProofs = currentProofs.some((value, index) => value !== initialProofs[index]);
+    if (proofs.length > 2 && changedProofs) return toast("Há mais de dois comprovantes antigos diferentes nesta categoria. Mantenha os campos como estão para preservar todos os arquivos.", "error");
+    const inputs = [...form.querySelectorAll("[data-instagram-nominee]")];
+    const filled = inputs.filter(input => input.value.trim() !== "");
+    if (!filled.length) return toast("Informe os votos de pelo menos um indicado.", "error");
+    if (filled.some(input => !input.validity.valid)) return toast("Informe apenas números inteiros não negativos.", "error");
+    const payloads = filled.map(input => {
+      const existing = byNominee.get(input.dataset.instagramNominee);
+      return {
+        edicao_id: category.edicao_id,
+        categoria_id: category.id,
+        indicado_id: input.dataset.instagramNominee,
+        votos: Number(input.value),
+        coletado_em: existing?.coletado_em || new Date().toISOString(),
+        observacao: existing?.observacao || null,
+        comprovante_url: changedProofs || !existing ? currentProofs[0] || null : existing.comprovante_url || null,
+        comprovante_url_2: changedProofs || !existing ? currentProofs[1] || null : existing.comprovante_url_2 || null
+      };
     });
-    toast("Votos do Instagram salvos.");
+    await salvarInstagramCategoria(payloads);
+    toast("Votos da categoria salvos.");
     state.instagram = [];
     await loadInstagram();
-  });
-  attachAwardsMedia({ comprovante_url: ["melhores/comprovantes", "original"] });
-  const form = $("#awards-form");
-  addListener(form.elements.edicao_id, "change", async () => {
-    const cats = await listarCategorias(form.elements.edicao_id.value);
-    form.elements.categoria_id.innerHTML = cats.map(c => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("");
-    const noms = await listarIndicados({ edicaoId: form.elements.edicao_id.value, categoriaId: cats[0]?.id });
-    form.elements.indicado_id.innerHTML = noms.map(n => `<option value="${n.id}">${escapeHtml(n.nome)}</option>`).join("");
-  });
-  addListener(form.elements.categoria_id, "change", async () => {
-    const noms = await listarIndicados({ edicaoId: form.elements.edicao_id.value, categoriaId: form.elements.categoria_id.value });
-    form.elements.indicado_id.innerHTML = noms.map(n => `<option value="${n.id}">${escapeHtml(n.nome)}</option>`).join("");
-  });
+  }, { submitLabel: "Salvar votos da categoria" });
+  attachAwardsMedia({ comprovante_url: ["melhores/comprovantes", "original"], comprovante_url_2: ["melhores/comprovantes", "original"] });
 }
 
 async function appCampaignForm(id) {
@@ -1918,9 +1922,8 @@ async function init(context = {}) {
         toast(`${total || 0} voto(s) individual(is) removido(s) após consolidação.`);
         return loadVotes();
       }
-      if (button.hasAttribute("data-new-instagram")) return instagramForm();
-      if (button.dataset.editInstagram) return instagramForm(button.dataset.editInstagram);
-      if (button.dataset.deleteInstagram && confirm("Excluir este lançamento do Instagram?")) {
+      if (button.dataset.editInstagramCategory) return instagramForm(button.dataset.editInstagramCategory);
+      if (button.dataset.deleteInstagram && confirm("Excluir este lançamento? Alterações ainda não salvas nesta tela serão perdidas.")) {
         await excluirInstagramVoto(button.dataset.deleteInstagram);
         toast("Lançamento excluído.");
         state.instagram = [];

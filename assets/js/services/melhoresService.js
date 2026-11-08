@@ -387,6 +387,16 @@ export async function salvarInstagramVoto(payload) {
   return data;
 }
 
+export async function salvarInstagramCategoria(payloads) {
+  if (!payloads.length) throw new Error("Informe ao menos um resultado para salvar.");
+  const { data, error } = await db()
+    .from("melhores_instagram_votos")
+    .upsert(payloads, { onConflict: "edicao_id,categoria_id,indicado_id" })
+    .select();
+  if (error) throw error;
+  return data || [];
+}
+
 export async function excluirInstagramVoto(id) {
   const { error } = await db().from("melhores_instagram_votos").delete().eq("id", id);
   if (error) throw error;

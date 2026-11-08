@@ -44,7 +44,7 @@ for (const required of [
 
 for (const fn of [
   "listarInstagramVotos",
-  "salvarInstagramVoto",
+  "salvarInstagramCategoria",
   "excluirInstagramVoto",
   "obterApuracao",
   "publicarResultado",
