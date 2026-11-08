@@ -40,7 +40,7 @@ function saveVote(editionId, categoryId, nomineeId) {
   const current = votesFor(votes, categoryId);
   if (!current.includes(nomineeId)) current.push(nomineeId);
   votes[categoryId] = current;
-  localStorage.setItem(key(editionId), JSON.stringify(votes));
+  try { localStorage.setItem(key(editionId), JSON.stringify(votes)); } catch {}
 }
 
 function reconcileVotes(editionId, confirmed = []) {
@@ -124,7 +124,7 @@ function loadTurnstile() {
     script.async = true;
     script.defer = true;
     script.onload = () => resolve(true);
-    script.onerror = () => reject(new Error("Não foi possível carregar a verificação de segurança."));
+    script.onerror = () => { turnstileLoadPromise = null; script.remove(); reject(new Error("Não foi possível carregar a verificação de segurança.")); };
     document.head.append(script);
   });
   return turnstileLoadPromise;
@@ -550,7 +550,11 @@ async function init() {
       document.getElementById("indication-area").innerHTML = '<div class="awards-empty">Indicações indisponíveis para esta edição.</div>';
       return;
     }
-    const [period, download] = await Promise.all([consultarPeriodoVotacao(edition.id), getAppDownloadConfig()]);
+    loadTurnstile().catch(() => {});
+    const [period, download, categories, nominees] = await Promise.all([
+      consultarPeriodoVotacao(edition.id), getAppDownloadConfig(),
+      listarCategoriasPublicas(edition.id), listarIndicadosPublicos(edition.id)
+    ]);
     voteClock = { agora: new Date(period.agora).getTime(), recebido: performance.now() };
     reconcileVotes(edition.id, period.votos_site);
     edition.status = period.status;
@@ -565,10 +569,6 @@ async function init() {
     });
     setMeta(edition);
     renderHero(edition, open);
-    const [categories, nominees] = await Promise.all([
-      listarCategoriasPublicas(edition.id),
-      listarIndicadosPublicos(edition.id)
-    ]);
     enrichHeroStats(edition, categories, nominees);
     renderEditionHub(edition, categories, nominees);
     orderSectionsForPhase(edition);
@@ -652,7 +652,15 @@ document.addEventListener("click", async event => {
       metadados: { categoria_id: vote.dataset.category, indicado_id: vote.dataset.nominee }
     });
     toast("Voto registrado com sucesso. Obrigado por participar!");
-    showPostVotePanel(vote.dataset.edition, vote);
+    const next = [...document.querySelectorAll(".awards-nominee-group")]
+      .find(group => group.querySelector("[data-vote]:not(:disabled)"));
+    if (next) {
+      const categoryId = next.id.replace(/^categoria-/, "");
+      document.querySelectorAll("[data-scroll-category]").forEach(button => button.classList.toggle("active", button.dataset.scrollCategory === categoryId));
+      next.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+    } else {
+      showPostVotePanel(vote.dataset.edition, vote);
+    }
   } catch (error) {
     activeVoteAttempt = null;
     vote.disabled = false;

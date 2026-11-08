@@ -6,7 +6,7 @@ import {
   consultarPeriodoVotacao
 } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
-import { getAppDownloadConfig } from "../services/appDownloadConfig.js";
+import { APP_DOWNLOAD_CONFIG, getAppDownloadConfig } from "../services/appDownloadConfig.js";
 import { TURNSTILE_SITE_KEY } from "../supabase-config.js";
 
 const root = document.getElementById("awards-voting-root");
@@ -16,7 +16,9 @@ const voteStorageKey = editionId => `euamourania:melhores:votos:${editionId}`;
 const sessionVotes = new Map();
 const voteFeedback = new Map();
 let voteClock = null;
-let appDownload = null;
+let appDownload = APP_DOWNLOAD_CONFIG;
+let voteInFlight = false;
+let voteRevision = 0;
 const serverNow = () => voteClock ? voteClock.agora + (performance.now() - voteClock.recebido) : Date.now();
 const appStart = edition => edition.votacao_inicio;
 const siteStart = edition => edition.votacao_inicio_site;
@@ -174,7 +176,7 @@ function loadTurnstile() {
     script.async = true;
     script.defer = true;
     script.onload = () => resolve(true);
-    script.onerror = () => reject(new Error("Não foi possível carregar a verificação de segurança."));
+    script.onerror = () => { turnstileLoadPromise = null; script.remove(); reject(new Error("Não foi possível carregar a verificação de segurança.")); };
     document.head.append(script);
   });
   return turnstileLoadPromise;
@@ -419,6 +421,9 @@ function renderCompletion(edition, categories, nominees) {
 async function handleVote(event, edition, categories, nominees) {
   const button = event.target.closest("[data-vote]");
   if (!button || button.disabled || !button.dataset.nominee) return;
+  if (voteInFlight) return;
+  voteInFlight = true;
+  voteRevision++;
   button.disabled = true;
   const oldText = button.textContent;
   button.textContent = "Registrando…";
@@ -443,11 +448,11 @@ async function handleVote(event, edition, categories, nominees) {
       metadados: { categoria_id: button.dataset.category, indicado_id: button.dataset.nominee, origem_fluxo: "central_votacao" }
     });
     toast(result.message || "Sua escolha foi recebida.");
-    renderCategory(edition, categories, nominees, getCategorySlug());
-    root.querySelector(".vote-saved-state, .vote-confirmation")?.scrollIntoView({
-      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
-      block: "start"
-    });
+    const current = categories.find(category => category.id === button.dataset.category);
+    if (current && getCategorySlug() === current.slug) {
+      const next = progressFor(edition, categories, nominees).next;
+      navigateVoting(next ? votingUrl(edition, next) : `${hubUrl(edition)}?concluido=1`, edition, categories, nominees);
+    }
   } catch (error) {
     button.disabled = false;
     button.textContent = oldText;
@@ -458,7 +463,21 @@ async function handleVote(event, edition, categories, nominees) {
     toast(error instanceof TypeError
       ? "Não foi possível confirmar a resposta. Tente novamente; se o voto já foi salvo, ele não será duplicado."
       : error.message);
+  } finally {
+    voteInFlight = false;
   }
+}
+
+function renderCurrentVotingPage(edition, categories, nominees) {
+  const slug = getCategorySlug();
+  if (slug) renderCategory(edition, categories, nominees, slug);
+  else renderHub(edition, categories, nominees);
+}
+
+function navigateVoting(url, edition, categories, nominees) {
+  history.pushState({}, "", url);
+  renderCurrentVotingPage(edition, categories, nominees);
+  window.scrollTo({ top: 0, behavior: "instant" });
 }
 
 async function handleCategoryShare(event, edition) {
@@ -485,15 +504,16 @@ async function handleCategoryShare(event, edition) {
 
 async function init() {
   try {
+    loadTurnstile().catch(() => {});
+    const downloadPromise = getAppDownloadConfig();
     const year = getYear();
     const edition = await obterEdicaoPorAno(year);
     if (!edition) {
       root.innerHTML = `<div class="awards-empty">Edição não encontrada ou ainda não publicada.</div>`;
       return;
     }
-    const [period, download, categories, nominees] = await Promise.all([
+    const [period, categories, nominees] = await Promise.all([
       consultarPeriodoVotacao(edition.id),
-      getAppDownloadConfig(),
       listarCategoriasPublicas(edition.id),
       listarIndicadosPublicos(edition.id)
     ]);
@@ -503,32 +523,39 @@ async function init() {
     edition.votacao_inicio = period.votacao_inicio_app;
     edition.votacao_inicio_site = period.votacao_inicio_site;
     edition.votacao_fim = period.votacao_fim;
-    appDownload = download;
+    downloadPromise.then(download => { appDownload = download; }).catch(() => {});
     registrarEventoMelhores("melhores_voting_center_view", {
       edicaoId: edition.id,
       metadados: { ano: edition.ano, categoria: getCategorySlug() || null }
     });
-    const slug = getCategorySlug();
-    if (slug) {
-      renderCategory(edition, categories, nominees, slug);
-    } else {
-      renderHub(edition, categories, nominees);
-    }
+    renderCurrentVotingPage(edition, categories, nominees);
     root.addEventListener("click", event => {
+      const link = event.target.closest("a[href]");
+      if (link && !event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && !link.hasAttribute("target") && link.getAttribute("aria-disabled") !== "true") {
+        const url = new URL(link.href, location.href);
+        if (url.origin === location.origin && (url.pathname === hubUrl(edition) || url.pathname.startsWith(hubUrl(edition)))) {
+          event.preventDefault();
+          if (!voteInFlight) navigateVoting(url.pathname + url.search + url.hash, edition, categories, nominees);
+          return;
+        }
+      }
       handleCategoryShare(event, edition);
       handleVote(event, edition, categories, nominees);
     });
+    window.addEventListener("popstate", () => renderCurrentVotingPage(edition, categories, nominees));
     const refreshPeriod = async () => {
       try {
+        if (voteInFlight || root.querySelector('[data-select-nominee][aria-pressed="true"]')) return;
+        const revision = voteRevision;
         const latest = await consultarPeriodoVotacao(edition.id);
+        if (voteInFlight || revision !== voteRevision || root.querySelector('[data-select-nominee][aria-pressed="true"]')) return;
         voteClock = { agora: new Date(latest.agora).getTime(), recebido: performance.now() };
         reconcileVotes(edition.id, latest.votos_site);
         edition.status = latest.status;
         edition.votacao_inicio = latest.votacao_inicio_app;
         edition.votacao_inicio_site = latest.votacao_inicio_site;
         edition.votacao_fim = latest.votacao_fim;
-        if (getCategorySlug()) renderCategory(edition, categories, nominees, getCategorySlug());
-        else renderHub(edition, categories, nominees);
+        renderCurrentVotingPage(edition, categories, nominees);
       } catch { /* A API de voto continua sendo a autoridade para aceitar votos. */ }
     };
     window.setInterval(refreshPeriod, 60000);
