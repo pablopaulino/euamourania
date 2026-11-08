@@ -177,22 +177,27 @@ module.exports = async (req, res) => {
     if (!visitorAllowed || !ipAllowed) {
       return json(res, 429, { ok: false, message: "Muitas tentativas. Aguarde alguns minutos e tente novamente." }, responseHeaders);
     }
-    const turnstile = await verifyTurnstile(payload.turnstile_token || payload.cf_turnstile_response, ip);
+    const [turnstile, editions, categories, nominees] = await Promise.all([
+      verifyTurnstile(payload.turnstile_token || payload.cf_turnstile_response, ip),
+      rest(`melhores_edicoes?select=id,status,votacao_inicio_site,votacao_fim&limit=1&id=eq.${edicaoId}`),
+      rest(`melhores_categorias?select=id,edicao_id,status,visibilidade_publica,permite_multiplos_votos,max_escolhas&limit=1&id=eq.${categoriaId}&edicao_id=eq.${edicaoId}`),
+      rest(`melhores_indicados?select=id,edicao_id,categoria_id,status,aprovado&limit=1&id=eq.${indicadoId}&categoria_id=eq.${categoriaId}&edicao_id=eq.${edicaoId}`)
+    ]);
     if (!turnstile.ok) {
       return json(res, 403, { ok: false, message: "Confirmação de segurança inválida. Atualize a página e tente novamente." }, responseHeaders);
     }
 
-    const [edition] = await rest(`melhores_edicoes?select=id,status,votacao_inicio_site,votacao_fim&limit=1&id=eq.${edicaoId}`);
+    const [edition] = editions;
     if (!edition || !votingOpen(edition)) {
       return json(res, 403, { ok: false, message: "A votação no site não está aberta neste momento." }, responseHeaders);
     }
 
-    const [category] = await rest(`melhores_categorias?select=id,edicao_id,status,visibilidade_publica,permite_multiplos_votos,max_escolhas&limit=1&id=eq.${categoriaId}&edicao_id=eq.${edicaoId}`);
+    const [category] = categories;
     if (!category || category.status !== "ativo" || category.visibilidade_publica !== true) {
       return json(res, 400, { ok: false, message: "Categoria indisponível para votação." }, responseHeaders);
     }
 
-    const [nominee] = await rest(`melhores_indicados?select=id,edicao_id,categoria_id,status,aprovado&limit=1&id=eq.${indicadoId}&categoria_id=eq.${categoriaId}&edicao_id=eq.${edicaoId}`);
+    const [nominee] = nominees;
     if (!nominee || nominee.status !== "ativo" || nominee.aprovado !== true) {
       return json(res, 400, { ok: false, message: "Indicado indisponível para votação." }, responseHeaders);
     }

@@ -20,6 +20,8 @@ let appDownload = APP_DOWNLOAD_CONFIG;
 let voteInFlight = false;
 let voteRevision = 0;
 let showCompletionPrompt = false;
+let preparedVerification = null;
+const prefetchedImages = new Map();
 const awardBrand = edition => Number(edition.ano) === 2026
   ? '<div class="vote-brand"><img src="/assets/melhores/premio-melhores-2026.png" width="1265" height="490" alt="Prêmio Melhores de Urânia 2026"></div>'
   : `<div class="vote-brand"><span>Prêmio Melhores de Urânia <b>${esc(edition.ano)}</b></span></div>`;
@@ -135,6 +137,18 @@ function progressFor(edition, categories, nominees) {
   return { votes, votable, completed, total, percent, next };
 }
 
+function prefetchCategoryImages(category, nominees) {
+  if (!category) return;
+  nominees.filter(item => item.categoria_id === category.id).slice(0, 8).forEach(item => {
+    const url = item.imagem_url;
+    if (!url || !/^(https?:\/\/|\/?assets\/)/i.test(url) || prefetchedImages.has(url)) return;
+    const img = new Image();
+    img.decoding = "async";
+    img.src = url;
+    prefetchedImages.set(url, img);
+  });
+}
+
 function votingUrl(edition, category) {
   return `/melhores-de-urania/${edition.ano}/votacao/${encodeURIComponent(category.slug)}/`;
 }
@@ -202,17 +216,25 @@ async function getTurnstileToken(action = "vote") {
       container = document.createElement("div");
       container.id = "awards-turnstile";
       container.style.position = "fixed";
-      container.style.left = "-9999px";
-      container.style.bottom = "0";
+      container.style.left = "50%";
+      container.style.transform = "translateX(-50%)";
+      container.style.bottom = "100px";
+      container.style.zIndex = "1000";
+      container.style.width = "min(300px, calc(100vw - 24px))";
       document.body.append(container);
     }
     if (turnstileWidgetId !== null) {
       try { window.turnstile.remove(turnstileWidgetId); } catch {}
     }
-    const timeout = setTimeout(() => reject(new Error("A verificação de segurança demorou demais. Tente novamente.")), 12000);
+    const timeout = setTimeout(() => {
+      if (turnstileWidgetId !== null) { try { window.turnstile.remove(turnstileWidgetId); } catch {} turnstileWidgetId = null; }
+      reject(new Error("A verificação de segurança não respondeu. Confira sua conexão e tente novamente."));
+    }, 30000);
     turnstileWidgetId = window.turnstile.render(container, {
       sitekey,
-      size: "invisible",
+      size: "normal",
+      appearance: "interaction-only",
+      execution: "execute",
       action,
       callback: token => {
         clearTimeout(timeout);
@@ -227,8 +249,26 @@ async function getTurnstileToken(action = "vote") {
   });
 }
 
+function prepareVerification() {
+  if (!preparedVerification) {
+    preparedVerification = getTurnstileToken("vote")
+      .then(token => ({ token, createdAt: Date.now() }), error => ({ error }));
+  }
+  return preparedVerification;
+}
+
+async function takeVerification() {
+  let prepared = await prepareVerification();
+  preparedVerification = null;
+  if (prepared.error || Date.now() - prepared.createdAt > 180000) prepared = await prepareVerification();
+  preparedVerification = null;
+  if (prepared.error) throw prepared.error;
+  return prepared.token;
+}
+
 function progressCard(edition, categories, nominees) {
   const progress = progressFor(edition, categories, nominees);
+  prefetchCategoryImages(progress.next, nominees);
   const nextLink = progress.next ? votingUrl(edition, progress.next) : `${hubUrl(edition)}?concluido=1`;
   return `
     <header class="vote-hub-hero">
@@ -282,7 +322,7 @@ export function renderHub(edition, categories, nominees) {
           const disabled = !total;
           return `<a class="vote-category-row ${voted ? "is-complete" : ""} ${disabled ? "is-disabled" : ""}" href="${disabled ? "#" : votingUrl(edition, category)}" ${disabled ? 'aria-disabled="true"' : ""}>
             <strong>${esc(category.nome)}</strong>
-            <small>${total ? `${total} indicado${total === 1 ? "" : "s"}` : "sem indicados publicados"}</small>
+            <small>${total ? voted ? "Votada · ver sua escolha" : `${total} indicado${total === 1 ? "" : "s"} · votar` : "sem indicados publicados"}</small>
             <span class="vote-category-arrow" aria-hidden="true">${voted ? "✓" : "→"}</span>
           </a>`;
         }).join("")}
@@ -301,7 +341,7 @@ function nomineeButton(category, nominee, votes) {
     <article class="vote-nominee ${voted ? "is-voted" : ""}">
       <button class="vote-nominee-button" type="button" data-select-nominee data-nominee="${esc(nominee.id)}" data-nominee-name="${esc(nominee.nome)}" aria-pressed="false" aria-label="${voted ? "Voto enviado para" : "Selecionar"} ${esc(nominee.nome)}" ${voted || reachedLimit ? "disabled" : ""}>
         <span class="vote-nominee-media">
-          ${img ? `<img src="${img}" alt="" loading="lazy">` : `<span class="vote-nominee-empty" aria-hidden="true">${initial}</span>`}
+          ${img ? `<img src="${img}" alt="" loading="eager" decoding="async">` : `<span class="vote-nominee-empty" aria-hidden="true">${initial}</span>`}
           <span class="vote-nominee-check" aria-hidden="true">✓</span>
         </span>
         <span class="vote-nominee-name">${esc(nominee.nome)}</span>
@@ -337,6 +377,9 @@ export function renderCategory(edition, categories, nominees, slug) {
     renderHub(edition, categories, nominees);
     return;
   }
+
+  if (!reachedLimit && items.length) prepareVerification();
+  prefetchCategoryImages(nextToVisit, nominees);
 
   root.innerHTML = `
     ${awardBrand(edition)}
@@ -458,7 +501,7 @@ async function handleVote(event, edition, categories, nominees) {
     metadados: { categoria_id: button.dataset.category, indicado_id: button.dataset.nominee, origem_fluxo: "central_votacao" }
   });
   try {
-    const turnstileToken = await getTurnstileToken("vote");
+    const turnstileToken = await takeVerification();
     const result = await enviarVotoMelhores({
       edicao_id: button.dataset.edition,
       categoria_id: button.dataset.category,
