@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import vm from 'node:vm';
+
+const source = await readFile(new URL('../admin/melhores.js',import.meta.url),'utf8');
+const start = source.indexOf('function apurationGroup(');
+const end = source.indexOf('\nasync function loadResults(',start);
+assert.ok(start >= 0 && end > start);
+const render = vm.runInNewContext(`${source.slice(start,end)}\napurationGroup`,{escapeHtml:value=>String(value)});
+const row={categoria_nome:'Atendimento',indicado_nome:'Ana',votos_site:0,votos_instagram:0,colocacao:1,empate:true};
+const empty=render('c',[row]);
+assert.match(empty, /Site \/ App/);
+assert.match(empty, /Sem votos/);
+assert.doesNotMatch(empty, /liderança parcial|planejamento">empate/);
+const leading=render('c',[{...row,votos_site:7,empate:false}]);
+assert.match(leading,/liderança parcial/);
+assert.match(leading,/>7 </);
+const tied=render('c',[{...row,votos_instagram:3}]);
+assert.match(tied,/planejamento">empate/);
+console.log('Apuração parcial: Site / App, liderança, empate e categoria sem votos verificados.');

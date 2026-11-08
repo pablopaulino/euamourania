@@ -908,7 +908,7 @@ async function loadApuration() {
     $("#apuration-view").innerHTML = `
       <article class="awards-card">
         <div class="awards-panel-head">
-          <div><h3>Apuração</h3><p>Prévia ponderada por percentuais: site e Instagram são normalizados antes de aplicar os pesos.</p></div>
+          <div><h3>Apuração parcial</h3><p>Veja a posição atual por categoria. Site / App e Instagram são calculados por percentual, conforme os pesos da edição.</p></div>
         </div>
         <div class="awards-toolbar">
           <input id="apuration-search" type="search" placeholder="Pesquisar categoria ou indicado…">
@@ -916,7 +916,7 @@ async function loadApuration() {
           <button class="admin-button secondary" data-refresh-apuration>Atualizar</button>
           <button class="admin-button" data-publish-results ${canPublish ? "" : "disabled"}>Revisar e publicar resultado</button>
         </div>
-        <p class="awards-note">${isHistoricalEdition(edition) ? "O resultado desta edição está preservado e não pode ser republicado." : "A publicação exige votos em cada categoria pública e desempates resolvidos com regra registrada."}</p>
+        <p class="awards-note">${isHistoricalEdition(edition) ? "O resultado desta edição está preservado e não pode ser republicado." : "Esta é uma prévia interna e pode mudar até o fim da votação. A publicação oficial exige votação encerrada, votos em cada categoria pública e desempates resolvidos."}</p>
         ${state.apuracao.length ? [...grouped.entries()].map(([categoriaId, rows]) => apurationGroup(categoriaId, rows)).join("") : '<div class="awards-empty">Sem dados suficientes para apuração.</div>'}
       </article>`;
     bindSimpleSearch("apuration", "apuration-view");
@@ -927,18 +927,19 @@ async function loadApuration() {
 
 function apurationGroup(_categoriaId, rows) {
   const title = rows[0]?.categoria_nome || "Categoria";
+  const hasVotes = rows.some(row => Number(row.votos_site || 0) + Number(row.votos_instagram || 0) > 0);
   return `<section class="awards-apuration-group" data-search="${escapeHtml(rows.map(r => `${r.categoria_nome} ${r.indicado_nome}`).join(" ").toLowerCase())}">
     <h4>${escapeHtml(title)}</h4>
     <div class="awards-table-wrap">
       <table class="awards-table">
-        <thead><tr><th>Colocação</th><th>Indicado</th><th>Site</th><th>Instagram</th><th>Pontuação</th><th>Observação</th></tr></thead>
+        <thead><tr><th>Colocação</th><th>Indicado</th><th>Site / App</th><th>Instagram</th><th>Pontuação</th><th>Observação</th></tr></thead>
         <tbody>${rows.map(row => `<tr>
-          <td><strong>${Number(row.colocacao || 0)}º</strong></td>
+          <td><strong>${hasVotes ? `${Number(row.colocacao || 0)}º` : "—"}</strong></td>
           <td>${escapeHtml(row.indicado_nome)}</td>
           <td>${Number(row.votos_site || 0).toLocaleString("pt-BR")} <small>(${Number(row.percentual_site || 0).toFixed(2)}%)</small></td>
           <td>${Number(row.votos_instagram || 0).toLocaleString("pt-BR")} <small>(${Number(row.percentual_instagram || 0).toFixed(2)}%)</small></td>
           <td><strong>${Number(row.pontuacao_final || 0).toFixed(4)}</strong></td>
-          <td>${row.empate ? '<span class="awards-status planejamento">empate</span>' : row.colocacao === 1 ? '<span class="awards-status ativo">vencedor prévio</span>' : ""}</td>
+          <td>${!hasVotes ? "Sem votos" : row.empate ? '<span class="awards-status planejamento">empate</span>' : Number(row.colocacao) === 1 ? '<span class="awards-status ativo">liderança parcial</span>' : ""}</td>
         </tr>`).join("")}</tbody>
       </table>
     </div>
@@ -1976,7 +1977,7 @@ async function init(context = {}) {
         const edition = state.edicoes.find(item => item.id === edicaoId);
         if (!edition || !["votacao_encerrada", "apuracao"].includes(edition.status)) return toast("Só é possível publicar uma edição com votação encerrada ou em apuração. Resultados já publicados são permanentes.", "error");
         if (!state.apuracao.length) return toast("Não há votos apurados para publicar.", "error");
-        const methodology = prompt("Descreva a metodologia resumida que ficará gravada no resultado oficial:", "Resultado calculado por percentual de votos no site e no Instagram, conforme pesos da edição.");
+        const methodology = prompt("Descreva a metodologia resumida que ficará gravada no resultado oficial:", "Resultado calculado por percentual de votos no site / app e no Instagram, conforme pesos da edição.");
         if (methodology === null) return;
         if (!confirm("Publicar resultado oficial agora? Esta ação cria um snapshot histórico da edição.")) return;
         const total = await publicarResultado(edicaoId, methodology);
