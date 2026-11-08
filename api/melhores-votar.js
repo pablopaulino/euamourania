@@ -118,11 +118,14 @@ module.exports = async (req, res) => {
     if (!uuidRe.test(edicaoId)) return json(res, 400, { ok: false, message: "Edição inválida." });
     if (!HASH_SECRET) return json(res, 503, { ok: false, message: "Votação temporariamente indisponível." });
     try {
-      const [edition] = await rest(`melhores_edicoes?select=id,status,votacao_inicio,votacao_inicio_site,votacao_fim&limit=1&id=eq.${edicaoId}`);
-      if (!edition) return json(res, 404, { ok: false, message: "Edição não encontrada." });
       const visitor = visitorFromRequest(req);
       const identifier = hash([edicaoId, visitor].join("|"));
-      const votos = await rest(`melhores_votos?select=categoria_id,indicado_id&edicao_id=eq.${edicaoId}&identificador_hash=eq.${identifier}&origem=eq.site&status=in.(valido,suspeito)`);
+      const [editions, votos] = await Promise.all([
+        rest(`melhores_edicoes?select=id,status,votacao_inicio,votacao_inicio_site,votacao_fim&limit=1&id=eq.${edicaoId}`),
+        rest(`melhores_votos?select=categoria_id,indicado_id&edicao_id=eq.${edicaoId}&identificador_hash=eq.${identifier}&origem=eq.site&status=in.(valido,suspeito)`)
+      ]);
+      const [edition] = editions;
+      if (!edition) return json(res, 404, { ok: false, message: "Edição não encontrada." });
       return json(res, 200, { ok: true, agora: new Date().toISOString(),
         status: edition.status, votacao_inicio_app: edition.votacao_inicio,
         votacao_inicio_site: edition.votacao_inicio_site, votacao_fim: edition.votacao_fim,

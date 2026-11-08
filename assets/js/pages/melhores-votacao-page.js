@@ -19,9 +19,18 @@ let voteClock = null;
 let appDownload = APP_DOWNLOAD_CONFIG;
 let voteInFlight = false;
 let voteRevision = 0;
+let showCompletionPrompt = false;
+const awardBrand = edition => Number(edition.ano) === 2026
+  ? '<div class="vote-brand"><img src="/assets/melhores/premio-melhores-2026.png" width="1265" height="490" alt="Prêmio Melhores de Urânia 2026"></div>'
+  : `<div class="vote-brand"><span>Prêmio Melhores de Urânia <b>${esc(edition.ano)}</b></span></div>`;
 const serverNow = () => voteClock ? voteClock.agora + (performance.now() - voteClock.recebido) : Date.now();
 const appStart = edition => edition.votacao_inicio;
 const siteStart = edition => edition.votacao_inicio_site;
+const appDestination = () => {
+  const ios = /iPad|iPhone|iPod/i.test(navigator.userAgent || "");
+  const destination = ios ? appDownload.appPageUrl : appDownload.googlePlayUrl || appDownload.appPageUrl;
+  return /^https:\/\//.test(destination || "") ? destination : APP_DOWNLOAD_CONFIG.appPageUrl;
+};
 function appInvite(edition, compact = false, afterVote = false) {
   if (Number(edition.ano) !== 2026 || !appDownload) return "";
   const ios = /iPad|iPhone|iPod/i.test(navigator.userAgent || "");
@@ -45,6 +54,7 @@ function appInvite(edition, compact = false, afterVote = false) {
         ? ["A votação já começou no Viva Urânia!", `Você já pode participar pelo aplicativo. A votação no site Eu Amo Urânia começa em ${dateLabel(siteStart(edition))}.`, "Votar pelo aplicativo"]
         : ["Você também pode votar pelo Viva Urânia!", "Além do site, o aplicativo Viva Urânia também participa da votação do Melhores de Urânia 2026.", "Baixar o aplicativo"];
   return `<aside class="vote-app-invite ${compact ? "is-compact" : ""}" aria-label="Viva Urânia">
+    <span class="vote-app-icon"><img src="/assets/viva-origem-colorido.svg" alt="" width="42" height="42"></span>
     <div><strong>${esc(copy[0])}</strong><p>${esc(copy[1])}</p>${ios ? '<small>O aplicativo ainda não está disponível para iOS.</small>' : ""}</div>
     <a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(ios ? "Conhecer o Viva Urânia" : copy[2])}<span aria-hidden="true"> ↗</span></a>
   </aside>`;
@@ -155,7 +165,7 @@ function toast(message) {
   el.setAttribute("role", "status");
   el.setAttribute("aria-live", "polite");
   el.textContent = message;
-  document.body.append(el);
+  (document.querySelector('.vote-finish-dialog[open]') || document.body).append(el);
   setTimeout(() => el.remove(), 4200);
 }
 
@@ -222,7 +232,7 @@ function progressCard(edition, categories, nominees) {
   const nextLink = progress.next ? votingUrl(edition, progress.next) : `${hubUrl(edition)}?concluido=1`;
   return `
     <header class="vote-hub-hero">
-      <div class="vote-brand"><span class="vote-brand-symbol" aria-hidden="true">✦</span><span>Prêmio Melhores de Urânia <b>${esc(edition.ano)}</b></span></div>
+      ${awardBrand(edition)}
       <p class="vote-kicker">Uma realização Eu Amo Urânia · Votação oficial</p>
       <h1>${esc(edition.nome)}</h1>
       <p>Seu voto valoriza quem faz a diferença na cidade. Escolha, confirme e avance no seu ritmo.</p>
@@ -243,7 +253,7 @@ export function renderHub(edition, categories, nominees) {
     const ended = edition.votacao_fim && serverNow() > new Date(edition.votacao_fim).getTime();
     root.innerHTML = `
       <section class="vote-closed">
-        <div class="vote-brand"><span class="vote-brand-symbol" aria-hidden="true">✦</span><span>Prêmio Melhores de Urânia <b>${esc(edition.ano)}</b></span></div>
+        ${awardBrand(edition)}
         <p class="vote-kicker">Votação oficial</p>
         <h1>${esc(edition.nome)}</h1>
         <p>${ended ? "A votação pelo site foi encerrada." : "A votação pelo site ainda não começou."} Período previsto: ${esc(formatDate(edition.votacao_inicio_site))} até ${esc(formatDate(edition.votacao_fim))}.</p>
@@ -329,7 +339,7 @@ export function renderCategory(edition, categories, nominees, slug) {
   }
 
   root.innerHTML = `
-    <div class="vote-brand"><span class="vote-brand-symbol" aria-hidden="true">✦</span><span>Prêmio Melhores de Urânia <b>${esc(edition.ano)}</b></span></div>
+    ${awardBrand(edition)}
     <div class="vote-step-nav">
       <a href="${hubUrl(edition)}">← Todas as categorias</a>
       <span>Categoria ${index + 1} de ${progress.votable.length}</span>
@@ -382,10 +392,10 @@ export function renderCategory(edition, categories, nominees, slug) {
 
 function renderCompletion(edition, categories, nominees) {
   const progress = progressFor(edition, categories, nominees);
-  const shareUrl = `${location.origin}${editionUrl(edition)}`;
+  const shareUrl = `${location.origin}${hubUrl(edition)}`;
   root.innerHTML = `
     <section class="vote-complete">
-      <div class="vote-brand"><span class="vote-brand-symbol" aria-hidden="true">✦</span><span>Prêmio Melhores de Urânia <b>${esc(edition.ano)}</b></span></div>
+      ${awardBrand(edition)}
       <p class="vote-kicker">Participação enviada · ${progress.completed.length} de ${progress.total}</p>
       <h1>Obrigado por votar.</h1>
       <p>Suas escolhas foram recebidas. Convide mais pessoas a participar ou acompanhe a premiação no aplicativo.</p>
@@ -397,9 +407,22 @@ function renderCompletion(edition, categories, nominees) {
         <a href="${hubUrl(edition)}">Ver categorias</a>
         <a href="${editionUrl(edition)}">Voltar para a edição</a>
       </div>
-    </section>`;
+    </section>
+    <dialog class="vote-finish-dialog" aria-labelledby="vote-finish-title" aria-describedby="vote-finish-description">
+      <button type="button" class="vote-finish-close" aria-label="Fechar" data-close-finish>×</button>
+      <span class="vote-finish-check" aria-hidden="true">✓</span>
+      <p class="vote-kicker">Participação concluída</p>
+      <h2 id="vote-finish-title">Seu voto faz a diferença!</h2>
+      <p id="vote-finish-description">Obrigado por participar. Convide mais pessoas para votar e acompanhe o prêmio no Viva Urânia.</p>
+      <button class="button button-primary vote-primary" type="button" data-share-voting>Convidar para votar <span aria-hidden="true">→</span></button>
+      <a class="vote-finish-app" href="${esc(appDestination())}" target="_blank" rel="noopener noreferrer"><img src="/assets/viva-origem-colorido.svg" alt="" width="38" height="38"><span><strong>${/iPad|iPhone|iPod/i.test(navigator.userAgent || "") ? "Conhecer o Viva Urânia" : "Baixar o Viva Urânia"}</strong><small>Acompanhe o prêmio pelo aplicativo</small></span><span aria-hidden="true">↗</span></a>
+      <button type="button" class="vote-finish-later" data-close-finish>Agora não</button>
+    </dialog>`;
   if (location.pathname.startsWith("/preview/melhores/") && new URLSearchParams(location.search).get("demo") === "1") return;
-  root.querySelector("[data-share-voting]")?.addEventListener("click", async () => {
+  const dialog = root.querySelector(".vote-finish-dialog");
+  root.querySelectorAll("[data-close-finish]").forEach(button => button.addEventListener("click", () => dialog.close()));
+  if (showCompletionPrompt) { showCompletionPrompt = false; dialog.showModal(); }
+  root.querySelectorAll("[data-share-voting]").forEach(button => button.addEventListener("click", async () => {
     registrarEventoMelhores("melhores_share_click", {
       edicaoId: edition.id,
       destino: shareUrl,
@@ -413,9 +436,12 @@ function renderCompletion(edition, categories, nominees) {
       }).catch(() => null);
       return;
     }
-    await navigator.clipboard?.writeText(shareUrl).catch(() => null);
-    toast("Link copiado.");
-  });
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Área de transferência indisponível");
+      await navigator.clipboard.writeText(shareUrl);
+      toast("Link copiado! Envie para alguém votar.");
+    } catch { toast(`Compartilhe este link: ${shareUrl}`); }
+  }));
 }
 
 async function handleVote(event, edition, categories, nominees) {
@@ -451,6 +477,7 @@ async function handleVote(event, edition, categories, nominees) {
     const current = categories.find(category => category.id === button.dataset.category);
     if (current && getCategorySlug() === current.slug) {
       const next = progressFor(edition, categories, nominees).next;
+      if (!next) showCompletionPrompt = true;
       navigateVoting(next ? votingUrl(edition, next) : `${hubUrl(edition)}?concluido=1`, edition, categories, nominees);
     }
   } catch (error) {
@@ -545,10 +572,10 @@ async function init() {
     window.addEventListener("popstate", () => renderCurrentVotingPage(edition, categories, nominees));
     const refreshPeriod = async () => {
       try {
-        if (voteInFlight || root.querySelector('[data-select-nominee][aria-pressed="true"]')) return;
+        if (voteInFlight || root.querySelector('dialog[open], [data-select-nominee][aria-pressed="true"]')) return;
         const revision = voteRevision;
         const latest = await consultarPeriodoVotacao(edition.id);
-        if (voteInFlight || revision !== voteRevision || root.querySelector('[data-select-nominee][aria-pressed="true"]')) return;
+        if (voteInFlight || revision !== voteRevision || root.querySelector('dialog[open], [data-select-nominee][aria-pressed="true"]')) return;
         voteClock = { agora: new Date(latest.agora).getTime(), recebido: performance.now() };
         reconcileVotes(edition.id, latest.votos_site);
         edition.status = latest.status;

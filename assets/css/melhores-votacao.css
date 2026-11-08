@@ -569,3 +569,44 @@ body[data-awards-page="voting"] .vote-complete-actions a:not(.button) { color: v
   body[data-awards-page="voting"] .vote-progress-track > span,
   body[data-awards-page="voting"] .vote-category-row { transition: none; }
 }
+
+/* Identidade oficial da votação 2026. */
+body[data-awards-page="voting"] { background: #f8f6f2; }
+body[data-awards-page="voting"] #awards-voting-root { width: min(1000px, calc(100% - 48px)); max-width: 1000px; }
+body[data-awards-page="voting"] .vote-brand { display: block; width: 150px; max-width: 48%; margin: 0 0 1.7rem; }
+body[data-awards-page="voting"] .vote-brand img { display: block; width: 100%; height: auto; }
+body[data-awards-page="voting"] .vote-hub-hero { position: relative; padding: clamp(1.5rem,4vw,3rem); border: 1px solid #ede5dc; border-radius: 28px; background: #fff; box-shadow: 0 18px 55px rgba(66,42,20,.06); }
+body[data-awards-page="voting"] .vote-hub-hero h1 { max-width: 650px; }
+body[data-awards-page="voting"] .vote-kicker { color: #d51919; }
+body[data-awards-page="voting"] .vote-progress-track { height: 7px; }
+body[data-awards-page="voting"] .vote-hub-list { padding: 1.5rem; border: 1px solid #ede5dc; border-radius: 24px; background: #fff; }
+body[data-awards-page="voting"] .vote-category-row { padding-inline: .6rem; }
+body[data-awards-page="voting"] .vote-step { padding: clamp(1.3rem,3vw,2.4rem); border: 1px solid #ede5dc; border-radius: 26px; background: #fff; box-shadow: 0 16px 45px rgba(66,42,20,.05); }
+body[data-awards-page="voting"] .vote-step-heading h1 { font-size: clamp(2rem,4.7vw,3.4rem); }
+body[data-awards-page="voting"] .vote-nominee-media { aspect-ratio: 1; border-radius: 18px; }
+body[data-awards-page="voting"] .vote-app-invite { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; padding: 1.15rem 1.3rem; border: 1px solid #ecdccb; border-radius: 20px; background: #fff8ef; }
+body[data-awards-page="voting"] .vote-app-icon { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 16px; background: white; }
+body[data-awards-page="voting"] .vote-app-icon img { width: 42px; height: 42px; object-fit: contain; }
+body[data-awards-page="voting"] .vote-app-invite a { padding: .7rem .9rem; border-radius: 12px; background: white; color: #bd2020; text-decoration: none; }
+body[data-awards-page="voting"] .vote-finish-dialog { position: fixed; width: min(460px, calc(100% - 32px)); max-height: calc(100% - 32px); padding: clamp(1.5rem,5vw,2.3rem); overflow-y: auto; border: 0; border-radius: 25px; background: #fffdfa; color: #171412; box-shadow: 0 28px 90px rgba(22,14,10,.28); }
+body[data-awards-page="voting"] .vote-finish-dialog::backdrop { background: rgba(20,15,13,.66); }
+body[data-awards-page="voting"] .vote-finish-close { position: absolute; top: 1rem; right: 1rem; width: 2.4rem; height: 2.4rem; border: 0; border-radius: 50%; background: #f5eee7; font-size: 1.5rem; cursor: pointer; }
+body[data-awards-page="voting"] .vote-finish-check { display: grid; place-items: center; width: 3rem; height: 3rem; margin-bottom: 1.3rem; border-radius: 50%; background: #fff0df; color: #d71919; font-size: 1.4rem; font-weight: 800; }
+body[data-awards-page="voting"] .vote-finish-dialog h2 { margin: .3rem 0; font-size: clamp(1.7rem,6vw,2.2rem); line-height: 1.08; letter-spacing: -.045em; }
+body[data-awards-page="voting"] .vote-finish-dialog > p:not(.vote-kicker) { margin: .8rem 0 1.3rem; color: #68615a; line-height: 1.5; }
+body[data-awards-page="voting"] .vote-finish-dialog .vote-primary { width: 100%; }
+body[data-awards-page="voting"] .vote-finish-app { display: flex; align-items: center; gap: .8rem; margin-top: .8rem; padding: .9rem; border: 1px solid #eadfd4; border-radius: 15px; color: inherit; text-decoration: none; }
+body[data-awards-page="voting"] .vote-finish-app > span:nth-child(2) { display: grid; flex: 1; gap: .2rem; }
+body[data-awards-page="voting"] .vote-finish-app small { color: #716a62; }
+body[data-awards-page="voting"] .vote-finish-later { display: block; margin: 1rem auto 0; padding: .4rem 1rem; border: 0; background: transparent; color: #736c64; cursor: pointer; }
+body[data-awards-page="voting"] .vote-finish-dialog :focus-visible { outline: 3px solid #f6932d; outline-offset: 3px; }
+@media (max-width: 700px) {
+  body[data-awards-page="voting"] #awards-voting-root { width: calc(100% - 28px); }
+  body[data-awards-page="voting"] .vote-brand { width: 120px; }
+  body[data-awards-page="voting"] .vote-hub-hero { padding: 1.4rem; border-radius: 22px; }
+  body[data-awards-page="voting"] .vote-hub-list { padding: 1rem; }
+  body[data-awards-page="voting"] .vote-step { padding: 1.2rem 1rem calc(8rem + env(safe-area-inset-bottom)); border-radius: 22px; }
+  body[data-awards-page="voting"] .vote-app-invite { grid-template-columns: 48px 1fr; gap: .7rem; }
+  body[data-awards-page="voting"] .vote-app-icon { width: 48px; height: 48px; }
+  body[data-awards-page="voting"] .vote-app-invite a { grid-column: 2; justify-self: start; }
+}
