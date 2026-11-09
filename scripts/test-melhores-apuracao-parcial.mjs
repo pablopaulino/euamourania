@@ -10,12 +10,13 @@ const render = vm.runInNewContext(`${source.slice(start,end)}\napurationGroup`,{
 const row={categoria_nome:'Atendimento',indicado_nome:'Ana',votos_site:0,votos_instagram:0,colocacao:1,empate:true};
 const empty=render('c',[row]);
 assert.match(empty, /Site \/ App/);
+assert.match(empty, /Instagram \/ Facebook/);
 assert.match(empty, /Sem votos/);
 assert.doesNotMatch(empty, /vencedor prévio|planejamento">empate/);
 const leading=render('c',[{...row,votos_site:7,empate:false}]);
 assert.match(leading,/vencedor prévio/);
 assert.match(leading,/>7 </);
-assert.match(leading,/Instagram ainda não tem votos/);
+assert.match(leading,/Instagram \/ Facebook ainda não tem votos/);
 assert.match(leading,/pode ficar abaixo de 100%/);
 const tied=render('c',[{...row,votos_instagram:3}]);
 assert.match(tied,/planejamento">empate/);

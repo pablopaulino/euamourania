@@ -932,10 +932,10 @@ function apurationGroup(_categoriaId, rows) {
   const hasSocial = rows.some(row => Number(row.votos_instagram || 0) > 0);
   return `<section class="awards-apuration-group" data-search="${escapeHtml(rows.map(r => `${r.categoria_nome} ${r.indicado_nome}`).join(" ").toLowerCase())}">
     <h4>${escapeHtml(title)}</h4>
-    ${hasVotes && (!hasSiteApp || !hasSocial) ? `<p class="awards-note">${!hasSiteApp ? "Site / App" : "Instagram"} ainda não tem votos registrados nesta categoria. Esse bloco contribui com zero até haver votos; a soma dos percentuais finais pode ficar abaixo de 100%.</p>` : ""}
+    ${hasVotes && (!hasSiteApp || !hasSocial) ? `<p class="awards-note">${!hasSiteApp ? "Site / App" : "Instagram / Facebook"} ainda não tem votos registrados nesta categoria. Esse bloco contribui com zero até haver votos; a soma dos percentuais finais pode ficar abaixo de 100%.</p>` : ""}
     <div class="awards-table-wrap">
       <table class="awards-table">
-        <thead><tr><th>Colocação</th><th>Indicado</th><th>Site / App</th><th>Instagram</th><th>Percentual final</th><th>Observação</th></tr></thead>
+        <thead><tr><th>Colocação</th><th>Indicado</th><th>Site / App</th><th>Instagram / Facebook</th><th>Percentual final</th><th>Observação</th></tr></thead>
         <tbody>${rows.map(row => `<tr>
           <td><strong>${hasVotes ? `${Number(row.colocacao || 0)}º` : "—"}</strong></td>
           <td>${escapeHtml(row.indicado_nome)}</td>
