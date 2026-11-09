@@ -1,4 +1,4 @@
-import { obterEdicaoPorAno, listarResultadosPublicos, listarHistoricoVencedoresPublicos } from "../services/melhoresPublicService.js";
+import { obterEdicaoPorAno, listarResultadosPublicos, listarHistoricoVencedoresPublicos, listarComprovantesPublicos } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
 import { montarCentralTransparencia } from "./melhores-transparencia.js";
@@ -208,10 +208,15 @@ async function init() {
       return;
     }
 
-    const history = await listarHistoricoVencedoresPublicos().catch(error => {
-      console.warn("Histórico público de vencedores indisponível:", error);
-      return [];
-    });
+    const [history, comprovantes] = await Promise.all([
+      listarHistoricoVencedoresPublicos().catch(error => {
+        console.warn("Histórico público de vencedores indisponível:", error);
+        return [];
+      }),
+      edition.ano === 2026 && edition.mostrar_votos_publicamente === true
+        ? listarComprovantesPublicos(edition.id).catch(error => { console.warn("Imagens das enquetes indisponíveis:", error); return null; })
+        : Promise.resolve(null)
+    ]);
     const publishedAt = results.find(row => row.publicado_em)?.publicado_em || edition.resultado_publicado_em;
     document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">Resultado oficial</span><h1>${esc(edition.nome)}</h1><p>${esc(edition.descricao || "Conheça os nomes reconhecidos pela comunidade nesta edição do Melhores de Urânia.")}</p><div class="hero-actions"><button class="button button-primary" type="button" data-share-results>Compartilhar resultados</button><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/">Ver edição</a></div>`;
     document.getElementById("results-panel").innerHTML = `<h2>Edição ${esc(String(edition.ano))}</h2><p>Resultado oficial preservado no histórico da premiação.</p><div class="awards-status-line"><span class="awards-chip open">Resultado publicado</span>${publishedAt ? `<span class="awards-chip">Publicado em ${esc(formatDate(publishedAt))}</span>` : ""}</div>`;
@@ -233,7 +238,7 @@ async function init() {
       if (event.target.matches?.(".awards-winner-photo img")) event.target.remove();
     }, true);
     resultsList.innerHTML = renderResults(results, edition, history);
-    if (edition.ano === 2026) montarCentralTransparencia(resultsList, edition, results);
+    if (edition.ano === 2026) montarCentralTransparencia(resultsList, edition, results, comprovantes);
   } catch (error) {
     console.error("Resultados Melhores de Urânia:", error);
     document.getElementById("results-list").innerHTML = '<div class="awards-empty">Não foi possível carregar os resultados agora.</div>';

@@ -19,6 +19,7 @@ const ALLOWED_TABLES = new Set([
   "melhores_edicoes",
   "melhores_indicados",
   "rpc/melhores_listar_resultados_publicos",
+  "rpc/melhores_comprovantes_publicos",
   "noticias",
   "turismo"
 ]);

@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const sql = await readFile(new URL('../supabase/migrations/20261109_melhores_comprovantes_publicos.sql',import.meta.url),'utf8');
+assert.match(sql,/select distinct v\.categoria_id, provas\.url/i);
+assert.match(sql,/e\.mostrar_votos_publicamente is true/i);
+assert.match(sql,/e\.status = 'resultado_publicado'/i);
+assert.match(sql,/e\.status = 'arquivada' and e\.resultado_publicado_em is not null/i);
+assert.match(sql,/r\.categoria_id = v\.categoria_id and r\.publicado is true/i);
+assert.match(sql,/v\.comprovante_url_2/);
+assert.doesNotMatch(sql,/select[^;]*v\.observacao/i);
+console.log('Consulta pública: categoria publicada, números autorizados e links restritos verificados.');

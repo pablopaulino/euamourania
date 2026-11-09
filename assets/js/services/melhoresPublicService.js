@@ -82,6 +82,10 @@ export async function listarResultadosPublicos(edicaoId) {
   }, { ttl: 120000 });
 }
 
+export async function listarComprovantesPublicos(edicaoId) {
+  return fetchPublicRows("rpc/melhores_comprovantes_publicos", { p_edicao: edicaoId }, { ttl: 30000 });
+}
+
 export async function listarHistoricoVencedoresPublicos() {
   return fetchPublicRows("rpc/melhores_listar_resultados_publicos", {
     p_somente_vencedores: "true",
