@@ -2,6 +2,7 @@ import { exigirAdministrador, sair, temPermissao } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { listarTabela, salvarRegistro, excluirRegistro } from "../assets/js/services/baseService.js";
 import { gerarSlug } from "../assets/js/utils.js";
+import { eventDateInput, normalizeEventDates } from "../assets/js/eventDateTime.js";
 import { adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js?v=20261018-viva-shell";
 import { summarizeBusinessQuality } from "./business-quality.js";
 import { ADMIN_MODULE_LIST, adminModulesForNavigation, getAdminModule, renderAdminModuleIcon } from "./admin-modules.js?v=20260911-home-suggestions";
@@ -210,7 +211,9 @@ function databaseTable(table) {
 }
 
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
-const inputValue = (value, type) => type === "datetime-local" && value ?new Date(value).toISOString().slice(0,16) : value ?? "";
+const inputValue = (value, type) => type === "datetime-local" && value
+  ? (["eventos", "eventos_edicoes"].includes(currentResourceTable) ? eventDateInput(value) : new Date(value).toISOString().slice(0,16))
+  : value ?? "";
 const validSiteReference = value => !value || /^(?:https?:\/\/|mailto:|tel:|\/(?!\/)|\.{1,2}\/|#)/i.test(value) || (/^[\w.-]+(?:\/[\w\-./%~:+?#[\]@!$&'()*+,;=]*)?$/u.test(value) && !/^javascript:/i.test(value));
 const listValue = value => Array.isArray(value) ?value.map(item => item?.url || item?.nome || item?.titulo || item).filter(Boolean).join("\n") : "";
 const parseUrlList = value => String(value || "").split(/\r?\n/).map(item => item.trim()).filter(Boolean).map(url => ({ url }));
@@ -1422,7 +1425,7 @@ else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else i
       payload[name]=value;
     }
   }
-  try{await salvarRegistro(table,payload);currentResourceId=null;await resourceList(table)}
+  try{normalizeEventDates(table,payload);await salvarRegistro(table,payload);currentResourceId=null;await resourceList(table)}
   catch(error){message.textContent=error.message;}
 }
 document.addEventListener("submit",salvarEvento2Form,true);
@@ -1636,6 +1639,7 @@ async function editForm(table,id) {
     }
     if (table === "noticias" && payload.status === "publicado" && !payload.publicado_em) payload.publicado_em = new Date().toISOString();
     try {
+      normalizeEventDates(table, payload);
       await salvarRegistro(databaseTable(table), payload);
       await resourceList(table);
     } catch (error) {

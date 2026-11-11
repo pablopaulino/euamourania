@@ -15,7 +15,7 @@ export async function mount(container, context = {}) {
   currentMount = module;
   const style = document.createElement('link');
   style.rel = 'stylesheet';
-  style.href = '/admin/viva-assinaturas.css?v=20261018-shell';
+  style.href = '/admin/viva-assinaturas.css?v=20261111-minimal';
   style.dataset.adminModuleStyle = 'viva-assinaturas';
   document.head.append(style);
   module.style = style;

@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+const source = readFileSync(new URL("../assets/js/eventDateTime.js", import.meta.url), "utf8");
+const { eventDateInput, eventDateToIso, normalizeEventDates } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
+assert.equal(eventDateToIso("2026-12-02T21:00"), "2026-12-03T00:00:00.000Z");
+assert.equal(eventDateInput("2026-12-03T00:00:00Z"), "2026-12-02T21:00");
+assert.equal(eventDateToIso("2026-12-02T09:00"), "2026-12-02T12:00:00.000Z");
+assert.equal(eventDateToIso(""), null);
+assert.throws(() => eventDateToIso("2026-02-30T21:00"));
+const payload = { data_inicio: "2026-12-02T21:00", data_fim: null, recorrencia_ate: "2026-12-30T21:00" };
+normalizeEventDates("eventos", payload);
+assert.equal(payload.data_inicio, "2026-12-03T00:00:00.000Z");
+assert.equal(payload.data_fim, null);
+assert.equal(payload.recorrencia_ate, "2026-12-31T00:00:00.000Z");
+console.log("Eventos: horários de Brasília persistidos e reabertos corretamente — OK");
