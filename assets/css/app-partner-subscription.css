@@ -526,6 +526,7 @@ body.viva-subscription-page {
 .viva-launch-details p { margin: 0; color: #696c72; font-size: .77rem; line-height: 1.6; }
 .viva-launch-details span { display: block; margin-top: .65rem; color: #92959a; font-size: .7rem; line-height: 1.45; }
 .viva-launch-offer + .viva-plan-shell { margin-top: 1rem; }
+.viva-launch-offer[hidden] { display: none; }
 @media (max-width: 780px) {
   .viva-launch-offer { grid-template-columns: 1fr; gap: 1.1rem; margin-top: 2rem; }
   .viva-launch-details { padding: 1rem 0 0; border-top: 1px solid var(--landing-line); border-left: 0; }

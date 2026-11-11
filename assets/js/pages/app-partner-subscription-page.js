@@ -1,5 +1,7 @@
 import { registrarEventoSite } from "../services/analyticsService.js";
+import { getSupabase } from "../services/supabaseClient.js";
 
+let offerSlots = null;
 const plans = {
   monthly: {
     label: "Mensal",
@@ -61,7 +63,7 @@ function whatsappUrl(plan) {
   const monthlyCopy = plan.label === "Mensal"
     ? `${currency(plan.price)} por mês`
     : `${currency(plan.price)} no total (${plan.equivalent.replace("Equivale a ", "").replace(".", "")})`;
-  const offer = plan.label === "Mensal" ? " Gostaria de consultar a oferta de R$ 44,90 por mês para os 15 primeiros assinantes." : "";
+  const offer = plan.label === "Mensal" && offerSlots !== 0 ? " Gostaria de consultar a oferta de R$ 44,90 por mês para os 15 primeiros assinantes." : "";
   const message = `Olá! Quero assinar o Plano Parceiro do Viva no período ${plan.label.toLowerCase()}, por ${monthlyCopy}.${offer}`;
   return `https://wa.me/5517976005583?text=${encodeURIComponent(message)}`;
 }
@@ -153,3 +155,22 @@ updateHeader();
 const initialPlan = new URLSearchParams(window.location.search).get("periodo");
 selectPlan(plans[initialPlan] ? initialPlan : "monthly", false);
 track("app_parceria_acesso");
+
+async function refreshOfferAvailability() {
+  try {
+    const { data, error } = await getSupabase().rpc('viva_oferta_vagas');
+    if (error || !Number.isInteger(data) || data < 0 || data > 15) throw error || new Error('Disponibilidade inválida');
+    offerSlots = data;
+    const offer = document.querySelector('.viva-launch-offer');
+    if (offer) offer.hidden = data === 0;
+    const availability = document.querySelector('[data-offer-availability]');
+    if (availability && data > 0) availability.textContent = data === 1 ? 'Resta 1 vaga.' : `Restam ${data} vagas.`;
+    if (contact) contact.href = whatsappUrl(plans[contact.dataset.selectedPlan] || plans.monthly);
+  } catch {
+    offerSlots = null;
+    const availability = document.querySelector('[data-offer-availability]');
+    if (availability) availability.textContent = 'Sujeito à confirmação de disponibilidade.';
+  }
+}
+refreshOfferAvailability();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) void refreshOfferAvailability(); });

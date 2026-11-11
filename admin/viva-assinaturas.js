@@ -11,7 +11,7 @@ export async function mount(container, context = {}) {
   const access = await exigirPermissao('guia_comercial', 'editar');
   if (!access || version !== mountVersion) return;
 
-  const module = { container, active: true, request: 0, context, guides: [], plans: new Map(), selected: new URLSearchParams(location.search).get('guia_id') || '' };
+  const module = { container, active: true, request: 0, context, guides: [], plans: new Map(), offers: new Map(), selected: new URLSearchParams(location.search).get('guia_id') || '' };
   currentMount = module;
   const style = document.createElement('link');
   style.rel = 'stylesheet';
@@ -33,8 +33,8 @@ export async function mount(container, context = {}) {
   const search = $('#subscription-search');
   const filter = $('#subscription-status');
   const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
-  const state = plan => !plan ? 'sem-plano' : plan.status === 'ativa' && plan.validade < today() ? 'vencida' : plan.status;
-  const labels = { ativa: 'Ativa', pendente: 'Aguardando pagamento', pausada: 'Pausada', cancelada: 'Cancelada', vencida: 'Vencida', 'sem-plano': 'Sem plano' };
+  const state = plan => !plan ? 'sem-plano' : plan.status !== 'ativa' ? plan.status : !plan.pagamento_confirmado_em ? 'pendente' : plan.inicio > today() ? 'agendada' : plan.validade < today() ? 'vencida' : 'ativa';
+  const labels = { ativa: 'Ativa', pendente: 'Aguardando pagamento', pausada: 'Pausada', cancelada: 'Cancelada', agendada: 'Agendada', vencida: 'Vencida', 'sem-plano': 'Sem plano' };
   const periods = { mensal: 'Mensal', semestral: 'Semestral', anual: 'Anual' };
   const dateLabel = value => value ? value.split('-').reverse().join('/') : '—';
 
@@ -58,6 +58,7 @@ export async function mount(container, context = {}) {
     const until = [end.getFullYear(), String(end.getMonth() + 1).padStart(2, '0'), String(end.getDate()).padStart(2, '0')].join('-');
     const all = [...module.plans.values()];
     $('#metric-active').textContent = all.filter(plan => state(plan) === 'ativa').length;
+    $('#metric-offer').textContent = `${Math.max(0, 15 - module.offers.size)} de 15`;
     $('#metric-expiring').textContent = all.filter(plan => state(plan) === 'ativa' && plan.validade >= now && plan.validade <= until).length;
     $('#metric-pending').textContent = all.filter(plan => plan.status === 'pendente' || plan.status === 'ativa' && !plan.pagamento_confirmado_em).length;
 
@@ -91,18 +92,20 @@ export async function mount(container, context = {}) {
   }
 
   async function refresh() {
-    const [{ data: guides, error: guidesError }, { data: plans, error: plansError }] = await Promise.all([
+    const [{ data: guides, error: guidesError }, { data: plans, error: plansError }, { data: offers, error: offersError }] = await Promise.all([
       db.from('guia_comercial').select('id,nome').order('nome').limit(5000),
-      db.from('viva_assinaturas').select('guia_id,periodo,status,inicio,validade,pagamento_confirmado_em').limit(5000)
+      db.from('viva_assinaturas').select('guia_id,periodo,status,inicio,validade,pagamento_confirmado_em').limit(5000),
+      db.from('viva_oferta_lancamento').select('vaga,guia_id,encerrada_em').limit(15)
     ]);
     if (!module.active) return false;
-    if (guidesError || plansError) {
-      notice.textContent = `Não foi possível carregar as assinaturas: ${(guidesError || plansError).message}`;
+    if (guidesError || plansError || offersError) {
+      notice.textContent = `Não foi possível carregar as assinaturas: ${(guidesError || plansError || offersError).message}`;
       toast(notice.textContent, 'error');
       return false;
     }
     module.guides = guides || [];
     module.plans = new Map((plans || []).map(plan => [plan.guia_id, plan]));
+    module.offers = new Map((offers || []).map(offer => [offer.vaga, offer]));
     company.replaceChildren(new Option('Selecione uma empresa', ''));
     for (const guide of module.guides) company.add(new Option(guide.nome, guide.id));
     if (!module.guides.some(guide => guide.id === module.selected)) module.selected = '';
@@ -131,6 +134,10 @@ export async function mount(container, context = {}) {
       for (const key of ['periodo', 'status', 'inicio', 'validade']) form.elements[key].value = plan[key];
       form.elements.pago.checked = Boolean(plan.pagamento_confirmado_em);
     } else form.elements.inicio.value = today();
+    const offer = [...module.offers.values()].find(item => item.guia_id === module.selected);
+    form.elements.oferta.checked = Boolean(offer && !offer.encerrada_em);
+    form.elements.oferta.disabled = Boolean(offer);
+    $('#offer-status').textContent = offer?.encerrada_em ? 'Oferta encerrada após cancelamento; a vaga continua ocupada e o desconto não pode ser reativado.' : offer ? 'Oferta já concedida. Cancelamento encerra o desconto sem liberar vaga.' : 'A oferta é exclusiva do plano mensal ativo com pagamento confirmado. Ao cancelar, a empresa perde o desconto e a vaga continua ocupada.';
     if (historyError) toast('Assinatura carregada; histórico indisponível.', 'error');
     if (!historyError && !history?.length) { const item = document.createElement('li'); item.textContent = 'Nenhuma alteração registrada para esta empresa.'; historyList.append(item); }
     for (const entry of history || []) {
@@ -161,13 +168,14 @@ export async function mount(container, context = {}) {
     if (!module.selected) { toast('Selecione uma empresa.', 'error'); return; }
     save.disabled = true;
     try {
-      const { error } = await db.rpc('admin_salvar_assinatura_viva', {
+      const { error } = await db.rpc('admin_salvar_assinatura_viva_oferta', {
         p_guia_id: module.selected,
         p_periodo: form.elements.periodo.value,
         p_status: form.elements.status.value,
         p_inicio: form.elements.inicio.value,
         p_validade: form.elements.validade.value,
-        p_pago: form.elements.pago.checked
+        p_pago: form.elements.pago.checked,
+        p_oferta: form.elements.oferta.checked && form.elements.status.value === 'ativa'
       });
       if (error) throw error;
       if (await refresh()) { await load(); toast('Assinatura salva com sucesso.'); }
