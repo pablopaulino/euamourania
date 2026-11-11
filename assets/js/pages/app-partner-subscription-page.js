@@ -61,7 +61,7 @@ function whatsappUrl(plan) {
   const monthlyCopy = plan.label === "Mensal"
     ? `${currency(plan.price)} por mês`
     : `${currency(plan.price)} no total (${plan.equivalent.replace("Equivale a ", "").replace(".", "")})`;
-  const offer = plan.label === "Mensal" ? " Gostaria de consultar a oferta de R$ 44,90 por mês para os 10 primeiros assinantes." : "";
+  const offer = plan.label === "Mensal" ? " Gostaria de consultar a oferta de R$ 44,90 por mês para os 15 primeiros assinantes." : "";
   const message = `Olá! Quero assinar o Plano Parceiro do Viva no período ${plan.label.toLowerCase()}, por ${monthlyCopy}.${offer}`;
   return `https://wa.me/5517976005583?text=${encodeURIComponent(message)}`;
 }
