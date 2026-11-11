@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verificação de segurança</title><style>body{margin:0;font:16px system-ui;color:#202a30;display:grid;min-height:100vh;place-items:center;text-align:center;background:#fff}main{padding:24px;max-width:360px}p{line-height:1.5;color:#646e74}</style></head><body><main><strong>Verificando seu envio</strong><p>Aguarde um instante. Se aparecer uma verificação, siga as instruções na tela.</p><div id="check"></div></main><script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script><script type="module">
+import { TURNSTILE_SITE_KEY } from '/assets/js/supabase-config.js';
+const send = value => window.ReactNativeWebView?.postMessage(JSON.stringify(value));
+let tries=0;
+function start(){if(!window.turnstile){if(++tries>150){send({error:'Não foi possível carregar a verificação.'});return;}setTimeout(start,100);return;}window.turnstile.render('#check',{sitekey:TURNSTILE_SITE_KEY,action:'event_submission',callback:token=>send({token}), 'error-callback':()=>send({error:'Não foi possível concluir a verificação.'}), 'expired-callback':()=>send({error:'A verificação expirou. Tente novamente.'})});}
+start();
+</script></body></html>
