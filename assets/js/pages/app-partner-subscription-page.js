@@ -4,31 +4,31 @@ const plans = {
   monthly: {
     label: "Mensal",
     duration: "Renovação mensal",
-    price: 79.9,
-    priceLabel: "79,90",
+    price: 69.9,
+    priceLabel: "69,90",
     period: "/mês",
-    equivalent: "Pagamento de R$ 79,90 por mês.",
+    equivalent: "Pagamento de R$ 69,90 por mês.",
     savings: null,
     badge: ""
   },
   semiannual: {
     label: "Semestral",
     duration: "Compromisso de 6 meses",
-    price: 419.9,
-    priceLabel: "419,90",
+    price: 359.4,
+    priceLabel: "359,40",
     period: "/6 meses",
-    equivalent: "Equivale a R$ 69,98 por mês.",
-    savings: 59.5,
+    equivalent: "Equivale a R$ 59,90 por mês.",
+    savings: 60,
     badge: "Economize"
   },
   annual: {
     label: "Anual",
     duration: "Compromisso de 12 meses",
-    price: 759.9,
-    priceLabel: "759,90",
+    price: 598.8,
+    priceLabel: "598,80",
     period: "/12 meses",
-    equivalent: "Equivale a R$ 63,33 por mês.",
-    savings: 198.9,
+    equivalent: "Equivale a R$ 49,90 por mês.",
+    savings: 240,
     badge: "Melhor valor"
   }
 };
@@ -61,7 +61,8 @@ function whatsappUrl(plan) {
   const monthlyCopy = plan.label === "Mensal"
     ? `${currency(plan.price)} por mês`
     : `${currency(plan.price)} no total (${plan.equivalent.replace("Equivale a ", "").replace(".", "")})`;
-  const message = `Olá! Quero assinar o Plano Parceiro do Viva no período ${plan.label.toLowerCase()}, por ${monthlyCopy}.`;
+  const offer = plan.label === "Mensal" ? " Gostaria de consultar a oferta de R$ 44,90 por mês para os 10 primeiros assinantes." : "";
+  const message = `Olá! Quero assinar o Plano Parceiro do Viva no período ${plan.label.toLowerCase()}, por ${monthlyCopy}.${offer}`;
   return `https://wa.me/5517976005583?text=${encodeURIComponent(message)}`;
 }
 

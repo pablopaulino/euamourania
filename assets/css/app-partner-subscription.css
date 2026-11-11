@@ -504,3 +504,10 @@ body.viva-subscription-page {
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .viva-subscription-float, .viva-plan-card { background: #fff; }
 }
+
+.viva-launch-offer { margin: 0 0 1.5rem; padding: clamp(1.35rem, 3vw, 2.4rem); border-radius: 26px; background: #093e4d; color: #fff; }
+.viva-launch-offer .viva-launch-label { margin: 0 0 .6rem; color: #ffb24a; font-size: .76rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.viva-launch-offer h3 { margin: 0 0 .65rem; color: #fff; font-size: clamp(1.5rem, 3vw, 2.4rem); line-height: 1.15; }
+.viva-launch-offer h3 strong { color: #ffb24a; white-space: nowrap; }
+.viva-launch-offer p { margin: .45rem 0 0; color: #fff; line-height: 1.55; }
+.viva-launch-offer .viva-launch-terms { color: #dce9e9; font-size: .86rem; }
