@@ -210,9 +210,9 @@ export const vivaSubscriptionsView = `
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
             </svg>
-            <span>Renovação Rápida em 1 Clique</span>
+            <span>Renovar assinatura</span>
           </div>
-          <span class="viva-renew-hint">Soma 1 mês à vigência, marca como ativa e confirma o pagamento de forma intuitiva</span>
+          <span class="viva-renew-hint">Escolha o período, confirme o pagamento e salve. Os dias restantes são preservados.</span>
         </div>
 
         <div class="viva-renew-actions">
@@ -273,9 +273,9 @@ export const vivaSubscriptionsView = `
           <div class="viva-form-group">
             <label for="plan-period" class="viva-field-label">Período Contratado</label>
             <select name="periodo" id="plan-period" class="viva-field-control">
-              <option value="mensal">Mensal · R$ 79,90 / mês</option>
-              <option value="semestral">Semestral · R$ 419,90 (6 meses)</option>
-              <option value="anual">Anual · R$ 759,90 (12 meses)</option>
+              <option value="mensal">Mensal · 1 mês</option>
+              <option value="semestral">Semestral · 6 meses</option>
+              <option value="anual">Anual · 12 meses</option>
             </select>
           </div>
 

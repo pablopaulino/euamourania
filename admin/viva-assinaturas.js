@@ -35,7 +35,7 @@ export async function mount(container, context = {}) {
   // Injeta a folha de estilos do módulo com cache-busting
   const style = document.createElement('link');
   style.rel = 'stylesheet';
-  style.href = '/admin/viva-assinaturas.css?v=20261111-perfil';
+  style.href = '/admin/viva-assinaturas.css?v=20261111-tabela';
   style.dataset.adminModuleStyle = 'viva-assinaturas';
   document.head.append(style);
   module.style = style;
@@ -298,6 +298,17 @@ export async function mount(container, context = {}) {
       const avatar = document.createElement('div');
       avatar.className = 'viva-company-avatar';
       avatar.textContent = guide.nome.trim().charAt(0).toUpperCase() || 'E';
+      if (/^(https:\/\/|\/(?!\/))/i.test(guide.imagem_url || '')) {
+        const photo = document.createElement('img');
+        photo.src = guide.imagem_url;
+        photo.alt = '';
+        photo.width = 40;
+        photo.height = 40;
+        photo.loading = 'lazy';
+        photo.decoding = 'async';
+        photo.onerror = () => photo.remove();
+        avatar.append(photo);
+      }
 
       const infoDiv = document.createElement('div');
       infoDiv.className = 'viva-company-info';
@@ -396,7 +407,7 @@ export async function mount(container, context = {}) {
   async function refresh() {
     if (btnRefresh) btnRefresh.classList.add('is-spinning');
     const [{ data: guides, error: guidesError }, { data: plans, error: plansError }, { data: offers, error: offersError }] = await Promise.all([
-      db.from('guia_comercial').select('id,nome').order('nome').limit(5000),
+      db.from('guia_comercial').select('id,nome,imagem_url').order('nome').limit(5000),
       db.from('viva_assinaturas').select('guia_id,periodo,status,inicio,validade,pagamento_confirmado_em').limit(5000),
       db.from('viva_oferta_lancamento').select('vaga,guia_id,encerrada_em').limit(15)
     ]);
@@ -460,7 +471,7 @@ export async function mount(container, context = {}) {
     render();
 
     const [{ data: plan, error }, { data: history, error: historyError }] = await Promise.all([
-      db.from('viva_assinaturas').select('*').eq('guia_id', module.selected).maybeSingle(),
+      Promise.resolve({ data: module.plans.get(module.selected) || null, error: null }),
       db.from('viva_assinaturas_historico').select('criado_em,novo').eq('guia_id', module.selected).order('criado_em', { ascending: false }).limit(20)
     ]);
 
