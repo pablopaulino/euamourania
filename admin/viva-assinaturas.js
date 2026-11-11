@@ -35,13 +35,29 @@ export async function mount(container, context = {}) {
   // Injeta a folha de estilos do módulo com cache-busting
   const style = document.createElement('link');
   style.rel = 'stylesheet';
-  style.href = '/admin/viva-assinaturas.css?v=20261111-minimal';
+  style.href = '/admin/viva-assinaturas.css?v=20261111-perfil';
   style.dataset.adminModuleStyle = 'viva-assinaturas';
   document.head.append(style);
   module.style = style;
 
   container.dataset.module = 'viva_assinaturas';
   container.innerHTML = vivaSubscriptionsView;
+  const detailMode = Boolean(initialGuiaId);
+  container.dataset.subscriptionView = detailMode ? 'detail' : 'list';
+  container.querySelector('.viva-admin-grid').hidden = !detailMode;
+  container.querySelector('.viva-list-panel').hidden = detailMode;
+  container.querySelector('.viva-metrics-grid').hidden = detailMode;
+  const back = container.querySelector('#subscription-back');
+  back.hidden = !detailMode;
+  const listUrl = new URL(location.href);
+  listUrl.searchParams.delete('guia_id');
+  listUrl.hash = '';
+  back.href = listUrl.pathname + listUrl.search;
+  const openCompany = id => {
+    const url = new URL(listUrl);
+    url.searchParams.set('guia_id', id);
+    location.assign(url.pathname + url.search);
+  };
 
   const $ = selector => container.querySelector(selector);
   const db = context.db || getSupabase();
@@ -262,6 +278,9 @@ export async function mount(container, context = {}) {
       return st === filter.value;
     });
 
+    visible.sort((a, b) => Number(state(module.plans.get(b.id)) === 'ativa')
+      - Number(state(module.plans.get(a.id)) === 'ativa')
+      || a.nome.localeCompare(b.nome, 'pt-BR'));
     rows.replaceChildren();
 
     for (const guide of visible) {
@@ -350,10 +369,7 @@ export async function mount(container, context = {}) {
 
       button.onclick = e => {
         e.stopPropagation();
-        module.selected = guide.id;
-        company.value = guide.id;
-        load();
-        $('#subscription-editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        openCompany(guide.id);
       };
       cellAction.append(button);
 
@@ -436,6 +452,10 @@ export async function mount(container, context = {}) {
     if (quickRenewMonthBtn) quickRenewMonthBtn.disabled = false;
     const selectedGuide = module.guides.find(g => g.id === module.selected);
     if (titleEl) titleEl.textContent = selectedGuide ? selectedGuide.nome : 'Empresa selecionada';
+    if (detailMode && selectedGuide) {
+      $('.viva-main-title').textContent = selectedGuide.nome;
+      $('.viva-subtitle').textContent = 'Gerencie o plano, a renovação e o histórico desta empresa.';
+    }
 
     render();
 
@@ -577,8 +597,7 @@ export async function mount(container, context = {}) {
 
   // Troca de empresa no select do formulário
   company.onchange = () => {
-    module.selected = company.value;
-    load();
+    if (company.value) openCompany(company.value);
   };
 
   // Botões de Renovação Rápida

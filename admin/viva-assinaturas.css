@@ -1,3 +1,24 @@
+#app-content[data-module="viva_assinaturas"] [hidden] { display: none !important; }
+#app-content[data-module="viva_assinaturas"] .viva-subscriptions-wrapper { padding: 24px 28px 40px; }
+#app-content[data-module="viva_assinaturas"] .viva-header-content,
+#app-content[data-module="viva_assinaturas"] .viva-title-group > div,
+#app-content[data-module="viva_assinaturas"] .viva-list-header-info,
+#app-content[data-module="viva_assinaturas"] .viva-metric-body,
+#app-content[data-module="viva_assinaturas"] .viva-main-title,
+#app-content[data-module="viva_assinaturas"] .viva-panel-title,
+#app-content[data-module="viva_assinaturas"] .viva-subtitle,
+#app-content[data-module="viva_assinaturas"] .viva-panel-desc { text-align: left; }
+#app-content[data-module="viva_assinaturas"] .viva-title-group { justify-content: flex-start; }
+#app-content[data-module="viva_assinaturas"] .viva-main-title,
+#app-content[data-module="viva_assinaturas"] .viva-panel-title { margin-left: 0; margin-right: 0; }
+#app-content[data-module="viva_assinaturas"] .viva-table-container { margin: 0 24px 16px; width: auto; border: 1px solid var(--viva-border); border-radius: 12px; }
+#app-content[data-module="viva_assinaturas"] .viva-list-header { padding: 24px; }
+#app-content[data-module="viva_assinaturas"] .viva-back-link { align-self: flex-start; }
+@media (max-width: 600px) {
+  #app-content[data-module="viva_assinaturas"] .viva-subscriptions-wrapper { padding: 16px 12px 28px; }
+  #app-content[data-module="viva_assinaturas"] .viva-table-container { margin: 0 16px 16px; }
+  #app-content[data-module="viva_assinaturas"] .viva-list-header { padding: 20px 16px; }
+}
 /*
  * Módulo de Gestão de Assinaturas Viva Urânia
  * Padrão estético oficial do CMS / Painel Administrativo do Eu Amo Urânia

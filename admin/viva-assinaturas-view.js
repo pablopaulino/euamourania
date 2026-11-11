@@ -1,5 +1,6 @@
 export const vivaSubscriptionsView = `
 <div class="viva-subscriptions-wrapper">
+  <a class="admin-button secondary viva-back-link" id="subscription-back" href="/admin/viva-assinaturas" hidden>← Voltar para assinaturas</a>
   <!-- Topbar / Cabeçalho da Página -->
   <header class="viva-page-header">
     <div class="viva-header-content">
