@@ -505,9 +505,28 @@ body.viva-subscription-page {
   .viva-subscription-float, .viva-plan-card { background: #fff; }
 }
 
-.viva-launch-offer { margin: 0 0 1.5rem; padding: clamp(1.35rem, 3vw, 2.4rem); border-radius: 26px; background: #093e4d; color: #fff; }
-.viva-launch-offer .viva-launch-label { margin: 0 0 .6rem; color: #ffb24a; font-size: .76rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-.viva-launch-offer h3 { margin: 0 0 .65rem; color: #fff; font-size: clamp(1.5rem, 3vw, 2.4rem); line-height: 1.15; }
-.viva-launch-offer h3 strong { color: #ffb24a; white-space: nowrap; }
-.viva-launch-offer p { margin: .45rem 0 0; color: #fff; line-height: 1.55; }
-.viva-launch-offer .viva-launch-terms { color: #dce9e9; font-size: .86rem; }
+.viva-launch-offer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, .85fr);
+  align-items: center;
+  gap: 1.5rem 3rem;
+  margin-top: 2.5rem;
+  padding: clamp(1.3rem, 2.5vw, 2rem);
+  background: rgba(255, 255, 255, .78);
+  border: 1px solid rgba(17, 18, 20, .08);
+  border-radius: 26px;
+  box-shadow: 0 15px 40px rgba(24, 28, 34, .045);
+}
+.viva-launch-label { display: flex; align-items: center; gap: .5rem; margin: 0 0 .8rem; color: #74777d; font-size: .67rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+.viva-launch-label span { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: linear-gradient(135deg, var(--landing-red), var(--landing-orange)); }
+.viva-launch-main h3 { margin: 0; color: var(--landing-ink); font-size: clamp(2.1rem, 3.5vw, 3.2rem); line-height: 1; letter-spacing: -.065em; }
+.viva-launch-main h3 small { color: #85888e; font-size: .85rem; font-weight: 650; letter-spacing: 0; }
+.viva-launch-main > p:last-child { margin: .7rem 0 0; color: #5f6268; font-size: .88rem; line-height: 1.45; }
+.viva-launch-details { padding-left: 1.6rem; border-left: 1px solid var(--landing-line); }
+.viva-launch-details p { margin: 0; color: #696c72; font-size: .77rem; line-height: 1.6; }
+.viva-launch-details span { display: block; margin-top: .65rem; color: #92959a; font-size: .7rem; line-height: 1.45; }
+.viva-launch-offer + .viva-plan-shell { margin-top: 1rem; }
+@media (max-width: 780px) {
+  .viva-launch-offer { grid-template-columns: 1fr; gap: 1.1rem; margin-top: 2rem; }
+  .viva-launch-details { padding: 1rem 0 0; border-top: 1px solid var(--landing-line); border-left: 0; }
+}

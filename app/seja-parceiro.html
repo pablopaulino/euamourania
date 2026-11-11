@@ -22,7 +22,7 @@
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"Plano Parceiro do Viva","description":"Presença comercial da empresa no aplicativo Viva Urânia.","brand":{"@type":"Brand","name":"Viva Urânia"},"offers":[{"@type":"Offer","name":"Mensal","price":"69.90","priceCurrency":"BRL","url":"https://euamourania.com.br/app/seja-parceiro#planos"},{"@type":"Offer","name":"Semestral","price":"359.40","priceCurrency":"BRL","url":"https://euamourania.com.br/app/seja-parceiro#planos"},{"@type":"Offer","name":"Anual","price":"598.80","priceCurrency":"BRL","url":"https://euamourania.com.br/app/seja-parceiro#planos"}]}</script>
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/assets/css/app-landing-v2.css">
-  <link rel="stylesheet" href="/assets/css/app-partner-subscription.css">
+  <link rel="stylesheet" href="/assets/css/app-partner-subscription.css?v=20261111b">
   <link rel="preload" as="image" href="/assets/app/viva-urania-perfil-empresa.jpeg" fetchpriority="high">
   <link rel="icon" href="/assets/viva-origem-colorido.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/assets/viva-origem-colorido.svg">
@@ -143,10 +143,15 @@
       </header>
 
       <aside class="viva-launch-offer" aria-label="Oferta de lançamento do plano mensal">
-        <p class="viva-launch-label">Oferta de lançamento · 10 primeiros assinantes</p>
-        <h3>Seu negócio no Viva por <strong>R$ 44,90/mês</strong></h3>
-        <p>Plano mensal para os 10 primeiros assinantes, sujeito à confirmação de disponibilidade.</p>
-        <p class="viva-launch-terms">O valor permanece enquanto a assinatura estiver ativa e os pagamentos em dia. Ao cancelar, o desconto é perdido; em uma nova contratação, vale o preço vigente.</p>
+        <div class="viva-launch-main">
+          <p class="viva-launch-label"><span aria-hidden="true"></span> Oferta de lançamento</p>
+          <h3>R$ 44,90 <small>/mês</small></h3>
+          <p>Plano mensal para os 10 primeiros assinantes.</p>
+        </div>
+        <div class="viva-launch-details">
+          <p>Valor mantido enquanto a assinatura estiver ativa e os pagamentos em dia. Ao cancelar, o desconto é perdido; em uma nova contratação, vale o preço vigente.</p>
+          <span>Sujeito à confirmação de disponibilidade.</span>
+        </div>
       </aside>
 
       <div class="viva-plan-shell">
