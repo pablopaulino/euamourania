@@ -63,8 +63,9 @@ function whatsappUrl(plan) {
   const monthlyCopy = plan.label === "Mensal"
     ? `${currency(plan.price)} por mês`
     : `${currency(plan.price)} no total (${plan.equivalent.replace("Equivale a ", "").replace(".", "")})`;
-  const offer = plan.label === "Mensal" && offerSlots !== 0 ? " Gostaria de consultar a oferta de R$ 44,90 por mês para os 15 primeiros assinantes." : "";
-  const message = `Olá! Quero assinar o Plano Parceiro do Viva no período ${plan.label.toLowerCase()}, por ${monthlyCopy}.${offer}`;
+  const message = plan.label === "Anual" && offerSlots > 0
+    ? "Olá! Quero consultar a oferta anual do Plano Parceiro do Viva por R$ 199,90 no primeiro ano, com renovação anual por R$ 459,00."
+    : `Olá! Quero assinar o Plano Parceiro do Viva no período ${plan.label.toLowerCase()}, por ${monthlyCopy}.`;
   return `https://wa.me/5517976005583?text=${encodeURIComponent(message)}`;
 }
 
@@ -158,8 +159,8 @@ track("app_parceria_acesso");
 
 async function refreshOfferAvailability() {
   try {
-    const { data, error } = await getSupabase().rpc('viva_oferta_vagas');
-    if (error || !Number.isInteger(data) || data < 0 || data > 15) throw error || new Error('Disponibilidade inválida');
+    const { data, error } = await getSupabase().rpc('viva_oferta_anual_vagas');
+    if (error || !Number.isInteger(data) || data < 0 || data > 5) throw error || new Error('Disponibilidade inválida');
     offerSlots = data;
     const offer = document.querySelector('.viva-launch-offer');
     if (offer) offer.hidden = data === 0;
@@ -168,6 +169,8 @@ async function refreshOfferAvailability() {
     if (contact) contact.href = whatsappUrl(plans[contact.dataset.selectedPlan] || plans.monthly);
   } catch {
     offerSlots = null;
+    const offer = document.querySelector('.viva-launch-offer');
+    if (offer) offer.hidden = true;
     const availability = document.querySelector('[data-offer-availability]');
     if (availability) availability.textContent = 'Sujeito à confirmação de disponibilidade.';
   }

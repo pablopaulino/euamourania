@@ -406,16 +406,17 @@ export async function mount(container, context = {}) {
 
   async function refresh() {
     if (btnRefresh) btnRefresh.classList.add('is-spinning');
-    const [{ data: guides, error: guidesError }, { data: plans, error: plansError }, { data: offers, error: offersError }] = await Promise.all([
+    const [{ data: guides, error: guidesError }, { data: plans, error: plansError }, { data: offers, error: offersError }, { data: annualOffers, error: annualOffersError }] = await Promise.all([
       db.from('guia_comercial').select('id,nome,imagem_url').order('nome').limit(5000),
       db.from('viva_assinaturas').select('guia_id,periodo,status,inicio,validade,pagamento_confirmado_em').limit(5000),
-      db.from('viva_oferta_lancamento').select('vaga,guia_id,encerrada_em').limit(15)
+      db.from('viva_oferta_lancamento').select('vaga,guia_id,encerrada_em').limit(15),
+      db.from('viva_oferta_anual').select('vaga,guia_id').limit(5)
     ]);
     if (btnRefresh) btnRefresh.classList.remove('is-spinning');
 
     if (!module.active) return false;
-    if (guidesError || plansError || offersError) {
-      notice.textContent = `Não foi possível carregar as assinaturas: ${(guidesError || plansError || offersError).message}`;
+    if (guidesError || plansError || offersError || annualOffersError) {
+      notice.textContent = `Não foi possível carregar as assinaturas: ${(guidesError || plansError || offersError || annualOffersError).message}`;
       toast(notice.textContent, 'error');
       return false;
     }
@@ -423,6 +424,8 @@ export async function mount(container, context = {}) {
     module.guides = guides || [];
     module.plans = new Map((plans || []).map(plan => [plan.guia_id, plan]));
     module.offers = new Map((offers || []).map(offer => [offer.vaga, offer]));
+    module.annualOffers = annualOffers || [];
+    $('#metric-offer-annual').textContent = `Oferta anual: ${Math.max(0, 5 - module.annualOffers.length)} de 5 vagas disponíveis`;
     $('#metric-offer').textContent = `${Math.max(0, 15 - module.offers.size)} de 15 vagas disponíveis`;
 
     company.replaceChildren(new Option('Selecione uma empresa...', ''));
@@ -527,6 +530,10 @@ export async function mount(container, context = {}) {
     }
 
     const offer = [...module.offers.values()].find(item => item.guia_id === module.selected);
+    const annualOffer = module.annualOffers.some(item => item.guia_id === module.selected);
+    form.elements.oferta_anual.checked = false;
+    form.elements.oferta_anual.disabled = annualOffer;
+    $('#offer-annual-status').textContent = annualOffer ? 'Oferta anual já concedida a esta empresa.' : 'Plano anual ativo com pagamento confirmado; renovação por R$ 459,00.';
     form.elements.oferta.checked = Boolean(offer && !offer.encerrada_em);
     form.elements.oferta.disabled = Boolean(offer);
     $('#offer-status').textContent = offer?.encerrada_em
@@ -676,7 +683,17 @@ export async function mount(container, context = {}) {
     notice.textContent = '';
 
     try {
-      const { error } = await db.rpc('admin_salvar_assinatura_viva_oferta', {
+      const annualOffer = form.elements.oferta_anual.checked;
+      if (annualOffer && (form.elements.periodo.value !== 'anual' || form.elements.status.value !== 'ativa' || !pago)) {
+        throw new Error('A oferta exige plano anual ativo e pagamento confirmado.');
+      }
+      if (annualOffer && form.elements.oferta.checked && !form.elements.oferta.disabled) {
+        throw new Error('Selecione apenas uma oferta.');
+      }
+      const { error } = annualOffer ? await db.rpc('admin_salvar_assinatura_viva_oferta_anual', {
+        p_guia_id: module.selected, p_status: st, p_inicio: form.elements.inicio.value,
+        p_validade: form.elements.validade.value, p_pago: pago
+      }) : await db.rpc('admin_salvar_assinatura_viva_oferta', {
         p_guia_id: module.selected,
         p_periodo: form.elements.periodo.value,
         p_status: form.elements.status.value,

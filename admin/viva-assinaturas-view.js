@@ -346,6 +346,11 @@ export const vivaSubscriptionsView = `
             <p>Obrigatório marcar para assinaturas no status "Ativa". O painel registra data e horário da confirmação.</p>
           </div>
         </label>
+        <p class="viva-section-desc" id="metric-offer-annual">Consultando vagas da oferta anual…</p>
+        <label class="viva-payment-box">
+          <input type="checkbox" name="oferta_anual" class="viva-checkbox">
+          <div class="viva-payment-text"><strong>Conceder oferta anual de R$ 199,90 no primeiro ano</strong><p id="offer-annual-status">Plano anual ativo com pagamento confirmado; renovação por R$ 459,00.</p></div>
+        </label>
       </section>
 
       <section class="viva-form-section">
