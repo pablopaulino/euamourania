@@ -83,6 +83,7 @@ const moduleRoutes = {
     hint: "Organize contatos importantes, urgências e serviços exibidos no aplicativo.",
     module: () => import("./telefones-uteis.js")
   },
+  natal_premiado: { label: "Natal Premiado", hint: "Prêmios, apoiadores e resultados por edição.", module: () => import("./natal-premiado.js") },
   motoristas: {
     label: "Motoristas",
     hint: "Contatos de motoristas particulares para corridas locais e viagens.",
