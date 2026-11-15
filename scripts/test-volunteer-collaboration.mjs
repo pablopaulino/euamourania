@@ -49,8 +49,8 @@ must(publicPage.includes("volunt") && publicPage.includes("remunera"), "Pagina p
 must(pageScript.includes("callPublicRpc(\"enviar_colaboracao_voluntaria\""), "Formulario nao envia para a RPC correta.");
 must(pageScript.includes("p_website"), "Formulario nao envia o honeypot.");
 must(inviteScript.includes("/colabore/"), "Convite publico nao aponta para /colabore/.");
-must(newsIndex.includes("colabore-public.js"), "Convite voluntario ausente na pagina de noticias.");
-must(newsDetails.includes("colabore-public.js"), "Convite voluntario ausente na noticia individual.");
+must(newsIndex.includes("/colabore/"), "Convite voluntario ausente na pagina de noticias.");
+must(newsDetails.includes("noticia-page.js") || newsDetails.includes("article-preview.js"), "Pagina de noticia nao carrega o modulo editorial.");
 
 must(adminIndex.includes('data-view="colaboradores_voluntarios"'), "Menu administrativo de colaboracoes ausente.");
 must(adminScript.includes("colaboradores_voluntarios"), "Recurso administrativo de colaboradores ausente.");

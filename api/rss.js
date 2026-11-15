@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
       const link = `${DOMAIN}/noticias/${encodeURIComponent(item.slug)}`;
       const description = item.resumo || plain(item.conteudo_html).slice(0, 220);
       const image = absolute(item.imagem_url);
-      return `<item><title>${xml(item.titulo)}</title><link>${xml(link)}</link><guid isPermaLink="true">${xml(link)}</guid><description>${xml(description)}</description><pubDate>${new Date(item.publicado_em).toUTCString()}</pubDate>${item.autor ? `<author>euamourania@gmail.com (${xml(item.autor)})</author>` : ""}${item.categoria_nome ? `<category>${xml(item.categoria_nome)}</category>` : ""}<enclosure url="${xml(image)}" type="image/jpeg" /></item>`;
+      return `<item><title>${xml(item.titulo)}</title><link>${xml(link)}</link><guid isPermaLink="true">${xml(link)}</guid><description>${xml(description)}</description><pubDate>${new Date(item.publicado_em).toUTCString()}</pubDate>${item.autor ? `<author>redacao@euamourania.com.br (${xml(item.autor)})</author>` : ""}${item.categoria_nome ? `<category>${xml(item.categoria_nome)}</category>` : ""}<enclosure url="${xml(image)}" type="image/jpeg" /></item>`;
     }).join("");
     res.setHeader("Content-Type", "application/rss+xml; charset=utf-8");
     res.setHeader("Cache-Control", "public, s-maxage=900, stale-while-revalidate=86400");

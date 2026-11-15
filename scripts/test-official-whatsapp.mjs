@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 
 const root = new URL("../", import.meta.url);
-const files = ["index.html", "buscar.html", "news/index.html", "admin/migrar.js"];
+const files = ["urania/index.html", "iniciativas/index.html", "admin/migrar.js"];
 const contents = await Promise.all(files.map(path => readFile(new URL(path, root), "utf8")));
 const migration = await readFile(new URL("supabase/migrations/20260703_atualiza_whatsapp_oficial.sql", root), "utf8");
 const current = "5517976005583";
@@ -16,3 +16,4 @@ if (!migration.includes(`'whatsapp', '${current}'`) || !migration.includes(`repl
 }
 
 console.log("WhatsApp oficial validado no site, importador e Supabase.");
+

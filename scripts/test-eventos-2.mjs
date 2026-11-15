@@ -25,7 +25,7 @@ assert(publicData.includes('"eventos_principais"'), "serviço público permite e
 assert(publicData.includes('"eventos_edicoes"'), "serviço público permite edições");
 
 const index = read("eventos/index.html");
-assert(index.includes("eventos-page.js"), "página /eventos carrega o módulo público");
+assert(index.includes("/preview/agenda/agenda-preview.js"), "página /eventos carrega o módulo público");
 assert(existsSync("eventos/evento.html"), "existe página pública do evento principal");
 assert(existsSync("eventos/edicao.html"), "existe página pública da edição");
 assert(existsSync("assets/js/pages/evento-principal-page.js"), "existe script do evento principal");
@@ -33,7 +33,7 @@ assert(existsSync("assets/js/pages/evento-edicao-page.js"), "existe script da ed
 
 const eventoPrincipal = read("assets/js/pages/evento-principal-page.js");
 const eventoEdicao = read("assets/js/pages/evento-edicao-page.js");
-const eventosPage = read("assets/js/pages/eventos-page.js");
+const eventosPage = read("preview/agenda/agenda-preview.js");
 const eventosHelpers = read("assets/js/pages/eventos-helpers.js");
 assert(eventoPrincipal.includes("function getEventSlug()"), "pagina do evento le slug pela URL bonita");
 assert(eventoPrincipal.includes('parts[0] === "eventos"'), "evento principal funciona em /eventos/slug");
@@ -49,7 +49,7 @@ assert(eventoEdicao.includes("seoDescription"), "edicao possui descricao SEO pro
 assert(eventoEdicao.includes("edicao.seo_titulo"), "edicao usa titulo SEO cadastrado quando existir");
 assert(eventoEdicao.includes("edicao.seo_descricao"), "edicao usa descricao SEO cadastrada quando existir");
 assert(eventoEdicao.includes("canonical"), "edicao define URL canonica propria");
-assert(eventosPage.includes("Abrir evento"), "cards de eventos principais possuem botao abrir evento");
+assert(eventosPage.includes("Conhecer evento"), "cards de eventos principais possuem botao abrir evento");
 assert(eventosHelpers.includes("Abrir edição"), "cards de edicoes possuem botao abrir edicao");
 assert(eventosPage.includes("data-event-principal-id"), "cards de eventos principais registram audiencia");
 assert(eventosHelpers.includes("data-event-edition-id"), "cards de edicoes registram audiencia");

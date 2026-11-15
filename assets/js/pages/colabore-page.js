@@ -26,6 +26,7 @@ function values() {
 form?.addEventListener("submit", async event => {
   event.preventDefault();
   const button = event.submitter || form.querySelector("button[type='submit']");
+  const originalButtonHtml = button.innerHTML;
   button.disabled = true;
   button.textContent = "Enviando…";
   setStatus("Enviando cadastro…");
@@ -37,6 +38,6 @@ form?.addEventListener("submit", async event => {
     setStatus(error.message || "Não foi possível enviar agora. Tente novamente.", "error");
   } finally {
     button.disabled = false;
-    button.textContent = "Enviar cadastro";
+    button.innerHTML = originalButtonHtml;
   }
 });

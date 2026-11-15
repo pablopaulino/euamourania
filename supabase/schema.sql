@@ -203,5 +203,5 @@ create policy "admin_gerencia_administradores" on public.usuarios_admin for all 
 
 insert into public.configuracoes_site(chave, valor, tipo) values
   ('nome_site','Eu Amo Urânia','texto'),
-  ('email_contato','euamourania@gmail.com','email')
+  ('email_contato','contato@euamourania.com.br','email')
 on conflict (chave) do nothing;
