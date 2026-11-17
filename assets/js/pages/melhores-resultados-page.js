@@ -36,6 +36,14 @@ export function formatDate(value) {
   return value ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: "America/Sao_Paulo" }).format(new Date(value)) : "Data não informada";
 }
 
+export function formatAnnouncement(value) {
+  const date = new Date(value);
+  if (!value || Number.isNaN(date.getTime())) return "Data a ser informada";
+  const day = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: "America/Sao_Paulo" }).format(date);
+  const time = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }).format(date);
+  return `${day}, às ${time} (horário de Brasília)`;
+}
+
 function setMeta(edition, published) {
   const title = `${published ? "Resultados" : "Edição"} ${edition.ano} | Melhores de Urânia`;
   const description = (published
@@ -204,6 +212,12 @@ async function init() {
       document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">${esc(phase)}</span><h1>${esc(edition.nome)}</h1><p>Os resultados desta edição ainda não estão disponíveis. A divulgação oficial acontecerá depois da apuração.</p><div class="hero-actions"><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/">Acompanhar edição</a></div>`;
       document.getElementById("results-panel").innerHTML = `<h2>Edição ${esc(String(edition.ano))}</h2><p>Assim que os resultados forem publicados, os vencedores de cada categoria aparecerão aqui.</p><div class="awards-status-line"><span class="awards-chip">${esc(phase)}</span></div>`;
       document.getElementById("results-list").innerHTML = '<div class="awards-empty">Nenhum resultado oficial publicado para esta edição.</div>';
+      if (["votacao_encerrada", "apuracao"].includes(edition.status)) {
+        const announcement = formatAnnouncement(edition.divulgacao_em);
+        document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">Votação encerrada</span><h1>Obrigado por fazer parte.</h1><p>A votação do ${esc(edition.nome)} terminou. Nossa equipe está conferindo os votos e preparando a divulgação dos vencedores.</p><div class="hero-actions"><a class="button button-secondary" href="/melhores-de-urania/${encodeURIComponent(edition.ano)}/">Acompanhar a edição</a></div>`;
+        document.getElementById("results-panel").innerHTML = `<p class="eyebrow">Divulgação prevista</p><h2>${esc(announcement)}</h2><p>Os vencedores serão apresentados nesta página após a publicação oficial.</p><div class="awards-status-line"><span class="awards-chip">Apuração em andamento</span></div>`;
+        document.getElementById("results-list").innerHTML = '<div class="awards-empty">Agradecemos a todos que participaram e valorizaram quem faz Urânia acontecer.</div>';
+      }
       if (edition.ano === 2026) montarCentralTransparencia(document.getElementById("results-list"), edition, []);
       return;
     }

@@ -613,3 +613,8 @@ body[data-awards-page="voting"] .vote-finish-dialog :focus-visible { outline: 3p
   body[data-awards-page="voting"] .vote-app-icon { width: 48px; height: 48px; }
   body[data-awards-page="voting"] .vote-app-invite a { grid-column: 2; justify-self: start; }
 }
+
+body[data-awards-page="voting"] .vote-announcement { display:grid; gap:.4rem; margin-top:1.5rem; padding:1.25rem 1.4rem; border:1px solid #eadcc7; border-radius:16px; background:#fffaf1; }
+body[data-awards-page="voting"] .vote-announcement span { color:#a04c12; font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; }
+body[data-awards-page="voting"] .vote-announcement strong { color:#1d2829; font-size:1.15rem; }
+body[data-awards-page="voting"] .vote-announcement small { color:#686961; font-size:.83rem; }

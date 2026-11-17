@@ -408,6 +408,23 @@ export async function obterApuracao(edicaoId) {
   return data || [];
 }
 
+export async function consultarAgendamentoResultado(edicaoId) {
+  const { data, error } = await db().rpc("melhores_consultar_agendamento", { p_edicao: edicaoId });
+  if (error) throw error;
+  return data?.[0] || null;
+}
+
+export async function prepararResultadoAgendado(edicaoId, metodologia) {
+  const { data, error } = await db().rpc("melhores_preparar_resultado_agendado", { p_edicao: edicaoId, p_metodologia: metodologia || null });
+  if (error) throw error;
+  return data;
+}
+
+export async function cancelarAgendamentoResultado(edicaoId) {
+  const { error } = await db().rpc("melhores_cancelar_agendamento", { p_edicao: edicaoId });
+  if (error) throw error;
+}
+
 export async function publicarResultado(edicaoId, metodologia) {
   const { data, error } = await db().rpc("melhores_publicar_resultado", {
     p_edicao: edicaoId,

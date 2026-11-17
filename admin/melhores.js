@@ -25,6 +25,9 @@ import {
   salvarInstagramCategoria,
   excluirInstagramVoto,
   obterApuracao,
+  consultarAgendamentoResultado,
+  prepararResultadoAgendado,
+  cancelarAgendamentoResultado,
   publicarResultado,
   listarResultados,
   listarVotos,
@@ -204,6 +207,10 @@ function resetState() {
 
 function fmtDate(value) {
   return value ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)) : "Não definido";
+}
+
+function fmtDivulgacao(value) {
+  return value ? `${new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(new Date(value))} (horário de Brasília)` : "Não definida";
 }
 
 function fmtDateInput(value) {
@@ -904,6 +911,8 @@ async function loadApuration() {
     state.apuracao = edicaoId ? await obterApuracao(edicaoId) : [];
     const grouped = groupBy(state.apuracao, "categoria_id");
     const edition = state.edicoes.find(item => item.id === edicaoId);
+    const agendamento = Number(edition?.ano) === 2026 && ["votacao_encerrada", "apuracao"].includes(edition?.status)
+      ? await consultarAgendamentoResultado(edicaoId) : null;
     const canPublish = ["votacao_encerrada", "apuracao"].includes(edition?.status) && state.apuracao.some(row => Number(row.votos_site || 0) + Number(row.votos_instagram || 0) > 0);
     $("#apuration-view").innerHTML = `
       <article class="awards-card">
@@ -914,8 +923,12 @@ async function loadApuration() {
           <input id="apuration-search" type="search" placeholder="Pesquisar categoria ou indicado…">
           <select id="apuration-edition-filter">${state.edicoes.map(e => `<option value="${e.id}" ${e.id === edicaoId ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join("")}</select>
           <button class="admin-button secondary" data-refresh-apuration>Atualizar</button>
-          <button class="admin-button" data-publish-results ${canPublish ? "" : "disabled"}>Revisar e publicar resultado</button>
+          ${Number(edition?.ano) === 2026 ? (agendamento
+            ? '<button class="admin-button secondary" data-cancel-result-schedule>Cancelar agendamento</button>'
+            : `<button class="admin-button" data-schedule-results ${canPublish ? "" : "disabled"}>Preparar e agendar resultado</button>`)
+            : `<button class="admin-button" data-publish-results ${canPublish ? "" : "disabled"}>Revisar e publicar resultado</button>`}
         </div>
+        ${agendamento ? `<p class="awards-note">Resultado preparado e bloqueado. Divulgação prevista para ${escapeHtml(fmtDivulgacao(agendamento.divulgar_em))}. Para modificar a apuração, cancele o agendamento.</p>` : ""}
         <p class="awards-note">${isHistoricalEdition(edition) ? "O resultado desta edição está preservado e não pode ser republicado." : "Esta é uma prévia interna e pode mudar até o fim da votação. A publicação oficial exige votação encerrada, votos em cada categoria pública e desempates resolvidos."}</p>
         ${state.apuracao.length ? [...grouped.entries()].map(([categoriaId, rows]) => apurationGroup(categoriaId, rows)).join("") : '<div class="awards-empty">Sem dados suficientes para apuração.</div>'}
       </article>`;
@@ -1974,6 +1987,24 @@ async function init(context = {}) {
       if (button.hasAttribute("data-refresh-audience")) return loadAudience();
       if (button.hasAttribute("data-open-audience")) return loadAudience();
       if (button.hasAttribute("data-refresh-audit")) return loadAudit();
+      if (button.hasAttribute("data-schedule-results")) {
+        const edicaoId = $("#apuration-edition-filter")?.value;
+        const edition = state.edicoes.find(item => item.id === edicaoId);
+        if (!edition?.divulgacao_em) return toast("Defina uma data de divulgação na edição.", "error");
+        const methodology = prompt("Descreva a metodologia que ficará gravada no resultado oficial:", "Resultado calculado por percentual de votos no site / app e no Instagram, conforme pesos da edição.");
+        if (methodology === null) return;
+        if (!confirm(`Preparar e bloquear a apuração? A divulgação está prevista para ${fmtDivulgacao(edition.divulgacao_em)}. Confira os votos e desempates antes de confirmar.`)) return;
+        const total = await prepararResultadoAgendado(edicaoId, methodology);
+        toast(`${total || 0} resultado(s) preparados para divulgação.`);
+        return loadApuration();
+      }
+      if (button.hasAttribute("data-cancel-result-schedule")) {
+        const edicaoId = $("#apuration-edition-filter")?.value;
+        if (!confirm("Cancelar o agendamento e liberar a apuração para alterações?")) return;
+        await cancelarAgendamentoResultado(edicaoId);
+        toast("Agendamento cancelado. Revise e prepare novamente quando estiver pronto.");
+        return loadApuration();
+      }
       if (button.hasAttribute("data-publish-results")) {
         const edicaoId = $("#apuration-edition-filter")?.value || state.edicoes[0]?.id;
         if (!edicaoId) return toast("Selecione uma edição.", "error");
