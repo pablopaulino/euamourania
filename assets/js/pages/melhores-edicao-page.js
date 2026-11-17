@@ -286,6 +286,9 @@ function phaseInfo(edition) {
       cta: "Ver resultados"
     };
   }
+  if (Number(edition.ano) === 2026 && edition.status === "apuracao" && new Date(edition.divulgacao_em).getTime() === Date.parse("2026-11-23T13:00:00Z")) {
+    return { label: "Divulgação dos vencedores", title: "Acompanhe os vencedores", text: "De 23 a 29 de novembro, às 10h, 15h e 20h, no horário de Brasília.", href: resultsUrl(edition), cta: "Ver resultados" };
+  }
   return {
     label: statusLabel(edition.status),
     title: "Acompanhe a edição",
@@ -305,7 +308,7 @@ function renderEditionHub(edition, categories, nominees) {
     {
       eyebrow: "Cronograma",
       title: "Fases da edição",
-      text: Number(edition.ano) === 2026 ? `App: 05/11 às 14h; site: 09/11 às 14h; Instagram: 09/11. Encerramento: 16/11 às 19h (Brasília). Divulgação dos vencedores: ${edition.divulgacao_em ? formatDate(edition.divulgacao_em) + " (horário de Brasília)" : "data a definir"}.` : `Indicações: ${formatPeriod(edition.indicacoes_inicio, edition.indicacoes_fim)}`
+      text: Number(edition.ano) === 2026 && new Date(edition.divulgacao_em).getTime() === Date.parse("2026-11-23T13:00:00Z") ? "Votação encerrada. Divulgação dos vencedores de 23 a 29 de novembro, às 10h, 15h e 20h (horário de Brasília)." : Number(edition.ano) === 2026 ? `App: 05/11 às 14h; site: 09/11 às 14h; Instagram: 09/11. Encerramento: 16/11 às 19h (Brasília). Divulgação dos vencedores: ${edition.divulgacao_em ? formatDate(edition.divulgacao_em) + " (horário de Brasília)" : "data a definir"}.` : `Indicações: ${formatPeriod(edition.indicacoes_inicio, edition.indicacoes_fim)}`
     },
     {
       eyebrow: "Categorias",
@@ -378,6 +381,11 @@ function renderVoting(edition, categories, nominees) {
     return;
   }
   if (section) section.hidden = false;
+  if (!open && edition.votacao_fim && serverNow() > new Date(edition.votacao_fim).getTime()) {
+    const gradual = Number(edition.ano) === 2026 && new Date(edition.divulgacao_em).getTime() === Date.parse("2026-11-23T13:00:00Z");
+    area.innerHTML = `<article class="awards-edition-vote-callout"><div><p class="eyebrow">Votação encerrada</p><h3>Obrigado por participar.</h3><p>${gradual ? "Os vencedores são anunciados de 23 a 29 de novembro, às 10h, 15h e 20h (horário de Brasília)." : "A votação terminou. Acompanhe as informações oficiais desta edição."}</p></div><a class="button button-primary" href="${resultsUrl(edition)}">Acompanhar resultados</a></article>`;
+    return;
+  }
   {
     const votes = readVotes(edition.id);
     const completed = categories.filter(category => votesFor(votes, category.id).length > 0).length;

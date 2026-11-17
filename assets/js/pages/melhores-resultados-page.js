@@ -6,7 +6,8 @@ import { montarCentralTransparencia } from "./melhores-transparencia.js";
 export const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
 export const resultsArePublished = (edition, results) =>
-  (edition?.status === "resultado_publicado" || edition?.status === "arquivada") && results.some(row => row.vencedor);
+  ((edition?.status === "resultado_publicado" || edition?.status === "arquivada") && results.some(row => row.vencedor))
+  || (edition?.status === "apuracao" && results.some(row => row.vencedor && row.publicado === true));
 const localPreview = () => typeof location !== "undefined" && /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 export const hallUrl = () => localPreview() ? "/melhores-de-urania/hall.html" : "/melhores-de-urania/hall/";
 export const resultsPageUrl = edition => localPreview()
@@ -154,7 +155,8 @@ export function renderResults(results, edition, history = [], { demo = false } =
   const winsByKey = groupBy(historicalWinners, winnerKey);
   const grouped = groupBy(results, row => row.categoria_id);
   const publishedAt = results.find(row => row.publicado_em)?.publicado_em || edition.resultado_publicado_em;
-  const showVotes = edition.mostrar_votos_publicamente === true;
+  const partial = edition.status === "apuracao" && !demo;
+  const showVotes = !partial && edition.mostrar_votos_publicamente === true;
 
   return `<section class="awards-results-summary" aria-label="Resumo dos resultados">
     <div>
@@ -171,20 +173,23 @@ export function renderResults(results, edition, history = [], { demo = false } =
   <section class="awards-winners-hall" id="hall-dos-vencedores">
     ${winners.length ? winners.map(row => winnerCard(row, winsByKey, edition, demo)).join("") : '<div class="awards-empty">Nenhum vencedor publicado ainda.</div>'}
   </section>
-  <section class="awards-results-ranking">
+  ${partial ? "" : `<section class="awards-results-ranking">
     <div class="awards-section-head compact">
       <div>
         <p class="eyebrow">Apuração</p>
-        <h2>Resultado completo por categoria</h2>
+        <h2>${partial ? "Categorias já anunciadas" : "Resultado completo por categoria"}</h2>
       </div>
-      <p>${demo ? "Nomes e números fictícios para visualizar o formato." : "Ranking oficial preservado como snapshot histórico da edição."}</p>
+      <p>${demo ? "Nomes e números fictícios para visualizar o formato." : partial ? "Novos vencedores serão anunciados ao longo dos próximos dias." : "Ranking oficial preservado como snapshot histórico da edição."}</p>
     </div>
     <div class="awards-ranking-grid">${[...grouped.values()].map(rows => rankingSection(rows, showVotes, demo)).join("")}</div>
     ${!demo ? `<p class="awards-results-more"><a href="${hallUrl()}">Ver o Hall de todas as edições →</a></p>` : ""}
-  </section>`;
+  </section>`}`;
 }
 
-async function init() {
+let resultsRefreshInProgress = false;
+async function init(refresh = false) {
+  if (resultsRefreshInProgress) return;
+  resultsRefreshInProgress = true;
   try {
     const year = getYear();
     const edition = await obterEdicaoPorAno(year);
@@ -193,7 +198,7 @@ async function init() {
       return;
     }
 
-    registrarEventoMelhores("melhores_results_view", {
+    if (!refresh) registrarEventoMelhores("melhores_results_view", {
       edicaoId: edition.id,
       metadados: { ano: edition.ano, status: edition.status }
     });
@@ -213,27 +218,29 @@ async function init() {
       document.getElementById("results-panel").innerHTML = `<h2>Edição ${esc(String(edition.ano))}</h2><p>Assim que os resultados forem publicados, os vencedores de cada categoria aparecerão aqui.</p><div class="awards-status-line"><span class="awards-chip">${esc(phase)}</span></div>`;
       document.getElementById("results-list").innerHTML = '<div class="awards-empty">Nenhum resultado oficial publicado para esta edição.</div>';
       if (["votacao_encerrada", "apuracao"].includes(edition.status)) {
-        const announcement = formatAnnouncement(edition.divulgacao_em);
+        const gradual = Number(edition.ano) === 2026 && new Date(edition.divulgacao_em).getTime() === Date.parse("2026-11-23T13:00:00Z");
+        const announcement = gradual ? "De 23 a 29 de novembro, às 10h, 15h e 20h" : formatAnnouncement(edition.divulgacao_em);
         document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">Votação encerrada</span><h1>Obrigado por fazer parte.</h1><p>A votação do ${esc(edition.nome)} terminou. Nossa equipe está conferindo os votos e preparando a divulgação dos vencedores.</p><div class="hero-actions"><a class="button button-secondary" href="/melhores-de-urania/${encodeURIComponent(edition.ano)}/">Acompanhar a edição</a></div>`;
-        document.getElementById("results-panel").innerHTML = `<p class="eyebrow">Divulgação prevista</p><h2>${esc(announcement)}</h2><p>Os vencedores serão apresentados nesta página após a publicação oficial.</p><div class="awards-status-line"><span class="awards-chip">Apuração em andamento</span></div>`;
+        document.getElementById("results-panel").innerHTML = `<p class="eyebrow">Divulgação prevista</p><h2>${esc(announcement)}</h2><p>${gradual ? "Horário de Brasília. Os vencedores serão apresentados nesta página, um por vez." : "Os vencedores serão apresentados nesta página após a publicação oficial."}</p><div class="awards-status-line"><span class="awards-chip">Apuração em andamento</span></div>`;
         document.getElementById("results-list").innerHTML = '<div class="awards-empty">Agradecemos a todos que participaram e valorizaram quem faz Urânia acontecer.</div>';
       }
       if (edition.ano === 2026) montarCentralTransparencia(document.getElementById("results-list"), edition, []);
       return;
     }
 
+    const partial = edition.status === "apuracao";
     const [history, comprovantes] = await Promise.all([
       listarHistoricoVencedoresPublicos().catch(error => {
         console.warn("Histórico público de vencedores indisponível:", error);
         return [];
       }),
-      edition.ano === 2026 && edition.mostrar_votos_publicamente === true
+      !partial && edition.ano === 2026 && edition.mostrar_votos_publicamente === true
         ? listarComprovantesPublicos(edition.id).catch(error => { console.warn("Imagens das enquetes indisponíveis:", error); return null; })
         : Promise.resolve(null)
     ]);
     const publishedAt = results.find(row => row.publicado_em)?.publicado_em || edition.resultado_publicado_em;
-    document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">Resultado oficial</span><h1>${esc(edition.nome)}</h1><p>${esc(edition.descricao || "Conheça os nomes reconhecidos pela comunidade nesta edição do Melhores de Urânia.")}</p><div class="hero-actions"><button class="button button-primary" type="button" data-share-results>Compartilhar resultados</button><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/">Ver edição</a></div>`;
-    document.getElementById("results-panel").innerHTML = `<h2>Edição ${esc(String(edition.ano))}</h2><p>Resultado oficial preservado no histórico da premiação.</p><div class="awards-status-line"><span class="awards-chip open">Resultado publicado</span>${publishedAt ? `<span class="awards-chip">Publicado em ${esc(formatDate(publishedAt))}</span>` : ""}</div>`;
+    document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">${partial ? "Divulgação em andamento" : "Resultado oficial"}</span><h1>${esc(edition.nome)}</h1><p>${partial ? "Os vencedores são anunciados aos poucos, nos horários oficiais. Confira as categorias já divulgadas." : esc(edition.descricao || "Conheça os nomes reconhecidos pela comunidade nesta edição do Melhores de Urânia.")}</p><div class="hero-actions"><button class="button button-primary" type="button" data-share-results>Compartilhar resultados</button><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/">Ver edição</a></div>`;
+    document.getElementById("results-panel").innerHTML = `<h2>Edição ${esc(String(edition.ano))}</h2><p>${partial ? "Acompanhe as novas categorias anunciadas a cada dia." : "Resultado oficial preservado no histórico da premiação."}</p><div class="awards-status-line"><span class="awards-chip open">${partial ? "Divulgação em andamento" : "Resultado publicado"}</span>${!partial && publishedAt ? `<span class="awards-chip">Publicado em ${esc(formatDate(publishedAt))}</span>` : ""}</div>`;
     document.querySelector("[data-share-results]")?.addEventListener("click", async () => {
       await sharePage({
         title: `Resultados ${edition.ano} | Melhores de Urânia`,
@@ -248,15 +255,23 @@ async function init() {
     });
 
     const resultsList = document.getElementById("results-list");
-    resultsList.addEventListener("error", event => {
-      if (event.target.matches?.(".awards-winner-photo img")) event.target.remove();
-    }, true);
+    if (!resultsList.dataset.winnerErrorHandler) {
+      resultsList.addEventListener("error", event => {
+        if (event.target.matches?.(".awards-winner-photo img")) event.target.remove();
+      }, true);
+      resultsList.dataset.winnerErrorHandler = "1";
+    }
     resultsList.innerHTML = renderResults(results, edition, history);
-    if (edition.ano === 2026) montarCentralTransparencia(resultsList, edition, results, comprovantes);
+    if (!partial && edition.ano === 2026) montarCentralTransparencia(resultsList, edition, results, comprovantes);
   } catch (error) {
     console.error("Resultados Melhores de Urânia:", error);
-    document.getElementById("results-list").innerHTML = '<div class="awards-empty">Não foi possível carregar os resultados agora.</div>';
+    if (!refresh) document.getElementById("results-list").innerHTML = '<div class="awards-empty">Não foi possível carregar os resultados agora.</div>';
+  } finally {
+    resultsRefreshInProgress = false;
   }
 }
 
-if (typeof document !== "undefined" && document.body?.dataset.awardsPage === "results" && !(location.pathname.startsWith("/preview/melhores/") && new URLSearchParams(location.search).get("demo") === "1")) init();
+if (typeof document !== "undefined" && document.body?.dataset.awardsPage === "results" && !(location.pathname.startsWith("/preview/melhores/") && new URLSearchParams(location.search).get("demo") === "1")) {
+  init();
+  if (getYear() === 2026) setInterval(() => { if (!document.hidden) init(true); }, 30000);
+}

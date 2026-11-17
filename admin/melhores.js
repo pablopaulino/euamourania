@@ -913,6 +913,8 @@ async function loadApuration() {
     const edition = state.edicoes.find(item => item.id === edicaoId);
     const agendamento = Number(edition?.ano) === 2026 && ["votacao_encerrada", "apuracao"].includes(edition?.status)
       ? await consultarAgendamentoResultado(edicaoId) : null;
+    const gradual = Boolean(agendamento) && Number(edition?.ano) === 2026 && new Date(edition?.divulgacao_em).getTime() === Date.parse("2026-11-23T13:00:00Z");
+    const gradualStarted = gradual && Date.now() >= Date.parse("2026-11-23T13:00:00Z");
     const canPublish = ["votacao_encerrada", "apuracao"].includes(edition?.status) && state.apuracao.some(row => Number(row.votos_site || 0) + Number(row.votos_instagram || 0) > 0);
     $("#apuration-view").innerHTML = `
       <article class="awards-card">
@@ -924,11 +926,11 @@ async function loadApuration() {
           <select id="apuration-edition-filter">${state.edicoes.map(e => `<option value="${e.id}" ${e.id === edicaoId ? "selected" : ""}>${e.ano} · ${escapeHtml(e.nome)}</option>`).join("")}</select>
           <button class="admin-button secondary" data-refresh-apuration>Atualizar</button>
           ${Number(edition?.ano) === 2026 ? (agendamento
-            ? '<button class="admin-button secondary" data-cancel-result-schedule>Cancelar agendamento</button>'
+            ? (gradualStarted ? '<button class="admin-button secondary" disabled>Divulgação iniciada</button>' : '<button class="admin-button secondary" data-cancel-result-schedule>Cancelar agendamento</button>')
             : `<button class="admin-button" data-schedule-results ${canPublish ? "" : "disabled"}>Preparar e agendar resultado</button>`)
             : `<button class="admin-button" data-publish-results ${canPublish ? "" : "disabled"}>Revisar e publicar resultado</button>`}
         </div>
-        ${agendamento ? `<p class="awards-note">Resultado preparado e bloqueado. Divulgação prevista para ${escapeHtml(fmtDivulgacao(agendamento.divulgar_em))}. Para modificar a apuração, cancele o agendamento.</p>` : ""}
+        ${agendamento ? `<p class="awards-note">${gradual ? "Resultado preparado e bloqueado. Divulgação gradual de 23 a 29 de novembro, às 10h, 15h e 20h (horário de Brasília). Após o primeiro anúncio, não é possível cancelar a apuração divulgada." : `Resultado preparado e bloqueado. Divulgação prevista para ${escapeHtml(fmtDivulgacao(agendamento.divulgar_em))}. Para modificar a apuração, cancele o agendamento.`}</p>` : ""}
         <p class="awards-note">${isHistoricalEdition(edition) ? "O resultado desta edição está preservado e não pode ser republicado." : "Esta é uma prévia interna e pode mudar até o fim da votação. A publicação oficial exige votação encerrada, votos em cada categoria pública e desempates resolvidos."}</p>
         ${state.apuracao.length ? [...grouped.entries()].map(([categoriaId, rows]) => apurationGroup(categoriaId, rows)).join("") : '<div class="awards-empty">Sem dados suficientes para apuração.</div>'}
       </article>`;

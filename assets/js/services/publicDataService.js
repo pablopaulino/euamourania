@@ -71,7 +71,9 @@ export async function fetchPublicRows(table, params = {}, { ttl = 120000, timeou
   });
   const url = `${SUPABASE_URL}/rest/v1/${table}?${query}`;
   const liveVerification = table === "guia_comercial" && String(params.select || "").split(",").includes("verificado");
-  const cached = liveVerification ? null : readStored(url);
+  const freshResults = table === "rpc/melhores_listar_resultados_publicos";
+  const bypassCache = liveVerification || freshResults;
+  const cached = bypassCache ? null : readStored(url);
   if (cached) return cached;
   if (pending.has(url)) return pending.get(url);
 
@@ -86,15 +88,15 @@ export async function fetchPublicRows(table, params = {}, { ttl = 120000, timeou
           Accept: "application/json"
         },
         credentials: "omit",
-        cache: liveVerification ? "no-store" : "default",
+        cache: bypassCache ? "no-store" : "default",
         signal: controller.signal
       });
       if (!response.ok) throw new Error(`Conteúdo indisponível (${response.status}).`);
       const data = await response.json();
-      if (!liveVerification) store(url, data, ttl);
+      if (!bypassCache) store(url, data, ttl);
       return data;
     } catch (error) {
-      const stale = liveVerification ? null : readStored(url, true);
+      const stale = bypassCache ? null : readStored(url, true);
       if (stale) return stale;
       if (error?.name === "AbortError") throw new Error("A consulta demorou além do esperado.");
       throw error;

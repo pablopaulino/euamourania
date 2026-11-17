@@ -292,15 +292,16 @@ export function renderHub(edition, categories, nominees) {
   if (!open) {
     const ended = edition.votacao_fim && serverNow() > new Date(edition.votacao_fim).getTime();
     const published = edition.status === "resultado_publicado" || (edition.status === "arquivada" && edition.resultado_publicado_em);
-    const announcement = edition.divulgacao_em ? formatDate(edition.divulgacao_em) : "Data a ser informada";
+    const gradual = Number(edition.ano) === 2026 && new Date(edition.divulgacao_em).getTime() === Date.parse("2026-11-23T13:00:00Z");
+    const announcement = gradual ? "De 23 a 29 de novembro, às 10h, 15h e 20h" : edition.divulgacao_em ? formatDate(edition.divulgacao_em) : "Data a ser informada";
     root.innerHTML = `
       <section class="vote-closed">
         ${awardBrand(edition)}
         <p class="vote-kicker">${ended ? "Votação encerrada" : "Votação oficial"}</p>
         <h1>${ended ? "Obrigado por participar." : esc(edition.nome)}</h1>
         <p>${ended ? "A votação terminou. Agradecemos a todos que ajudaram a reconhecer quem faz Urânia acontecer." : `A votação pelo site ainda não começou. Período previsto: ${esc(formatDate(edition.votacao_inicio_site))} até ${esc(formatDate(edition.votacao_fim))}.`}</p>
-        ${ended && !published ? `<div class="vote-announcement"><span>Divulgação dos vencedores</span><strong>${esc(announcement)}</strong><small>Horário de Brasília. A apuração está em conferência.</small></div>` : ""}
-        <a class="button button-primary vote-primary" href="${published ? `/melhores-de-urania/${encodeURIComponent(edition.ano)}/resultados/` : editionUrl(edition)}">${published ? "Ver resultado oficial" : "Acompanhar a edição"}</a>
+        ${ended && !published ? `<div class="vote-announcement"><span>Divulgação dos vencedores</span><strong>${esc(announcement)}</strong><small>Horário de Brasília. ${gradual ? "Acompanhe os anúncios na página de resultados." : "A apuração está em conferência."}</small></div>` : ""}
+        <a class="button button-primary vote-primary" href="${published || gradual ? `/melhores-de-urania/${encodeURIComponent(edition.ano)}/resultados/` : editionUrl(edition)}">${published ? "Ver resultado oficial" : gradual ? "Acompanhar resultados" : "Acompanhar a edição"}</a>
       </section>${appInvite(edition)}`;
     return;
   }

@@ -1,0 +1,67 @@
+const { PGlite } = await import(process.env.PGLITE_MODULE || '@electric-sql/pglite');
+import { readFile } from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const db=await PGlite.create();
+await db.exec(`
+create role anon; create role authenticated; create schema auth; create schema premios_privado;
+create function auth.uid() returns uuid language sql as $$select '00000000-0000-0000-0000-000000000099'::uuid$$;
+create function public.tem_permissao_admin(text,text) returns boolean language sql as $$select current_setting('app.test_admin',true)='1'$$;
+create table public.melhores_edicoes(id uuid primary key,ano int,status text,nome text,mostrar_votos_publicamente boolean,divulgacao_em timestamptz,resultado_publicado_em timestamptz,votacao_fim timestamptz,encerramento_em timestamptz);
+create table public.melhores_categorias(id uuid primary key,edicao_id uuid,nome text,status text,visibilidade_publica boolean,regra_desempate text,unique(id,edicao_id));
+create table public.guia_comercial(id uuid primary key,nome text,slug text,imagem_url text,categoria_nome text,status text,descricao text,instagram text,whatsapp text,site text,endereco text);
+create table public.melhores_indicados(id uuid primary key,edicao_id uuid,nome text,imagem_url text,descricao_curta text,guia_comercial_id uuid,instagram text,whatsapp text,site text,endereco text);
+create table public.melhores_desempates(edicao_id uuid,categoria_id uuid,indicado_id uuid);
+create table public.melhores_votos(edicao_id uuid);
+create table public.melhores_instagram_votos(edicao_id uuid);
+create table public.melhores_resultados(id uuid primary key,edicao_id uuid,categoria_id uuid,indicado_id uuid,votos_site integer,percentual_site numeric,votos_instagram integer,percentual_instagram numeric,pontuacao_final numeric,colocacao integer,vencedor boolean,selo text,empate boolean,criterio_aplicado text,metodologia_resumida text,publicado boolean,publicado_em timestamptz);
+create table premios_privado.agendamentos(edicao_id uuid primary key,divulgar_em timestamptz not null,preparado_por uuid,total integer,preparado_em timestamptz default now(),publicado_em timestamptz);
+create table public.app_melhores_campanhas(id uuid primary key default gen_random_uuid(),edicao_id uuid,titulo text,subtitulo text,texto_botao text,link_oficial text,status text,ativo boolean,exibir_inicio timestamptz,exibir_fim timestamptz,exibir_avulsos boolean);
+create table public.app_melhores_vencedores(id uuid primary key default gen_random_uuid(),campanha_id uuid references public.app_melhores_campanhas(id) on delete cascade,resultado_id uuid,categoria_id uuid,indicado_id uuid,guia_comercial_id uuid,categoria_nome text,nome_exibido text,imagem_url text,descricao_curta text,selo text,ordem integer,instagram text,whatsapp text,site text,endereco text,status text,origem text);
+create table public.melhores_auditoria(edicao_id uuid references public.melhores_edicoes(id),usuario_id uuid,acao text,entidade text,entidade_id uuid,valores_anteriores jsonb,valores_posteriores jsonb);
+create function public.melhores_registrar_auditoria() returns trigger language plpgsql as $tag$begin return coalesce(new,old); end$tag$;
+create trigger app_melhores_campanhas_auditoria after insert or update or delete on public.app_melhores_campanhas for each row execute function public.melhores_registrar_auditoria();
+create trigger app_melhores_vencedores_auditoria after insert or update or delete on public.app_melhores_vencedores for each row execute function public.melhores_registrar_auditoria();
+create function public.melhores_consolidar_edicao(uuid) returns void language sql as $$select$$;
+create function public.melhores_preparar_resultado_agendado(uuid,text) returns integer language sql as $$select 0$$;
+create function public.app_melhores_validar_campanha() returns trigger language plpgsql as $$begin return new; end$$;
+create trigger app_melhores_campanhas_validar before insert or update on public.app_melhores_campanhas for each row execute function public.app_melhores_validar_campanha();
+alter table public.melhores_resultados enable row level security;
+alter table public.app_melhores_campanhas enable row level security;
+alter table public.app_melhores_vencedores enable row level security;
+grant select on public.melhores_edicoes,public.melhores_resultados,public.app_melhores_campanhas,public.app_melhores_vencedores to anon,authenticated;
+create policy admin_results on public.melhores_resultados for select to authenticated using(public.tem_permissao_admin('melhores','ler'));
+create policy app_campaign_final on public.app_melhores_campanhas for select to anon,authenticated using(ativo and status in ('agendada','ativa') and exibir_inicio<=now() and exibir_fim>=now() and exists(select 1 from public.melhores_edicoes e where e.id=edicao_id and e.status='resultado_publicado'));
+create policy app_winner_final on public.app_melhores_vencedores for select to anon,authenticated using(status='ativo' and exists(select 1 from public.app_melhores_campanhas c join public.melhores_edicoes e on e.id=c.edicao_id where c.id=campanha_id and c.ativo and c.exibir_inicio<=now() and c.exibir_fim>=now() and e.status='resultado_publicado'));
+insert into public.melhores_edicoes values('00000000-0000-0000-0000-000000000001',2026,'apuracao','Edição fictícia',true,'2026-12-04 23:00Z','2026-07-30 03:09Z','2026-11-16 22:00Z',null);
+`);
+const names=['Melhor Academia','Melhor Açaíteria','Melhor Atendimento','Melhor Atrativo Turístico','Melhor Auto Center / Mecânica','Melhor Bar ou Boteco','Melhor Barbearia','Melhor Comércio','Melhor Empresa de Festas e Eventos','Melhor Escritório de Advocacia','Melhor Farmácia','Melhor Lanchonete / Hamburgueria','Melhor Loja de Roupas','Melhor Mercado','Melhor Padaria','Melhor Pet Shop / Veterinária','Melhor Pizzaria','Melhor Prestador de Serviços','Melhor Restaurante','Melhor Salão de Beleza','Melhor Sorveteria'];
+const edition='00000000-0000-0000-0000-000000000001';
+for(let k=0;k<names.length;k++){const category=`10000000-0000-0000-0000-${String(k+1).padStart(12,'0')}`;await db.query('insert into public.melhores_categorias values ($1,$2,$3,\'ativo\',true,null)',[category,edition,names[k]]);for(let n=0;n<2;n++){const nominee=`20000000-0000-0000-${String(k+1).padStart(4,'0')}-${String(n+1).padStart(12,'0')}`,result=`30000000-0000-0000-${String(k+1).padStart(4,'0')}-${String(n+1).padStart(12,'0')}`;await db.query('insert into public.melhores_indicados(id,edicao_id,nome) values ($1,$2,$3)',[nominee,edition,`Fictício ${k}-${n}`]);await db.query("insert into public.melhores_resultados values($1,$2,$3,$4,10,50,10,50,50,$5,$6,'Vencedor',false,null,null,false,null)",[result,edition,category,nominee,n+1,n===0]);}}
+await db.query("insert into premios_privado.agendamentos(edicao_id,divulgar_em,total) values ($1,'2026-12-04 23:00Z',42)",[edition]);
+const old=(await readFile(new URL('../supabase/migrations/20261117183755_melhores_resultado_agendado.sql',import.meta.url),'utf8')).replace(/\r\n/g,'\n');const p=old.indexOf('create or replace function premios_privado.proteger_agendamento()'),q=old.indexOf('create or replace function public.melhores_cancelar_agendamento',p);await db.exec(old.slice(p,q));
+const finStart=old.indexOf('create or replace function premios_privado.publicar_agendamentos()'),finEnd=old.indexOf('create or replace function public.melhores_consultar_agendamento',finStart);await db.exec(old.slice(finStart,finEnd));
+const guardStart=old.indexOf('create or replace function public.melhores_2026_impedir_resultado_antecipado()'),guardEnd=old.indexOf('\n\ndo ',guardStart);await db.exec(old.slice(guardStart,guardEnd));
+await db.exec('create trigger melhores_2026_impedir_resultado_antecipado before insert or update of publicado,edicao_id on public.melhores_resultados for each row execute function public.melhores_2026_impedir_resultado_antecipado()');
+const historical=await readFile(new URL('../supabase/migrations/20261010_melhores_integridade_historico.sql',import.meta.url),'utf8');await db.exec(historical.slice(historical.indexOf('create or replace function public.melhores_proteger_historico()'),historical.indexOf('-- A primeira publicacao')));
+let migration=await readFile(new URL('../supabase/migrations/20261117195140_melhores_revelacao_por_categoria.sql',import.meta.url),'utf8');
+// Falhas de conferência devem reverter o cronograma e manter a apuração intacta.
+await assert.rejects(()=>db.exec(migration.replace("('Melhor Academia','2026-11-23 10:00:00-03')", "('Categoria inexistente','2026-11-23 10:00:00-03')")));
+await db.exec('rollback');
+assert.equal((await db.query("select to_regclass('premios_privado.revelacoes') as tabela")).rows[0].tabela,null);
+assert.equal((await db.query('select count(*)::int as n from public.melhores_resultados where not publicado')).rows[0].n,42);
+await db.exec(migration);
+const schedule=await db.query('select count(*)::int as total,count(distinct publicar_em)::int as horarios from premios_privado.revelacoes');assert.deepEqual(schedule.rows[0],{total:21,horarios:21});
+const timeline=await db.query('select c.nome,x.publicar_em from premios_privado.revelacoes x join public.melhores_categorias c on c.id=x.categoria_id order by x.publicar_em');
+for(let k=0;k<names.length;k++){assert.equal(timeline.rows[k].nome,names[k]);const expected=new Date(Date.UTC(2026,10,23+Math.floor(k/3),[13,18,23][k%3]));assert.equal(new Date(timeline.rows[k].publicar_em).getTime(),expected.getTime());}
+const info=await db.query('select divulgacao_em,resultado_publicado_em,status from public.melhores_edicoes');assert.equal(info.rows[0].status,'apuracao');assert.equal(info.rows[0].resultado_publicado_em,null);
+await db.exec("select set_config('app.test_admin','1',false); begin;");await db.query('select public.melhores_cancelar_agendamento($1)',[edition]);assert.equal((await db.query('select count(*)::int as n from premios_privado.agendamentos')).rows[0].n,0);await db.exec("rollback; select set_config('app.test_admin','',false);");
+await db.exec('set role anon');assert.equal((await db.query('select count(*)::int as n from public.melhores_resultados')).rows[0].n,0);assert.equal((await db.query('select count(*)::int as n from public.melhores_listar_resultados_publicos($1,false)',[edition])).rows[0].n,0);assert.equal((await db.query('select count(*)::int as n from public.app_melhores_campanhas')).rows[0].n,0);await db.exec('reset role');
+// Simula o primeiro horário somente no banco fictício.
+await db.exec("update premios_privado.revelacoes set publicar_em=now()-interval '1 minute' where categoria_id=(select id from public.melhores_categorias where nome='Melhor Academia'); alter table public.app_melhores_campanhas disable trigger zz_revelacao_proteger; update public.app_melhores_campanhas set exibir_inicio=now()-interval '1 minute'; alter table public.app_melhores_campanhas enable trigger zz_revelacao_proteger;");
+await db.exec('set role anon');const first=(await db.query('select * from public.melhores_listar_resultados_publicos($1,false)',[edition])).rows;assert.equal(first.length,1);assert.equal(first[0].melhores_categorias.nome,'Melhor Academia');assert.equal(first[0].votos_site,null);assert.equal(first[0].percentual_instagram,null);assert.equal(first[0].publicado,true);assert.equal((await db.query("select public.melhores_revelacao_resultado_visivel('30000000-0000-0000-0002-000000000001') as visible")).rows[0].visible,false);assert.equal((await db.query('select count(*)::int as n from public.app_melhores_campanhas')).rows[0].n,1);assert.equal((await db.query('select count(*)::int as n from public.app_melhores_vencedores')).rows[0].n,1);await db.exec('reset role');
+await db.exec("select set_config('app.test_admin','1',false)");await assert.rejects(()=>db.query('select public.melhores_cancelar_agendamento($1)',[edition]));await assert.rejects(()=>db.exec("update public.app_melhores_vencedores set nome_exibido='alterado'"));
+await db.exec("update premios_privado.revelacoes set publicar_em=now()-interval '1 minute'; update premios_privado.agendamentos set divulgar_em=now()-interval '1 minute'; alter table public.melhores_edicoes disable trigger zz_agendamento_proteger; update public.melhores_edicoes set divulgacao_em=now()-interval '1 minute'; alter table public.melhores_edicoes enable trigger zz_agendamento_proteger;");
+assert.equal((await db.query('select premios_privado.publicar_agendamentos() as n')).rows[0].n,1);
+assert.equal((await db.query('select count(*)::int as n from public.melhores_resultados where publicado')).rows[0].n,42);
+await db.exec('set role anon');assert.equal((await db.query('select count(*)::int as n from public.melhores_listar_resultados_publicos($1,false)',[edition])).rows[0].n,42);assert.equal((await db.query('select count(*)::int as n from public.app_melhores_vencedores')).rows[0].n,21);await db.exec('reset role');
+console.log('OK: 21 horários, sigilo antes, liberação individual, app e publicação final validados.');await db.close();

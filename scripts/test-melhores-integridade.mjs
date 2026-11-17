@@ -60,6 +60,9 @@ const result = {
 };
 
 assert.equal(resultsArePublished({ ...edition, status: "apuracao" }, [result]), false);
+assert.equal(resultsArePublished({ ...edition, status: "apuracao" }, [{ ...result, publicado: true }]), true);
+const gradualHtml = renderResults([{ ...result, publicado: true }], { ...edition, status: "apuracao", mostrar_votos_publicamente: true });
+assert.ok(!gradualHtml.includes("123 votos") && !gradualHtml.includes("Resultado completo por categoria"), "Divulgação gradual expôs votos ou apresentou ranking incompleto como final.");
 assert.equal(resultsArePublished(edition, []), false);
 assert.equal(resultsArePublished(edition, [{ ...result, vencedor: false }]), false);
 assert.equal(resultsArePublished(edition, [result]), true);
