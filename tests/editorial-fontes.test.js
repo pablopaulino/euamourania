@@ -27,6 +27,18 @@ test('preserva a data de publicação dos itens RSS e Atom',()=>{
 test('site só sugere páginas do mesmo domínio',()=>{
   assert.deepEqual(linksPagina('<a href="/noticia">Notícia</a><a href="https://outro.org/x">Outro</a>',new URL('https://exemplo.org/')),['https://exemplo.org/noticia']);
 });
+test('prioriza matérias da capa sobre atalhos de serviço',()=>{
+  const html='<a href="/servicos/">Urânia</a><a href="/2026/11/21/noticia/">Notícia</a>';
+  assert.deepEqual(linksPagina(html,new URL('https://exemplo.org/'),1),['https://exemplo.org/2026/11/21/noticia/']);
+});
+test('extrai comunicado municipal com entidades e separa notícias relacionadas',async()=>{
+  const html='<main><header><h1>Concurso em Ur&#194;nia</h1><time datetime="2026-11-18">18/11/2026</time></header>'+
+    '<p>'+('Inscri&ccedil;&otilde;es municipais. '.repeat(50))+'</p><article class="conteudo-relacionado no-print">Outra pauta</article></main>';
+  const request=async u=>u.endsWith('/robots.txt')?{status:404}:{status:200,type:'text/html',body:html};
+  const p=await lerPagina('https://exemplo.org/noticias/concurso',{request});
+  assert.equal(p.titulo,'Concurso em UrÂnia');assert.match(p.texto,/Inscrições/);
+  assert.doesNotMatch(p.texto,/Outra pauta/);assert.equal(p.publicado_em.slice(0,10),'2026-11-18');
+});
 test('consulta robots antes de ler e recusa texto insuficiente',async()=>{
   const calls=[];const request=async u=>{calls.push(u);return u.endsWith('/robots.txt')?{status:200,body:'User-agent: *\nDisallow: /proibido'}:{status:200,type:'text/html',body:'<title>Teste</title><article>'+('Texto local '.repeat(100))+'</article>'}};
   const result=await lerPagina('https://exemplo.org/noticia',{request});assert.equal(result.titulo,'Teste');assert.equal(calls.length,2);
