@@ -55,7 +55,7 @@
   .metric-card strong,.dashboard-kpi strong{font-size:1.7rem}
   .dashboard-hero h2,.dashboard-hero-pro h2{font-size:1.45rem}
   table,.cms-table,.ads-table{min-width:650px}
-  .insight-grid,.news-admin-metrics,.news-admin-metrics.editorial{grid-template-columns:1fr!important}
+  .insight-grid,.news-admin-metrics,.news-admin-metrics.editorial{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ads-content{padding:.85rem .7rem!important}
   .ads-tabs{margin-inline:-.7rem;padding:0 .7rem}
   .admin-card--news .news-title-main{grid-template-columns:74px minmax(0,1fr)!important}

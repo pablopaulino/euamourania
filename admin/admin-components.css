@@ -95,3 +95,91 @@ dialog::backdrop { background: #15283266; }
 }
 .status-pill:is(.pendente,.rascunho) { color: #754d0e; background: #fff4d8; }
 .status-pill.inativo { color: var(--admin-text-secondary); background: var(--admin-surface-secondary); }
+
+/* Actions and navigation stay distinct from form fields. */
+:root {
+  --admin-action: #30494a;
+  --admin-action-hover: #203738;
+  --admin-inset: #edf2f1;
+}
+.admin-shell .admin-button, .admin-command-trigger, .login-card button,
+#app-content :is(.viva-save-submit, .viva-btn-manage, .row-actions button, .cms-actions button) {
+  border-radius: 999px;
+}
+.admin-shell :is(.admin-button, .btn-primary):not(.secondary, .danger, .ghost),
+.login-card button[type=submit], #app-content .viva-save-submit {
+  background: var(--admin-action);
+  color: white;
+  border-radius: 999px;
+  box-shadow: none;
+}
+.admin-shell .admin-button:not(.secondary,.danger,.ghost):hover,
+.login-card button[type=submit]:hover, #app-content .viva-save-submit:hover {background: var(--admin-action-hover);}
+#app-content :is(.ops-hero, .awards-hero, .news-editor-intro, .ads-heading, .advantages-hero,
+  .drivers-header, .initiatives-dashboard-hero, .push-heading) {
+  background: var(--admin-inset);
+  color: var(--admin-text-main);
+  border: 1px solid #d9e3df;
+  border-radius: var(--admin-radius);
+  padding: clamp(16px,2vw,26px);
+}
+#app-content :is(.admin-filterbar, .cms-toolbar-v2, .ads-toolbar, .awards-toolbar) {
+  background: #f5f7f7;
+  border-radius: 12px;
+  padding: 12px;
+}
+#app-content :is(.advantages-kpi,.metric-card,.dashboard-kpi) > :is(span,strong,small) {display: block;}
+#app-content :is(.advantages-kpi,.metric-card,.dashboard-kpi) > strong {margin-block: 4px; line-height: 1.15;}
+#app-content .cms-media-button {position: relative;}
+#app-content .cms-media-button input[type=file] {width: 1px; height: 1px; min-width: 0; inset: 0 auto auto 0;}
+#app-content :is(.advantages-dashboard,.awards-content,.push-shell-module,.audience-tab-panel,.audience-grid),
+#app-content.communication-module {grid-template-columns: minmax(0,1fr);}
+#app-content :is(.awards-content,.advantages-dashboard,.push-shell-module,.audience-tab-panel,.audience-grid,.communication-module) > *,
+#app-content.communication-module > * {min-width: 0;}
+#app-content .admin-panel:has(> .admin-table) {overflow-x: auto;}
+#app-content .admin-panel > .admin-table {min-width: 0; overflow-wrap: anywhere;}
+@media (max-width: 700px) {
+  #section-tabs.admin-tabs {flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; margin-bottom: 0;}
+  #section-tabs > a {flex: none;}
+  .admin-main .admin-topbar-actions {gap: 6px; padding-bottom: 4px;}
+  .admin-topbar-actions > * {flex: none;}
+  .admin-topbar-actions :is(button,a) {white-space: nowrap;}
+  #app-content .admin-form-actions, #app-content .cms-sticky-actions {position: static;}
+  #app-content :is(.ops-kpi-grid,.audience-kpi-grid,.news-admin-metrics,.advantages-metrics,.push-metrics) {
+    display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px;
+  }
+  #app-content :is(.ops-kpi,.audience-kpi,.advantages-kpi,.push-metrics .metric-card,.news-admin-metrics article) {
+    min-width: 0; min-height: 0; padding: 12px; overflow-wrap: anywhere;
+  }
+  #app-content :is(.advantages-hero,.push-heading,.cms-section-head) {flex-wrap: wrap;}
+  #app-content :is(.audience-chart-panel,.awards-tabs-stack,.advantages-list-panel,.push-card,.admin-card) {min-width: 0;}
+  #app-content :is(.ads-table-wrap,.awards-table-wrap,.audience-table-wrap,.table-wrap) {max-width: 100%; overflow-x: auto;}
+}
+
+
+#app-content :is(.viva-btn-manage:hover, .is-selected .viva-btn-manage) {
+  background: var(--admin-action); color: white; border-color: var(--admin-action); box-shadow: none;
+}
+@media (max-width: 700px) {
+  .admin-main .admin-topbar-actions {display: flex; flex-wrap: wrap; overflow: visible;}
+  .admin-topbar-actions :is(button,a) {font-size: .8rem; padding: 7px 10px;}
+  #app-content :is(.audience-overview-grid,.audience-split-grid,.audience-support-layout,.audience-content-grid) {
+    grid-template-columns: minmax(0,1fr);
+  }
+  #app-content :is(.audience-overview-grid,.audience-split-grid,.audience-support-layout) > * {min-width: 0;}
+  #app-content .audience-chart {max-width: 100%; overflow-x: auto;}
+}
+
+
+#app-content .advantages-metrics {display: grid; gap: 12px;}
+#app-content .ads-content:has(#users-app) {grid-template-columns: minmax(0,1fr);}
+#users-app {display: grid; grid-template-columns: minmax(0,1fr); gap: 16px;}
+#users-app > section {min-width: 0;}
+@media (min-width: 701px) {
+  #app-content .advantages-metrics {grid-template-columns: repeat(auto-fit,minmax(150px,1fr));}
+}
+@media (max-width: 700px) {
+  #app-content :is(.drivers-metrics,.useful-metrics,.verification-metrics) {
+    display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px;
+  }
+}
