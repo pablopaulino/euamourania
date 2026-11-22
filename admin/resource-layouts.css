@@ -304,3 +304,37 @@
   .admin-main :is(.ads-toolbar,.awards-toolbar,.cms-toolbar-v2){grid-template-columns:1fr}
   .admin-main :is(.admin-card,.awards-card){padding:.9rem;border-radius:20px}
 }
+
+
+/* Settings groups share the enclosing form surface. */
+#settings-form { gap: 24px; }
+#settings-form .cms-settings-intro > :first-child { margin-top: 0; }
+#settings-form .cms-settings-intro > :last-child { margin-bottom: 0; }
+#settings-form > .cms-form-section {
+  padding: 20px 0 0;
+  border: 0;
+  border-top: 1px solid var(--admin-border);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+#settings-form .cms-section-head.compact { margin-bottom: 16px; }
+#settings-form .cms-form { gap: 20px 24px; }
+#settings-form .cms-sticky-actions { background: var(--admin-surface); border-top: 1px solid var(--admin-border); box-shadow: none; backdrop-filter: none; }
+
+/* Resource lists share one surface for filters, results and empty states. */
+#app-content .admin-list-panel { padding: 0; }
+#app-content .admin-filterbar {
+  margin: 0;
+  padding: 16px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--admin-border);
+  border-radius: 0;
+}
+#app-content .admin-filter-count {
+  min-height: 0; padding: 0; border: 0; background: transparent; color: var(--admin-text-muted);
+}
+#app-content .admin-empty-state .admin-button {
+  color: var(--admin-action); background: transparent; border: 1px solid currentColor; box-shadow: none;
+}

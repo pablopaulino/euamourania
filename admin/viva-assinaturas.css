@@ -879,20 +879,18 @@
   align-items: center;
   gap: 12px;
   padding: 12px 20px;
-  border-radius: 14px;
-  background: var(--viva-accent-gradient);
+  border-radius: 999px;
+  background: var(--admin-action);
   color: #ffffff;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(242, 103, 34, 0.32);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: none;
+  transition: background-color .18s ease;
   text-align: left;
 }
 
-.viva-renew-btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(242, 103, 34, 0.42);
-  filter: brightness(1.04);
+.viva-renew-btn-primary:hover:not(:disabled) {
+  background: var(--admin-action-hover);
 }
 
 .viva-renew-btn-primary:active {
@@ -1376,17 +1374,17 @@
   box-shadow: 0 16px 36px rgba(15, 23, 42, 0.25);
   animation: viva-toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: auto;
-  border-left: 4px solid var(--viva-accent);
+  border: 1px solid var(--viva-border);
 }
 
 .viva-toast.success {
   background: #0f172a;
-  border-left-color: var(--viva-success);
+  border-color: var(--viva-success);
 }
 
 .viva-toast.error {
   background: #0f172a;
-  border-left-color: var(--viva-danger);
+  border-color: var(--viva-danger);
 }
 
 @keyframes viva-toast-in {

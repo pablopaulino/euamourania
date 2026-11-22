@@ -183,3 +183,53 @@ dialog::backdrop { background: #15283266; }
     display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px;
   }
 }
+
+
+/* Group related data by spacing; keep the outline around the work area. */
+#app-content :is(.panel,.admin-panel,.admin-card) :is(.metric-card,.audience-kpi,.awards-card,.admin-card,.admin-data-table-wrap),
+#app-content .news-admin-metrics article {
+  border: 0;
+  border-radius: var(--admin-radius-sm);
+  box-shadow: none;
+  background: var(--admin-surface-secondary);
+}
+#app-content :is(.ads-toolbar,.awards-toolbar,.cms-toolbar-v2) {
+  margin-bottom: 16px;
+  padding: 0 0 16px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--admin-border);
+  border-radius: 0;
+}
+#app-content :is(.awards-tabs,.audience-tabs,.ads-tabs,.submissions-tabs) {
+  gap: 4px;
+  padding: 4px 0 8px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--admin-border);
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+#app-content :is(.awards-tabs,.audience-tabs,.ads-tabs,.submissions-tabs) > :is(.active,[aria-selected=true],[aria-current=page]) {
+  color: var(--admin-text-main);
+  background: var(--admin-inset);
+}
+#app-content :is(.admin-form-actions,.cms-sticky-actions,.awards-form-actions) {
+  border: 0;
+  border-top: 1px solid var(--admin-border);
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--admin-surface);
+  backdrop-filter: none;
+}
+#app-content :is(.verification-metrics,.useful-metrics,.drivers-metrics,.advantages-metrics,.news-admin-metrics) > article {
+  min-height: 0;
+  padding: 14px 16px;
+}
+#app-content .viva-metric-card { min-height: 0; box-shadow: none; }
+@media (max-width: 700px) {
+  #app-content .viva-metrics-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  #app-content .viva-metric-card { padding: 12px; overflow-wrap: anywhere; }
+  #app-content :is(.verification-metrics,.useful-metrics,.drivers-metrics,.advantages-metrics,.news-admin-metrics) > article { padding: 12px; }
+}

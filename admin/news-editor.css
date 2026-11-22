@@ -415,3 +415,26 @@
     min-height: 420px;
   }
 }
+
+
+/* Editorial assistance sits inside the form's single work surface. */
+#app-content #news-form :is(.news-editor-intro, .cms-form-section, .news-editor-side-card, .news-editor-preview-card) {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#news-form .news-editor-intro { padding: 0 0 16px; }
+#news-form .news-editor-workspace > .cms-form-section {
+  padding: 20px 0 0;
+  border-top: 1px solid var(--admin-border);
+}
+#news-form .news-editor-assistant { padding: 16px; background: var(--admin-inset); border-radius: 12px; }
+#news-form .news-editor-side-card { padding: 0; }
+#news-form .news-editor-checklist li { border-radius: 0; background: transparent; padding: 6px 0; }
+#news-form .news-editor-preview-card { padding: 0; }
+@media (max-width: 700px) {
+  #news-form .news-editor-assistant { order: 1; gap: 24px; }
+  #news-form .news-editor-content-section { order: -1; }
+  #news-form .news-editor-workspace { gap: 20px; }
+}

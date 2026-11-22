@@ -9,7 +9,7 @@
 .admin-nav-group-items { display: grid; gap: 2px; }
 .admin-nav button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 12px; border: 0; border-radius: 9px; background: transparent; color: var(--navy); font-weight: 550; }
 .admin-nav button:hover { background: var(--admin-surface-secondary); }
-.admin-nav button.active { color: var(--admin-accent); background: var(--admin-accent-soft); box-shadow: inset 3px 0 var(--admin-accent); }
+.admin-nav button.active { color: var(--admin-text-main); background: var(--admin-accent-soft); box-shadow: inset 3px 0 var(--admin-accent); }
 .admin-sidebar-footer { border-top: 1px solid var(--line); }
 #admin-user { overflow-wrap: anywhere; margin: 0; }
 .admin-main { padding: 0 0 40px; min-width: 0; }
