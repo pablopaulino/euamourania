@@ -4,7 +4,7 @@ const fonteUnica=[{url:'https://urania.sp.leg.br/sessoes/1',titulo:'Câmara apro
 const refs=fontes=>fontes.map(({titulo,url})=>({titulo,url}));
 const draft={titulo:'Título',slug:'titulo',subtitulo:'Subtítulo',categoria:'Cidade',resumo:'Resumo',titulo_seo:'Título',
   descricao_seo:'Descrição',texto:['Segundo a fonte, '+'texto relevante '.repeat(5),'<script>alert(1)</script> '+'informação '.repeat(6),
-  'Outro parágrafo '+'informação '.repeat(6)].join('\n\n'),legenda_imagem:'Legenda',prompt_imagem:'Ilustração realista',fontes:refs(fontes)};
+  'Outro parágrafo '+'informação '.repeat(6)].join('\n\n'),legenda_imagem:'Legenda',prompt_imagem:'Ilustração realista',fontes:refs(fontes),observacoes_apuracao:[]};
 const draftUnico={...draft,fontes:refs(fonteUnica)};
 const mock=value=>async()=>({ok:true,json:async()=>({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(value)}]}}]})});
 test('exige fontes lidas e escapa HTML da geração',async()=>{
@@ -25,6 +25,18 @@ test('envia apenas fontes lidas e não ativa ferramentas de pesquisa',async()=>{
   assert.equal(request.body.tools,undefined);
   assert.deepEqual(request.body.generationConfig.responseSchema.required.sort(),Object.keys(draft).sort());
   assert.match(request.body.contents[0].parts[0].text,/Texto de referência/);
+  const manual=require('node:fs').readFileSync(require.resolve('../DOCS/MANUAL-DE-REDACAO.md'),'utf8').trim();
+  assert.ok(request.body.system_instruction.parts[0].text.includes(manual));
+  assert.doesNotMatch(request.body.system_instruction.parts[0].text,/Texto de referência/);
+});
+test('aceita uma matéria curta e guarda a dúvida secundária apenas nas pendências',async()=>{
+  const nota='Confirmar o horário de atendimento.';
+  const texto='A biblioteca reabriu em Urânia em 20 de novembro.\n\nA entrada é gratuita.';
+  const result=await redigir({fontes,apiKey:'teste',model:'gemini-3.5-flash-lite',
+    fetchImpl:mock({...draft,texto,observacoes_apuracao:[nota]})});
+  assert.ok(result.pendencias.includes(nota));
+  assert.match(result.conteudo_html,/20 de novembro/);
+  assert.ok(!result.conteudo_html.includes(nota));
 });
 test('fonte única oficial aceita 1 fonte e força revisão reforçada',async()=>{
   // Deve aceitar com fonteUnicaOficial=true mesmo com 1 fonte
@@ -65,6 +77,7 @@ test('descoberta descarta URLs geradas fora dos metadados',async()=>{
 });
 test('valida categoria, comprimentos, slug, fontes e links no corpo antes de salvar',async()=>{
   for(const invalid of [{categoria:'Outra'},{slug:'Com Espaço'},{titulo:'x'.repeat(181)},{descricao_seo:'x'.repeat(161)},
+    {observacoes_apuracao:['']},{observacoes_apuracao:'pendência'},{texto:'Parágrafo único.'},
     {fontes:[{url:'https://inventado.org/',titulo:'Falsa'},draft.fontes[1]]},{texto:draft.texto+' https://inventado.org/fato'}]) {
     await assert.rejects(redigir({fontes,apiKey:'teste',model:'gemini-2.5-flash-lite',fetchImpl:mock({...draft,...invalid})}),/requisitos/);
   }

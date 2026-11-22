@@ -2,6 +2,8 @@
 
 Em **Notícias → Automação editorial**, cada execução registra até cinco pautas dos últimos sete dias. Com um rascunho habilitado, a vaga é de Urânia. Com dois, a segunda vaga é para um fato regional ou nacional com impacto para moradores. Uma vaga pode ficar vazia quando falta confirmação. Cada rascunho entra na lista de Notícias para revisão humana.
 
+O [Manual de Redação](MANUAL-DE-REDACAO.md) orienta cada rascunho. A data do acontecimento entra no texto quando confirmada. Detalhes secundários a conferir aparecem nas pendências da pauta no painel. Se faltar confirmação do fato principal ou da relevância para Urânia, a rotina descarta o rascunho.
+
 ## Banco e configuração
 
 No SQL Editor do Supabase, aplique os arquivos que ainda faltam, na ordem abaixo. Quando as duas primeiras migrações já estiverem instaladas, execute apenas a terceira.

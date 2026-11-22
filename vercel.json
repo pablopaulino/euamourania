@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/admin-users.js": { "maxDuration": 120 },
+    "api/admin-users.js": { "maxDuration": 120, "includeFiles": "DOCS/MANUAL-DE-REDACAO.md" },
     "api/noticia.js": {
       "includeFiles": "{preview/**/*,news/index.html,guia.html,turismo.html,melhores-de-urania/**/*.html,eventos/**/*.html}"
     }
