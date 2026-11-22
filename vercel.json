@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node scripts/diagnostico-preview-editorial.cjs",
+  "outputDirectory": ".", "buildCommand": "node scripts/diagnostico-preview-editorial.cjs",
   "functions": {
     "api/admin-users.js": { "maxDuration": 120 },
     "api/noticia.js": {
