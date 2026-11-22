@@ -47,6 +47,14 @@ test('distingue erro diário de limite temporário ou desconhecido',async()=>{
   assert.equal((await erroQuota({json:async()=>({error:{message:'Requests per minute exceeded'}})})).quotaDiaria,false);
   assert.equal((await erroQuota({json:async()=>{throw Error('sem corpo')}})).quotaDiaria,false);
 });
+test('repete uma indisponibilidade transitória respeitando o mesmo prazo',async()=>{
+  let chamadas=0;
+  const result=await redigir({fontes,apiKey:'teste',model:'gemini-3.5-flash-lite',fetchImpl:async()=>{
+    if(++chamadas===1)return {status:503};
+    return mock(draft)();
+  }});
+  assert.equal(chamadas,2);assert.equal(result.titulo,draft.titulo);
+});
 test('descoberta descarta URLs geradas fora dos metadados',async()=>{
   const urls=await descobrir({apiKey:'teste',model:'gemini-2.5-flash-lite',timeoutMs:1000,fetchImpl:async(_,opts)=>{
     assert.deepEqual(JSON.parse(opts.body).tools,[{google_search:{}}]);

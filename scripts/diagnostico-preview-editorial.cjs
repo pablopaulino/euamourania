@@ -1,3 +1,12 @@
+const originalFetch=globalThis.fetch;
+globalThis.fetch=async (...args)=>{
+  const res=await originalFetch(...args);
+  if(!res.ok && new URL(args[0]).hostname==="generativelanguage.googleapis.com"){
+    const j=await res.clone().json().catch(()=>({}));
+    console.log("EDITORIAL provedor",res.status,(j.error?.message||"").replaceAll(process.env.GEMINI_API_KEY,"[oculto]").replace(/[A-Za-z0-9_-]{32,}/g,"[oculto]").slice(0,420));
+  }
+  return res;
+};
 const {executar}=require("../lib/editorial-execucao");
 (async()=>{
  if(process.env.GEMINI_FREE_TIER_CONFIRMED!=="true")throw Error("Confirmação do plano ausente");
