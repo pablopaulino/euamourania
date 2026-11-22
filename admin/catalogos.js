@@ -136,8 +136,10 @@ function openImport() {
 function guard(event) {
   if(!state?.dirty)return;
   if(event.type==='beforeunload'){event.preventDefault();event.returnValue='';return;}
-  const target=event.target.closest('a,button[data-view]');
-  if(target&&!root?.contains(target)&&!confirm('Sair e descartar as alterações não salvas do catálogo?')){event.preventDefault();event.stopImmediatePropagation();}
+}
+
+export function canLeave() {
+  return !state?.dirty || confirm("Sair e descartar as alterações não salvas do catálogo?");
 }
 export async function mount(container,context) {
   root=container;ctx=context;service=createCatalogService(context.db);controller=new AbortController();
@@ -148,7 +150,7 @@ export async function mount(container,context) {
   if(!document.querySelector('link[data-catalog-style]')){const css=document.createElement('link');css.rel='stylesheet';css.href='/admin/catalogos.css';css.dataset.catalogStyle='';document.head.append(css);}
   const options={signal:controller.signal};root.addEventListener('input',input,options);root.addEventListener('change',e=>{input(e);if(e.target.hasAttribute('data-category')){state.category=Number(e.target.value);state.product=null;render();}},options);root.addEventListener('click',action,options);
   root.addEventListener('submit',e=>{if(!e.target.matches('[data-catalog-form]'))return;e.preventDefault();if(!writable())return;busy(async()=>{if(!state.empresa)throw new Error('Selecione uma empresa.');const id=await service.save(state.empresa,state.doc,state.id,state.revision);if(!root)return;const r=await service.load(id);state.dirty=false;start(r.document,r);ctx.toast?.('Catálogo salvo. Nenhum conteúdo foi publicado no aplicativo.');});},options);
-  window.addEventListener('beforeunload',guard,options);document.addEventListener('click',guard,{...options,capture:true});
+  window.addEventListener('beforeunload',guard,options);
   root.innerHTML='<section class="catalog-admin"><p data-catalog-message role="status">Carregando catálogos…</p></section>';
   try{await loadList();}catch(e){notice(e);}
 }

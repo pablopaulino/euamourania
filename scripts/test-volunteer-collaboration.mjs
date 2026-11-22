@@ -28,9 +28,9 @@ const [
   read("assets/js/pages/colabore-public.js"),
   read("news/index.html"),
   read("news-details.html"),
-  read("admin/index.html"),
+  read("admin/navigation.js"),
   read("admin/admin.js"),
-  read("admin/access-control.js"),
+  read("admin/admin-modules.js"),
   read("admin/auth.js"),
   read("api/sitemaps.js"),
   read("assets/js/services/searchService.js")
@@ -52,7 +52,7 @@ must(inviteScript.includes("/colabore/"), "Convite publico nao aponta para /cola
 must(newsIndex.includes("/colabore/"), "Convite voluntario ausente na pagina de noticias.");
 must(newsDetails.includes("noticia-page.js") || newsDetails.includes("article-preview.js"), "Pagina de noticia nao carrega o modulo editorial.");
 
-must(adminIndex.includes('data-view="colaboradores_voluntarios"'), "Menu administrativo de colaboracoes ausente.");
+must(adminIndex.includes('"colaboradores_voluntarios"'), "Menu administrativo de colaboracoes ausente.");
 must(adminScript.includes("colaboradores_voluntarios"), "Recurso administrativo de colaboradores ausente.");
 must(adminScript.includes("colaboradoresNovos") && adminScript.includes("recentCollaborators"), "Dashboard nao integra colaboradores voluntarios.");
 must(adminAccessControl.includes("colaboradores_voluntarios") && adminAccessControl.includes("colaboradores"), "Menu dinamico nao conhece colaboradores.");

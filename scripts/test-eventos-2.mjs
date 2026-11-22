@@ -67,14 +67,14 @@ assert(search.includes("evento_principal"), "busca global indexa eventos princip
 assert(search.includes("evento_edicao"), "busca global indexa edições");
 
 const admin = read("admin/admin.js");
-const access = read("admin/access-control.js");
+const access = read("admin/navigation.js");
 assert(admin.includes('["descricao_curta","Descrição curta"'), "painel usa acentos corretos em eventos principais");
 assert(admin.includes('["evento_id","Evento principal","event-principal-select"'), "edições usam seletor de evento principal em vez de ID manual");
 assert(admin.includes("carregarSelectEventosPrincipais"), "painel carrega eventos principais no seletor");
 assert(admin.includes('["galeria_historica","Galeria histórica","url-list"'), "galeria histórica usa campo amigável por linhas");
 assert(admin.includes('["patrocinadores","Patrocinadores","line-list"'), "patrocinadores não exigem JSON manual");
 assert(admin.includes('value===undefined&&name==="ativo"?true'), "evento principal novo nasce ativo por padrão");
-assert(access.includes('eventosEdicoesNav[1] = "Edições"'), "menu do painel corrige o texto Edições");
+assert(access.includes('eventos_edicoes: "Edições históricas"'), "menu do painel corrige o texto Edições");
 
 assert(admin.includes('["seo_titulo","Título SEO","text"]'), "painel permite titulo SEO em eventos e edicoes");
 assert(admin.includes('["seo_descricao","Descrição SEO","textarea"]'), "painel permite descricao SEO em eventos e edicoes");

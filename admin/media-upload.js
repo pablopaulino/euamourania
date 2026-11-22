@@ -5,7 +5,8 @@ import { adminPathForView, adminViewFromLocation } from "./admin-routes.js";
 const enhanced=new WeakSet();
 const app=document.getElementById("app-content");
 let mediaRows=[];
-let libraryOpened=false;
+let mediaVersion=0;
+
 
 const PRESETS={
  wide:{label:"Notícia / banner (16:9)",ratio:16/9,width:1600},
@@ -193,7 +194,9 @@ async function fileFromUrl(item){
 
 export async function openLibraryPicker({folder,preset,onSelect}){
  ensureStyles();
+ const version=mediaVersion;
  const rows=await listarMidiasDisponiveis();
+ if(version!==mediaVersion)return null;
  return new Promise(resolve=>{
   const previousActive=document.activeElement;
   const previousOverflow=document.body.style.overflow;
@@ -419,27 +422,12 @@ function attachEditorUpload(editorElement,folder){
  });
 }
 
-function ensureMediaNavigation(){
- if(!app||obterAcessoAtual()?.admin?.funcao!=="super_admin")return;
- const nav=document.querySelector(".admin-nav");
- if(!nav||document.getElementById("media-library-nav"))return;
- const button=document.createElement("button");
- button.id="media-library-nav";button.dataset.module="configuracoes";button.textContent="Mídia";
- const settings=nav.querySelector('[data-view="configuracoes_site"]');
- nav.insertBefore(button,settings||null);
-}
-
 async function renderMediaLibrary(){
  if(obterAcessoAtual()?.admin?.funcao!=="super_admin"){
-  app.innerHTML='<div class="ads-card empty-state"><strong>Acesso restrito</strong><p>A biblioteca de mídia é restrita ao Super Admin.</p></div>';
+  app.innerHTML='<div class="admin-card empty-state"><strong>Acesso restrito</strong><p>A biblioteca de mídia é restrita ao Super Admin.</p></div>';
   return;
  }
- libraryOpened=true;
- window.dispatchEvent(new CustomEvent("admin:external-module",{detail:{view:"midia"}}));
- document.getElementById("page-title").textContent="Mídia";
- if(location.pathname!==adminPathForView("midia"))history.pushState({adminView:"midia"},"",adminPathForView("midia"));
- document.querySelectorAll(".admin-nav button").forEach(button=>button.classList.toggle("active",button.id==="media-library-nav"));
- app.innerHTML='<div class="ads-card"><div class="skeleton"></div><div class="skeleton"></div></div>';
+ app.innerHTML='<div class="admin-card"><div class="skeleton"></div><div class="skeleton"></div></div>';
  try{
   mediaRows=await listarMidias();
   const unused=mediaRows.filter(item=>!item.em_uso),eligible=mediaRows.filter(item=>item.elegivel_limpeza);
@@ -463,7 +451,7 @@ async function renderMediaLibrary(){
   };
   ["media-search","media-variant","media-status"].forEach(id=>document.getElementById(id).addEventListener("input",filter));
  }catch(error){
-  app.innerHTML=`<div class="ads-card empty-state"><strong>Não foi possível carregar a biblioteca</strong><p>${safe(error.message)}</p></div>`;
+  app.innerHTML=`<div class="admin-card empty-state"><strong>Não foi possível carregar a biblioteca</strong><p>${safe(error.message)}</p></div>`;
  }
 }
 
@@ -473,7 +461,7 @@ async function removeMediaRows(rows){
 }
 
 function enhance(){
- ensureStyles();ensureMediaNavigation();
+ ensureStyles();
  const communicationForm=document.getElementById("communication-app")?.querySelector("#news-form");
  if(communicationForm){
   attachUrlUpload(communicationForm.elements.imagem_url,"comunicacao/newsletters","wide");
@@ -510,7 +498,6 @@ function enhance(){
   const config=inferMediaConfig(textarea);
   attachUrlListUpload(textarea,config.folder,config.preset);
  });
- if((adminViewFromLocation()==="midia"||location.hash==="#midia")&&!libraryOpened&&obterAcessoAtual()?.admin?.funcao==="super_admin")renderMediaLibrary();
 }
 
 function inferMediaConfig(element){
@@ -532,11 +519,8 @@ function inferMediaConfig(element){
  return{folder:element?.dataset?.mediaFolder||base,preset};
 }
 
-document.addEventListener("click",async event=>{
+async function libraryClick(event){
  const button=event.target.closest("button");if(!button)return;
- if(button.id==="media-library-nav"||button.dataset.view==="midia"){
-  event.preventDefault();event.stopImmediatePropagation();renderMediaLibrary();return;
- }
  if(button.dataset.mediaDelete){
   const item=mediaRows.find(row=>row.id===button.dataset.mediaDelete);
   if(item&&confirm("Excluir definitivamente esta imagem sem uso?"))await removeMediaRows([item]);
@@ -546,11 +530,30 @@ document.addEventListener("click",async event=>{
   const rows=mediaRows.filter(item=>item.elegivel_limpeza);
   if(rows.length&&confirm(`Excluir definitivamente ${rows.length} imagem(ns) sem uso há mais de 7 dias?`))await removeMediaRows(rows);
  }
-},true);
+}
 
-window.addEventListener("admin:open-media-library",()=>renderMediaLibrary());
-window.addEventListener("popstate",()=>{if(adminViewFromLocation()==="midia")renderMediaLibrary()});
+export async function mount(container) {
+  container.addEventListener("click", libraryClick);
+  await renderMediaLibrary();
+}
+export function unmount(container) {
+  container.removeEventListener("click", libraryClick);
+  mediaRows = [];
+}
 
-const observer=new MutationObserver(enhance);
-observer.observe(document.body,{childList:true,subtree:true});
-enhance();
+export function bindMediaFields(container) {
+  const selector = "input, textarea, #editor";
+  const observer = new MutationObserver(records => {
+    if (records.some(record => [...record.addedNodes].some(node =>
+      node.nodeType === 1 && (node.matches(selector) || node.querySelector(selector))
+    ))) enhance();
+  });
+  observer.observe(container, {childList:true, subtree:true});
+  enhance();
+  return () => {
+    mediaVersion++;
+    observer.disconnect();
+    document.querySelector("[data-crop-cancel]")?.click();
+    document.querySelector("[data-library-close]")?.click();
+  };
+}

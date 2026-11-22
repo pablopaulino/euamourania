@@ -1,11 +1,14 @@
+import { bindResourceTable } from "./table.js";
+import { allowedSections } from "./navigation.js";
+import { adminApiFetch, invalidateAdminData, revision, setReadSignal, ttl } from "./data-cache.js";
 import { exigirAdministrador, sair, temPermissao } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import { listarTabela, salvarRegistro, excluirRegistro } from "../assets/js/services/baseService.js";
 import { gerarSlug } from "../assets/js/utils.js";
 import { eventDateInput, normalizeEventDates } from "../assets/js/eventDateTime.js";
-import { adminPathForModule, adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js?v=20261018-viva-shell";
+import { adminPathForView, adminViewFromLocation, normalizeLegacyAdminRoute } from "./admin-routes.js";
 import { summarizeBusinessQuality } from "./business-quality.js";
-import { ADMIN_MODULE_LIST, adminModulesForNavigation, getAdminModule, renderAdminModuleIcon } from "./admin-modules.js?v=20260911-home-suggestions";
+import { ADMIN_MODULE_LIST, adminModulesForNavigation, getAdminModule, renderAdminModuleIcon } from "./admin-modules.js";
 
 const app = document.getElementById("app-content");
 const title = document.getElementById("page-title");
@@ -21,8 +24,14 @@ const pagePrimaryAction = document.getElementById("page-primary-action");
 let currentView = "dashboard";
 let activeModuleKey = "dashboard";
 let quill;
+let resourceDirty = false;
+function canLeaveResource() {
+  if (resourceDirty && !confirm("Existem alterações não salvas. Deseja sair mesmo assim?")) return false;
+  resourceDirty = false;
+  return true;
+}
+window.addEventListener("beforeunload", event => { if (resourceDirty) event.preventDefault(); });
 let currentResourceTable = null;
-let currentResourceId = null;
 let painelAccess = null;
 let activeMountedModule = null;
 let shellPrimaryActionCleanup = null;
@@ -46,7 +55,22 @@ function setUnifiedModuleScope(view) {
   else delete app.dataset.module;
 }
 
+const cmsModule = () => import("./cms-v2.js");
+const editorialModule = () => import("./editorial-audience.js");
+const communicationModule = () => import("./comunicacao.js");
 const moduleRoutes = {
+  natal_premiado: { label: "Natal Premiado", hint: "Prêmios, apoiadores e resultados por edição.", module: () => import("./natal-premiado.js") },
+  noticias: { module: cmsModule },
+  noticia_editor: { module: cmsModule },
+  categorias: { module: cmsModule },
+  aprovacoes: { module: editorialModule },
+  audiencia: { module: editorialModule },
+  newsletters: { module: communicationModule },
+  assinantes: { module: communicationModule },
+  configuracoes_site: { module: () => import("./site-settings.js") },
+  midia: { module: () => import("./media-upload.js") },
+  automacao_editorial: { module: () => import("./automacao-editorial.js") },
+  parceiros_log: { module: () => import("./parceiros-log.js") },
   achados_perdidos: { label: "Achados e Perdidos", hint: "Revise os anúncios enviados pelo aplicativo.", module: () => import("./achados-perdidos.js") },
   catalogos: {
     label: "Catálogos",
@@ -83,7 +107,6 @@ const moduleRoutes = {
     hint: "Organize contatos importantes, urgências e serviços exibidos no aplicativo.",
     module: () => import("./telefones-uteis.js")
   },
-  natal_premiado: { label: "Natal Premiado", hint: "Prêmios, apoiadores e resultados por edição.", module: () => import("./natal-premiado.js") },
   motoristas: {
     label: "Motoristas",
     hint: "Contatos de motoristas particulares para corridas locais e viagens.",
@@ -129,51 +152,35 @@ const moduleRoutes = {
 const adminNavigationGroups = adminModulesForNavigation();
 const adminNavigationItems = ADMIN_MODULE_LIST;
 
-function getSidebarButtonLabel(button) {
-  const key = button.dataset.view || button.dataset.module || button.id || "";
-  const currentLabel = button.querySelector(".admin-nav-label")?.textContent?.trim();
-  const moduleMeta = getAdminModule(key);
-  return moduleMeta.label || button.dataset.label || currentLabel || button.textContent.trim().replace(/\s+/g, " ");
+let navigation = [];
+function canOpen(view, search = "") {
+  const meta = adminNavigationItems.find(item => item.view === view);
+  if (!meta || !painelAccess?.admin) return false;
+  if (view === "midia") return painelAccess.admin.funcao === "super_admin";
+  const editingNews = view === "noticia_editor" && new URLSearchParams(search).has("id");
+  return temPermissao(painelAccess.admin, meta.permission || view, editingNews ? "editar" : meta.action || "acessar");
 }
-
-function decorateSidebarButton(button) {
-  const label = getSidebarButtonLabel(button);
-  if (!label) return;
-  button.dataset.label = label;
-  button.title = label;
-  if (button.querySelector(".admin-nav-icon") && button.querySelector(".admin-nav-label")?.textContent?.trim() === label) return;
-  const view = button.dataset.view
-    || (button.id === "audience-nav" ? "audiencia" : "")
-    || (button.id === "editorial-approvals-nav" ? "aprovacoes" : "")
-    || "dashboard";
-  button.innerHTML = `${renderAdminModuleIcon(view, "admin-nav-icon")}<span class="admin-nav-label">${escapeHtml(label)}</span>`;
-}
-
-function refreshSidebarNavigation() {
-  document.querySelectorAll(".admin-nav button").forEach(decorateSidebarButton);
-}
-
 function renderAdminNavigation() {
+  navigation = allowedSections(canOpen);
   const nav = document.querySelector(".admin-nav");
-  if (!nav) return;
-  nav.dataset.fixed = "1";
-  nav.dataset.grouped = "1";
-  nav.innerHTML = adminNavigationGroups.map(group => `
-    <section class="admin-nav-group" aria-label="${escapeHtml(group.label)}">
-      <p class="admin-nav-group-label">${escapeHtml(group.label)}</p>
-      <div class="admin-nav-group-items">
-        ${group.items.map(item => {
-          const attrs = [`type="button"`, `data-module="${escapeHtml(item.module)}"`, `data-label="${escapeHtml(item.label)}"`, `data-group="${escapeHtml(group.label)}"`];
-          attrs.push(`data-view="${escapeHtml(item.view)}"`);
-          if (item.view === "audiencia") attrs.push(`id="audience-nav"`);
-          if (item.view === "aprovacoes") attrs.push(`id="editorial-approvals-nav"`);
-          if (item.view === "midia") attrs.push(`id="media-library-nav"`);
-          return `<button ${attrs.join(" ")}>${escapeHtml(item.label)}</button>`;
-        }).join("")}
-      </div>
-    </section>
-  `).join("");
-  refreshSidebarNavigation();
+  nav.replaceChildren();
+  for (const group of new Set(navigation.map(section => section.group))) {
+    const wrapper = document.createElement("section");
+    wrapper.className = "admin-nav-group";
+    wrapper.innerHTML = '<p class="admin-nav-group-label"></p><div class="admin-nav-group-items"></div>';
+    wrapper.firstChild.textContent = group;
+    for (const section of navigation.filter(item => item.group === group)) {
+      const view = section.tabs[0].view;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.view = view;
+      button.title = section.label;
+      button.innerHTML = renderAdminModuleIcon(view, "admin-nav-icon") + '<span class="admin-nav-label"></span>';
+      button.lastChild.textContent = section.label;
+      wrapper.lastChild.append(button);
+    }
+    nav.append(wrapper);
+  }
 }
 
 const resources = {
@@ -462,211 +469,6 @@ function handleWeeklyHoursChange(event){
   }
   updateWeeklySummary(root,name,key);
 }
-document.addEventListener("click",handleWeeklyHoursAction);
-document.addEventListener("input",handleWeeklyHoursChange);
-document.addEventListener("change",handleWeeklyHoursChange);
-async function legacyDashboard() {
-  title.textContent = "Visão geral";
-  app.innerHTML = '<div class="loading">Carregando indicadores...</div>';
-  const supabase = getSupabase();
-  const count = async (table, filters={}) => { let q=supabase.from(table).select("*",{count:"exact",head:true}); Object.entries(filters).forEach(([k,v])=>q=q.eq(k,v)); const {count,error}=await q; if(error) throw error; return count||0; };
-  const safeCount = async (table, filters={}) => { try { return await count(table, filters); } catch { return 0; } };
-  try {
-    const [
-      noticias,publicadas,rascunhos,empresas,empresasAtivas,pontos,eventos,eventosAtivos,links,
-      campanhas,campanhasAtivas,newsletters,assinantes,melhoresEdicoes,melhoresIndicados,aprovacoes
-    ] = await Promise.all([
-      safeCount("noticias"),
-      safeCount("noticias",{status:"publicado"}),
-      safeCount("noticias",{status:"rascunho"}),
-      safeCount("guia_comercial"),
-      safeCount("guia_comercial",{status:"publicado"}),
-      safeCount("turismo"),
-      safeCount("eventos"),
-      safeCount("eventos",{status:"publicado"}),
-      safeCount("links",{status:"ativo"}),
-      safeCount("campanhas_publicitarias"),
-      safeCount("campanhas_publicitarias",{status:"ativo"}),
-      safeCount("newsletters"),
-      safeCount("newsletter_assinantes",{status:"ativo"}),
-      safeCount("melhores_edicoes"),
-      safeCount("melhores_indicados",{status:"ativo"}),
-      safeCount("solicitacoes_aprovacao",{status:"pendente"})
-    ]);
-    const { data: recentNews = [] } = await supabase
-      .from("noticias")
-      .select("titulo,status,atualizado_em")
-      .order("atualizado_em",{ascending:false})
-      .limit(5);
-    const metrics=[
-      ["Notícias",noticias,`${publicadas} publicadas · ${rascunhos} rascunhos`],
-      ["Empresas",empresas,`${empresasAtivas} publicadas no guia`],
-      ["Turismo",pontos,"pontos turísticos cadastrados"],
-      ["Eventos",eventos,`${eventosAtivos} publicados`],
-      ["Publicidade",campanhas,`${campanhasAtivas} campanhas ativas`],
-      ["Comunicação",newsletters,`${assinantes} assinantes ativos`],
-      ["Melhores de Urânia",melhoresEdicoes,`${melhoresIndicados} indicados ativos`],
-      ["Links ativos",links,"canais e links publicados"]
-    ];
-    app.innerHTML=`
-      <section class="dashboard-welcome panel">
-        <div>
-          <p class="eyebrow">Painel Eu Amo Urânia</p>
-          <h2>Visão geral do portal</h2>
-          <p>Acompanhe conteúdo, audiência, campanhas, comunicação e a operação do Melhores de Urânia em um só lugar.</p>
-        </div>
-        ${aprovacoes?`<button class="admin-button" id="dashboard-approvals">${aprovacoes} aprovação(ões) pendente(s)</button>`:""}
-      </section>
-      <div class="dashboard-grid">${metrics.map(([label,value,detail])=>`<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${detail}</small></article>`).join("")}</div>
-      <div class="dashboard-grid dashboard-actions">
-        <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>Notícias</strong><small>Criar, revisar e publicar</small></button>
-        <button class="metric-card" data-view="melhores"><span>Prêmio</span><strong>Melhores de Urânia</strong><small>Votação, apuração e resultados</small></button>
-        <button class="metric-card" id="dashboard-audience"><span>Dados</span><strong>Audiência</strong><small>Visualizações, cliques e buscas</small></button>
-        <button class="metric-card" data-view="publicidade"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
-      </div>
-      <section class="panel">
-        <header class="panel-header"><h2>Notícias recentes</h2></header>
-        ${recentNews.length?recentNews.map(item=>`<div class="rank-item"><strong>${escapeHtml(item.titulo)}</strong><small>${escapeHtml(item.status||"")} · ${item.atualizado_em?new Date(item.atualizado_em).toLocaleDateString("pt-BR"):"sem data"}</small></div>`).join(""):'<div class="empty-state">Nenhuma notícia recente.</div>'}
-      </section>`;
-  } catch(error) { app.innerHTML=`<p class="form-message">${escapeHtml(error.message)}</p>`; }
-}
-
-async function dashboardBase() {
-  title.textContent = "Visão geral";
-  app.innerHTML = '<div class="loading">Carregando indicadores...</div>';
-  const supabase = getSupabase();
-  const count = async (table, filters = {}) => {
-    let query = supabase.from(table).select("*", { count: "exact", head: true });
-    Object.entries(filters).forEach(([field, value]) => {
-      if (value && typeof value === "object" && "op" in value) query = query[value.op](field, value.value);
-      else query = query.eq(field, value);
-    });
-    const { count: total, error } = await query;
-    if (error) throw error;
-    return total || 0;
-  };
-  const safeCount = async (table, filters = {}) => {
-    try { return await count(table, filters); } catch { return 0; }
-  };
-  const safeList = async builder => {
-    try {
-      const { data, error } = await builder();
-      if (error) throw error;
-      return data || [];
-    } catch {
-      return [];
-    }
-  };
-  const fmtDate = value => value ?new Date(value).toLocaleDateString("pt-BR") : "sem data";
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-  try {
-    const [
-      noticias, publicadas, rascunhos, empresas, empresasAtivas, pontos, pontosAtivos,
-      eventos, eventosAtivos, links, campanhas, campanhasAtivas, assinantes,
-      melhoresEdicoes, melhoresIndicados, aprovacoes, views7d, whatsapp7d
-    ] = await Promise.all([
-      safeCount("noticias"),
-      safeCount("noticias", { status: "publicado" }),
-      safeCount("noticias", { status: "rascunho" }),
-      safeCount("guia_comercial"),
-      safeCount("guia_comercial", { status: "publicado" }),
-      safeCount("turismo"),
-      safeCount("turismo", { status: "publicado" }),
-      safeCount("eventos"),
-      safeCount("eventos", { status: "publicado" }),
-      safeCount("links", { status: "ativo" }),
-      safeCount("campanhas_publicitarias"),
-      safeCount("campanhas_publicitarias", { status: "ativo" }),
-      safeCount("newsletter_assinantes", { status: "ativo" }),
-      safeCount("melhores_edicoes", { status: { op: "neq", value: "arquivada" } }),
-      safeCount("melhores_indicados", { status: "ativo" }),
-      safeCount("solicitacoes_aprovacao", { status: "pendente" }),
-      safeCount("analytics_eventos", { criado_em: { op: "gte", value: sevenDaysAgo } }),
-      safeCount("analytics_eventos", { tipo: "whatsapp_click", criado_em: { op: "gte", value: sevenDaysAgo } })
-    ]);
-
-    const [recentNews, pendingApprovals, recentEditions] = await Promise.all([
-      safeList(() => supabase.from("noticias").select("titulo,status,status_editorial,publicado_em,atualizado_em").order("atualizado_em", { ascending: false }).limit(5)),
-      safeList(() => supabase.from("solicitacoes_aprovacao").select("id,status,enviado_em,noticias(titulo,status,status_editorial)").eq("status", "pendente").order("enviado_em", { ascending: false }).limit(5)),
-      safeList(() => supabase.from("melhores_edicoes").select("nome,ano,status,atualizado_em").neq("status", "arquivada").order("ano", { ascending: false }).limit(4))
-    ]);
-
-    const primaryMetrics = [
-      ["Editorial", publicadas, "Notícias publicadas", `${rascunhos} rascunho(s) · ${noticias} no total`],
-      ["Fluxo", aprovacoes, "Aprovações pendentes", aprovacoes ?"Precisa de revisão editorial" : "Fila editorial em dia"],
-      ["Dados reais", views7d, "Audiência 7 dias", `${whatsapp7d} clique(s) no WhatsApp`],
-      ["Publicidade", campanhasAtivas, "Campanhas ativas", `${campanhas} campanha(s) cadastrada(s)`]
-    ];
-    const secondaryMetrics = [
-      ["Guia", empresas, `${empresasAtivas} empresas publicadas`],
-      ["Turismo", pontos, `${pontosAtivos} pontos publicados`],
-      ["Eventos", eventos, `${eventosAtivos} publicados`],
-      ["Comunicação", assinantes, "assinantes ativos"],
-      ["Melhores de Urânia", melhoresEdicoes, `${melhoresIndicados} indicados ativos`],
-      ["Links", links, "links ativos"]
-    ];
-    const pendingTasks = [
-      aprovacoes ?[`${aprovacoes} matéria(s) aguardando aprovação`, "Abrir fila", "aprovacoes"] : null,
-      rascunhos ?[`${rascunhos} notícia(s) em rascunho`, "Ver notícias", "noticias"] : null,
-      campanhasAtivas ?null : ["Nenhuma campanha publicitária ativa", "Criar campanha", "publicidade"],
-      melhoresEdicoes ?null : ["Nenhuma edição ativa do Melhores cadastrada", "Abrir Melhores", "melhores"]
-    ].filter(Boolean);
-
-    app.innerHTML = `
-      <section class="dashboard-hero panel">
-        <div>
-          <p class="eyebrow">Painel Eu Amo Urânia</p>
-          <h2>Central de controle do portal</h2>
-          <p>Resumo operacional com conteúdo, aprovações, audiência, publicidade e Melhores de Urânia em um só lugar.</p>
-        </div>
-        <div class="dashboard-hero-actions">
-          <button class="admin-button" data-new="noticias">Nova notícia</button>
-          <button class="admin-button secondary" id="dashboard-audience">Ver audiência</button>
-        </div>
-      </section>
-      <div class="dashboard-primary-grid">
-        ${primaryMetrics.map(([kicker, value, label, detail]) => `<article class="dashboard-kpi"><span>${kicker}</span><strong>${value}</strong><h3>${label}</h3><p>${detail}</p></article>`).join("")}
-      </div>
-      <div class="dashboard-layout">
-        <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>O que precisa de atenção</h2><p>Atalhos para as próximas ações do painel.</p></div></header>
-          <div class="dashboard-task-list">
-            ${pendingTasks.length ?pendingTasks.map(([text, action, target]) => `<button class="dashboard-task" ${target === "aprovacoes" ?"id=\"dashboard-approvals\"" : `data-view="${target}"`}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} →</strong></button>`).join("") : '<div class="dashboard-empty-good">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
-          </div>
-        </section>
-        <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Estrutura do portal</h2><p>Dados gerais de conteúdo publicado e módulos ativos.</p></div></header>
-          <div class="dashboard-mini-grid">
-            ${secondaryMetrics.map(([label, value, detail]) => `<article class="dashboard-mini-card"><strong>${value}</strong><span>${label}</span><small>${detail}</small></article>`).join("")}
-          </div>
-        </section>
-      </div>
-      <div class="dashboard-layout dashboard-bottom">
-        <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Últimas notícias</h2><p>Conteúdos editados recentemente.</p></div><button class="admin-button secondary" data-view="noticias">Ver todas</button></header>
-          <div class="dashboard-list">
-            ${recentNews.length ?recentNews.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.titulo)}</strong><small>${escapeHtml(item.status_editorial || item.status || "")} · ${fmtDate(item.publicado_em || item.atualizado_em)}</small></div><span class="status-pill ${escapeHtml(item.status || "")}">${escapeHtml(item.status || "—")}</span></article>`).join("") : '<div class="empty-state">Nenhuma notícia recente.</div>'}
-          </div>
-        </section>
-        <section class="panel dashboard-section">
-          <header class="panel-header"><div><h2>Aprovações e edições</h2><p>Fila editorial e últimas edições do prêmio.</p></div></header>
-          <div class="dashboard-list">
-            ${pendingApprovals.length ?pendingApprovals.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.noticias?.titulo || "Notícia em revisão")}</strong><small>Enviada em ${fmtDate(item.enviado_em)}</small></div><span class="status-pill">${escapeHtml(item.status)}</span></article>`).join("") : '<div class="dashboard-empty-good compact">Sem aprovações pendentes.</div>'}
-            ${recentEditions.length ?recentEditions.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.nome || `Melhores ${item.ano}`)}</strong><small>${item.ano} · ${fmtDate(item.atualizado_em)}</small></div><span class="status-pill">${escapeHtml(item.status || "—")}</span></article>`).join("") : '<div class="empty-state">Nenhuma edição do Melhores cadastrada.</div>'}
-          </div>
-        </section>
-      </div>
-      <div class="dashboard-quick-actions">
-        <button class="metric-card" data-view="noticias"><span>Editorial</span><strong>Notícias</strong><small>Criar, revisar e publicar</small></button>
-        <button class="metric-card" data-view="melhores"><span>Prêmio</span><strong>Melhores de Urânia</strong><small>Votação, apuração e resultados</small></button>
-        <button class="metric-card" data-view="publicidade"><span>Receita</span><strong>Publicidade</strong><small>Campanhas e desempenho</small></button>
-        <button class="metric-card" data-view="comunicacao"><span>Relacionamento</span><strong>Comunicação</strong><small>Newsletter e assinantes</small></button>
-      </div>`;
-  } catch(error) {
-    app.innerHTML = `<p class="form-message">${escapeHtml(error.message)}</p>`;
-  }
-}
 
 async function dashboard() {
   activeModuleKey = "dashboard";
@@ -890,7 +692,7 @@ async function dashboard() {
           <p>${escapeHtml(domainDescriptions[group.label] || "Módulos administrativos conectados.")}</p>
         </header>
         <div class="ops-domain-modules">
-          ${group.items.map(item => `<button class="ops-module-link" data-view="${escapeHtml(item.view)}">
+          ${group.items.filter(item => canOpen(item.view)).map(item => `<button class="ops-module-link" data-view="${escapeHtml(item.view)}">
             ${renderAdminModuleIcon(item.view)}
             <strong>${escapeHtml(item.label)}</strong>
             <small>${escapeHtml(moduleIndicators[item.view] || item.dashboard?.indicator || "")}</small>
@@ -1002,7 +804,7 @@ async function dashboard() {
               <h2>Audiência do portal</h2>
               <small>Fonte única nesta visão: eventos internos registrados em analytics_eventos.</small>
             </div>
-            <button class="admin-button secondary" onclick="document.getElementById('dashboard-audience')?.click()">Abrir análise completa</button>
+            <button class="admin-button secondary" data-view="audiencia">Abrir análise completa</button>
           </header>
           <div class="ops-performance-grid">
             <article><strong>${fmtNumber(views30d)}</strong><span>interações em 30 dias</span></article>
@@ -1084,7 +886,7 @@ async function resourceList(table) {
           </div>
           ${rows.length ?`
             <div class="table-wrap admin-data-table-wrap">
-              <table class="admin-data-table">
+              <table class="admin-table admin-data-table">
                 <thead><tr><th>Registro</th><th>Status</th>${table==='guia_comercial'?'<th>Parceiro</th>':''}<th>Atualização</th><th>Ações</th></tr></thead>
                 <tbody>
                   ${rows.map(row=>{
@@ -1095,7 +897,7 @@ async function resourceList(table) {
                       <td class="admin-title-cell"><strong>${escapeHtml(titleValue)}</strong>${subtitle ?`<small>${escapeHtml(subtitle)}</small>` : ""}</td>
                       <td><span class="status-pill ${escapeHtml(status)}">${escapeHtml(status || "—")}</span></td>
                       ${table==='guia_comercial'?`<td title="${partnerIds.has(row.id)?'Parceiro ativo':'Sem parceiro'}">${partnerIds.has(row.id)?'🟢':'⚪'}</td>`:''}
-                      <td>${resourceUpdatedAt(row)}</td>
+                      <td data-sort="${escapeHtml(row.atualizado_em || row.criado_em || "")}">${resourceUpdatedAt(row)}</td>
                       <td><div class="admin-row-actions"><button type="button" data-edit="${table}" data-id="${row.id}">Editar</button><button type="button" class="danger" data-delete="${table}" data-id="${row.id}">Excluir</button></div></td>
                     </tr>`;
                   }).join("")}
@@ -1115,26 +917,7 @@ async function resourceList(table) {
           `}
         </section>
       </section>`;
-    const searchInput = app.querySelector("#resource-search");
-    const statusSelect = app.querySelector("#resource-status");
-    const countLabel = app.querySelector("#resource-count");
-    const filterEmpty = app.querySelector("[data-filter-empty]");
-    const applyResourceFilter = () => {
-      const term = searchInput?.value.trim().toLowerCase() || "";
-      const selectedStatus = statusSelect?.value || "";
-      let visible = 0;
-      app.querySelectorAll("[data-admin-row]").forEach(row => {
-        const matchesTerm = !term || row.dataset.search?.includes(term);
-        const matchesStatus = !selectedStatus || row.dataset.status === selectedStatus;
-        const show = Boolean(matchesTerm && matchesStatus);
-        row.hidden = !show;
-        if (show) visible += 1;
-      });
-      if (countLabel) countLabel.textContent = `${visible} de ${rows.length} registro(s)`;
-      if (filterEmpty) filterEmpty.hidden = visible !== 0 || rows.length === 0;
-    };
-    searchInput?.addEventListener("input", applyResourceFilter);
-    statusSelect?.addEventListener("change", applyResourceFilter);
+    bindResourceTable(app.querySelector(".admin-list-panel"));
   } catch(error) { app.innerHTML=`<p class="form-message">${escapeHtml(error.message)}</p>`; }
 }
 
@@ -1407,30 +1190,6 @@ function normalizeSimpleEventPayload(form, message) {
   };
 }
 
-async function salvarEvento2Form(event) {
-  if(event.target.id!=="resource-form"||!["eventos_principais","eventos_edicoes"].includes(currentResourceTable))return;
-  event.preventDefault();event.stopImmediatePropagation();
-  const table=currentResourceTable,config=resources[table],message=document.getElementById("form-message");
-  message.textContent="Salvando...";
-  const form=new FormData(event.target),payload={id:currentResourceId};
-  for(const field of config.fields){
-    const [name,label,type]=field;
-    if(type==="editor")payload[name]=quill.root.innerHTML;
-else if(type==="weekly-hours")payload[name]=collectWeeklyHours(form,name);else if(type==="gallery-urls")payload[name]=collectGalleryUrls(form,name);else if(type==="boolean")payload[name]=form.get(name)==="true";
-    else if(type==="number"){try{payload[name]=parseAdminNumber(form.get(name))}catch{message.textContent=`Informe um número válido em ${label}.`;event.target.elements[name]?.focus();return}}
-    else if(type==="url-list")payload[name]=parseUrlList(form.get(name));
-    else if(type==="line-list")payload[name]=parseLineList(form.get(name));
-    else{
-      const value=form.get(name)||null;
-      if(type==="url"&&!validSiteReference(value)){message.textContent=`Informe um link completo ou caminho interno válido em ${label}.`;event.target.elements[name]?.focus();return}
-      payload[name]=value;
-    }
-  }
-  try{normalizeEventDates(table,payload);await salvarRegistro(table,payload);currentResourceId=null;await resourceList(table)}
-  catch(error){message.textContent=error.message;}
-}
-document.addEventListener("submit",salvarEvento2Form,true);
-
 function fieldHtmlCorrigido([name,label,type,required], value) {
   const isPrimaryMediaField = type === "url" && /^(imagem_url|imagem_capa_url)$/.test(String(name || ""));
   const isEditionMediaField = currentResourceTable === "eventos_edicoes" && type === "url" && /^(cartaz_url|banner_url)$/.test(String(name || ""));
@@ -1531,7 +1290,7 @@ function renderResourceFormSections(config, row, table) {
 
 async function editForm(table,id) {
   const config=resources[table]; let row={};
-  currentResourceTable=table;currentResourceId=id||null;
+  currentResourceTable=table;
   activeModuleKey = table;
   app.dataset.layout = "form";
   if(id){const {data,error}=await getSupabase().from(databaseTable(table)).select("*").eq("id",id).single();if(error)throw error;row=data;}
@@ -1554,14 +1313,14 @@ async function editForm(table,id) {
           </div>
         </footer>
       </form>
-      ${table==='guia_comercial' && id && temPermissao(painelAccess?.admin,'guia_comercial','editar')?`<section class="panel admin-form-section" id="partner-access"><header class="admin-form-section-head"><span>↗</span><div><h3>Acesso do Parceiro</h3><p>Convide uma pessoa para cuidar das informações deste estabelecimento.</p></div></header><div class="partner-access-content"><div class="partner-access-current"><span class="partner-access-label">Acesso atual</span><p id="partner-access-status">Carregando...</p></div><div class="partner-access-actions"><button type="button" class="admin-button" id="partner-create" hidden>Criar acesso do parceiro</button><button type="button" class="admin-button secondary" id="partner-resend" hidden>Gerar novo link</button><button type="button" class="admin-button secondary" id="partner-revoke" hidden>Revogar acesso</button><a class="admin-button secondary" href="/admin/parceiros-log.html?guia_id=${encodeURIComponent(id)}">Ver alterações</a><a class="admin-button secondary" href="/admin/viva-assinaturas?guia_id=${encodeURIComponent(id)}">Plano Viva</a></div><p id="partner-access-message" class="partner-access-message" role="status"></p><div id="partner-invite-result" class="partner-invite-result" hidden><label for="partner-invite-link">Link de acesso</label><div><input id="partner-invite-link" type="text" readonly autocomplete="off"><button type="button" class="admin-button secondary" id="partner-copy-link">Copiar link</button></div><small>Envie este link somente para o parceiro. Você pode gerar outro link depois.</small></div></div><dialog id="partner-dialog" class="partner-dialog"><form id="partner-invite-form"><h3>Convidar parceiro</h3><p>Informe um e-mail diferente do usado pela equipe administrativa.</p><label>E-mail<input type="email" name="email" required autocomplete="email"></label><div class="partner-dialog-actions"><button class="admin-button" type="submit">Criar convite</button><button class="admin-button secondary" type="button" id="partner-cancel">Cancelar</button></div></form></dialog></section>`:''}
+      ${table==='guia_comercial' && id && temPermissao(painelAccess?.admin,'guia_comercial','editar')?`<section class="panel admin-form-section" id="partner-access"><header class="admin-form-section-head"><span>↗</span><div><h3>Acesso do Parceiro</h3><p>Convide uma pessoa para cuidar das informações deste estabelecimento.</p></div></header><div class="partner-access-content"><div class="partner-access-current"><span class="partner-access-label">Acesso atual</span><p id="partner-access-status">Carregando...</p></div><div class="partner-access-actions"><button type="button" class="admin-button" id="partner-create" hidden>Criar acesso do parceiro</button><button type="button" class="admin-button secondary" id="partner-resend" hidden>Gerar novo link</button><button type="button" class="admin-button secondary" id="partner-revoke" hidden>Revogar acesso</button><a class="admin-button secondary" href="/admin/parceiros-log?guia_id=${encodeURIComponent(id)}">Ver alterações</a><a class="admin-button secondary" href="/admin/viva-assinaturas?guia_id=${encodeURIComponent(id)}">Plano Viva</a></div><p id="partner-access-message" class="partner-access-message" role="status"></p><div id="partner-invite-result" class="partner-invite-result" hidden><label for="partner-invite-link">Link de acesso</label><div><input id="partner-invite-link" type="text" readonly autocomplete="off"><button type="button" class="admin-button secondary" id="partner-copy-link">Copiar link</button></div><small>Envie este link somente para o parceiro. Você pode gerar outro link depois.</small></div></div><dialog id="partner-dialog" class="partner-dialog"><form id="partner-invite-form"><h3>Convidar parceiro</h3><p>Informe um e-mail diferente do usado pela equipe administrativa.</p><label>E-mail<input type="email" name="email" required autocomplete="email"></label><div class="partner-dialog-actions"><button class="admin-button" type="submit">Criar convite</button><button class="admin-button secondary" type="button" id="partner-cancel">Cancelar</button></div></form></dialog></section>`:''}
     </section>`;
   if(table==='guia_comercial' && id && app.querySelector('#partner-access')){
     const status=app.querySelector('#partner-access-status'),create=app.querySelector('#partner-create'),resend=app.querySelector('#partner-resend'),revoke=app.querySelector('#partner-revoke'),message=app.querySelector('#partner-access-message');
     const resultBox=app.querySelector('#partner-invite-result'),linkInput=app.querySelector('#partner-invite-link');
     const clearLink=()=>{linkInput.value='';resultBox.hidden=true;};
     const showLink=link=>{linkInput.value=link;resultBox.hidden=false;message.textContent='Link pronto. Copie e envie ao parceiro.';};
-    const request=async payload=>{const {data:{session}}=await getSupabase().auth.getSession();if(!session)throw Error('Sua sessão expirou. Entre novamente no CMS.');const response=await fetch('/api/admin-criar-parceiro',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({guia_id:id,...payload})});const result=await response.json();if(!response.ok)throw Error(result.error||'Não foi possível concluir a operação.');return result;};
+    const request=async payload=>{const {data:{session}}=await getSupabase().auth.getSession();if(!session)throw Error('Sua sessão expirou. Entre novamente no CMS.');const response=await adminApiFetch('/api/admin-criar-parceiro',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({guia_id:id,...payload})});const result=await response.json();if(!response.ok)throw Error(result.error||'Não foi possível concluir a operação.');return result;};
     const refresh=async()=>{const {data,error}=await getSupabase().from('parceiros').select('id,email,criado_em').eq('guia_id',id).eq('ativo',true).maybeSingle();if(error){status.textContent=error.message;return;}status.textContent=data?`${data.email} · criado em ${new Date(data.criado_em).toLocaleDateString('pt-BR')}`:'Nenhum parceiro ativo';create.hidden=!!data;resend.hidden=!data;revoke.hidden=!data;};
     const dialog=app.querySelector('#partner-dialog');
     create.addEventListener('click',()=>dialog.showModal());
@@ -1572,6 +1331,11 @@ async function editForm(table,id) {
     app.querySelector('#partner-copy-link').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(linkInput.value);message.textContent='Link copiado.';}catch{linkInput.select();message.textContent='Selecione o link e copie com Ctrl+C.';}});
     refresh();
   }
+  app.querySelector("#resource-form").addEventListener("input", () => { resourceDirty = true; });
+  const resourceForm = app.querySelector("#resource-form");
+  resourceForm.addEventListener("click",handleWeeklyHoursAction);
+  resourceForm.addEventListener("input",handleWeeklyHoursChange);
+  resourceForm.addEventListener("change",handleWeeklyHoursChange);
   normalizeCoordinateInputs(app);
   if (table === 'guia_comercial' && id) {
     const countElement = app.querySelector('[data-company-catalog-count]');
@@ -1582,6 +1346,8 @@ async function editForm(table,id) {
   setupGalleryFields(app);
   const editorField=config.fields.find(f=>f[2]==="editor");
   if(editorField){quill=new Quill("#editor",{theme:"snow",modules:{toolbar:[["bold","italic","blockquote"],[{header:[2,3,false]}],[{list:"ordered"},{list:"bullet"}],["link","image","video"],["clean"]]}});quill.root.innerHTML=row[editorField[0]]||"";}
+  const categories = await import("./category-fields.js");
+  await categories.enhanceCategoryField(app.querySelector("#resource-form"),row);
   await carregarSelectEventosPrincipais();
   await carregarSelectSugestaoMomento();
   setupSimpleEventRecurrenceForm(app);
@@ -1616,6 +1382,10 @@ async function editForm(table,id) {
           event.currentTarget.elements[name]?.focus();
           return;
         }
+      } else if (type === "url-list") {
+        payload[name] = parseUrlList(form.get(name));
+      } else if (type === "line-list") {
+        payload[name] = parseLineList(form.get(name));
       } else if (type === "tags") {
         payload[name] = String(form.get(name) || "").split(",").map(item => item.trim()).filter(Boolean);
       } else {
@@ -1640,9 +1410,11 @@ async function editForm(table,id) {
     }
     if (table === "noticias" && payload.status === "publicado" && !payload.publicado_em) payload.publicado_em = new Date().toISOString();
     try {
+      Object.assign(payload, categories.categoryValues(event.currentTarget));
       normalizeEventDates(table, payload);
       await salvarRegistro(databaseTable(table), payload);
-      await resourceList(table);
+      resourceDirty = false;
+      if (currentView === table) await navigateToView(table, {replace:true});
     } catch (error) {
       message.textContent = error.message;
     }
@@ -1689,112 +1461,198 @@ function setShellPrimaryAction(label, handler) {
   shellPrimaryActionCleanup = () => button.removeEventListener("click", handler);
 }
 
-function clearMountedModule() {
-  if (activeMountedModule?.unmount) {
-    try { activeMountedModule.unmount(); } catch (error) { console.error("Erro ao desmontar módulo:", error); }
-  }
-  activeMountedModule = null;
+// Dashboard and table-backed views share their renderer and form lifecycle.
+export async function mount(container, {view, restored, edit, id}) {
+  if (edit) await editForm(view,id);
+  else if (!restored) await (view === "dashboard" ? dashboard() : resourceList(view));
 }
 
+export function unmount() {
+  quill?.disable();
+  quill = null;
+  currentResourceTable = null;
+}
+
+const resourceModule = { mount, unmount, canLeave: canLeaveResource };
+const snapshots = new Map();
+let mountedAt = 0;
+let renderedRevision = -1;
+let mountedUrl = "";
+let navigationQueue = Promise.resolve();
+let latestRequest = 0;
+let bindMediaFields;
+let releaseMediaFields;
+let loadingController;
+
 function setActiveNav(view) {
-  refreshSidebarNavigation();
-  activeModuleKey = adminNavigationItems.some(item => item.view === view) ? view : "dashboard";
+  const section = navigation.find(item => item.tabs.some(tab => tab.view === view)) ||
+    (view === "noticia_editor" && navigation.find(item => item.tabs.some(tab => tab.view === "noticias")));
   document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button => {
-    const isActive = button.dataset.view === activeModuleKey;
-    button.classList.toggle("active", isActive);
-    if (isActive) button.setAttribute("aria-current", "page");
+    const selected = button.dataset.view === section?.tabs[0].view;
+    button.classList.toggle("active", selected);
+    if (selected) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
+  });
+  const tabs = document.getElementById("section-tabs");
+  tabs.replaceChildren();
+  tabs.hidden = !section || section.tabs.length < 2;
+  if (tabs.hidden) return;
+  for (const tab of section.tabs) {
+    const link = document.createElement("a");
+    link.href = adminPathForView(tab.view);
+    link.dataset.view = tab.view;
+    link.textContent = tab.label;
+    if (tab.view === view) link.setAttribute("aria-current", "page");
+    tabs.append(link);
+  }
+}
+
+function rememberList() {
+  if (renderedRevision !== revision || Date.now() - mountedAt >= ttl) return;
+  if (!app.querySelector(".ops-dashboard, #news-rows, .admin-list-panel, #cat-rows")) return;
+  snapshots.set(mountedUrl, {
+    nodes: [...app.childNodes], time: mountedAt, revision,
+    title: title.textContent, hint: pageHint.textContent, actionHtml: pagePrimaryAction.innerHTML,
+    layout: app.dataset.layout
   });
 }
 
-async function mountShellModule(view, options = {}) {
-  const route = moduleRoutes[view];
-  if (!route) return false;
-  const moduleMeta = getAdminModule(view);
-  clearMountedModule();
-  currentView = view;
-  activeModuleKey = view;
-  app.dataset.layout = "module";
-  setUnifiedModuleScope(view);
-  currentResourceTable = null;
-  currentResourceId = null;
-  setShellTitle(moduleMeta.label || route.label, moduleMeta.description || route.hint, { moduleKey: view });
-  setActiveNav(view);
-  const targetPath = adminPathForView(view);
-  if (location.pathname !== targetPath) {
-    history[options.replace ?"replaceState" : "pushState"]({ adminView: view }, "", targetPath);
+async function openView(view, options) {
+  const params = new URLSearchParams(options.search);
+  if (options.edit && resources[view]) {
+    if (options.id) params.set("editar", options.id);
+    else params.set("novo", "1");
   }
+  const editing = resources[view] && (params.has("editar") || params.has("novo"));
+  const search = params.size ? "?" + params.toString() : "";
+  if (!canOpen(view, search) || (editing && !temPermissao(painelAccess.admin, getAdminModule(view).permission || view, params.has("editar") ? "editar" : "criar"))) {
+    shellToast("Seu perfil não tem acesso a esta seção.", "error");
+    if (!mountedUrl || options.pop) {
+      const fallback = navigation[0]?.tabs[0].view;
+      if (fallback && fallback !== view) return openView(fallback, {replace:true});
+      app.textContent = "Nenhuma seção disponível para este perfil.";
+    }
+    return;
+  }
+  const url = adminPathForView(view) + search + (options.hash || "");
+  if (mountedUrl === url && renderedRevision !== -1 && !options.refresh && !options.edit && app.dataset.layout !== "form") return;
+  if (activeMountedModule?.canLeave?.() === false) {
+    if (options.pop) history.pushState({adminView:currentView}, "", mountedUrl);
+    return;
+  }
+  if (options.refresh) {
+    invalidateAdminData();
+    snapshots.clear();
+  }
+  rememberList();
+  releaseMediaFields?.();
+  activeMountedModule?.unmount?.(app);
+  activeMountedModule = null;
+  renderedRevision = -1;
+  currentView = activeModuleKey = view;
+  currentResourceTable = null;
+  mountedUrl = url;
+  if (location.pathname + location.search + location.hash !== url) {
+    history[options.replace || options.pop ? "replaceState" : "pushState"]({adminView:view}, "", url);
+  }
+  const meta = getAdminModule(view);
+  setShellTitle(meta.label, meta.description, {moduleKey:view});
+  setActiveNav(view);
   sidebar.classList.remove("open");
   document.body.classList.remove("sidebar-drawer-open");
-  app.innerHTML = '<div class="loading">Carregando módulo...</div>';
+  for (const [key, snapshot] of snapshots) {
+    if (snapshot.revision !== revision || Date.now() - snapshot.time >= ttl) snapshots.delete(key);
+  }
+  const saved = snapshots.get(url);
+  const restore = saved && saved.revision === revision && Date.now() - saved.time < ttl && !options.edit;
+  snapshots.delete(url);
+  mountedAt = restore ? saved.time : Date.now();
+  const startRevision = revision;
+  const controller = new AbortController();
+  loadingController = controller;
+  setReadSignal(controller.signal);
+  setUnifiedModuleScope(view);
+  app.dataset.layout = restore ? saved.layout : view === "dashboard" ? "dashboard" : "module";
+  if (restore) {
+    app.replaceChildren(...saved.nodes);
+    setShellTitle(saved.title, saved.hint, {actionHtml:saved.actionHtml});
+  } else {
+    app.innerHTML = '<div class="loading" role="status">Carregando…</div>';
+  }
+  releaseMediaFields = bindMediaFields(app);
   try {
-    const module = await route.module();
+    const styleFiles = {
+      noticias: ["cms-v2"], noticia_editor: ["cms-v2","news-editor","editorial-audience"],
+      categorias: ["cms-v2"], configuracoes_site: ["cms-v2"], audiencia: ["editorial-audience"], aprovacoes: ["editorial-audience"]
+    };
+    for (const name of styleFiles[view] || []) {
+      const href = "/admin/" + name + ".css";
+      if (!document.querySelector('link[href="' + href + '"]')) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = href;
+        document.head.append(link);
+      }
+    }
+    const module = moduleRoutes[view] ? await moduleRoutes[view].module() : resourceModule;
+    if (controller.signal.aborted) return;
     activeMountedModule = module;
     await module.mount(app, {
-      db: getSupabase(),
-      access: painelAccess,
-      toast: shellToast,
-      setTitle: setShellTitle,
-      setPrimaryAction: setShellPrimaryAction,
-      navigate: nextView => navigateToView(nextView),
-      editResource: (table, id) => editForm(table, id)
+      view, restored: restore, edit: editing, id: params.get("editar"), db: getSupabase(), access: painelAccess, toast: shellToast,
+      setTitle: setShellTitle, setPrimaryAction: setShellPrimaryAction,
+      navigate: navigateToView, apiFetch: adminApiFetch, editResource: (table,id) => navigateToView(table,{edit:true,id}),
+      can: (permission,action) => temPermissao(painelAccess.admin,permission,action)
     });
+    if (!controller.signal.aborted) renderedRevision = startRevision;
   } catch (error) {
-    console.error(`Falha ao carregar módulo ${view}:`, error);
-    app.innerHTML = `<section class="panel"><h2>Não foi possível carregar ${escapeHtml(moduleMeta.label || route.label)}</h2><p class="form-message">${escapeHtml(error.message || "Erro inesperado.")}</p><button class="admin-button" data-retry-module="${escapeHtml(view)}" type="button">Tentar novamente</button></section>`;
+    if (controller.signal.aborted) return;
+    console.error("Falha ao abrir " + view, error);
+    app.innerHTML = '<section class="admin-panel"><h2>Não foi possível carregar a seção</h2><p class="form-message"></p><button type="button" class="admin-button" data-retry-module>Tentar novamente</button></section>';
+    app.querySelector("p").textContent = error.message;
+  } finally {
+    loadingController = null;
+    setReadSignal(null);
   }
-  return true;
 }
 
-async function navigateToView(view, options = {}) {
-  if (view === "midia") {
-    clearMountedModule();
-    currentView = view;
-    activeModuleKey = view;
-    app.dataset.layout = "module";
-    setUnifiedModuleScope(view);
-    setActiveNav(view);
-    const moduleMeta = getAdminModule(view);
-    setShellTitle(moduleMeta.label, moduleMeta.description, { moduleKey: view, contextLabel: moduleMeta.group });
-    const targetPath = adminPathForView(view);
-    if (location.pathname !== targetPath) {
-      history[options.replace ?"replaceState" : "pushState"]({ adminView: view }, "", targetPath);
-    }
-    app.innerHTML = '<div class="loading">Carregando biblioteca de mídia...</div>';
-    window.dispatchEvent(new CustomEvent("admin:open-media-library"));
-    return true;
+// Legacy mounts use shared element IDs. Finish a mount before handing those IDs to another view.
+function navigateToView(view, options = {}) {
+  if (loadingController && canOpen(view, options.search)) {
+    if (!loadingController.signal.aborted && view === currentView && !options.refresh && !options.edit && !options.pop && (options.search || "") === location.search) return navigationQueue;
+    loadingController.abort();
   }
-  if (moduleRoutes[view]) return mountShellModule(view, options);
-  clearMountedModule();
-  currentView = view || "dashboard";
-  activeModuleKey = currentView;
-  app.dataset.layout = currentView === "dashboard" ? "dashboard" : "wide";
-  setUnifiedModuleScope(currentView);
-  setActiveNav(currentView);
-  const targetPath = adminPathForView(currentView);
-  if (location.pathname !== targetPath) {
-    history[options.replace ?"replaceState" : "pushState"]({ adminView: currentView }, "", targetPath);
-  }
-  sidebar.classList.remove("open");
-  document.body.classList.remove("sidebar-drawer-open");
-  return currentView === "dashboard" ?dashboard() : resourceList(currentView);
+  const request = ++latestRequest;
+  navigationQueue = navigationQueue.catch(console.error).then(() => {
+    if (request === latestRequest) return openView(view, options);
+  });
+  return navigationQueue;
 }
 
 async function handleClick(event) {
+  if(event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+  const link = event.target.closest("a[href]");
+  if (link && (!link.target || link.target === "_self") && !link.hasAttribute("download")) {
+    const url = new URL(link.href);
+    const view = adminViewFromLocation(url);
+    if (url.origin === location.origin && view) {
+      event.preventDefault();
+      return navigateToView(view, {search:url.search, hash:url.hash});
+    }
+  }
   const button=event.target.closest("button,[data-view]");if(!button)return;
-  if(button.dataset.openCommandPalette){event.preventDefault();return openCommandPalette();}
-  if(button.dataset.retryModule){event.preventDefault();return mountShellModule(button.dataset.retryModule,{replace:true});}
+  if(button.hasAttribute("data-open-command-palette")) return openCommandPalette();
+  if(button.id==="refresh-data" || button.hasAttribute("data-retry-module"))
+    return navigateToView(currentView,{refresh:true, search:location.search});
   if(button.dataset.view){
     event.preventDefault();
     if (button.dataset.qualityFilter) sessionStorage.setItem("euamourania:guide-quality-filter", button.dataset.qualityFilter);
-    if (button.dataset.view === "audiencia" && button.id !== "audience-nav") return document.getElementById("audience-nav")?.click();
-    if (button.dataset.view === "aprovacoes" && button.id !== "editorial-approvals-nav") return document.getElementById("editorial-approvals-nav")?.click();
-    if (button.dataset.view === "audiencia" || button.dataset.view === "aprovacoes") return;
     return navigateToView(button.dataset.view);
   }
-  if(button.dataset.new)return editForm(button.dataset.new);
-  if(button.dataset.edit)return editForm(button.dataset.edit,button.dataset.id);
-  if(button.dataset.cancel)return resourceList(button.dataset.cancel);
+  if(button.dataset.new==="noticias") return navigateToView("noticia_editor");
+  if(button.dataset.new && resources[button.dataset.new]) return navigateToView(button.dataset.new,{edit:true});
+  if(activeMountedModule !== resourceModule) return;
+  if(button.dataset.edit && resources[button.dataset.edit])return navigateToView(button.dataset.edit,{edit:true,id:button.dataset.id});
+  if(button.dataset.cancel) return navigateToView(button.dataset.cancel);
   if(button.dataset.delete){
     const table=databaseTable(button.dataset.delete);
     if(table==="guia_comercial"){
@@ -1825,9 +1683,8 @@ let commandResults = null;
 let commandSelectedIndex = 0;
 
 function adminCommandItems() {
-  const visibleTargets = new Set([...document.querySelectorAll(".admin-nav button:not([hidden])")].map(button => button.dataset.view || button.id).filter(Boolean));
   const navigation = adminNavigationItems
-    .filter(item => visibleTargets.has(item.view) || (item.id && visibleTargets.has(item.id)))
+    .filter(item => canOpen(item.view))
     .map(item => ({
       type: "Módulo",
       title: item.label,
@@ -1835,9 +1692,7 @@ function adminCommandItems() {
       group: item.group,
       icon: renderAdminModuleIcon(item.view),
       searchable: [item.label, item.group, item.description, ...(item.keywords || [])].filter(Boolean).join(" "),
-      run: () => ["audiencia", "aprovacoes", "midia"].includes(item.view)
-        ? document.querySelector(`.admin-nav button[data-view="${item.view}"]`)?.click()
-        : navigateToView(item.view)
+      run: () => navigateToView(item.view)
     }));
   return navigation;
 }
@@ -1944,8 +1799,7 @@ function setupCommandPalette() {
 
 function setupSidebarControls() {
   renderAdminNavigation();
-  const buttons = [...document.querySelectorAll(".admin-nav button")];
-  buttons.forEach(decorateSidebarButton);
+
 
   const savedState = localStorage.getItem("euamourania:admin-sidebar");
   const applyCollapsed = collapsed => {
@@ -1983,7 +1837,6 @@ function setupSidebarControls() {
 }
 
 async function init(){
-  renderAdminNavigation();
   const access=await exigirAdministrador();if(!access)return;
   painelAccess = access;
   if(!access.configurado){app.innerHTML='<p class="form-message">Configure assets/js/supabase-config.js para ativar o painel.</p>';return;}
@@ -1992,31 +1845,9 @@ async function init(){
   setupSidebarControls();
   setupCommandPalette();
   document.addEventListener("click",handleClick);
+  ({ bindMediaFields } = await import("./media-upload.js"));
   currentView=normalizeLegacyAdminRoute()||"dashboard";
-  await navigateToView(currentView,{replace:true});
+  await navigateToView(currentView,{replace:true,search:location.search,hash:location.hash});
+  window.addEventListener("popstate",()=>navigateToView(adminViewFromLocation()||"dashboard",{pop:true,search:location.search,hash:location.hash}));
 }
-init();
-window.addEventListener("popstate",()=>{
-  const view=adminViewFromLocation()||"dashboard";
-  if(view==="audiencia"||view==="aprovacoes"||view==="midia"){clearMountedModule();return;}
-  navigateToView(view,{replace:true});
-});
-window.addEventListener("admin:external-module",event=>{
-  clearMountedModule();
-  const view = event.detail?.view || event.detail?.moduleKey;
-  if (!view) return;
-  currentView = view;
-  activeModuleKey = view;
-  app.dataset.layout = event.detail?.layout || "module";
-  setUnifiedModuleScope(view);
-  setActiveNav(view);
-  const moduleMeta = getAdminModule(view);
-  setShellTitle(event.detail?.label || moduleMeta.label || "Painel", event.detail?.hint || moduleMeta.description, {
-    moduleKey: view,
-    contextLabel: event.detail?.contextLabel || moduleMeta.group,
-    actionHtml: event.detail?.actionHtml || ""
-  });
-});
-import("./editorial-audience.js").catch(error=>console.error("Módulos editorial/audiência:",error));
-import("./category-fields.js").catch(error=>console.error("Categorias dos conteúdos:",error));
-import("./media-upload.js").catch(error=>console.error("Upload de imagens:",error));
+init().catch(error => { app.textContent = "Não foi possível abrir o painel. " + error.message; });

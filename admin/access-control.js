@@ -1,97 +1,8 @@
-﻿import { adminModuleFromLocation, adminPathForModule } from "./admin-routes.js";
+import { adminModuleFromLocation } from "./admin-routes.js";
+import { getAdminModule } from "./admin-modules.js";
 
-const viewModules={dashboard:"dashboard",noticias:"noticias",colaboradores_voluntarios:"colaboradores",guia_comercial:"guia_comercial",guia_verificacao:"guia_comercial",turismo:"turismo",turismo_verificacao:"turismo",telefones_uteis:"configuracoes",motoristas:"configuracoes",vantagens:"guia_comercial",iniciativas:"configuracoes",links:"links",eventos:"eventos",eventos_principais:"eventos",eventos_edicoes:"eventos",categorias:"categorias",insights:"insights",audiencia:"insights",configuracoes_site:"configuracoes",midia:"configuracoes",comunicacao:"comunicacao",notificacoes:"notificacoes",submissoes:"submissoes",publicidade:"publicidade",usuarios:"usuarios",importacao:"importacao",melhores:"melhores"};
-viewModules.achados_perdidos="achados_perdidos";
-viewModules.catalogos="guia_comercial";
-const navItems=[
-  ["dashboard","Visão geral","dashboard"],
-  ["noticias","Notícias","noticias"],
-  ["aprovacoes","Aprovações","noticias"],
-  ["colaboradores_voluntarios","Colaborações","colaboradores"],
-  ["guia_comercial","Guia comercial","guia_comercial"],
-  ["catalogos","Catálogos","guia_comercial"],
-  ["guia_verificacao","Verificação do Guia","guia_comercial"],
-  ["turismo","Turismo","turismo"],
-  ["turismo_verificacao","Verificação de Turismo","turismo"],
-  ["achados_perdidos","Achados e Perdidos","achados_perdidos"],
-  ["telefones_uteis","Telefones úteis","configuracoes"],
-  ["motoristas","Motoristas","configuracoes"],
-  ["vantagens","Viva Vantagens","guia_comercial"],
-  ["iniciativas","Iniciativas da Comunidade","configuracoes"],
-  ["links","Links","links"],
-  ["submissoes","Submissões públicas","submissoes"],
-  ["eventos","Agenda simples","eventos"],
-  ["eventos_principais","Eventos principais","eventos"],
-  ["eventos_edicoes","Edições","eventos"],
-  ["publicidade","Publicidade","publicidade"],
-  ["comunicacao","Comunicação","comunicacao"],
-  ["notificacoes","Notificações do app","notificacoes"],
-  ["melhores","Melhores de Urânia","melhores"],
-  ["categorias","Categorias","categorias"],
-  ["audiencia","Audiência","insights"],
-  ["midia","Mídia","configuracoes"],
-  ["configuracoes_site","Configurações","configuracoes"],
-  ["usuarios","Usuários administrativos","usuarios"],
-  ["importacao","Migrar conteúdo antigo","importacao"]
-];
-const eventosEdicoesNav = navItems.find(item => item[0] === "eventos_edicoes");
-if (eventosEdicoesNav) eventosEdicoesNav[1] = "Edições";
-function currentAdminKey(){
-  const routed=adminModuleFromLocation();
-  if(routed)return routed;
-  const page=location.pathname.split("/").pop()||"index.html";
-  if(page==="publicidade.html")return"publicidade";
-  if(page==="comunicacao.html")return"comunicacao";
-  if(page==="notificacoes-app.html")return"notificacoes";
-  if(page==="melhores.html")return"melhores";
-  if(page==="submissoes.html")return"submissoes";
-  if(page==="usuarios.html")return"usuarios";
-  if(page==="migrar.html")return"importacao";
-  const hash=location.hash.slice(1);
-  if(hash==="aprovacoes")return"aprovacoes";
-  if(hash==="audiencia")return"audiencia";
-  return hash||"dashboard";
-}
-function buttonForNav([key,label,module],isIndex,current){
-  const attrs=[`type="button"`,`data-module="${module}"`];
-  if(current===key)attrs.push('class="active"');
-  if(isIndex && key==="catalogos"){
-    attrs.push('data-view="catalogos"');
-  }else if(isIndex){
-    if(["dashboard","noticias","colaboradores_voluntarios","guia_comercial","guia_verificacao","turismo","turismo_verificacao","achados_perdidos","telefones_uteis","motoristas","vantagens","iniciativas","links","eventos","eventos_principais","eventos_edicoes","categorias","configuracoes_site","midia","comunicacao","notificacoes","submissoes","publicidade","usuarios","importacao","melhores"].includes(key))attrs.push(`data-view="${key}"`);
-    else if(key==="aprovacoes")attrs.push('id="editorial-approvals-nav"');
-    else if(key==="audiencia")attrs.push('id="audience-nav"');
-    else attrs.push(`onclick="location.href='${adminPathForModule(key)}'"`);
-  }else{
-    const href=adminPathForModule(key);
-    attrs.push(`onclick="location.href='${href}'"`);
-  }
-  return `<button ${attrs.join(" ")}>${label}</button>`;
-}
-function normalizeAdminNavigation(){
-  const nav=document.querySelector(".admin-nav");
-  if(!nav||nav.dataset.fixed==="1")return;
-  const page=location.pathname.split("/").pop()||"index.html";
-  const current=currentAdminKey();
-  const shellViews=["dashboard","noticias","aprovacoes","colaboradores_voluntarios","guia_comercial","guia_verificacao","turismo","turismo_verificacao","achados_perdidos","telefones_uteis","motoristas","vantagens","iniciativas","links","eventos","eventos_principais","eventos_edicoes","categorias","audiencia","insights","configuracoes_site","midia","banners","comunicacao","notificacoes","submissoes","publicidade","usuarios","importacao","melhores"];
-  const isIndex=current==="catalogos"||page==="index.html"||page===""||location.pathname.endsWith("/admin/")||shellViews.includes(current);
-  nav.innerHTML=navItems.map(item=>buttonForNav(item,isIndex,current)).join("");
-  nav.dataset.fixed="1";
-}
-function navModule(button){
-  if(button.dataset.module)return button.dataset.module;
-  if(button.dataset.view)return viewModules[button.dataset.view];
-  const target=button.getAttribute("onclick")||"";
-  if(target.includes("publicidade.html"))return"publicidade";
-  if(target.includes("comunicacao.html"))return"comunicacao";
-  if(target.includes("melhores.html"))return"melhores";
-  if(target.includes("submissoes.html"))return"submissoes";
-  if(target.includes("usuarios.html"))return"usuarios";
-  if(target.includes("migrar.html"))return"importacao";
-  const hash=target.match(/#([a-z_]+)/)?.[1];return hash?viewModules[hash]:target.includes("index.html")?"dashboard":null;
-}
 function mainAction(button){
-  const view=adminModuleFromLocation()||location.hash.slice(1)||"dashboard",module=viewModules[view]||view;
+  const view=adminModuleFromLocation()||location.hash.slice(1)||"dashboard",module=getAdminModule(view).permission||view;
   if(button.hasAttribute("data-news-new"))return["noticias","criar"];
   if(button.dataset.newsEdit)return["noticias","editar"];
   if(button.dataset.sendApproval)return["noticias","editar"];
@@ -100,22 +11,23 @@ function mainAction(button){
   if(button.dataset.catEdit)return["categorias","editar"];
   if(button.hasAttribute("data-cat-new"))return["categorias","criar"];
   if(button.dataset.catDelete)return["categorias","excluir"];
-  if(button.dataset.new)return[viewModules[button.dataset.new]||button.dataset.new,"criar"];
+  if(button.dataset.new)return[getAdminModule(button.dataset.new).permission||button.dataset.new,"criar"];
   if(button.dataset.edit)return[module,"editar"];
   if(button.dataset.delete||button.dataset.genericDelete)return[module,"excluir"];
   return null;
 }
 function pageAction(button){
-  const path=location.pathname;
-  if(path.endsWith("publicidade.html")){
+  const view=adminModuleFromLocation();
+  if(view==="natal_premiado" && button.dataset.new)return["configuracoes","criar"];
+  if(view==="publicidade"){
     if(button.id==="new-campaign")return["publicidade","criar"];
     if(button.dataset.edit)return["publicidade","editar"];
     if(button.dataset.delete)return["publicidade","excluir"];
     return null;
   }
-  if(path.endsWith("comunicacao.html")){
+  if(["comunicacao","assinantes","newsletters"].includes(view)){
     if(["add-subscriber"].includes(button.id)||button.dataset.subEdit||button.dataset.subDelete)return["assinantes","gerenciar"];
-    if(["new-newsletter","add-news","generate-monthly"].includes(button.id)||button.dataset.newsCopy||button.dataset.generateMonthly!==undefined)return["comunicacao","criar"];
+    if(["new-newsletter","add-news","generate-monthly"].includes(button.id)||button.dataset.newsCopy||button.hasAttribute("data-generate-monthly"))return["comunicacao","criar"];
     if(button.dataset.newsEdit)return["comunicacao","editar"];
     if(button.dataset.newsTest||button.dataset.newsSend)return["comunicacao","enviar"];
     if(button.dataset.newsDelete)return["comunicacao","excluir"];
@@ -123,33 +35,32 @@ function pageAction(button){
   }
   return mainAction(button);
 }
-export function aplicarControleAcesso(access,can){
-  if(!access?.admin)return;
-  normalizeAdminNavigation();
-  const role=access.admin.funcao;
-  document.documentElement.dataset.adminRole=role;
-  const allowed=(module,action="acessar")=>module==="assinantes"&&action==="gerenciar"?["super_admin","administrador"].includes(role):can(access.admin,module,action);
-  const requested=viewModules[adminModuleFromLocation()]||viewModules[location.hash.slice(1)];
-  if(requested&&!allowed(requested)){history.replaceState(null,"",adminPathForModule("dashboard"))}
-  const apply=()=>{
-    document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button=>{const module=navModule(button);if(module)button.hidden=button.dataset.view==="midia"?role!=="super_admin":!allowed(module)});
-    const path=location.pathname;
-    if(path.endsWith("/admin/index.html")||path.endsWith("/admin/")||path.endsWith("/admin"))document.querySelectorAll("button").forEach(button=>{const action=mainAction(button);if(action&&!allowed(...action))button.hidden=true});
-    if(path.endsWith("publicidade.html")){
-      document.querySelectorAll("#new-campaign").forEach(x=>x.hidden=!allowed("publicidade","criar"));
-      document.querySelectorAll("[data-edit]").forEach(x=>x.hidden=!allowed("publicidade","editar"));
-      document.querySelectorAll("[data-delete]").forEach(x=>x.hidden=!allowed("publicidade","excluir"));
+
+export function aplicarControleAcesso(access, can) {
+  const role = access.admin.funcao;
+  document.documentElement.dataset.adminRole = role;
+  const allowed = (module, action) => module === "assinantes" && action === "gerenciar"
+    ? ["super_admin", "administrador"].includes(role)
+    : can(access.admin, module, action);
+  function protect(button) {
+    const action = pageAction(button);
+    if (!action || allowed(...action)) return true;
+    button.hidden = true;
+    return false;
+  }
+  const observer = new MutationObserver(records => {
+    for (const record of records) for (const node of record.addedNodes) {
+      if (node.nodeType !== 1) continue;
+      if (node.matches("button")) protect(node);
+      node.querySelectorAll("button").forEach(protect);
     }
-    if(path.endsWith("comunicacao.html")){
-      document.querySelectorAll("#add-subscriber,[data-sub-edit],[data-sub-delete]").forEach(x=>x.hidden=!allowed("assinantes","gerenciar"));
-      document.querySelectorAll("#new-newsletter,#add-news,#generate-monthly,[data-generate-monthly]").forEach(x=>x.hidden=!allowed("comunicacao","criar"));
-      document.querySelectorAll("[data-news-edit]").forEach(x=>x.hidden=!allowed("comunicacao","editar"));
-      document.querySelectorAll("[data-news-test],[data-news-send]").forEach(x=>x.hidden=!allowed("comunicacao","enviar"));
-      document.querySelectorAll("[data-news-delete]").forEach(x=>x.hidden=!allowed("comunicacao","excluir"));
-      document.querySelectorAll("[data-news-copy]").forEach(x=>x.hidden=!allowed("comunicacao","criar"));
+  });
+  observer.observe(document.querySelector(".admin-main"), {childList: true, subtree: true});
+  document.querySelector(".admin-main").addEventListener("click", event => {
+    const button = event.target.closest("button");
+    if (button && !protect(button)) {
+      event.preventDefault();
+      event.stopPropagation();
     }
-  };
-  apply();
-  new MutationObserver(apply).observe(document.body,{childList:true,subtree:true});
-  document.addEventListener("click",event=>{const button=event.target.closest("button,.admin-nav a");if(!button)return;const module=button.closest(".admin-nav")?navModule(button):null,action=button.matches("button")?pageAction(button):null;if((module&&!allowed(module))||(action&&!allowed(...action))){event.preventDefault();event.stopImmediatePropagation()}},true);
+  }, true);
 }

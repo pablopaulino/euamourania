@@ -1,74 +1,63 @@
-import { ADMIN_MODULES } from "./admin-modules.js?v=20260911-home-suggestions";
+import { ADMIN_MODULES } from "./admin-modules.js";
 
-const trimSlash = value => String(value || "").replace(/\/+$/, "") || "/admin";
+export const ADMIN_INDEX_ROUTES = Object.fromEntries(Object.entries(ADMIN_MODULES).map(([view, meta]) => [view, meta.route]));
+const paths = new Map(Object.entries(ADMIN_INDEX_ROUTES).map(([view, path]) => [path,view]));
+paths.set("/admin/eventos","eventos_principais");
+paths.set("/admin/guia-comercial","guia_comercial");
+paths.set("/admin/notificacoes","notificacoes");
 
-export const ADMIN_INDEX_ROUTES = Object.fromEntries(Object.entries(ADMIN_MODULES).map(([key, module]) => [key, module.route]));
-
-ADMIN_INDEX_ROUTES.insights = ADMIN_INDEX_ROUTES.audiencia;
-ADMIN_INDEX_ROUTES.midia = "/admin/midia";
-ADMIN_INDEX_ROUTES.banners = "/admin/banners";
-
-export const ADMIN_PAGE_ROUTES = {};
-
-const PATH_TO_VIEW = Object.entries(ADMIN_INDEX_ROUTES).reduce((acc, [view, path]) => {
-  acc[trimSlash(path)] = view === "insights" ? "audiencia" : view;
-  return acc;
-}, {
-  "/admin/index.html": "dashboard",
-  "/admin/guia-comercial": "guia_comercial",
-  "/admin/eventos": "eventos_principais",
-  "/admin/notificacoes": "notificacoes"
-});
-
-const PATH_TO_PAGE = Object.entries(ADMIN_PAGE_ROUTES).reduce((acc, [key, path]) => {
-  acc[trimSlash(path)] = key;
-  return acc;
-}, {
-  "/admin/publicidade.html": "publicidade",
-  "/admin/viva-assinaturas.html": "viva_assinaturas",
-  "/admin/comunicacao.html": "comunicacao",
-  "/admin/notificacoes-app.html": "notificacoes",
-  "/admin/melhores.html": "melhores",
-  "/admin/submissoes.html": "submissoes",
-  "/admin/usuarios.html": "usuarios",
-  "/admin/migrar.html": "importacao"
-});
-
-const HASH_TO_VIEW = Object.fromEntries(Object.keys(ADMIN_INDEX_ROUTES).map(key => [key, key]));
-HASH_TO_VIEW.insights = "audiencia";
+const legacy = {
+  "index": "dashboard",
+  "banners": "banners",
+  "categorias": "categorias",
+  "configuracoes": "configuracoes_site",
+  "eventos": "eventos",
+  "guia-form": "guia_comercial",
+  "guia": "guia_comercial",
+  "links": "links",
+  "noticia-form": "noticia_editor",
+  "noticias": "noticias",
+  "turismo-form": "turismo",
+  "turismo": "turismo",
+  "automacao-editorial": "automacao_editorial",
+  "parceiros-log": "parceiros_log",
+  "publicidade": "publicidade",
+  "viva-assinaturas": "viva_assinaturas",
+  "comunicacao": "comunicacao",
+  "notificacoes-app": "notificacoes",
+  "melhores": "melhores",
+  "submissoes": "submissoes",
+  "usuarios": "usuarios",
+  "migrar": "importacao"
+};
+for (const [name,view] of Object.entries(legacy)) paths.set("/admin/" + name + ".html",view);
 
 export function adminHashToView(hash = "") {
-  const key = String(hash || "").replace(/^#/, "");
-  return HASH_TO_VIEW[key] || key || "dashboard";
+  const name = hash.replace(/^#/, "").split("?")[0];
+  if (name === "insights") return "audiencia";
+  return Object.hasOwn(ADMIN_MODULES, name) ? name : "dashboard";
 }
 
 export function adminPathForView(view = "dashboard") {
-  const key = view === "insights" ? "audiencia" : view;
-  return ADMIN_INDEX_ROUTES[key] || ADMIN_INDEX_ROUTES.dashboard;
+  return ADMIN_INDEX_ROUTES[view === "insights" ? "audiencia" : view] || "/admin";
 }
-
-export function adminPathForModule(key = "dashboard") {
-  return ADMIN_INDEX_ROUTES[key] || ADMIN_PAGE_ROUTES[key] || ADMIN_INDEX_ROUTES.dashboard;
-}
+export const adminPathForModule = adminPathForView;
 
 export function adminViewFromLocation(loc = location) {
-  const path = trimSlash(loc.pathname);
-  if (loc.hash) return adminHashToView(loc.hash);
-  return PATH_TO_VIEW[path] || null;
+  const path = loc.pathname.replace(/\/+$/, "") || "/";
+  if (loc.hash && ["/admin", "/admin/index.html"].includes(path)) return adminHashToView(loc.hash);
+  return paths.get(path) || null;
 }
 
 export function adminModuleFromLocation(loc = location) {
-  const path = trimSlash(loc.pathname);
-  return PATH_TO_PAGE[path] || adminViewFromLocation(loc) || "dashboard";
+  return adminViewFromLocation(loc) || "dashboard";
 }
 
 export function normalizeLegacyAdminRoute(loc = location) {
-  const view = adminViewFromLocation(loc) || "dashboard";
-  const path = trimSlash(loc.pathname);
-  const target = adminPathForModule(view);
-  const isLegacyIndex = path === "/admin/index.html";
-  if (loc.hash || isLegacyIndex) {
-    history.replaceState({ adminView: view }, "", target);
+  const view = adminModuleFromLocation(loc);
+  if (["/admin", "/admin/", "/admin/index.html"].includes(loc.pathname) && (loc.hash || loc.pathname.endsWith("index.html"))) {
+    const query = loc.search || (loc.hash.includes("?") ? loc.hash.slice(loc.hash.indexOf("?")) : "");
+    history.replaceState({adminView:view}, "", adminPathForView(view) + query);
   }
   return view;
 }

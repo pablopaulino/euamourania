@@ -475,7 +475,7 @@ async function send(id, button) {
   button.textContent = "Enviando…";
   try {
     const { data: { session } } = await db.auth.getSession();
-    const response = await fetch("/api/push-send", {
+    const response = await (context.apiFetch || fetch)("/api/push-send", {
       method: "POST",
       headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ id })
@@ -558,23 +558,3 @@ export function unmount() {
   app = null;
   context = {};
 }
-
-async function bootLegacyPage() {
-  if (document.body?.dataset.adminShell === "true") return;
-  const legacyContainer = document.querySelector(".ads-content");
-  if (!legacyContainer) return;
-  access = await exigirPermissao("notificacoes", "acessar");
-  if (!access) return;
-  document.getElementById("admin-user").textContent = access.admin?.nome || access.user.email;
-  document.getElementById("logout").addEventListener("click", sair);
-  document.getElementById("mobile-menu").addEventListener("click", () => document.getElementById("sidebar").classList.toggle("open"));
-  db = getSupabase();
-  app = document.getElementById("push-app");
-  document.getElementById("new-notification").addEventListener("click", openForm);
-  await load();
-}
-
-bootLegacyPage();
-
-
-

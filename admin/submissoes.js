@@ -461,26 +461,3 @@ export function unmount() {
   app = null;
   context = {};
 }
-
-async function bootLegacyPage() {
-  if (document.body?.dataset.adminShell === "true") return;
-  const legacyApp = document.getElementById("submissions-app");
-  if (!legacyApp) return;
-  const access = await exigirPermissao("submissoes", "acessar");
-  if (!access) return;
-  const adminUser = document.getElementById("admin-user");
-  const logoutButton = document.getElementById("logout");
-  const mobileMenu = document.getElementById("mobile-menu");
-  const sidebar = document.getElementById("sidebar");
-  adminUser.textContent = `${access.admin.nome || access.user.email} • ${access.admin.funcao}`;
-  logoutButton?.addEventListener("click", sair);
-  mobileMenu?.addEventListener("click", () => sidebar?.classList.toggle("open"));
-  db = getSupabase();
-  state.access = access;
-  app = legacyApp;
-  app.addEventListener("click", handleAppClick);
-  app.addEventListener("change", handleAppChange);
-  await loadItems();
-}
-
-bootLegacyPage();

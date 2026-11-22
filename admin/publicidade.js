@@ -1,3 +1,4 @@
+import { cachedSummary } from "./data-cache.js";
 import { exigirAdministrador, sair, temPermissao } from "./auth.js";
 import { listarCampanhas, buscarCampanha, salvarCampanha, excluirCampanha, uploadMidia, obterResumoPublicidade, obterMetricasDiarias } from "../assets/js/services/publicidadeService.js";
 import { PLANOS_COMERCIAIS, aprovarSolicitacaoComercial, atualizarStatusAssinatura, garantirEntregasDoMes, listarAssinaturasComerciais, listarSolicitacoesComerciais, marcarPagamentoAssinatura, normalizarPlanoComercial, planoComercial, registrarUsoEntrega, salvarAssinaturaComercial, obterResumoAssinaturasComerciais } from "../assets/js/services/commercialSubscriptionsService.js";
@@ -9,6 +10,7 @@ let moduleContext = {};
 let cleanupHandlers = [];
 let mounted = false;
 let runId = 0;
+let lastList = { tab:"dashboard", page:1, search:"", status:"", type:"" };
 const $ = s => root.querySelector(s);
 const $$ = s => Array.from(root.querySelectorAll(s));
 const state = { page: 1, perPage: 10, total: 0, timer: null, toastTimers: [], summaries: new Map(), currentConfig: {}, subscriptions: [], requests: [] };
@@ -172,14 +174,15 @@ function renderShell(container) {
     <div class="ads-heading">
       <div><h2>Central de campanhas</h2><p>Gerencie anúncios, períodos, posições e resultados em um só lugar.</p></div>
     </div>
-    <div class="ads-tabs" role="tablist">
-      <button class="ads-tab active" data-tab="dashboard">Visão geral</button>
+    <div class="admin-tabs ads-tabs" role="tablist">
+      <button class="ads-tab active" data-tab="dashboard">Painel de métricas</button>
       <button class="ads-tab" data-tab="campaigns">Campanhas</button>
+      <button class="ads-tab" data-tab="positions">Posições</button>
       <button class="ads-tab" data-tab="form" hidden>Editar campanha</button>
     </div>
-    <section id="dashboard-view"><div class="ads-grid" id="metrics"><div class="metric-card"><span>Carregando</span><div class="skeleton"></div></div></div><div class="ads-dashboard-layout"><article class="ads-card"><h3>Desempenho nos últimos 30 dias</h3><div id="performance-chart" class="chart" aria-label="Gráfico de impressões e cliques"></div></article><article class="ads-card"><h3>Resumo das campanhas</h3><div id="campaign-summary"></div></article></div></section>
-    <section id="campaigns-view" class="hidden"><article class="ads-card"><div class="ads-toolbar"><input id="campaign-search" type="search" placeholder="Pesquisar campanha ou empresa" aria-label="Pesquisar"><select id="status-filter" aria-label="Filtrar por status"><option value="">Todos os status</option><option value="rascunho">Rascunho</option><option value="ativo">Ativo</option><option value="pausado">Pausado</option><option value="encerrado">Encerrado</option></select><select id="type-filter" aria-label="Filtrar por tipo"><option value="">Todos os tipos</option><option value="banner">Banner</option><option value="popup">Pop-up</option><option value="video">Vídeo</option></select><button class="admin-button secondary" id="clear-filters">Limpar</button></div><div class="ads-table-wrap"><table class="ads-table"><thead><tr><th data-sort="nome">Campanha</th><th>Tipo</th><th>Status</th><th>Período</th><th>Impressões</th><th>Cliques</th><th>CTR</th><th>Ações</th></tr></thead><tbody id="campaign-table"><tr><td colspan="8"><div class="skeleton"></div><div class="skeleton"></div></td></tr></tbody></table></div><div class="ads-pagination"><span id="pagination-info"></span><div class="ads-pagination-buttons"><button id="prev-page">Anterior</button><button id="next-page">Próxima</button></div></div></article></section>
-    <section id="form-view" class="ads-form"><form id="campaign-form"><input type="hidden" name="id"><article class="ads-card"><h3>Informações da campanha</h3><div class="ads-form-grid"><div class="ads-field"><label for="nome">Nome da campanha *</label><input id="nome" name="nome" required maxlength="120"></div><div class="ads-field"><label for="empresa_anunciante">Empresa anunciante *</label><input id="empresa_anunciante" name="empresa_anunciante" required maxlength="120"></div><div class="ads-field"><label for="tipo">Tipo do anúncio *</label><select id="tipo" name="tipo" required><option value="banner">Banner</option><option value="popup">Pop-up</option><option value="video">Vídeo</option></select></div><div class="ads-field"><label for="status">Status</label><select id="status" name="status"><option value="rascunho">Rascunho</option><option value="ativo">Ativo</option><option value="pausado">Pausado</option><option value="encerrado">Encerrado</option></select></div><div class="ads-field"><label for="logo_empresa_url">Logo da empresa</label><div class="upload-row"><input id="logo_empresa_url" name="logo_empresa_url" type="text" inputmode="url" placeholder="URL da logo ou assets/logo.jpg"><input id="logo-upload" type="file" accept="image/*" title="Enviar logo"></div><small class="upload-state" id="logo-state"></small></div><div class="ads-field"><label for="imagem_url">Imagem do anúncio</label><div class="upload-row"><input id="imagem_url" name="imagem_url" type="text" inputmode="url" placeholder="URL da imagem ou assets/imagem.jpg"><input id="image-upload" type="file" accept="image/*" title="Enviar imagem"></div><small class="upload-state" id="image-state"></small></div><div class="ads-field"><label for="video_url">Vídeo</label><div class="upload-row"><input id="video_url" name="video_url" type="text" inputmode="url" placeholder="YouTube ou URL do vídeo"><input id="video-upload" type="file" accept="video/mp4,video/webm" title="Enviar vídeo"></div><small class="upload-state" id="video-state"></small></div><div class="ads-field"><label for="link_destino">Link de destino</label><input id="link_destino" name="link_destino" type="text" inputmode="url" placeholder="https://..."></div><div class="ads-field"><label for="texto_botao">Texto do botão</label><input id="texto_botao" name="texto_botao" maxlength="40" placeholder="Saiba mais"></div><div class="ads-field"><label for="prioridade">Prioridade</label><input id="prioridade" name="prioridade" type="number" value="0" min="0" max="9999"><small>Campanhas com número maior aparecem primeiro.</small></div><label class="ads-checkbox"><input name="abrir_nova_aba" type="checkbox" checked> Abrir link em nova aba</label></div></article><article class="ads-card"><h3>Período e exibição</h3><div class="ads-form-grid"><div class="ads-field"><label for="data_inicio">Data de início</label><input id="data_inicio" name="data_inicio" type="datetime-local"></div><div class="ads-field"><label for="data_fim">Data de término</label><input id="data_fim" name="data_fim" type="datetime-local"></div><fieldset class="ads-group full"><legend>Locais de exibição</legend><div class="ads-positions" id="positions"></div></fieldset></div></article><article class="ads-card popup-options" id="popup-options"><h3>Comportamento do pop-up</h3><div class="ads-form-grid"><label class="ads-checkbox"><input name="popup_uma_vez" type="checkbox" checked> Mostrar somente uma vez por visitante</label><label class="ads-checkbox"><input name="popup_botao_fechar" type="checkbox" checked> Exibir botão para fechar</label><div class="ads-field"><label for="popup_reexibir">Mostrar novamente</label><select id="popup_reexibir" name="popup_reexibir"><option value="24h">Após 24 horas</option><option value="7d">Após 7 dias</option><option value="sempre">Sempre</option></select></div><div class="ads-field"><label for="popup_atraso_seg">Tempo para aparecer (segundos)</label><input id="popup_atraso_seg" name="popup_atraso_seg" type="number" value="3" min="0" max="300"></div></div></article><div class="form-actions"><button type="button" class="admin-button secondary" id="cancel-form">Cancelar</button><button type="submit" class="admin-button" id="save-campaign">Salvar campanha</button></div></form></section>
+    <section id="dashboard-view"><div class="admin-metrics ads-grid" id="metrics"><div class="metric-card"><span>Carregando</span><div class="skeleton"></div></div></div><div class="ads-dashboard-layout"><article class="admin-card"><h3>Desempenho nos últimos 30 dias</h3><div id="performance-chart" class="chart" aria-label="Gráfico de impressões e cliques"></div></article><article class="admin-card"><h3>Resumo das campanhas</h3><div id="campaign-summary"></div></article></div></section>
+    <section id="campaigns-view" class="hidden"><article class="admin-card"><div class="ads-toolbar"><input id="campaign-search" type="search" placeholder="Pesquisar campanha ou empresa" aria-label="Pesquisar"><select id="status-filter" aria-label="Filtrar por status"><option value="">Todos os status</option><option value="rascunho">Rascunho</option><option value="ativo">Ativo</option><option value="pausado">Pausado</option><option value="encerrado">Encerrado</option></select><select id="type-filter" aria-label="Filtrar por tipo"><option value="">Todos os tipos</option><option value="banner">Banner</option><option value="popup">Pop-up</option><option value="video">Vídeo</option></select><button class="admin-button secondary" id="clear-filters">Limpar</button></div><div class="ads-table-wrap"><table class="admin-table ads-table"><thead><tr><th data-sort="nome">Campanha</th><th>Tipo</th><th>Status</th><th>Período</th><th>Impressões</th><th>Cliques</th><th>CTR</th><th>Ações</th></tr></thead><tbody id="campaign-table"><tr><td colspan="8"><div class="skeleton"></div><div class="skeleton"></div></td></tr></tbody></table></div><div class="ads-pagination"><span id="pagination-info"></span><div class="ads-pagination-buttons"><button id="prev-page">Anterior</button><button id="next-page">Próxima</button></div></div></article></section>
+    <section id="form-view" class="ads-form"><form id="campaign-form"><input type="hidden" name="id"><article class="admin-card"><h3>Informações da campanha</h3><div class="ads-form-grid"><div class="ads-field"><label for="nome">Nome da campanha *</label><input id="nome" name="nome" required maxlength="120"></div><div class="ads-field"><label for="empresa_anunciante">Empresa anunciante *</label><input id="empresa_anunciante" name="empresa_anunciante" required maxlength="120"></div><div class="ads-field"><label for="tipo">Tipo do anúncio *</label><select id="tipo" name="tipo" required><option value="banner">Banner</option><option value="popup">Pop-up</option><option value="video">Vídeo</option></select></div><div class="ads-field"><label for="status">Status</label><select id="status" name="status"><option value="rascunho">Rascunho</option><option value="ativo">Ativo</option><option value="pausado">Pausado</option><option value="encerrado">Encerrado</option></select></div><div class="ads-field"><label for="logo_empresa_url">Logo da empresa</label><div class="upload-row"><input id="logo_empresa_url" name="logo_empresa_url" type="text" inputmode="url" placeholder="URL da logo ou assets/logo.jpg"><input id="logo-upload" type="file" accept="image/*" title="Enviar logo"></div><small class="upload-state" id="logo-state"></small></div><div class="ads-field"><label for="imagem_url">Imagem do anúncio</label><div class="upload-row"><input id="imagem_url" name="imagem_url" type="text" inputmode="url" placeholder="URL da imagem ou assets/imagem.jpg"><input id="image-upload" type="file" accept="image/*" title="Enviar imagem"></div><small class="upload-state" id="image-state"></small></div><div class="ads-field"><label for="video_url">Vídeo</label><div class="upload-row"><input id="video_url" name="video_url" type="text" inputmode="url" placeholder="YouTube ou URL do vídeo"><input id="video-upload" type="file" accept="video/mp4,video/webm" title="Enviar vídeo"></div><small class="upload-state" id="video-state"></small></div><div class="ads-field"><label for="link_destino">Link de destino</label><input id="link_destino" name="link_destino" type="text" inputmode="url" placeholder="https://..."></div><div class="ads-field"><label for="texto_botao">Texto do botão</label><input id="texto_botao" name="texto_botao" maxlength="40" placeholder="Saiba mais"></div><div class="ads-field"><label for="prioridade">Prioridade</label><input id="prioridade" name="prioridade" type="number" value="0" min="0" max="9999"><small>Campanhas com número maior aparecem primeiro.</small></div><label class="ads-checkbox"><input name="abrir_nova_aba" type="checkbox" checked> Abrir link em nova aba</label></div></article><article class="admin-card"><h3>Período e exibição</h3><div class="ads-form-grid"><div class="ads-field"><label for="data_inicio">Data de início</label><input id="data_inicio" name="data_inicio" type="datetime-local"></div><div class="ads-field"><label for="data_fim">Data de término</label><input id="data_fim" name="data_fim" type="datetime-local"></div><fieldset class="ads-group full"><legend>Locais de exibição</legend><div class="ads-positions" id="positions"></div></fieldset></div></article><article class="admin-card popup-options" id="popup-options"><h3>Comportamento do pop-up</h3><div class="ads-form-grid"><label class="ads-checkbox"><input name="popup_uma_vez" type="checkbox" checked> Mostrar somente uma vez por visitante</label><label class="ads-checkbox"><input name="popup_botao_fechar" type="checkbox" checked> Exibir botão para fechar</label><div class="ads-field"><label for="popup_reexibir">Mostrar novamente</label><select id="popup_reexibir" name="popup_reexibir"><option value="24h">Após 24 horas</option><option value="7d">Após 7 dias</option><option value="sempre">Sempre</option></select></div><div class="ads-field"><label for="popup_atraso_seg">Tempo para aparecer (segundos)</label><input id="popup_atraso_seg" name="popup_atraso_seg" type="number" value="3" min="0" max="300"></div></div></article><div class="form-actions"><button type="button" class="admin-button secondary" id="cancel-form">Cancelar</button><button type="submit" class="admin-button" id="save-campaign">Salvar campanha</button></div></form></section>
   </div>`;
 }
 
@@ -196,7 +199,7 @@ function enhanceCommercialArea() {
   if (campaigns && !$("#subscriptions-view")) {
     campaigns.insertAdjacentHTML("afterend", `
       <section id="subscriptions-view" class="hidden">
-        <article class="ads-card">
+        <article class="admin-card">
           <div class="commercial-section-head">
             <div><h3>Assinantes ativos</h3><p>Planos mensais, próximas cobranças e entregas do mês.</p></div>
             <button class="admin-button" id="add-subscriber-inline">Adicionar assinante</button>
@@ -205,7 +208,7 @@ function enhanceCommercialArea() {
         </article>
       </section>
       <section id="requests-view" class="hidden">
-        <article class="ads-card">
+        <article class="admin-card">
           <div class="commercial-section-head">
             <div><h3>Solicitações de /divulgue</h3><p>Aprove uma solicitação para transformá-la em assinatura permanente.</p></div>
           </div>
@@ -215,7 +218,7 @@ function enhanceCommercialArea() {
       <section id="subscription-form-view" class="ads-form">
         <form id="subscription-form">
           <input type="hidden" name="id">
-          <article class="ads-card">
+          <article class="admin-card">
             <h3>Assinatura comercial</h3>
             <div class="ads-form-grid">
               <div class="ads-field"><label for="sub_empresa_nome">Empresa *</label><input id="sub_empresa_nome" name="empresa_nome" required maxlength="140"></div>
@@ -256,7 +259,7 @@ function enhanceCreativeForm() {
   if(!imageField||$("#formato"))return;
   imageField.insertAdjacentHTML("afterend",`<div class="ads-field"><label for="formato">Formato do anúncio</label><select id="formato" name="formato">${Object.entries(formats).map(([value,[label]])=>`<option value="${value}">${label}</option>`).join("")}</select><small id="format-help">Adapta-se à posição escolhida.</small></div><div class="ads-field format-size-guide" id="format-size-guide" aria-live="polite"></div><div class="ads-field"><label for="imagem_mobile_url">Imagem para celular</label><div class="upload-row"><input id="imagem_mobile_url" name="imagem_mobile_url" type="text" inputmode="url" placeholder="Opcional · URL da versão mobile"><input id="mobile-image-upload" type="file" accept="image/*" title="Enviar imagem mobile"></div><small class="upload-state" id="mobile-image-state">Se não houver versão mobile, a imagem principal será adaptada.</small></div><div class="ads-field"><label for="titulo_publico">Título público</label><input id="titulo_publico" name="titulo_publico" maxlength="100" placeholder="Usado principalmente no formato nativo"></div><div class="ads-field"><label for="texto_publico">Texto público</label><textarea id="texto_publico" name="texto_publico" rows="3" maxlength="240" placeholder="Descrição curta e objetiva do anúncio"></textarea></div><div class="ads-field"><label for="rotacao_segundos">Tempo de exibição</label><input id="rotacao_segundos" name="rotacao_segundos" type="number" min="5" max="30" value="8"><small>Segundos desta campanha antes da próxima. Padrão: 8 segundos.</small></div><div class="ads-field full creative-preview-field"><div class="creative-preview-head"><div><label>Prévia real do anúncio</label><small>Confira formato, imagem, logo, texto e botão antes de publicar.</small></div><div class="preview-device-switch" role="group" aria-label="Dispositivo da prévia"><button type="button" class="active" data-preview-device="desktop" aria-pressed="true">Desktop</button><button type="button" data-preview-device="mobile" aria-pressed="false">Celular</button></div></div><div id="campaign-preview" class="campaign-preview" data-device="desktop"></div></div>`);
   const dashboard=$("#dashboard-view");
-  if(dashboard&&!$("#placement-inventory"))dashboard.insertAdjacentHTML("beforeend",'<article class="ads-card placement-card"><div class="inventory-heading"><div><h3>Inventário de posições</h3><p>Veja onde existem campanhas configuradas no portal.</p></div><span>Formatos responsivos</span></div><div id="placement-inventory" class="placement-inventory"><div class="skeleton"></div></div></article>');
+  if(dashboard&&!$("#placement-inventory"))dashboard.insertAdjacentHTML("afterend",'<section id="positions-view" class="hidden"><article class="admin-card placement-card"><div class="inventory-heading"><div><h3>Inventário de posições</h3><p>Veja onde existem campanhas configuradas no portal.</p></div><span>Formatos responsivos</span></div><div id="placement-inventory" class="placement-inventory"><div class="skeleton"></div></div></article></section>');
   enhanceAdImageLibrary();
 }
 
@@ -358,21 +361,22 @@ function renderInventory(campaigns) {
 }
 
 function switchView(name) {
-  ["dashboard","campaigns","subscriptions","requests"].forEach(v=>$("#"+v+"-view")?.classList.toggle("hidden",v!==name));
+  ["dashboard","campaigns","positions","subscriptions","requests"].forEach(v=>$("#"+v+"-view")?.classList.toggle("hidden",v!==name));
   $("#form-view").classList.toggle("open",name==="form");
   $("#subscription-form-view")?.classList.toggle("open",name==="subscription-form");
   $$(".ads-tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===name));
-  if(name==="dashboard") loadDashboard();
-  if(name==="campaigns") loadCampaigns();
-  if(name==="subscriptions") loadSubscriptions();
-  if(name==="requests") loadCommercialRequests();
+  if (["dashboard","campaigns","positions","subscriptions","requests"].includes(name)) lastList.tab = name;
+  if(name==="dashboard" || name==="positions") return loadDashboard();
+  if(name==="campaigns") return loadCampaigns();
+  if(name==="subscriptions") return loadSubscriptions();
+  if(name==="requests") return loadCommercialRequests();
 }
 
 async function loadDashboard() {
   const requestRun = runId;
   $("#metrics").innerHTML=Array(6).fill('<div class="metric-card"><span>&nbsp;</span><div class="skeleton"></div></div>').join("");
   try {
-    const [summary,daily,inventory,commercialSummary,requests]=await Promise.all([obterResumoPublicidade(),obterMetricasDiarias(30),listarCampanhas({pagina:1,porPagina:1000}),obterResumoAssinaturasComerciais().catch(()=>null),listarSolicitacoesComerciais().catch(()=>[])]);
+    const [summary,daily,inventory,commercialSummary,requests]=await cachedSummary("ads-dashboard", () => Promise.all([obterResumoPublicidade(),obterMetricasDiarias(30),listarCampanhas({pagina:1,porPagina:1000}),obterResumoAssinaturasComerciais().catch(()=>null),listarSolicitacoesComerciais().catch(()=>[])]));
     if (!mounted || requestRun !== runId) return;
     state.summaries=new Map(summary.map(item=>[item.id,item]));
     const active=summary.filter(x=>x.situacao==="ativa").length;
@@ -386,7 +390,7 @@ async function loadDashboard() {
     $("#campaign-summary").innerHTML=summary.length ?`<p><strong>${summary.length}</strong> campanhas cadastradas</p><p><strong>${active}</strong> entregando anúncios agora</p><p><strong>${scheduled}</strong> programadas para começar</p>` : '<div class="empty-state"><strong>Nenhuma campanha ainda</strong>Crie a primeira campanha para começar.</div>';
     renderChart(daily);
     renderInventory(inventory.itens);
-  } catch(error) { if (!mounted || requestRun !== runId) return; $("#metrics").innerHTML=`<div class="ads-card" style="grid-column:1/-1">${escapeHtml(errorMessage(error))}</div>`; $("#performance-chart").innerHTML=""; }
+  } catch(error) { if (!mounted || requestRun !== runId) return; $("#metrics").innerHTML=`<div class="admin-card" style="grid-column:1/-1">${escapeHtml(errorMessage(error))}</div>`; $("#performance-chart").innerHTML=""; }
 }
 
 function renderChart(rows) {
@@ -672,7 +676,11 @@ async function initModule(container, context = {}) {
   renderPositions();
   bindEvents();
   applyPermissions();
-  await loadDashboard();
+  state.page = lastList.page;
+  $("#campaign-search").value = lastList.search;
+  $("#status-filter").value = lastList.status;
+  $("#type-filter").value = lastList.type;
+  await switchView(lastList.tab);
   if (mounted && root === container) applyPermissions();
 }
 
@@ -685,6 +693,7 @@ export async function mount(container, context = {}) {
 }
 
 export function unmount() {
+  if (mountedContainer) Object.assign(lastList, {page:state.page, search:$("#campaign-search")?.value || "", status:$("#status-filter")?.value || "", type:$("#type-filter")?.value || ""});
   moduleContext.setPrimaryAction?.(null);
   mounted = false;
   cleanupHandlers.splice(0).forEach(handler => {
@@ -699,24 +708,3 @@ export function unmount() {
   moduleContext = {};
   root = document;
 }
-
-async function bootLegacyPage() {
-  if (document.body?.dataset.adminShell === "true") return;
-  if (!document.querySelector(".ads-content")) return;
-  const auth = await exigirAdministrador();
-  if (!auth) return;
-  const adminUser = document.getElementById("admin-user");
-  if (adminUser) adminUser.textContent = auth.admin?.nome || auth.user.email;
-  root = document;
-  moduleContext = { access: auth };
-  mounted = true;
-  runId += 1;
-  enhanceCommercialArea();
-  enhanceCreativeForm();
-  renderPositions();
-  bindEvents();
-  applyPermissions();
-  await loadDashboard();
-}
-
-bootLegacyPage();

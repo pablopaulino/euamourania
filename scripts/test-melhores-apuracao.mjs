@@ -10,7 +10,7 @@ const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8"
 
 const migration = read("supabase/migrations/20260712_melhores_urania_fase3_apuracao.sql");
 const service = read("assets/js/services/melhoresService.js");
-const adminHtml = read("admin/melhores.html");
+const adminHtml = read("admin/melhores.js");
 const adminJs = read("admin/melhores.js");
 const publicService = read("assets/js/services/melhoresPublicService.js");
 const resultsHtml = read("melhores-de-urania/resultados.html");

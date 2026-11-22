@@ -1,20 +1,19 @@
 ﻿<!doctype html>
 <html lang="pt-BR">
-  <head>
+  <head><meta name="robots" content="noindex, nofollow">
     <meta charset="UTF-8" />
+    <base href="/admin/" />
+
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Painel administrativo | Eu Amo Urânia</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260908-event-edition-layout" />
-    <link rel="stylesheet" href="/admin/cms-enhancements.css" />
-    <link rel="stylesheet" href="/admin/cms-v2.css?v=20260907-topbar-actions" />
-    <link rel="stylesheet" href="/admin/cms-redesign.css" />
-    <link rel="stylesheet" href="/admin/sidebar-layout.css" />
-    <link rel="stylesheet" href="/admin/admin-system.css?v=20260907-neutral-modules" />
-    <link rel="stylesheet" href="/admin/admin-module-standard.css?v=20260909-module-surface-tabs" />
+    <link rel="stylesheet" href="/admin/admin-theme.css" />
+    <link rel="stylesheet" href="/admin/admin-shell.css" />
+    <link rel="stylesheet" href="/admin/admin-components.css" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css"
     />
+    <link rel="stylesheet" href="/admin/resource-layouts.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -44,42 +43,7 @@
             <span aria-hidden="true">‹</span>
           </button>
         </div>
-        <nav class="admin-nav" aria-label="Seções do painel">
-          <button data-view="dashboard" class="active">Visão geral</button
-          ><button data-view="noticias">Notícias</button>
-          <button id="editorial-approvals-nav" data-module="noticias" type="button">Aprovações</button
-          ><button data-view="guia_comercial">Guia comercial</button
-          ><button data-view="turismo">Turismo</button
-          ><button data-view="telefones_uteis">Telefones úteis</button
-          ><button data-view="motoristas">Motoristas</button
-          ><button data-view="vantagens">Viva Vantagens</button
-          ><button data-view="links">Links</button
-          ><button data-view="colaboradores_voluntarios">Colaborações</button
-          ><button type="button" data-view="submissoes">
-            Submissões públicas</button
-          ><button data-view="eventos">Agenda simples</button
-          ><button data-view="eventos_principais">Eventos principais</button
-          ><button data-view="eventos_edicoes">Edições</button
-          ><button type="button" data-view="publicidade">
-            Publicidade</button
-          ><button type="button" data-view="comunicacao">
-            Comunicação</button
-          ><button
-            type="button"
-            data-view="notificacoes"
-          >
-            Notificações do app</button
-          ><button type="button" data-view="melhores">
-            Melhores de Urânia</button
-          ><button data-view="categorias">Categorias</button
-          ><button id="audience-nav" data-module="insights" type="button">Audiência</button
-          ><button data-view="configuracoes_site">Configurações</button
-          ><button type="button" data-view="usuarios">
-            Usuários</button
-          ><button type="button" data-view="importacao">
-            Importar JSON
-          </button>
-        </nav>
+        <nav class="admin-nav" aria-label="Seções do painel"></nav>
         <div class="admin-sidebar-footer">
           <p id="admin-user"></p>
           <button id="logout" class="admin-button secondary">Sair</button>
@@ -105,6 +69,7 @@
             </p>
           </div>
           <div class="admin-topbar-actions">
+            <button class="admin-button secondary" type="button" id="refresh-data">Atualizar dados</button>
             <span id="page-primary-action" class="admin-page-primary-action"></span>
             <button class="admin-command-trigger" type="button" data-open-command-palette>
               <span>Buscar no painel</span>
@@ -119,16 +84,12 @@
             >
           </div>
         </header>
-        <div id="app-content" class="loading">Verificando acesso…</div>
+        <nav id="section-tabs" class="admin-tabs" aria-label="Abas da seção" hidden></nav>
+        <div id="app-content">Verificando acesso…</div>
       </main>
     </div>
     <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Fechar menu"></button>
     <div class="toast-stack" id="toasts" aria-live="polite"></div>
-    <script type="module" src="/admin/admin.js?v=20260909-module-surface-tabs"></script>
-    <script type="module" src="/admin/cms-generic.js"></script>
-    <script type="module" src="/admin/news-publication-fields.js"></script>
-    <script type="module" src="/admin/cms-v2.js?v=20260907-topbar-actions"></script>
-    <script type="module" src="/admin/news-editor-polish.js?v=20260907-news-image-fields"></script>
-    <script type="module" src="/admin/site-settings.js"></script>
+    <script type="module" src="/admin/entry.js"></script>
   </body>
 </html>

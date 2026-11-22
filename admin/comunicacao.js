@@ -1,3 +1,4 @@
+import { adminApiFetch } from "./data-cache.js";
 import { exigirAdministrador, sair } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 import "./media-upload.js";
@@ -45,7 +46,7 @@ function toast(message, type = "success") {
 }
 
 function loading() {
-  app.innerHTML = '<div class="ads-card"><div class="skeleton"></div><div class="skeleton"></div></div>';
+  app.innerHTML = '<div class="admin-card"><div class="skeleton"></div><div class="skeleton"></div></div>';
 }
 
 function tabs(view) {
@@ -79,11 +80,6 @@ function renderShell(container) {
         <h2>Central de Comunicação</h2>
         <p>Assinantes, newsletters e resultados em um só lugar.</p>
       </div>
-    </div>
-    <div class="ads-tabs">
-      <button class="ads-tab active" data-communication-view="dashboard" type="button">Visão geral</button>
-      <button class="ads-tab" data-communication-view="subscribers" type="button">Assinantes</button>
-      <button class="ads-tab" data-communication-view="newsletters" type="button">Newsletters</button>
     </div>
     <div id="communication-app"><div class="skeleton"></div></div>
   `;
@@ -143,7 +139,7 @@ async function dashboard() {
     ];
 
     app.innerHTML = `
-      <div class="ads-grid">
+      <div class="admin-metrics ads-grid">
         ${cards.map(([label, value]) => `
           <article class="metric-card">
             <span>${esc(label)}</span>
@@ -152,7 +148,7 @@ async function dashboard() {
         `).join("")}
       </div>
 
-      <section class="ads-card monthly-newsletter-card">
+      <section class="admin-card monthly-newsletter-card">
         <div>
           <span class="cms-kicker">Automação assistida</span>
           <h3>Newsletter mensal automática</h3>
@@ -176,7 +172,7 @@ async function dashboard() {
         </div>
       </section>
 
-      <section class="ads-card">
+      <section class="admin-card">
         <h3>Campanhas recentes</h3>
         <div class="table-wrap">
           <table class="cms-table">
@@ -211,7 +207,7 @@ async function subscribers() {
   if (error) return app.innerHTML = `<div class="empty-state">${esc(error.message)}</div>`;
 
   app.innerHTML = `
-    <section class="ads-card">
+    <section class="admin-card">
       <div class="cms-section-head">
         <div>
           <h2>Assinantes</h2>
@@ -268,7 +264,7 @@ async function subscriberForm(id) {
   }
 
   app.innerHTML = `
-    <section class="ads-card">
+    <section class="admin-card">
       <h3>${id ? "Editar" : "Novo"} assinante</h3>
       <form id="sub-form" class="cms-form">
         <div class="cms-field"><label>Nome</label><input name="nome" value="${esc(subscriber.nome || "")}"></div>
@@ -342,7 +338,7 @@ async function newsletters() {
   if (error) return app.innerHTML = `<div class="empty-state">${esc(error.message)}</div>`;
 
   app.innerHTML = `
-    <section class="ads-card">
+    <section class="admin-card">
       <div class="cms-section-head">
         <div>
           <h2>Newsletters</h2>
@@ -371,7 +367,7 @@ async function newsletterForm(id) {
   const config = newsletter.configuracao_futura || {};
 
   app.innerHTML = `
-    <section class="ads-card">
+    <section class="admin-card">
       <h3>${id ? "Editar" : "Nova"} newsletter</h3>
       ${newsletter.automatizacao_tipo === "resumo_mensal" ? `
         <div class="monthly-editor-note">
@@ -433,7 +429,7 @@ async function send(id, action) {
   } else if (!confirm(action === "schedule" ? "Confirmar agendamento?" : "Enviar esta newsletter agora para o público selecionado?")) {
     return;
   }
-  const response = await fetch("/api/newsletter-send", {
+  const response = await adminApiFetch("/api/newsletter-send", {
     method: "POST",
     headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
     body: JSON.stringify({ id, action, testEmail })
@@ -454,7 +450,7 @@ async function generateMonthly() {
   }
 
   try {
-    const response = await fetch("/api/newsletter-send", {
+    const response = await adminApiFetch("/api/newsletter-send", {
       method: "POST",
       headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ action: "generate_monthly" })
@@ -559,12 +555,15 @@ export async function mount(container, context = {}) {
   ensureCommunicationStyles();
   renderShell(container);
   app = container.querySelector("#communication-app");
-  context.setTitle?.("Comunicação", "Assinantes, newsletters e resultados em um só lugar.");
-  context.setPrimaryAction?.("Nova newsletter", () => newsletterForm());
-  document.title = "Comunicação | Eu Amo Urânia";
+  const title = {newsletters:"Newsletters",assinantes:"Base de assinantes"}[context.view] || "Central de Comunicação";
+  context.setTitle?.(title, "Assinantes, newsletters e resultados em um só lugar.");
+  if (context.can?.("comunicacao","criar")) context.setPrimaryAction?.("Nova newsletter", () => newsletterForm());
+  document.title = title + " | Eu Amo Urânia";
   bindCommunicationEvents();
   enhanceCommunicationRows();
-  await dashboard();
+  if (context.view === "newsletters") await newsletters();
+  else if (context.view === "assinantes") await subscribers();
+  else await dashboard();
 }
 
 export function unmount() {
@@ -573,6 +572,7 @@ export function unmount() {
     try { clean(); } catch {}
   });
   if (editor) {
+    editor.disable();
     editor = null;
   }
   if (mountedContainer) {
@@ -584,20 +584,3 @@ export function unmount() {
   root = document;
   app = document.getElementById("communication-app");
 }
-
-async function bootLegacyPage() {
-  const legacyApp = document.getElementById("communication-app");
-  if (!legacyApp || document.body.dataset.adminShell === "true") return;
-  app = legacyApp;
-  root = document;
-  const access = await exigirAdministrador();
-  if (access) {
-    document.getElementById("admin-user").textContent = access.admin.nome || access.user.email;
-    document.getElementById("logout").onclick = sair;
-    document.getElementById("mobile-menu").onclick = () => document.getElementById("sidebar").classList.toggle("open");
-    bindCommunicationEvents();
-    dashboard();
-  }
-}
-
-bootLegacyPage();

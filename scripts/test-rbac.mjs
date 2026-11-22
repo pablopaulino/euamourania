@@ -14,7 +14,7 @@ const [sql, sql2, sql3, auth, access, usersApi, newsletter, index] = await Promi
   read("admin/access-control.js"),
   read("api/admin-users.js"),
   read("api/newsletter-send.js"),
-  read("admin/index.html")
+  read("admin/navigation.js")
 ]);
 
 for (const role of ["super_admin", "administrador", "editor", "redator", "comercial", "comunicacao", "visualizador"]) {
@@ -29,7 +29,7 @@ must(sql3.includes("proteger_ultimo_super_admin"), "Último Super Admin sem trig
 must(usersApi.includes("SUPABASE_SERVICE_ROLE_KEY") && usersApi.includes("funcao=eq.super_admin"), "API de usuários sem Service Role/Super Admin");
 must(!auth.includes("SERVICE_ROLE") && !access.includes("SERVICE_ROLE"), "Service Role exposta no frontend");
 must(newsletter.includes('p_acao:"enviar"'), "Newsletter sem autorização de envio");
-must(index.includes('data-view="usuarios"'), "Menu de usuários ausente no Admin Shell");
+must(index.includes('["usuarios"]'), "Menu de usuários ausente no Admin Shell");
 
 const adminFiles = await readdir(new URL("admin/", root));
 must(adminFiles.includes("usuarios.html") && adminFiles.includes("usuarios.js"), "Página de usuários incompleta");

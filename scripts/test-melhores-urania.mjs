@@ -11,11 +11,11 @@ const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8"
 
 const migration = read("supabase/migrations/20260712_melhores_urania_fase1.sql");
 const retentionFix = read("supabase/migrations/20260712_melhores_urania_retencao_encerramento.sql");
-const adminHtml = read("admin/melhores.html");
+const adminHtml = read("admin/melhores.js");
 const adminJs = read("admin/melhores.js");
 const adminCss = read("admin/melhores.css");
 const service = read("assets/js/services/melhoresService.js");
-const index = read("admin/index.html");
+const index = read("admin/navigation.js");
 const admin = read("admin/admin.js");
 const modules = read("admin/admin-modules.js");
 const auth = read("admin/auth.js");
@@ -61,7 +61,7 @@ must(!migration.includes("grant execute on function public.melhores_limpar_votos
 must(migration.includes("coalesce(encerramento_em, votacao_fim, resultado_publicado_em, divulgacao_em)"), "Retenção precisa priorizar encerramento/votação");
 must(retentionFix.includes("coalesce(encerramento_em, votacao_fim, resultado_publicado_em, divulgacao_em)"), "Migração de ajuste da retenção ausente ou incorreta");
 must(retentionFix.includes("revoke all on function public.melhores_limpar_votos_expirados() from public"), "Função de limpeza deve continuar sem execute público");
-must(adminHtml.includes("Melhores de Urânia") && adminHtml.includes("melhores.js"), "Página administrativa não foi criada corretamente");
+must(adminHtml.includes("Melhores de Urânia") && adminHtml.includes("export async function mount("), "Página administrativa não foi criada corretamente");
 must(adminCss.includes(".awards-hero") && adminCss.includes(".awards-table"), "CSS do módulo incompleto");
 for (const action of ["salvarEdicao", "salvarCategoria", "salvarIndicado", "listarGuiaComercial"]) {
   must(service.includes(`export async function ${action}`), `Serviço sem função: ${action}`);
@@ -76,9 +76,9 @@ must(adminJs.includes("Indicados, indicações e votos não serão copiados"), "
 for (const tab of ["dashboard", "editions", "categories", "nominees"]) {
   must(adminHtml.includes(`data-tab="${tab}"`) || adminHtml.includes(`${tab}-view`), `Aba ausente: ${tab}`);
 }
-must(index.includes('data-view="melhores"') && admin.includes('melhores: {') && admin.includes('import("./melhores.js")') && modules.includes('route: "/admin/melhores"'), "Menu principal não aponta para o módulo Melhores de Urânia");
-must(auth.includes('"melhores.html":"melhores"') && auth.includes("melhores:*"), "Permissões locais do módulo não foram registradas");
-must(access.includes('target.includes("melhores.html")'), "Controle visual de acesso não reconhece melhores.html");
+must(index.includes('["melhores"]') && admin.includes('melhores: {') && admin.includes('import("./melhores.js")') && modules.includes('route: "/admin/melhores"'), "Menu principal não aponta para o módulo Melhores de Urânia");
+must(modules.includes('permission: "melhores"') && auth.includes("melhores:*"), "Permissões locais do módulo não foram registradas");
+must(read("admin/melhores.html").includes('location.replace("/admin/melhores"'), "Controle visual de acesso não reconhece melhores.html");
 must(docs.includes("Retenção de votos") && docs.includes("RLS e permissões"), "Documentação técnica incompleta");
 must(guide.includes("Criar uma edição") && guide.includes("Criar indicados"), "Guia operacional incompleto");
 must(existsSync(new URL("../admin/melhores.html", import.meta.url)), "Arquivo admin/melhores.html não existe");

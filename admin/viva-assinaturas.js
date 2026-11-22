@@ -8,7 +8,7 @@ let mountVersion = 0;
 export async function mount(container, context = {}) {
   unmount();
   const version = ++mountVersion;
-  const access = await exigirPermissao('guia_comercial', 'editar');
+  const access = context.access || await exigirPermissao('guia_comercial', 'editar');
   if (!access || version !== mountVersion) return;
 
   // Extrai guia_id de search params ou do hash (caso venha de #viva_assinaturas?guia_id=xxx)
@@ -56,7 +56,7 @@ export async function mount(container, context = {}) {
   const openCompany = id => {
     const url = new URL(listUrl);
     url.searchParams.set('guia_id', id);
-    location.assign(url.pathname + url.search);
+    context.navigate('viva_assinaturas', {search: url.search});
   };
 
   const $ = selector => container.querySelector(selector);

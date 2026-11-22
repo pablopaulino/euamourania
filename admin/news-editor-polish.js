@@ -1,5 +1,3 @@
-const app = document.getElementById("app-content");
-
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, (char) => ({
   "&": "&amp;",
   "<": "&lt;",
@@ -104,12 +102,8 @@ function updateAssistant(form) {
   `;
 }
 
-function enhanceNewsForm(form) {
+export function enhanceNewsForm(form) {
   if (!form || form.dataset.newsEditorPolished) return;
-  if (!form.elements?.publicacao_data && !form.dataset.publicationFields) {
-    window.setTimeout(() => enhanceNewsForm(form), 120);
-    return;
-  }
   form.dataset.newsEditorPolished = "1";
   form.classList.add("news-editor-pro");
   form.closest(".panel")?.classList.add("news-editor-panel");
@@ -155,29 +149,26 @@ function enhanceNewsForm(form) {
   setCounter(field(form, "seo_titulo"), 70, "SEO title");
   setCounter(field(form, "seo_descricao"), 160, "SEO description");
 
+  let quill;
+  const update = () => updateAssistant(form);
   const editorBox = form.querySelector("#editor");
   if (editorBox) {
     editorBox.closest(".cms-form-section")?.classList.add("news-editor-content-section");
-    setTimeout(() => {
-      const editor = window.Quill?.find?.(editorBox);
+    {
+      const editor = quill = window.Quill?.find?.(editorBox);
       if (editor) window.euamouraniaEditor = editor;
       editor?.root?.setAttribute("data-placeholder", "Escreva a matéria aqui. Use subtítulos, listas, citações, imagens e vídeos quando fizer sentido.");
-      editor?.on?.("text-change", () => updateAssistant(form));
+      editor?.on?.("text-change", update);
       updateAssistant(form);
-    }, 120);
+    }
   }
 
-  form.addEventListener("input", () => updateAssistant(form));
-  form.addEventListener("change", () => updateAssistant(form));
-  updateAssistant(form);
-}
-
-const observer = new MutationObserver(() => {
-  const form = app?.querySelector("#news-form");
-  if (form) enhanceNewsForm(form);
-});
-
-if (app) {
-  observer.observe(app, { childList: true, subtree: true });
-  enhanceNewsForm(app.querySelector("#news-form"));
+  form.addEventListener("input", update);
+  form.addEventListener("change", update);
+  update();
+  return () => {
+    form.removeEventListener("input", update);
+    form.removeEventListener("change", update);
+    quill?.off?.("text-change", update);
+  };
 }

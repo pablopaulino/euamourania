@@ -1,3 +1,4 @@
+import { cachedSummary } from "./data-cache.js";
 import { exigirPermissao, sair } from "./auth.js";
 import { attachUrlUpload } from "./media-upload.js";
 import { gerarSlug } from "../assets/js/utils.js";
@@ -149,7 +150,7 @@ function renderShell(container) {
       </section>
 
       <div class="awards-tabs-stack" aria-label="Áreas do Melhores de Urânia">
-        <div class="awards-tabs" role="tablist" aria-label="Operação do prêmio">
+        <div class="admin-tabs awards-tabs" role="tablist" aria-label="Operação do prêmio">
           <button class="awards-tab active" data-tab="dashboard" type="button">Visão geral</button>
           <button class="awards-tab" data-tab="editions" type="button">Edições</button>
           <button class="awards-tab" data-tab="categories" type="button">Categorias</button>
@@ -159,7 +160,7 @@ function renderShell(container) {
           <button class="awards-tab" data-tab="apuration" type="button">Apuração</button>
           <button class="awards-tab" data-tab="results" type="button">Resultados</button>
         </div>
-        <div class="awards-tabs" role="tablist" aria-label="Divulgação e administração">
+        <div class="admin-tabs awards-tabs" role="tablist" aria-label="Divulgação e administração">
           <button class="awards-tab" data-tab="instagram" type="button">Instagram</button>
           <button class="awards-tab" data-tab="app" type="button">Exibição no aplicativo</button>
           <button class="awards-tab" data-tab="audience" type="button">Audiência</button>
@@ -320,13 +321,15 @@ function currentHashTab() {
   return tabLoaders[tab] ? tab : "dashboard";
 }
 
+let lastTab = "dashboard";
 function initialTab() {
   if (location.hash) return currentHashTab();
-  return history.state?.melhoresTab && tabLoaders[history.state.melhoresTab] ? history.state.melhoresTab : "dashboard";
+  return history.state?.melhoresTab && tabLoaders[history.state.melhoresTab] ? history.state.melhoresTab : lastTab;
 }
 
 function setActiveTab(tab, { persist = true } = {}) {
   state.tab = tab;
+  if (tabLoaders[tab]) lastTab = tab;
   $$(".awards-tab").forEach(button => button.classList.toggle("active", button.dataset.tab === tab));
   $$(".awards-view").forEach(view => view.classList.toggle("active", view.id === `${tab}-view`));
   if (persist && tabLoaders[tab]) {
@@ -416,11 +419,11 @@ async function loadDashboardV2() {
   setActiveTab("dashboard");
   $("#dashboard-view").innerHTML = '<div class="loading">Carregando visão geral…</div>';
   try {
-    const [resumo, edicoes, audiencia] = await Promise.all([
+    const [resumo, edicoes, audiencia] = await cachedSummary("awards-dashboard", () => Promise.all([
       obterResumoMelhores(),
       listarEdicoes(),
       obterAudienciaMelhores({ dias: 7 }).catch(() => null)
-    ]);
+    ]));
     state.edicoes = edicoes;
     const edicao = resumo.edicaoAtiva;
     const status = edicao?.status || "";
@@ -2088,14 +2091,3 @@ export function unmount() {
   mountedContainer = null;
   root = document;
 }
-
-async function bootLegacyPage() {
-  if (document.body?.dataset.adminShell === "true") return;
-  if (!document.querySelector(".awards-content")) return;
-  root = document;
-  mounted = true;
-  runId += 1;
-  await init({});
-}
-
-bootLegacyPage();

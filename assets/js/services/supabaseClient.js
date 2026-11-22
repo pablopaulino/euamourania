@@ -3,12 +3,13 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, supabaseConfigurado } from "../
 
 let client;
 
-export function getSupabase() {
+export function getSupabase(options = {}) {
   if (!supabaseConfigurado()) {
     throw new Error("Supabase ainda não configurado. Preencha assets/js/supabase-config.js.");
   }
   if (!client) {
     client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      ...options,
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
   }

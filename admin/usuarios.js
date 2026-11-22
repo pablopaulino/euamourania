@@ -1,3 +1,4 @@
+import { adminApiFetch } from "./data-cache.js";
 import { exigirPermissao, sair, rotulosFuncoes, temPermissao } from "./auth.js";
 import { getSupabase } from "../assets/js/services/supabaseClient.js";
 
@@ -68,7 +69,7 @@ function getDb() {
 async function api(method = "GET", body) {
   const { data: { session } } = await getDb().auth.getSession();
   if (!session?.access_token) throw new Error("Sessão administrativa expirada.");
-  const response = await fetch("/api/admin-users", {
+  const response = await adminApiFetch("/api/admin-users", {
     method,
     headers: {
       Authorization: `Bearer ${session.access_token}`,
@@ -99,7 +100,7 @@ function renderShell(container) {
 }
 
 function render() {
-  app.innerHTML = `<section class="ads-card"><div class="cms-toolbar-v2"><input id="user-search" type="search" placeholder="Pesquisar nome ou e-mail…"><select id="role-filter"><option value="">Todas as funções</option>${roleOptions("")}</select><select id="status-filter"><option value="">Todos os status</option><option value="ativo">Ativos</option><option value="inativo">Inativos</option></select></div><div class="table-wrap"><table class="cms-table"><thead><tr><th>Usuário</th><th>Função</th><th>Status</th><th>Último login</th><th>Criação</th><th>Ações</th></tr></thead><tbody id="user-rows">${state.users.map(user => `<tr data-search="${esc(`${user.nome || ""} ${user.email || ""}`.toLowerCase())}" data-role="${esc(user.funcao)}" data-status="${user.ativo ? "ativo" : "inativo"}"><td class="cms-title-cell"><strong>${esc(user.nome || "Sem nome")}</strong><small>${esc(user.email)}${user.id === access.user.id ? " · você" : ""}</small></td><td><span class="status-pill ativo">${esc(rotulosFuncoes[user.funcao] || user.funcao)}</span></td><td><span class="status-pill ${user.ativo ? "ativo" : "inativo"}">${user.ativo ? "ativo" : "inativo"}</span></td><td>${fmt(user.ultimo_login)}</td><td>${fmt(user.auth_criado_em || user.criado_em)}</td><td><div class="cms-actions"><button data-edit-user="${esc(user.id)}">Editar</button><button data-toggle-user="${esc(user.id)}" ${user.id === access.user.id ? "disabled" : ""}>${user.ativo ? "Desativar" : "Ativar"}</button><button class="danger" data-delete-user="${esc(user.id)}" ${user.id === access.user.id ? "disabled" : ""}>Excluir</button></div></td></tr>`).join("") || '<tr><td colspan="6">Nenhum usuário.</td></tr>'}</tbody></table></div></section><section class="ads-card"><h3>Permissões por função</h3><div class="dashboard-grid">${roles.map(role => `<article class="metric-card"><span>${esc(rotulosFuncoes[role])}</span><small>${esc(roleSummary(role))}</small></article>`).join("")}</div></section>`;
+  app.innerHTML = `<section class="admin-card"><div class="cms-toolbar-v2"><input id="user-search" type="search" placeholder="Pesquisar nome ou e-mail…"><select id="role-filter"><option value="">Todas as funções</option>${roleOptions("")}</select><select id="status-filter"><option value="">Todos os status</option><option value="ativo">Ativos</option><option value="inativo">Inativos</option></select></div><div class="table-wrap"><table class="cms-table"><thead><tr><th>Usuário</th><th>Função</th><th>Status</th><th>Último login</th><th>Criação</th><th>Ações</th></tr></thead><tbody id="user-rows">${state.users.map(user => `<tr data-search="${esc(`${user.nome || ""} ${user.email || ""}`.toLowerCase())}" data-role="${esc(user.funcao)}" data-status="${user.ativo ? "ativo" : "inativo"}"><td class="cms-title-cell"><strong>${esc(user.nome || "Sem nome")}</strong><small>${esc(user.email)}${user.id === access.user.id ? " · você" : ""}</small></td><td><span class="status-pill ativo">${esc(rotulosFuncoes[user.funcao] || user.funcao)}</span></td><td><span class="status-pill ${user.ativo ? "ativo" : "inativo"}">${user.ativo ? "ativo" : "inativo"}</span></td><td>${fmt(user.ultimo_login)}</td><td>${fmt(user.auth_criado_em || user.criado_em)}</td><td><div class="cms-actions"><button data-edit-user="${esc(user.id)}">Editar</button><button data-toggle-user="${esc(user.id)}" ${user.id === access.user.id ? "disabled" : ""}>${user.ativo ? "Desativar" : "Ativar"}</button><button class="danger" data-delete-user="${esc(user.id)}" ${user.id === access.user.id ? "disabled" : ""}>Excluir</button></div></td></tr>`).join("") || '<tr><td colspan="6">Nenhum usuário.</td></tr>'}</tbody></table></div></section><section class="admin-card"><h3>Permissões por função</h3><div class="dashboard-grid">${roles.map(role => `<article class="metric-card"><span>${esc(rotulosFuncoes[role])}</span><small>${esc(roleSummary(role))}</small></article>`).join("")}</div></section>`;
   const filter = () => {
     const q = $("#user-search").value.toLowerCase();
     const role = $("#role-filter").value;
@@ -113,7 +114,7 @@ function render() {
 
 function form(user = null) {
   const editing = Boolean(user);
-  app.innerHTML = `<section class="ads-card"><h3>${editing ? "Editar usuário" : "Novo usuário"}</h3><form id="user-form" class="cms-form"><div class="cms-field"><label>Nome *</label><input name="nome" required value="${esc(user?.nome || "")}"></div><div class="cms-field"><label>E-mail *</label><input name="email" type="email" required value="${esc(user?.email || "")}"></div><div class="cms-field"><label>${editing ? "Nova senha (opcional)" : "Senha temporária *"}</label><input name="password" type="password" minlength="8" ${editing ? "" : "required"} autocomplete="new-password"><small>Mínimo de 8 caracteres. A senha nunca é exibida novamente.</small></div><div class="cms-field"><label>Função *</label><select name="funcao" required>${roleOptions(user?.funcao || "visualizador")}</select></div><label class="ads-checkbox"><input name="ativo" type="checkbox" ${user?.ativo !== false ? "checked" : ""}> Usuário ativo</label><div class="cms-field full"><strong id="permission-preview"></strong><p id="permission-description"></p></div><div class="cms-sticky-actions"><button type="button" class="admin-button secondary" id="cancel-user">Cancelar</button><button class="admin-button">Salvar usuário</button></div></form></section>`;
+  app.innerHTML = `<section class="admin-card"><h3>${editing ? "Editar usuário" : "Novo usuário"}</h3><form id="user-form" class="cms-form"><div class="cms-field"><label>Nome *</label><input name="nome" required value="${esc(user?.nome || "")}"></div><div class="cms-field"><label>E-mail *</label><input name="email" type="email" required value="${esc(user?.email || "")}"></div><div class="cms-field"><label>${editing ? "Nova senha (opcional)" : "Senha temporária *"}</label><input name="password" type="password" minlength="8" ${editing ? "" : "required"} autocomplete="new-password"><small>Mínimo de 8 caracteres. A senha nunca é exibida novamente.</small></div><div class="cms-field"><label>Função *</label><select name="funcao" required>${roleOptions(user?.funcao || "visualizador")}</select></div><label class="ads-checkbox"><input name="ativo" type="checkbox" ${user?.ativo !== false ? "checked" : ""}> Usuário ativo</label><div class="cms-field full"><strong id="permission-preview"></strong><p id="permission-description"></p></div><div class="cms-sticky-actions"><button type="button" class="admin-button secondary" id="cancel-user">Cancelar</button><button class="admin-button">Salvar usuário</button></div></form></section>`;
   const f = $("#user-form");
   const preview = () => {
     const role = f.elements.funcao.value;
@@ -144,7 +145,7 @@ function form(user = null) {
 
 async function load() {
   const requestRun = runId;
-  app.innerHTML = '<div class="ads-card"><div class="skeleton"></div><div class="skeleton"></div></div>';
+  app.innerHTML = '<div class="admin-card"><div class="skeleton"></div><div class="skeleton"></div></div>';
   try {
     state = await api();
     if (!mounted || requestRun !== runId) return;
@@ -228,24 +229,3 @@ export function unmount() {
   app = null;
   root = document;
 }
-
-async function bootLegacyPage() {
-  if (document.body?.dataset.adminShell === "true") return;
-  const legacyApp = document.getElementById("users-app");
-  if (!legacyApp) return;
-  root = document;
-  app = legacyApp;
-  access = await exigirPermissao("usuarios", "acessar");
-  if (!access) return;
-  mounted = true;
-  runId += 1;
-  const adminUser = document.getElementById("admin-user");
-  if (adminUser) adminUser.textContent = access.admin?.nome || access.user?.email || "";
-  addListener(document.getElementById("logout"), "click", sair);
-  addListener(document.getElementById("mobile-menu"), "click", () => document.getElementById("sidebar")?.classList.toggle("open"));
-  addListener($("#new-user"), "click", () => form());
-  addListener(app, "click", handleUsersClick);
-  await load();
-}
-
-bootLegacyPage();

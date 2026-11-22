@@ -9,7 +9,6 @@ const permissoesPorFuncao={
   comunicacao:["dashboard:acessar","comunicacao:acessar","comunicacao:ler","comunicacao:criar","comunicacao:editar","comunicacao:excluir","comunicacao:enviar","notificacoes:*","links:acessar","links:ler","links:criar","links:editar","links:excluir"],
   visualizador:["dashboard:acessar","insights:acessar","insights:ler","noticias:ler","categorias:ler","guia_comercial:ler","turismo:ler","eventos:ler","publicidade:ler","comunicacao:ler","notificacoes:ler","melhores:acessar","melhores:ler","links:ler"]
 };
-const rotaModulo={"publicidade.html":"publicidade","comunicacao.html":"comunicacao","notificacoes-app.html":"notificacoes","melhores.html":"melhores","submissoes.html":"submissoes","migrar.html":"importacao","usuarios.html":"usuarios",publicidade:"publicidade",comunicacao:"comunicacao","viva-urania":"notificacoes",notificacoes:"notificacoes",melhores:"melhores",submissoes:"submissoes",importacao:"importacao",usuarios:"usuarios"};
 let acessoAtual=null;
 
 export const rotulosFuncoes={super_admin:"Super Admin",administrador:"Administrador",editor:"Editor",redator:"Redator",comercial:"Comercial",comunicacao:"Comunicação",visualizador:"Visualizador"};
@@ -42,12 +41,10 @@ export async function verificarAdministrador(userId){
 export async function exigirAdministrador(){
   if(!supabaseConfigurado())return{configurado:false,user:null,admin:null};
   const{data:{session}}=await getSupabase().auth.getSession();
-  if(!session){location.replace("login.html");return null}
+  if(!session){location.replace("/admin/login.html");return null}
   const admin=await verificarAdministrador(session.user.id);
-  if(!admin){await getSupabase().auth.signOut({scope:"local"});location.replace("login.html?erro=sem-permissao");return null}
+  if(!admin){await getSupabase().auth.signOut({scope:"local"});location.replace("/admin/login.html?erro=sem-permissao");return null}
   acessoAtual={configurado:true,user:session.user,admin};
-  const pagina=location.pathname.split("/").pop()||"index.html",modulo=rotaModulo[pagina];
-  if(modulo&&!temPermissao(admin,modulo,"acessar")){location.replace("index.html?erro=acesso-negado");return null}
   try{const{aplicarControleAcesso}=await import("./access-control.js");aplicarControleAcesso(acessoAtual,temPermissao)}catch(error){console.warn("Controle visual de acesso indisponível.")}
   return acessoAtual;
 }
@@ -55,8 +52,8 @@ export async function exigirAdministrador(){
 export async function exigirPermissao(modulo,acao="acessar"){
   const acesso=await exigirAdministrador();
   if(!acesso)return null;
-  if(!temPermissao(acesso.admin,modulo,acao)){location.replace("index.html?erro=acesso-negado");return null}
+  if(!temPermissao(acesso.admin,modulo,acao)){location.replace("/admin?erro=acesso-negado");return null}
   return acesso;
 }
 
-export async function sair(){await getSupabase().auth.signOut({scope:"local"});location.replace("login.html")}
+export async function sair(){await getSupabase().auth.signOut({scope:"local"});location.replace("/admin/login.html")}

@@ -303,23 +303,14 @@ async function enhance(form) {
       .join("") +
     `<div class="cms-sticky-actions"><button class="admin-button" type="submit">Salvar configurações</button></div>`;
 
-  form.addEventListener("input", (event) => event.stopPropagation(), true);
 }
 
-new MutationObserver(() => {
-  const form = document.getElementById("settings-form");
-  if (form) enhance(form);
-}).observe(document.getElementById("app-content"), { childList: true, subtree: true });
-
-document.addEventListener(
-  "submit",
-  async (event) => {
-    const form = event.target;
-    if (form.id !== "settings-form" || !form.dataset.globalSettings) return;
-
+export async function mount(container) {
+  container.innerHTML = '<section class="admin-panel"><form id="settings-form" class="admin-form"></form></section>';
+  const form = container.querySelector("form");
+  await enhance(form);
+  form.addEventListener("submit", async event => {
     event.preventDefault();
-    event.stopImmediatePropagation();
-
     const button = event.submitter;
     const fd = new FormData(form);
     const rows = [];
@@ -345,6 +336,6 @@ document.addEventListener(
 
     button.disabled = false;
     button.textContent = "Salvar configurações";
-  },
-  true,
-);
+  });
+}
+export function unmount(container) { container?.replaceChildren(); }

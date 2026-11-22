@@ -141,12 +141,12 @@ function renderGuidePreview(errors = []) {
 
 async function readGuideFile(file) {
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) throw new Error("O arquivo JSON deve ter no máximo 2 MB.");
+  if (file.size>2*1024*1024) throw new Error("O arquivo JSON deve ter no máximo 2 MB.");
   const parsed = JSON.parse(await file.text());
   const rows = Array.isArray(parsed) ? parsed : parsed?.itens;
   if (!Array.isArray(rows)) throw new Error('Use uma lista JSON ou um objeto contendo o campo "itens".');
   if (!rows.length) throw new Error("O arquivo não possui empresas para importar.");
-  if (rows.length > 1000) throw new Error("Importe no máximo 1.000 empresas por arquivo.");
+  if (rows.length>1000) throw new Error("Importe no máximo 1.000 empresas por arquivo.");
   const normalized = rows.map(normalizeItem), errors = normalized.flatMap(item => item.errors);
   const slugs = normalized.map(item => item.data.slug).filter(Boolean);
   const duplicates = slugs.filter((slug, index) => slugs.indexOf(slug) !== index);
@@ -270,17 +270,3 @@ export function unmount() {
   shellContainer = null;
   root = document;
 }
-
-async function bootLegacyPage() {
-  if (document.body?.dataset.adminShell === "true") return;
-  const legacyStatus = document.getElementById("migration-status");
-  const legacyButton = document.getElementById("run-migration");
-  if (!legacyStatus || !legacyButton) return;
-  root = document;
-  document.querySelector("main")?.classList.add("importacao-module");
-  statusEl = legacyStatus;
-  migrationButton = legacyButton;
-  await initModule({});
-}
-
-bootLegacyPage();

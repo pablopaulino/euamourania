@@ -9,8 +9,9 @@ const pageTitle=document.getElementById("page-title");
 const esc=(value="")=>String(value??"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const fmtDate=value=>value?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short",timeZone:"America/Sao_Paulo"}).format(new Date(value)):"—";
 const isoDate=date=>date.toISOString().slice(0,10);
-let currentNewsId=null;
+
 let audienceData=null;
+let audienceRequest=0;
 function safeArticleHtml(html=""){
  const template=document.createElement("template");template.innerHTML=html;
  template.content.querySelectorAll("script,style,object,embed,form").forEach(node=>node.remove());
@@ -20,24 +21,13 @@ function safeArticleHtml(html=""){
  return template.innerHTML;
 }
 
-function ensureNavigation(){
- if(!document.querySelector('link[href="editorial-audience.css"]')){
-  const link=document.createElement("link");link.rel="stylesheet";link.href="editorial-audience.css";document.head.append(link);
- }
- const approvals=document.getElementById("editorial-approvals-nav");
- if(approvals){approvals.dataset.module="noticias";approvals.type="button";if(!approvals.querySelector(".admin-nav-label"))approvals.textContent="Aprovações";}
- const audience=document.getElementById("audience-nav");
- if(audience){audience.dataset.module="insights";audience.type="button";if(!audience.querySelector(".admin-nav-label"))audience.textContent="Audiência";}
-}
-ensureNavigation();
-
 function toast(message,type="success"){
  const stack=document.getElementById("toasts"),item=document.createElement("div");
  item.className=`toast ${type}`;item.textContent=message;stack.append(item);
  setTimeout(()=>item.remove(),4000);
 }
 function loading(){
- app.innerHTML='<div class="ads-card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>';
+ app.innerHTML='<div class="admin-card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>';
 }
 function access(){
  return obterAcessoAtual();
@@ -47,15 +37,6 @@ function canReview(){
 }
 function isSuperAdmin(){
  return access()?.admin?.funcao==="super_admin";
-}
-function setActive(id,title,hash){
- pageTitle.textContent=title;
- const view=String(hash||"").replace(/^#/,"");
- window.dispatchEvent(new CustomEvent("admin:external-module",{detail:{view}}));
- const targetPath=adminPathForView(view);
- if(location.pathname!==targetPath)history.pushState({adminView:view},"",targetPath);
- document.querySelectorAll(".admin-nav button,.admin-nav a").forEach(button=>button.classList.toggle("active",button.id===id));
- document.getElementById("sidebar")?.classList.remove("open");
 }
 function editorialLabel(status){
  return({rascunho:"Rascunho editorial",em_revisao:"Em revisão",ajustes_solicitados:"Ajustes solicitados",aprovado:"Aprovado"})[status]||status||"Rascunho editorial";
@@ -78,11 +59,12 @@ async function fetchApprovalRows(){
 }
 
 async function renderApprovals(){
+ const owner = listeners;
  if(!canReview()){toast("Seu perfil não possui permissão para revisar notícias.","error");return}
- setActive("editorial-approvals-nav","Aprovações","aprovacoes");
  loading();
  try{
   const rows=await fetchApprovalRows();
+  if (owner?.signal.aborted) return;
   const pending=rows.filter(item=>item.status==="pendente").length;
   const authors=[...new Set(rows.map(item=>item.noticia.autor||"Sem autor"))].sort();
   app.innerHTML=`<section class="panel editorial-panel">
@@ -112,7 +94,7 @@ async function renderApprovals(){
   ["approval-search","approval-status","approval-author","approval-date"].forEach(id=>document.getElementById(id).addEventListener("input",filter));
   app._approvalRows=rows;
  }catch(error){
-  app.innerHTML=`<div class="ads-card empty-state"><strong>Não foi possível carregar aprovações</strong><p>${esc(error.message)}</p></div>`;
+  app.innerHTML=`<div class="admin-card empty-state"><strong>Não foi possível carregar aprovações</strong><p>${esc(error.message)}</p></div>`;
  }
 }
 
@@ -181,8 +163,8 @@ async function decorateNews(){
  });
 }
 
-async function decorateNewsForm(){
- const form=document.getElementById("news-form");if(!form||form.dataset.editorialReady)return;
+export async function decorateNewsForm(form, currentNewsId){
+ if(!form||form.dataset.editorialReady)return;
  form.dataset.editorialReady="1";
  const actions=form.querySelector(".cms-sticky-actions");
  let news=null,latest=null;
@@ -216,7 +198,7 @@ async function decorateNewsForm(){
  }
  if(!directPublish&&news?.criado_por===access()?.user?.id&&state==="em_revisao"){
   form.querySelectorAll("input,textarea,select,button").forEach(field=>{if(!field.hasAttribute("data-back-news")&&!field.hasAttribute("data-preview"))field.disabled=true});
-  document.querySelector("#editor")?.classList.add("editor-locked");
+  form.querySelector("#editor")?.classList.add("editor-locked");
   info.insertAdjacentHTML("beforeend","<p>A edição está bloqueada enquanto a matéria estiver em revisão.</p>");
  }
 }
@@ -528,7 +510,7 @@ function strategicInsights(summary={},previous={},series=[],content=[],searches=
  return items.map(([title,text])=>`<article><strong>${esc(title)}</strong><p>${esc(text)}</p></article>`).join("");
 }
 async function renderAudience(days=30,customStart=null,customEnd=null){
- setActive("audience-nav","Audiência","audiencia");
+ const ticket = ++audienceRequest;
  loading();
  try{
   const end=customEnd?new Date(`${customEnd}T12:00:00`):new Date();
@@ -547,6 +529,7 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
   ]);
   data.recursos=await resourceNames(await mergeNewsPageViews(data.recursos||[],data.paginas||[]));
   data.resumo={...(data.resumo||{}),noticias:newsStats.total};
+  if (ticket !== audienceRequest) return;
   audienceData={...data,app:appStats,noticias_consolidadas:newsStats};
   const summary=data.resumo||{},previous=data.anterior||{},previousNews=Number(previousNewsStats.total||0);
   const previousUsefulClicks=Number(previous.whatsapp||0)+Number(previous.externos||0)+Number(previous.cliques_conteudo||0);
@@ -614,7 +597,7 @@ async function renderAudience(days=30,customStart=null,customEnd=null){
     ${tabPanel("ads",`<div class="audience-mini-kpis"><article><span>Impressões</span><strong>${fmt(adsImpressions)}</strong></article><article><span>Cliques</span><strong>${fmt(adsClicks)}</strong></article><article><span>CTR médio</span><strong>${adsCtr}</strong></article><article><span>Campanhas</span><strong>${fmt(adsRows.length)}</strong></article></div><section class="panel"><header class="panel-header"><div><h2>Campanhas publicitárias</h2><p>Desempenho dos anúncios internos no período.</p></div></header>${audienceTable(["#","Campanha","Impressões","Cliques","CTR"],adsRows.slice(0,12).map((item,index)=>`<tr><td><span class="audience-position">${index+1}</span></td><td><strong class="audience-ellipsis">${esc(item.nome||"Campanha")}</strong></td><td>${fmt(item.impressoes)}</td><td>${fmt(item.cliques)}</td><td>${item.ctr||0}%</td></tr>`),"Sem campanhas no período.")}</section>`)}
    </div>`;
  }catch(error){
-  app.innerHTML=`<div class="ads-card empty-state"><strong>Não foi possível carregar a audiência</strong><p>${esc(error.message)}</p><p>Confirme se a migração de fluxo editorial e audiência foi executada no Supabase.</p></div>`;
+  app.innerHTML=`<div class="admin-card empty-state"><strong>Não foi possível carregar a audiência</strong><p>${esc(error.message)}</p><p>Confirme se a migração de fluxo editorial e audiência foi executada no Supabase.</p></div>`;
  }
 }
 function exportAudience(){
@@ -682,16 +665,12 @@ async function decorateDashboard(){
  }catch{}
 }
 
-document.addEventListener("click",event=>{
+function onClick(event){
  const button=event.target.closest("button");if(!button)return;
  if(button.hasAttribute("data-chart-bar")){
   document.querySelectorAll("[data-chart-bar].active").forEach(item=>{if(item!==button)item.classList.remove("active")});
   button.classList.toggle("active");return;
  }
- if(button.dataset.newsEdit)currentNewsId=button.dataset.newsEdit;
- if(button.hasAttribute("data-news-new"))currentNewsId=null;
- if(button.id==="editorial-approvals-nav"||button.id==="dashboard-approvals"){event.preventDefault();event.stopImmediatePropagation();renderApprovals();return}
-  if(button.id==="audience-nav"||button.id==="dashboard-audience"){event.preventDefault();event.stopImmediatePropagation();renderAudience();return}
   if(button.dataset.audienceTabButton){
    const tab=button.dataset.audienceTabButton;
    document.querySelectorAll("[data-audience-tab-button]").forEach(item=>{item.classList.toggle("active",item===button);item.setAttribute("aria-selected",item===button?"true":"false")});
@@ -717,36 +696,24 @@ document.addEventListener("click",event=>{
   renderAudience(Number(period));return;
  }
  if(button.id==="audience-export"){exportAudience();return}
-},true);
+}
 
-document.addEventListener("change",event=>{
+function onChange(event){
  if(event.target.id!=="audience-period")return;
  const custom=event.target.value==="custom";
  document.querySelectorAll("[data-custom-date]").forEach(item=>{item.hidden=!custom});
-});
-
-const observer=new MutationObserver(()=>{
- decorateNews();
- decorateNewsForm();
- decorateDashboard();
-});
-observer.observe(app,{childList:true,subtree:true});
-
-function syncEditorialRoute(){
- const approvalNav=document.getElementById("editorial-approvals-nav");
- if(approvalNav)approvalNav.hidden=!canReview();
- const activeView=adminViewFromLocation();
- if(activeView==="aprovacoes"&&canReview())renderApprovals();
- else if(activeView==="audiencia")renderAudience();
- else decorateDashboard();
 }
 
-if(document.readyState==="loading"){
- window.addEventListener("load",syncEditorialRoute,{once:true});
-}else{
- syncEditorialRoute();
+let listeners;
+export async function mount(container, {view}) {
+  listeners = new AbortController();
+  container.addEventListener("click", onClick, {signal: listeners.signal});
+  container.addEventListener("change", onChange, {signal: listeners.signal});
+  await (view === "audiencia" ? renderAudience() : renderApprovals());
 }
-
-window.addEventListener("popstate",syncEditorialRoute);
-
-
+export function unmount() {
+  listeners?.abort();
+  audienceRequest++;
+  audienceData=null;
+}
+export { sendForApproval };

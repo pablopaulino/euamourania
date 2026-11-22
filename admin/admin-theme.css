@@ -1,0 +1,67 @@
+:root {
+  color-scheme: light;
+  --admin-font: Inter, system-ui, sans-serif;
+  --cms-blue: #164b5d;
+  --cms-blue-soft: #e8f3f6;
+  --cms-radius: 16px;
+  --cms-shadow: var(--admin-shadow-sm);
+  --cms-success: var(--admin-success);
+  --cms-danger: var(--admin-danger);
+  --cms-ink: #172027;
+  --cms-muted: #53636c;
+  --cms-line: #dce2e5;
+  --cms-navy: #13323d;
+  --cms-surface: #fff;
+  --cms-soft: #f6f8f9;
+  --admin-bg: #f5f5f7;
+  --admin-bg-elevated: #fbfbfd;
+  --admin-surface: rgba(255, 255, 255, .86);
+  --admin-surface-solid: #ffffff;
+  --admin-surface-secondary: #f2f3f5;
+  --admin-surface-hover: #eceef1;
+  --admin-border: rgba(17, 24, 39, .095);
+  --admin-divider: rgba(17, 24, 39, .075);
+  --admin-text: #111827;
+  --admin-text-secondary: #4b5563;
+  --admin-text-muted: #8a94a3;
+  --admin-accent: #f26722;
+  --admin-accent-strong: #e84a1a;
+  --admin-accent-soft: rgba(242, 103, 34, .12);
+  --admin-success: #178a55;
+  --admin-warning: #b7791f;
+  --admin-danger: #c2412f;
+  --admin-radius-sm: 10px;
+  --admin-radius-md: 14px;
+  --admin-radius-lg: 20px;
+  --admin-radius-xl: 28px;
+  --admin-shadow-sm: 0 1px 2px rgba(15, 23, 42, .04), 0 1px 1px rgba(15, 23, 42, .03);
+  --admin-shadow-md: 0 18px 46px rgba(15, 23, 42, .08);
+  --admin-shadow-lg: 0 30px 80px rgba(15, 23, 42, .12);
+  --admin-space-1: .25rem;
+  --admin-space-2: .5rem;
+  --admin-space-3: .75rem;
+  --admin-space-4: 1rem;
+  --admin-space-5: 1.25rem;
+  --admin-space-6: 1.5rem;
+  --admin-space-8: 2rem;
+  --navy: #13323d;
+  --blue: #164b5d;
+  --yellow: #f26722;
+  --bg: var(--admin-bg);
+  --ink: var(--admin-text);
+  --muted: var(--admin-text-secondary);
+  --line: var(--admin-border);
+  --radius: var(--admin-radius-lg);
+  --shadow: var(--admin-shadow-md);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--admin-text); background: var(--admin-bg); font: 15px/1.5 var(--admin-font); }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .56; cursor: default; }
+[hidden], .hidden { display: none !important; }
+:focus-visible { outline: 3px solid var(--admin-accent); outline-offset: 2px; }
+.admin-module-icon { display: inline-flex; flex: none; }
+.admin-module-icon svg { width: 20px; height: 20px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }

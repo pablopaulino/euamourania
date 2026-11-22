@@ -14,7 +14,7 @@ const migration = read("supabase/migrations/20260713_app_melhores_urania.sql");
 const rollback = read("supabase/rollbacks/20260713_app_melhores_urania_rollback.sql");
 const service = read("assets/js/services/melhoresService.js");
 const admin = read("admin/melhores.js");
-const html = read("admin/melhores.html");
+const html = read("admin/melhores.js");
 const docs = read("DOCS/MELHORES-DE-URANIA-APP.md");
 
 for (const table of ["app_melhores_campanhas", "app_melhores_vencedores"]) {

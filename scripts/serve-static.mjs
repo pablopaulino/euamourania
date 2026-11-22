@@ -17,10 +17,13 @@ const types = {
   ".svg": "image/svg+xml"
 };
 
+const config = JSON.parse(await readFile(join(root, "vercel.json"), "utf8"));
+const shellPaths = new Set(config.rewrites.filter(rule => rule.destination === "/admin/index.html").map(rule => rule.source));
+
 createServer(async (request, response) => {
   try {
     const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
-    const relative = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
+    const relative = shellPaths.has(pathname) ? "admin/index.html" : pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
     let file = normalize(join(root, relative));
     if (!file.startsWith(normalize(root))) throw new Error("invalid path");
     if ((await stat(file)).isDirectory()) file = join(file, "index.html");
