@@ -17,11 +17,11 @@ select nome, confiabilidade, escopo, ativa from public.editorial_fontes order by
 select ativa, limite_pautas, limite_materias from public.editorial_configuracao where id=1;
 ```
 
-No Google AI Studio, confira o projeto da chave, o acesso a `gemini-2.5-flash-lite`, a faixa Free e a ausência de faturamento vinculado. Na Vercel, configure no ambiente correspondente:
+No Google AI Studio, confira o projeto da chave, o acesso ao modelo escolhido, a faixa Free e a ausência de faturamento vinculado. Na Vercel, configure no ambiente correspondente:
 
 | Variável | Valor ou finalidade |
 | --- | --- |
-| `GEMINI_MODEL` | `gemini-2.5-flash-lite` |
+| `GEMINI_MODEL` | `gemini-3.5-flash-lite` no Preview, com descoberta por sites e RSS |
 | `GEMINI_API_KEY` | Chave do projeto gratuito, somente no servidor |
 | `GEMINI_FREE_TIER_CONFIRMED` | `true` após conferir o faturamento do projeto da chave |
 | `SUPABASE_URL` | URL do banco correspondente ao ambiente |
@@ -29,11 +29,11 @@ No Google AI Studio, confira o projeto da chave, o acesso a `gemini-2.5-flash-li
 | `SUPABASE_SERVICE_ROLE_KEY` | Credencial exclusiva do servidor |
 | `CRON_SECRET` | Segredo usado pela Vercel no agendamento de produção |
 
-A trava depende da conferência do projeto da chave pelo administrador. A execução usa uma busca e no máximo duas redações. As cotas efetivas podem limitar a disponibilidade. O modelo Standard lista pesquisa com Google na faixa gratuita. [Preços do Gemini](https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash-lite)
+A trava depende da conferência do projeto da chave pelo administrador. Com o modelo 3.5, a execução usa apenas sites/RSS para descoberta e até duas chamadas de redação. As cotas efetivas podem limitar a disponibilidade. A busca integrada do 3.5 exige plano pago e fica desabilitada. [Preços do Gemini](https://ai.google.dev/gemini-api/docs/pricing#gemini-3.5-flash-lite)
 
 ## Descoberta e revisão
 
-A pesquisa do Gemini e as consultas a até 20 fontes cadastradas começam em paralelo. Da pesquisa entram apenas referências presentes em `groundingMetadata.groundingChunks[].web.uri`. O leitor consulta até 30 URLs, com cinco segundos por recurso, respeita robots.txt e valida o destino das referências do Google. Para o RSS, a data do item complementa a página quando ela não informa uma data válida.
+A rotina consulta até 20 fontes cadastradas em paralelo. Só o modo legado 2.5, para projetos com acesso, também usa pesquisa do Gemini. Da pesquisa entram apenas referências presentes em `groundingMetadata.groundingChunks[].web.uri`. O leitor consulta até 30 URLs, com cinco segundos por recurso, respeita robots.txt e valida o destino das referências do Google. Para o RSS, a data do item complementa a página quando ela não informa uma data válida.
 
 A triagem compara título e URL com o acervo publicado e com as pautas dos últimos sete dias. Um comunicado de domínio cadastrado e marcado como Oficial pode gerar rascunho sozinho, com atribuição e revisão reforçada. Uma pauta de portal exige páginas sobre o mesmo fato em dois domínios distintos. A classificação geográfica considera o título e o texto lido. O editor confirma a abrangência e o impacto local antes de publicar.
 

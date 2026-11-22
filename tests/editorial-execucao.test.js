@@ -18,6 +18,11 @@ test('conecta leitura, comparação, geração e RPC de rascunho',async()=>{
   const saved=t.calls.find(x=>x.path.includes('criar_rascunho'));assert.equal(saved.body.p_dados.fontes.length,2);assert.equal(saved.body.p_dados.conteudo_html,'<p>Matéria</p>');
   assert.equal(t.calls.at(-1).body.estado,'concluida');assert.equal(t.calls.some(x=>x.path.startsWith('noticias?')&&x.method==='PATCH'),false);
 });
+test('3.5 usa as fontes cadastradas e reserva a API para redação',async()=>{
+  const t=setup();
+  const result=await executar({...t,model:'gemini-3.5-flash-lite',search:()=>assert.fail('Grounding pago')});
+  assert.equal(result.criados,1);
+});
 test('pauta existente impede geração e salvamento',async()=>{
   const t=setup({news:[{titulo:'Prefeitura anuncia reforma da praça central em Urânia'}]}),result=await executar(t);assert.equal(result.criados,0);assert.equal(t.calls.some(x=>x.path.includes('criar_rascunho')),false);assert.equal(t.calls.at(-1).body.estado,'sem_pautas');
 });
