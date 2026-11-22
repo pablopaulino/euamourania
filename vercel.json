@@ -1,10 +1,12 @@
 {
   "functions": {
+    "api/admin-users.js": { "maxDuration": 120 },
     "api/noticia.js": {
       "includeFiles": "{preview/**/*,news/index.html,guia.html,turismo.html,melhores-de-urania/**/*.html,eventos/**/*.html}"
     }
   },
   "crons": [
+    { "path": "/api/automacao-editorial", "schedule": "0 12 * * *" },
     {
       "path": "/api/melhores-votar?cron=limpeza",
       "schedule": "17 6 * * *"
@@ -145,6 +147,7 @@
     { "src": "^/eventos/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=agenda-list" }
   ],
   "rewrites": [
+    { "source": "/api/automacao-editorial", "destination": "/api/admin-users?operacao=automacao-editorial" },
     { "source": "/divulgacao", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/divulgacao.html" },
     { "source": "/parceiro/divulgacao", "destination": "/parceiro/divulgacao.html" },
     { "source": "/plano", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/plano.html" },
