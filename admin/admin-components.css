@@ -1,4 +1,4 @@
-#app-content { min-width: 0; }
+#app-content { min-width: 0; padding: var(--admin-gutter); }
 .admin-card, .admin-panel, .panel, .metric-card { background: var(--admin-surface-solid); border: 1px solid var(--line); border-radius: var(--admin-radius-lg); padding: clamp(14px,2vw,24px); box-shadow: var(--admin-shadow-sm); }
 .admin-panel h2, .admin-card h3, .panel-header h2 { margin-top: 0; }
 .admin-button, .row-actions button, .cms-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border: 1px solid transparent; border-radius: var(--admin-radius-sm); background: var(--navy); color: white; text-decoration: none; font-weight: 650; }
@@ -10,7 +10,7 @@
 .admin-metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 12px; }
 .table-wrap { overflow-x: auto; }
 table, .admin-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 10px; border-bottom: 1px solid var(--line); text-align: left; }
+th, td { padding: 12px 16px; border-bottom: 1px solid var(--line); text-align: left; }
 th { font-size: .82rem; color: var(--muted); }
 .status-pill { display: inline-block; border-radius: 999px; padding: 3px 9px; background: var(--admin-surface-secondary); font-size: .8rem; font-weight: 600; }
 .status-pill:is(.ativo,.publicado) { color: #11613a; background: #e4f4e9; }
@@ -38,3 +38,60 @@ dialog::backdrop { background: #15283266; }
 .admin-table th[aria-sort=descending] button::after { content: " ↓"; }
 .admin-pagination { display: flex; justify-content: flex-end; gap: 12px; align-items: center; margin-top: 12px; }
 .admin-tabs a:focus-visible, .admin-nav button:focus-visible { outline-offset: -3px; }
+
+#app-content :is(.admin-card, .admin-panel, .panel, .metric-card, .ops-kpi, .audience-kpi,
+  .ops-hero, .ops-attention, .awards-hero, .awards-dashboard-hero, .push-card,
+  .monthly-newsletter-card, .news-editor-intro, .cms-gallery-field, .subscription-card,
+  .request-card, .initiatives-dashboard-hero, .news-admin-metrics article, .news-editor-side-card,
+  .news-editor-preview-card, .audience-content-card, .awards-card, .awards-form-card, .drivers-list-card,
+  .initiatives-card, .initiatives-editor-card, .lost-card, .migration-card, .ops-ecosystem-card,
+  .ops-health-card, .placement-card, .submissions-card, .table-card, .viva-card,
+  .viva-editor-card, .viva-side-card, .viva-metric-card, .advantages-kpi, .dashboard-kpi) {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-sm);
+}
+#app-content :is(.metric-card, .ops-kpi, .audience-kpi, .advantages-kpi, .dashboard-kpi, .viva-metric-card, .news-admin-metrics article) {
+  min-height: 112px;
+  padding: 16px;
+}
+#app-content :is(.metric-card, .ops-kpi, .audience-kpi) > span {
+  color: var(--admin-text-secondary);
+  background: transparent;
+}
+#app-content :is(.metric-card, .ops-kpi, .audience-kpi) > strong {
+  color: var(--admin-text-main);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+}
+.admin-shell :is(.admin-button, .btn-primary):not(.secondary, .danger, .ghost),
+.login-card button[type=submit] {
+  background: var(--admin-accent);
+  color: var(--admin-text-main);
+  border-radius: var(--admin-radius-sm);
+}
+#app-content :is(th, td) { padding: 12px 16px; border-bottom: 1px solid var(--admin-border); }
+#app-content th { color: var(--admin-text-secondary); font-size: .75rem; text-transform: uppercase; font-weight: 600; }
+#app-content tbody tr:hover { background: #f9fafb; }
+#app-content :is(input:not([type]),input[type=text],input[type=email],input[type=url],input[type=search],input[type=number],input[type=date],input[type=tel],select,textarea) {
+  min-height: 40px;
+  border: 1px solid #d1d5db;
+  border-radius: var(--admin-radius-sm);
+  background-color: var(--admin-surface);
+  color: var(--admin-text-main);
+}
+.admin-shell :is(input, textarea, select, button, a):focus-visible { outline: 2px solid var(--admin-accent); outline-offset: 2px; }
+#app-content :is(.admin-tabs, .awards-tabs, .ads-tabs, .audience-tabs, .submissions-tabs) > :is(button, a) {
+  border: 0;
+  border-radius: var(--admin-radius-sm);
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--admin-text-secondary);
+  font-weight: 600;
+}
+#app-content :is(.admin-tabs, .awards-tabs, .ads-tabs, .audience-tabs, .submissions-tabs) > :is(.active,[aria-selected=true],[aria-current=page]) {
+  background: var(--admin-accent-soft);
+  color: var(--admin-text-main);
+}
+.status-pill:is(.pendente,.rascunho) { color: #754d0e; background: #fff4d8; }
+.status-pill.inativo { color: var(--admin-text-secondary); background: var(--admin-surface-secondary); }

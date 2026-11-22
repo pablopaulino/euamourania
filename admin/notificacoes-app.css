@@ -42,7 +42,7 @@
 }
 
 .push-card {
-  background: linear-gradient(180deg, #fff 0%, #fbfdfe 100%);
+  background: var(--admin-surface);
   border: 1px solid var(--ad-line);
   border-radius: 22px;
   padding: 22px;
@@ -52,14 +52,6 @@
 .push-composer-card {
   position: relative;
   overflow: hidden;
-}
-
-.push-composer-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 5px;
-  background: linear-gradient(90deg, var(--push-blue), #8fd5e5, var(--push-gold));
 }
 
 .push-form-heading,
@@ -228,9 +220,7 @@
 .phone-preview {
   border-radius: 24px;
   padding: 16px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(143, 213, 229, 0.35), transparent 34%),
-    linear-gradient(145deg, #071317 0%, #102a31 100%);
+  background: #252a32;
   color: #fff;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 14px 30px rgba(5, 28, 36, 0.16);
 }

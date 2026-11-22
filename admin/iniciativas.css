@@ -35,9 +35,7 @@
   padding: 18px;
   border: 1px solid var(--initiative-line);
   border-radius: 20px;
-  background:
-    radial-gradient(circle at 92% 0%, rgba(255, 210, 74, .26), transparent 38%),
-    #fff;
+  background: var(--admin-surface);
   box-shadow: 0 18px 46px rgba(7, 63, 80, .06);
 }
 
@@ -135,7 +133,7 @@
 .initiative-list-item:focus-visible,
 .initiative-list-item.active {
   border-color: rgba(255, 210, 74, .8);
-  background: linear-gradient(135deg, #fffdf6, #f6fcfd);
+  background: var(--admin-accent-soft);
   outline: none;
   transform: translateY(-1px);
 }
@@ -146,7 +144,7 @@
   height: 48px;
   border-radius: 14px;
   object-fit: cover;
-  background: linear-gradient(135deg, #eaf6f8, #fff7dc);
+  background: var(--admin-surface-secondary);
 }
 
 .initiative-list-placeholder {
@@ -201,9 +199,7 @@
   padding: 22px;
   border: 1px solid var(--initiative-line);
   border-radius: 20px;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(255, 210, 74, .26), transparent 32%),
-    linear-gradient(135deg, #f7fdfe, #fffdf8);
+  background: var(--admin-surface);
 }
 
 .initiatives-dashboard-hero h3 {
@@ -352,9 +348,7 @@
   gap: 18px;
   padding: 20px;
   border-radius: 20px;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(255, 210, 74, .28), transparent 34%),
-    linear-gradient(135deg, #f7fdfe, #fffdf8);
+  background: var(--admin-surface);
   border: 1px solid var(--initiative-line);
 }
 
@@ -498,7 +492,7 @@
   padding: 12px;
   border: 1px dashed rgba(7, 63, 80, .18);
   border-radius: 16px;
-  background: #f8fbfc;
+  background: var(--admin-surface-secondary);
 }
 
 .initiative-image-field .cms-media-actions {
