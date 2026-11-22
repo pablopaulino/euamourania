@@ -31,6 +31,16 @@ test('prioriza matérias da capa sobre atalhos de serviço',()=>{
   const html='<a href="/servicos/">Urânia</a><a href="/2026/11/21/noticia/">Notícia</a>';
   assert.deepEqual(linksPagina(html,new URL('https://exemplo.org/'),1),['https://exemplo.org/2026/11/21/noticia/']);
 });
+test('edital da banca usa o título municipal e a data do ato de abertura',async()=>{
+  const body='<p><u>Concurso Público 002/2026</u><br>Prefeitura de Urânia</p>'+
+    '<small>21/11/2026</small></div><div><p>Início das inscrições</p></div>'+
+    '<small>17/11/2026</small></div><div><p>A Prefeitura torna pública a abertura de inscrições. '+
+    'Texto do edital municipal. '.repeat(35)+'</p></div>';
+  const request=async url=>url.endsWith('/robots.txt')?{status:404}:{status:200,type:'text/html',body};
+  const page=await lerPagina('https://portal.cepasf.com.br/edital/ver/23',{request});
+  assert.equal(page.titulo,'Concurso Público 002/2026 — Prefeitura de Urânia');
+  assert.equal(page.publicado_em,'2026-11-17T03:00:00.000Z');
+});
 test('extrai comunicado municipal com entidades e separa notícias relacionadas',async()=>{
   const html='<main><header><h1>Concurso em Ur&#194;nia</h1><time datetime="2026-11-18">18/11/2026</time></header>'+
     '<p>'+('Inscri&ccedil;&otilde;es municipais. '.repeat(50))+'</p><article class="conteudo-relacionado no-print">Outra pauta</article></main>';

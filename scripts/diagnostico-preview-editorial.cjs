@@ -1,18 +1,21 @@
-const {lerRecurso,linksPagina}=require("../lib/editorial-fontes");
+const {executar}=require("../lib/editorial-execucao");
 (async()=>{
-  const key=process.env.GEMINI_API_KEY;
-  if(!key || process.env.GEMINI_FREE_TIER_CONFIRMED!=="true" || process.env.GEMINI_MODEL!=="gemini-2.5-flash-lite")return;
-  for(const version of ["v1","v1beta"]){
-    const model="gemini-2.5-flash-lite",base="https://generativelanguage.googleapis.com/"+version+"/models/"+model;
-    const h={"x-goog-api-key":key,"content-type":"application/json"};
-    for(const method of ["GET","POST"]){
-      const r=await fetch(base+(method==="POST"?":generateContent":""),{method,headers:h,body:method==="POST"?JSON.stringify({contents:[{parts:[{text:"Responda OK."}]}]}):undefined,signal:AbortSignal.timeout(12000)});
-      const j=await r.json();
-      const why=(j.error?.message||"").replaceAll(key,"[redigido]").replace(/[A-Za-z0-9_-]{32,}/g,"[redigido]").slice(0,300);
-      console.log("EDITORIAL modelo",version,method,r.status,why);
-    }
-  }
-  for(const url of ["https://urania.sp.gov.br/","https://www.urania.sp.gov.br/noticias","https://cmurania.sp.gov.br/feed/","https://dosp.com.br/diario/sp/urania/","https://imprensaoficialmunicipal.com.br/listaatos.php?c=Ur%C3%A2nia&s=Decretos","https://mural17.com.br/cidade/urania/"]){
-    try{const r=await lerRecurso(url,{signal:AbortSignal.timeout(5000)});console.log("EDITORIAL fonte",url,r.type,linksPagina(r.body,r.u,3).map(u=>new URL(u).pathname));}catch(e){console.log("EDITORIAL fonte",url,e.message)}
-  }
-})().catch(e=>console.log("EDITORIAL erro",e.name));
+ if(process.env.GEMINI_FREE_TIER_CONFIRMED!=="true")throw Error("Confirmação do plano ausente");
+ const fontes=[
+   {nome:"Mural 17",url:"https://mural17.com.br/cidade/urania/",tipo:"site",escopo:"local",confiabilidade:"portal"},
+   {nome:"CEPAS F",url:"https://portal.cepasf.com.br/edital/index/abertos",tipo:"site",escopo:"local",confiabilidade:"portal"}
+ ];
+ const db=async(path,options={})=>{
+   if(path==="rpc/editorial_iniciar_execucao")return "teste-em-memoria";
+   if(path.startsWith("editorial_fontes?"))return fontes;
+   if(path.startsWith("editorial_configuracao?"))return [{limite_pautas:5,limite_materias:1}];
+   if(path==="editorial_pautas")console.log("EDITORIAL triagem",options.body.map(p=>[p.titulo,p.relevancia]));
+   if(path==="rpc/editorial_criar_rascunho_v2"){
+     const draft=options.body.p_dados;
+     console.log("EDITORIAL texto validado",draft.titulo,draft.categoria,draft.fontes.map(f=>new URL(f.url).hostname),draft.texto.length);
+   }
+   return [];
+ };
+ const r=await executar({db,apiKey:process.env.GEMINI_API_KEY,model:"gemini-3.5-flash-lite",freeTierConfirmed:true});
+ console.log("EDITORIAL resultado",r.resumo);
+})().catch(e=>console.log("EDITORIAL falha",e.message));
