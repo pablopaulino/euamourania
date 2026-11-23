@@ -96,6 +96,17 @@ try {
     await page.locator(ready).first().waitFor();
     assert.equal(await nav.locator(".active").count(),1);
   }
+  const eventReads = () => queries.filter(([,path]) => path.endsWith("/analytics_eventos")).length;
+  const initialEventReads = eventReads();
+  for (const days of [14, 30, 7]) {
+    const period = page.locator(`[data-period="${days}"]`);
+    await period.click();
+    assert.equal(await period.getAttribute("aria-pressed"), "true");
+    assert.equal(await page.locator(".cock-point").count(), days);
+  }
+  await page.locator(".cock-point").first().focus();
+  assert.equal(await page.locator(".cock-point:focus").count(), 1);
+  assert.equal(eventReads(), initialEventReads);
   const afterDashboard = reads();
   await nav.locator('[data-view="noticias"]').click();
   await news.waitFor();

@@ -1,3 +1,4 @@
+import { audienceChart, sparkline } from "./dashboard-chart.js";
 import { bindResourceTable } from "./table.js";
 import { allowedSections } from "./navigation.js";
 import { adminApiFetch, invalidateAdminData, revision, setReadSignal, ttl } from "./data-cache.js";
@@ -473,391 +474,162 @@ function handleWeeklyHoursChange(event){
 async function dashboard() {
   activeModuleKey = "dashboard";
   app.dataset.layout = "dashboard";
-  setShellTitle("Visão geral", getAdminModule("dashboard").description, { moduleKey: "dashboard" });
-  app.innerHTML = '<div class="loading">Carregando central de operação...</div>';
-  const supabase = getSupabase();
-  const now = new Date();
-  const isoNow = now.toISOString();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-  const todayStartIso = todayStart.toISOString();
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const nextSevenDays = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-  const hour = now.getHours();
-  const saudacao = hour < 12 ?"Bom dia" : hour < 18 ?"Boa tarde" : "Boa noite";
-  const rawName = painelAccess?.admin?.nome || painelAccess?.user?.user_metadata?.name || "";
-  const firstNameCandidate = String(rawName).split(/\s|@/).filter(Boolean)[0] || "";
-  const firstName = ["eu", "admin", "usuario", "usuário"].includes(firstNameCandidate.toLowerCase()) ? "" : firstNameCandidate;
-  const fmtDate = value => value ?new Date(value).toLocaleDateString("pt-BR") : "sem data";
-  const fmtNumber = value => Number(value || 0).toLocaleString("pt-BR");
-  const pct = (part, total) => total ?`${Math.round((Number(part || 0) / Number(total || 1)) * 100)}%` : "0%";
-  const applyFilter = (query, field, value) => {
-    if (value && typeof value === "object" && "op" in value) return query[value.op](field, value.value);
-    return query.eq(field, value);
-  };
-  const count = async (table, filters = {}) => {
-    let query = supabase.from(table).select("*", { count: "exact", head: true });
-    Object.entries(filters).forEach(([field, value]) => { query = applyFilter(query, field, value); });
-    const { count: total, error } = await query;
-    if (error) throw error;
-    return total || 0;
-  };
-  const safeCount = async (table, filters = {}) => {
-    try { return await count(table, filters); } catch { return 0; }
-  };
-  const safeList = async builder => {
+  setShellTitle("Visão geral", "Operação e resultados do portal", {moduleKey:"dashboard"});
+  const root = document.createElement("section");
+  root.className = "ops-dashboard cockpit";
+  root.textContent = "Carregando indicadores…";
+  app.replaceChildren(root);
+  const db = getSupabase(), now = new Date(), iso = now.toISOString();
+  const zone = "America/Sao_Paulo", dayMs = 86400000;
+  const dateKey = new Intl.DateTimeFormat("sv-SE",{timeZone:zone});
+  const today = dateKey.format(now);
+  const day = offset => new Date(Date.parse(today+"T12:00:00Z")+offset*dayMs).toISOString().slice(0,10);
+  const since = day(-59)+"T00:00:00-03:00";
+  const week = day(-6)+"T00:00:00-03:00";
+  const queriesFailed = new Set();
+  async function safeList(table, build, paged=false) {
     try {
-      const { data, error } = await builder();
-      if (error) throw error;
-      return data || [];
-    } catch {
-      return [];
-    }
-  };
-  const rank = (rows, key, limit = 5) => Object.entries(rows.reduce((acc, item) => {
-    const label = item?.[key] || "Não informado";
-    acc[label] = (acc[label] || 0) + 1;
-    return acc;
-  }, {})).sort((a, b) => b[1] - a[1]).slice(0, limit).map(([label, total]) => ({ label, total }));
-  const listRows = rows => rows.length ?rows.map(item => `<article class="dashboard-list-row"><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail || "")}</small></div>${item.badge ?`<span class="status-pill ${escapeHtml(item.badgeClass || "")}">${escapeHtml(item.badge)}</span>` : ""}</article>`).join("") : '<div class="empty-state">Nenhum registro no momento.</div>';
-
-  try {
-    const [
-      noticias, publicadas, rascunhos, agendadas, emRevisao,
-      empresas, empresasAtivas, pontos, pontosAtivos, eventos, eventosAtivos, eventosProximos, eventosPrincipais, eventosEdicoes,
-      links, campanhas, campanhasAtivas, campanhasVencendo, assinantes, melhoresEdicoes, melhoresIndicados,
-      aprovacoes, colaboradores, colaboradoresNovos, categorias, usuariosAtivos, viewsHoje, views7d, views30d, whatsapp7d, external7d,
-      eventSubmissionsPending, businessSubmissionsPending
-    ] = await Promise.all([
-      safeCount("noticias"),
-      safeCount("noticias", { status: "publicado" }),
-      safeCount("noticias", { status: "rascunho" }),
-      safeCount("noticias", { status: "publicado", publicado_em: { op: "gt", value: isoNow } }),
-      safeCount("noticias", { status_editorial: "em_revisao" }),
-      safeCount("guia_comercial"),
-      safeCount("guia_comercial", { status: "publicado" }),
-      safeCount("turismo"),
-      safeCount("turismo", { status: "publicado" }),
-      safeCount("eventos"),
-      safeCount("eventos", { status: "publicado" }),
-      safeCount("eventos", { status: "publicado", data_inicio: { op: "gte", value: isoNow } }),
-      safeCount("eventos_principais", { ativo: true }),
-      safeCount("eventos_edicoes"),
-      safeCount("links", { status: "ativo" }),
-      safeCount("campanhas_publicitarias"),
-      safeCount("campanhas_publicitarias", { status: "ativo" }),
-      safeCount("campanhas_publicitarias", { status: "ativo", data_fim: { op: "lte", value: nextSevenDays } }),
-      safeCount("newsletter_assinantes", { status: "ativo" }),
-      safeCount("melhores_edicoes", { status: { op: "neq", value: "arquivada" } }),
-      safeCount("melhores_indicados", { status: "ativo" }),
-      safeCount("solicitacoes_aprovacao", { status: "pendente" }),
-      safeCount("colaboradores_voluntarios"),
-      safeCount("colaboradores_voluntarios", { status: "novo" }),
-      safeCount("categorias", { status: "ativo" }),
-      safeCount("usuarios_admin", { ativo: true }),
-      safeCount("analytics_eventos", { criado_em: { op: "gte", value: todayStartIso } }),
-      safeCount("analytics_eventos", { criado_em: { op: "gte", value: sevenDaysAgo } }),
-      safeCount("analytics_eventos", { criado_em: { op: "gte", value: thirtyDaysAgo } }),
-      safeCount("analytics_eventos", { tipo: "whatsapp_click", criado_em: { op: "gte", value: sevenDaysAgo } }),
-      safeCount("analytics_eventos", { tipo: "external_click", criado_em: { op: "gte", value: sevenDaysAgo } }),
-      safeCount("event_submissions", { status: "pending" }),
-      safeCount("business_submissions", { status: "pending" })
-    ]);
-
-    const [recentNews, scheduledNews, pendingApprovals, recentEditions, recentActivities, analyticsEvents, upcomingEvents, endingCampaigns, recentCollaborators, recentMainEvents, recentEventEditions] = await Promise.all([
-      safeList(() => supabase.from("noticias").select("titulo,categoria_nome,autor,status,status_editorial,publicado_em,atualizado_em").order("atualizado_em", { ascending: false }).limit(6)),
-      safeList(() => supabase.from("noticias").select("titulo,status,publicado_em").eq("status", "publicado").gt("publicado_em", isoNow).order("publicado_em", { ascending: true }).limit(4)),
-      safeList(() => supabase.from("solicitacoes_aprovacao").select("id,status,enviado_em,noticias(titulo,status,status_editorial)").eq("status", "pendente").order("enviado_em", { ascending: false }).limit(5)),
-      safeList(() => supabase.from("melhores_edicoes").select("nome,ano,status,atualizado_em").neq("status", "arquivada").order("ano", { ascending: false }).limit(4)),
-      safeList(() => supabase.from("cms_atividades").select("titulo,acao,tabela,criado_em").order("criado_em", { ascending: false }).limit(6)),
-      safeList(() => supabase.from("analytics_eventos").select("tipo,pagina,dispositivo,origem,sessao_hash,criado_em").gte("criado_em", sevenDaysAgo).order("criado_em", { ascending: false }).limit(900)),
-      safeList(() => supabase.from("eventos").select("titulo,status,data_inicio,local").eq("status", "publicado").gte("data_inicio", isoNow).order("data_inicio", { ascending: true }).limit(5)),
-      safeList(() => supabase.from("campanhas_publicitarias").select("nome,status,data_fim,empresa_anunciante").eq("status", "ativo").lte("data_fim", nextSevenDays).order("data_fim", { ascending: true }).limit(5)),
-      safeList(() => supabase.from("colaboradores_voluntarios").select("nome,cidade,status,interesses,criado_em").order("criado_em", { ascending: false }).limit(5)),
-      safeList(() => supabase.from("eventos_principais").select("nome,categoria,ativo,atualizado_em").eq("ativo", true).order("atualizado_em", { ascending: false }).limit(4)),
-      safeList(() => supabase.from("eventos_edicoes").select("titulo,ano,status,data_inicio,atualizado_em,eventos_principais(nome)").order("ano", { ascending: false }).limit(4))
-    ]);
-    const businessQualityRows = await safeList(() => supabase
-      .from("guia_comercial")
-      .select("*")
-      .neq("status", "arquivado")
-      .limit(1000));
-    const guideQuality = summarizeBusinessQuality(businessQualityRows);
-
-    const uniqueVisitors = new Set(analyticsEvents.map(item => item.sessao_hash).filter(Boolean)).size;
-    const topPages = rank(analyticsEvents, "pagina", 6);
-    const topDevices = rank(analyticsEvents, "dispositivo", 4);
-    const topOrigins = rank(analyticsEvents, "origem", 4);
-    const importantAlerts = [
-      aprovacoes ?[`${aprovacoes} notícia(s) aguardando aprovação`, "Abrir aprovações", "aprovacoes", "warning"] : null,
-      colaboradoresNovos ?[`${colaboradoresNovos} colaborador(es) voluntário(s) aguardando contato`, "Ver colaborações", "colaboradores_voluntarios", "info"] : null,
-      eventSubmissionsPending ?[`${eventSubmissionsPending} sugestão(ões) de evento aguardando análise`, "Ver agenda", "eventos", "info"] : null,
-      businessSubmissionsPending ?[`${businessSubmissionsPending} cadastro(s) do guia aguardando análise`, "Ver guia", "guia_comercial", "info"] : null,
-      emRevisao ?[`${emRevisao} notícia(s) em revisão editorial`, "Ver notícias", "noticias", "info"] : null,
-      rascunhos ?[`${rascunhos} rascunho(s) parado(s) no editorial`, "Organizar pauta", "noticias", "warning"] : null,
-      agendadas ?[`${agendadas} notícia(s) agendada(s) para o futuro`, "Conferir agenda", "noticias", "info"] : null,
-      campanhasVencendo ?[`${campanhasVencendo} campanha(s) vencendo em até 7 dias`, "Abrir publicidade", "publicidade", "danger"] : null,
-      campanhasAtivas ?null : ["Nenhuma campanha publicitária ativa", "Criar campanha", "publicidade", "warning"],
-      eventosProximos ?[`${eventosProximos} evento(s) futuro(s) publicado(s)`, "Ver agenda", "eventos", "success"] : null,
-      eventosPrincipais && !eventosEdicoes ?["Eventos principais sem edições cadastradas", "Abrir edições", "eventos_edicoes", "warning"] : null,
-      melhoresEdicoes ?null : ["Nenhuma edição ativa do Melhores", "Abrir Melhores", "melhores", "warning"]
-    ].filter(Boolean);
-    const attentionTotal = importantAlerts.reduce((sum, item) => sum + Math.max(1, Number(String(item[0]).match(/^\d+/)?.[0] || 1)), 0);
-    const portalScore = Math.max(0, 100 - (aprovacoes * 8) - (rascunhos * 3) - (campanhasVencendo * 6) - (colaboradoresNovos * 4) - (eventSubmissionsPending * 3) - (businessSubmissionsPending * 3) - (campanhasAtivas ?0 : 10));
-    const targetAttrs = target => `data-view="${escapeHtml(target)}"`;
-    const primaryMetrics = [
-      ["Saúde", `${portalScore}%`, "saúde da operação", importantAlerts.length ?`${importantAlerts.length} área(s) pedindo atenção` : "Rotina sem alerta importante"],
-      ["Hoje", fmtNumber(viewsHoje), "interações registradas", "Fonte: analytics_eventos"],
-      ["7 dias", fmtNumber(views7d), "movimento recente", `${fmtNumber(uniqueVisitors)} visitante(s) identificáveis`],
-      ["Editorial", fmtNumber(publicadas), "notícias publicadas", `${rascunhos} rascunho(s) · ${agendadas} agendada(s)`],
-      ["Atenção", fmtNumber(attentionTotal), "itens acionáveis", importantAlerts.length ?"Veja a fila principal abaixo" : "Rotina sem alerta importante"]
-    ];
-    const ecosystemCards = [
-      ["Portal editorial", `${publicadas} notícias`, `${aprovacoes} aprovação(ões) · ${agendadas} agendada(s)`, "noticias"],
-      ["Viva Urânia", `${empresasAtivas} empresas · ${pontosAtivos} atrativos`, `${eventosAtivos} evento(s) simples publicado(s)`, "guia_comercial"],
-      ["Publicidade", `${campanhasAtivas} campanhas ativas`, `${campanhasVencendo} vencendo em até 7 dias`, "publicidade"],
-      ["Comunicação", `${assinantes} assinantes`, `${colaboradoresNovos} colaborador(es) novo(s)`, "comunicacao"],
-      ["Verificação", "Guia 100d · Turismo 180d", "Rotina de revisão dos cadastros publicados", "turismo_verificacao"],
-      ["Melhores", `${melhoresEdicoes} edição(ões)`, `${melhoresIndicados} indicado(s) ativos`, "melhores"]
-    ];
-    const qualityCards = [
-      ["missing_hours", "Sem horário", guideQuality.missingHours, "Horário estruturado ausente ou incompleto"],
-      ["missing_address", "Sem endereço", guideQuality.missingAddress, "Endereço não informado"],
-      ["missing_whatsapp", "Sem WhatsApp", guideQuality.missingWhatsapp, "Contato direto incompleto"],
-      ["missing_image", "Sem imagem", guideQuality.missingImage, "Imagem principal ausente"],
-      ["missing_category", "Sem categoria", guideQuality.missingCategory, "Categoria não informada"],
-      ["missing_description", "Sem descrição", guideQuality.missingDescription, "Texto de apresentação ausente"],
-      ["missing_location", "Sem localização", guideQuality.missingLocation, "Sem mapa ou coordenadas"],
-      ["complete", "Completos", guideQuality.complete, `${guideQuality.averageScore}% de média geral`]
-    ];
-    const newsRows = recentNews.map(item => ({ title: item.titulo || "Notícia sem título", detail: `${item.categoria_nome || "Sem editoria"} · ${item.autor || "Eu Amo Urânia"} · ${item.publicado_em ?`publicada em ${fmtDate(item.publicado_em)}` : `editada em ${fmtDate(item.atualizado_em)}`}`, badge: item.status_editorial || item.status || "—", badgeClass: item.status || "" }));
-    const scheduledRows = scheduledNews.map(item => ({ title: item.titulo || "Notícia agendada", detail: `Publicação prevista para ${fmtDate(item.publicado_em)}`, badge: "agendada", badgeClass: "info" }));
-    const approvalRows = pendingApprovals.map(item => ({ title: item.noticias?.titulo || "Notícia em revisão", detail: `Enviada em ${fmtDate(item.enviado_em)}`, badge: item.status || "pendente" }));
-    const editionRows = recentEditions.map(item => ({ title: item.nome || `Melhores ${item.ano}`, detail: `${item.ano} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.status || "—" }));
-    const activityRows = recentActivities.map(item => ({ title: item.titulo || item.tabela || "Atividade", detail: `${item.acao || "ação"} · ${fmtDate(item.criado_em)}`, badge: item.tabela || "" }));
-    const eventRows = upcomingEvents.map(item => ({ title: item.titulo || "Evento", detail: `${fmtDate(item.data_inicio)}${item.local ?` · ${item.local}` : ""}`, badge: item.status || "" }));
-    const mainEventRows = recentMainEvents.map(item => ({ title: item.nome || "Evento principal", detail: `${item.categoria || "Acervo permanente"} · atualizado em ${fmtDate(item.atualizado_em)}`, badge: item.ativo ?"ativo" : "inativo", badgeClass: item.ativo ?"ativo" : "" }));
-    const eventEditionRows = recentEventEditions.map(item => ({ title: item.titulo || `Edição ${item.ano}`, detail: `${item.eventos_principais?.nome || "Evento"} · ${item.ano} · ${fmtDate(item.data_inicio || item.atualizado_em)}`, badge: item.status || "edição" }));
-    const campaignRows = endingCampaigns.map(item => ({ title: item.nome || "Campanha", detail: `${item.empresa_anunciante || "Anunciante"} · vence em ${fmtDate(item.data_fim)}`, badge: item.status || "ativo", badgeClass: "ativo" }));
-    const collaboratorRows = recentCollaborators.map(item => ({ title: item.nome || "Colaborador voluntário", detail: `${item.cidade || "Cidade não informada"} · ${(item.interesses || []).slice(0, 3).join(", ") || "sem interesses"} · ${fmtDate(item.criado_em)}`, badge: item.status || "novo", badgeClass: item.status || "" }));
-    const quickActions = [
-      ["Nova notícia", "Editorial", "Publicar ou salvar rascunho", "noticias", "new"],
-      ["Novo evento", "Agenda", "Criar item da agenda pública", "eventos", "new"],
-      ["Cadastrar empresa", "Guia", "Adicionar negócio ao ecossistema", "guia_comercial", "new"],
-      ["Adicionar local", "Turismo", "Cadastrar ponto turístico", "turismo", "new"],
-      ["Enviar notificação", "App", "Abrir comunicação push", "notificacoes", "view"],
-      ["Nova publicidade", "Comercial", "Abrir gestão de campanhas", "publicidade", "view"]
-    ];
-    const moduleIndicators = {
-      dashboard: `${fmtNumber(attentionTotal)} atenção`,
-      audiencia: `${fmtNumber(views7d)} 7d`,
-      noticias: `${fmtNumber(publicadas)} pub.`,
-      aprovacoes: `${fmtNumber(aprovacoes)} pend.`,
-      eventos: `${fmtNumber(eventosProximos)} próx.`,
-      eventos_principais: `${fmtNumber(eventosPrincipais)} ativos`,
-      eventos_edicoes: `${fmtNumber(eventosEdicoes)} edições`,
-      categorias: `${fmtNumber(categorias)} ativas`,
-      guia_comercial: `${fmtNumber(empresasAtivas)} pub.`,
-      guia_verificacao: `${fmtNumber(Math.max(0, guideQuality.total - guideQuality.complete))} revisar`,
-      turismo: `${fmtNumber(pontosAtivos)} pub.`,
-      turismo_verificacao: "180d",
-      telefones_uteis: "App",
-      motoristas: "App",
-      iniciativas: "Comunidade",
-      vantagens: "Parceiros",
-      links: `${fmtNumber(links)} ativos`,
-      publicidade: `${fmtNumber(campanhasAtivas)} ativas`,
-      melhores: `${fmtNumber(melhoresEdicoes)} edições`,
-      comunicacao: `${fmtNumber(assinantes)} ativos`,
-      notificacoes: "Push",
-      colaboradores_voluntarios: `${fmtNumber(colaboradoresNovos)} novos`,
-      submissoes: `${fmtNumber(eventSubmissionsPending + businessSubmissionsPending)} pend.`,
-      configuracoes_site: "Global",
-      usuarios: `${fmtNumber(usuariosAtivos)} ativos`,
-      importacao: "JSON"
-    };
-    const domainDescriptions = {
-      "Operação": "Leitura geral, audiência e saúde do ecossistema.",
-      "Conteúdo": "Editorial, agenda, categorias e acervo público.",
-      "Viva Urânia": "Tudo que alimenta o aplicativo e a experiência local.",
-      "Comercial": "Publicidade, assinaturas e premiação Melhores de Urânia.",
-      "Comunicação": "Relacionamento, push, submissões e comunidade.",
-      "Sistema": "Configuração, acesso e ferramentas técnicas."
-    };
-    const domainHtml = adminNavigationGroups.map(group => `
-      <article class="ops-domain">
-        <header>
-          <h3>${escapeHtml(group.label)}</h3>
-          <p>${escapeHtml(domainDescriptions[group.label] || "Módulos administrativos conectados.")}</p>
-        </header>
-        <div class="ops-domain-modules">
-          ${group.items.filter(item => canOpen(item.view)).map(item => `<button class="ops-module-link" data-view="${escapeHtml(item.view)}">
-            ${renderAdminModuleIcon(item.view)}
-            <strong>${escapeHtml(item.label)}</strong>
-            <small>${escapeHtml(moduleIndicators[item.view] || item.dashboard?.indicator || "")}</small>
-          </button>`).join("")}
-        </div>
-      </article>
-    `).join("");
-
-    app.innerHTML = `
-      <section class="ops-dashboard">
-        <section class="ops-hero panel">
-          <div class="ops-hero-copy">
-            <p class="eyebrow">Central de operação</p>
-            <h2>${saudacao}${firstName ?`, ${escapeHtml(firstName)}` : ""}.</h2>
-            <p>Um resumo limpo do que precisa de atenção, do que está acontecendo agora e de como o portal está performando.</p>
-            <div class="ops-hero-actions">
-              <button class="admin-button" data-new="noticias">Nova notícia</button>
-              <button class="admin-button secondary" ${targetAttrs("audiencia")}>Ver audiência</button>
-            </div>
-          </div>
-        </section>
-
-        <section class="ops-kpi-grid" aria-label="Indicadores principais">
-          ${primaryMetrics.map(([kicker, value, label, detail]) => `<article class="ops-kpi"><span>${kicker}</span><strong>${value}</strong><h3>${label}</h3><p>${detail}</p></article>`).join("")}
-        </section>
-
-        <section class="ops-section panel ops-quick-panel">
-          <header class="ops-section-header">
-            <div>
-              <p class="eyebrow">Ações rápidas</p>
-              <h2>O que você provavelmente quer fazer agora</h2>
-            </div>
-          </header>
-          <div class="ops-quick-grid">
-            ${quickActions.map(([label, group, detail, target, mode]) => `<button class="ops-quick-action" ${mode === "new" ?`data-new="${target}"` :`data-view="${target}"`}>
-              <span>${escapeHtml(group)}</span>
-              <strong>${escapeHtml(label)}</strong>
-              <small>${escapeHtml(detail)}</small>
-            </button>`).join("")}
-          </div>
-        </section>
-
-        <section class="ops-section panel ops-attention">
-          <header class="ops-section-header">
-            <div>
-              <p class="eyebrow">Prioridade</p>
-              <h2>Precisa da sua atenção</h2>
-            </div>
-            <span>${fmtNumber(attentionTotal)} item(ns)</span>
-          </header>
-          <div class="ops-attention-list">
-            ${importantAlerts.length ?importantAlerts.map(([text, action, target, tone]) => `<button class="ops-attention-item ${tone || ""}" ${targetAttrs(target)}><span>${escapeHtml(text)}</span><strong>${escapeHtml(action)} →</strong></button>`).join("") : '<div class="ops-empty">Tudo certo por aqui. Nenhuma pendência importante agora.</div>'}
-          </div>
-        </section>
-
-        <section class="ops-section panel">
-          <header class="ops-section-header">
-            <div>
-              <p class="eyebrow">Áreas do sistema</p>
-              <h2>Todo o ecossistema em um único painel</h2>
-              <small>Os módulos abaixo vêm do registry global: sidebar, busca, dashboard e cabeçalhos usam a mesma identidade.</small>
-            </div>
-          </header>
-          <div class="ops-system-domains">
-            ${domainHtml}
-          </div>
-        </section>
-
-        <section class="ops-two-columns">
-          <div class="ops-section panel">
-            <header class="ops-section-header">
-              <div>
-                <p class="eyebrow">Rotina</p>
-                <h2>Operação</h2>
-              </div>
-            </header>
-            <div class="ops-inline-summary">
-              <span>${fmtNumber(recentNews.length)} notícias recentes</span>
-              <span>${fmtNumber(scheduledRows.length)} agendadas</span>
-              <span>${fmtNumber(eventRows.length)} eventos próximos</span>
-              <span>${fmtNumber(campaignRows.length)} campanhas vencendo</span>
-            </div>
-            <div class="ops-stack">
-              <div class="ops-subsection"><h3>Notícias recentes</h3><div class="dashboard-list">${listRows(newsRows.slice(0, 4))}</div></div>
-              <div class="ops-subsection"><h3>Agendadas</h3><div class="dashboard-list">${listRows(scheduledRows)}</div></div>
-              <div class="ops-subsection"><h3>Próximos eventos e campanhas</h3><div class="dashboard-list">${listRows([...eventRows, ...campaignRows].slice(0, 6))}</div></div>
-            </div>
-          </div>
-
-          <div class="ops-section panel">
-            <header class="ops-section-header">
-              <div>
-                <p class="eyebrow">Leitura rápida</p>
-                <h2>Últimas atividades</h2>
-              </div>
-            </header>
-            <div class="ops-inline-summary">
-              <span>${fmtNumber(colaboradoresNovos)} novos colaboradores</span>
-              <span>${fmtNumber(recentActivities.length)} ações recentes</span>
-            </div>
-            <div class="dashboard-list">${listRows([...collaboratorRows, ...activityRows].slice(0, 8))}</div>
-          </div>
-        </section>
-
-        <section class="ops-section panel">
-          <header class="ops-section-header">
-            <div>
-              <p class="eyebrow">Desempenho</p>
-              <h2>Audiência do portal</h2>
-              <small>Fonte única nesta visão: eventos internos registrados em analytics_eventos.</small>
-            </div>
-            <button class="admin-button secondary" data-view="audiencia">Abrir análise completa</button>
-          </header>
-          <div class="ops-performance-grid">
-            <article><strong>${fmtNumber(views30d)}</strong><span>interações em 30 dias</span></article>
-            <article><strong>${fmtNumber(whatsapp7d)}</strong><span>cliques no WhatsApp em 7 dias</span></article>
-            <article><strong>${fmtNumber(external7d)}</strong><span>cliques externos em 7 dias</span></article>
-          </div>
-          <div class="dashboard-rank-columns ops-rank-columns">
-            <div><h3>Páginas mais acessadas</h3>${topPages.length ?topPages.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
-            <div><h3>Dispositivos</h3>${topDevices.length ?topDevices.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
-            <div><h3>Origem</h3>${topOrigins.length ?topOrigins.map(item => `<p><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></p>`).join("") : '<small>Sem dados no período.</small>'}</div>
-          </div>
-        </section>
-
-        <section class="ops-section panel">
-          <header class="ops-section-header">
-            <div>
-              <p class="eyebrow">Ecossistema</p>
-              <h2>Portal, app e módulos conectados</h2>
-            </div>
-          </header>
-          <div class="ops-ecosystem-grid">
-            ${ecosystemCards.map(([label, value, detail, target]) => `<button class="ops-ecosystem-card" ${targetAttrs(target)}><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(detail)}</small></button>`).join("")}
-          </div>
-        </section>
-
-        <section class="ops-section panel">
-          <header class="ops-section-header">
-            <div>
-              <p class="eyebrow">Guia Comercial</p>
-              <h2>Qualidade dos cadastros</h2>
-              <small>Indicadores derivados dos dados atuais. Não bloqueiam publicação.</small>
-            </div>
-            <button class="admin-button secondary" data-view="guia_verificacao" data-quality-filter="all">Abrir diagnóstico</button>
-          </header>
-          <div class="ops-ecosystem-grid">
-            ${qualityCards.map(([filter, label, value, detail]) => `<button class="ops-ecosystem-card" data-view="guia_verificacao" data-quality-filter="${escapeHtml(filter)}"><span>${escapeHtml(label)}</span><strong>${fmtNumber(value)}</strong><small>${escapeHtml(detail)}</small></button>`).join("")}
-          </div>
-        </section>
-
-        <section class="ops-two-columns">
-          <div class="ops-section panel">
-            <header class="ops-section-header"><div><p class="eyebrow">Prêmio</p><h2>Melhores de Urânia</h2></div><button class="admin-button secondary" data-view="melhores">Abrir módulo</button></header>
-            <div class="dashboard-list">${listRows(editionRows)}</div>
-          </div>
-          <div class="ops-section panel">
-            <header class="ops-section-header"><div><p class="eyebrow">Acervo</p><h2>Eventos principais</h2></div><button class="admin-button secondary" data-view="eventos_principais">Ver eventos</button></header>
-            <div class="dashboard-list">${listRows([...mainEventRows, ...eventEditionRows].slice(0, 7))}</div>
-          </div>
-        </section>
-      </section>`;
-  } catch (error) {
-    app.innerHTML = `<p class="form-message">${escapeHtml(error.message)}</p>`;
+      const all=[];
+      for (let offset=0;;offset+=500) {
+        const query=build();
+        const {data,error}=await (paged?query.range(offset,offset+499):query);
+        if (error) throw error;
+        all.push(...(data || []));
+        if (!paged || !data || data.length<500) return all;
+      }
+    } catch {queriesFailed.add(table);return null;}
   }
+  async function safeCount(table, filter=q=>q) {
+    try {
+      const {count,error}=await filter(db.from(table).select("*",{count:"exact",head:true}));
+      if (error) throw error;
+      return count;
+    } catch {queriesFailed.add(table);return null;}
+  }
+  const rows=(table,cols,order,filter=q=>q)=>safeList(table,()=>filter(db.from(table).select(cols)).order(order),true);
+  const countWhere=(table,key,value)=>safeCount(table,q=>q.eq(key,value));
+  const [events,plans,guide,push,sends,coupons,weekly,scheduled,drafts,stale,review,published,approvals,lost,business,eventSubs,recentCollaborators,campaigns,expiring,nextEvents,future,eventosPrincipais,eventosEdicoes,tourism,editions,activities]=await Promise.all([
+    rows("analytics_eventos","criado_em,tipo,pagina,recurso_tipo,origem,dispositivo,sessao_hash","id",q=>q.gte("criado_em",since).lte("criado_em",iso).in("tipo",["page_view","app_screen_view","whatsapp_click","external_click","empresa_whatsapp_click"])),
+    rows("viva_assinaturas","guia_id,status,inicio,validade","guia_id"),
+    rows("guia_comercial","*,verificado","id",q=>q.eq("status","publicado")),
+    rows("app_push_tokens","criado_em","id",q=>q.eq("ativo",true)),
+    rows("app_notificacoes","enviado_em,total_destinatarios","id",q=>q.eq("status","enviado").gte("enviado_em",since).lte("enviado_em",iso)),
+    safeCount("vantagens",q=>q.eq("ativo",true).or(`data_inicio.is.null,data_inicio.lte.${iso}`).or(`data_fim.is.null,data_fim.gte.${iso}`)),
+    safeCount("noticias",q=>q.eq("status","publicado").gte("publicado_em",week).lte("publicado_em",iso)),
+    safeCount("noticias",q=>q.eq("status","publicado").gt("publicado_em",iso)),
+    countWhere("noticias","status","rascunho"),
+    safeCount("noticias",q=>q.eq("status","rascunho").lt("atualizado_em",day(-7)+"T00:00:00-03:00")),
+    countWhere("noticias","status_editorial","em_revisao"),
+    safeCount("noticias",q=>q.eq("status","publicado").lte("publicado_em",iso)),
+    rows("solicitacoes_aprovacao","enviado_em","id",q=>q.eq("status","pendente")),
+    rows("achados_perdidos","criado_em","id",q=>q.eq("status","pendente")),
+    rows("business_submissions","created_at","id",q=>q.eq("status","pending")),
+    rows("event_submissions","created_at","id",q=>q.eq("status","pending")),
+    rows("colaboradores_voluntarios","criado_em","id",q=>q.eq("status","novo")),
+    safeCount("campanhas_publicitarias",q=>q.eq("status","ativo").or(`data_inicio.is.null,data_inicio.lte.${iso}`).or(`data_fim.is.null,data_fim.gte.${iso}`)),
+    safeCount("campanhas_publicitarias",q=>q.eq("status","ativo").gte("data_fim",iso).lte("data_fim",new Date(+now+7*dayMs).toISOString())),
+    safeList("eventos",()=>db.from("eventos").select("titulo,data_inicio").eq("status","publicado").gte("data_inicio",iso).order("data_inicio").limit(3)),
+    safeCount("eventos",q=>q.eq("status","publicado").gte("data_inicio",iso)),
+    countWhere("eventos_principais","ativo",true), safeCount("eventos_edicoes"), countWhere("turismo","status","publicado"),
+    safeList("melhores_edicoes",()=>db.from("melhores_edicoes").select("*").order("ano",{ascending:false}).limit(20)),
+    safeList("cms_atividades",()=>db.from("cms_atividades").select("titulo,acao,tabela,usuario_id,criado_em").order("criado_em",{ascending:false}).limit(6))
+  ]);
+  const edition=editions?.find(e=>["votacao_aberta","indicacoes_abertas","apuracao"].includes(e.status)) || editions?.[0], actorIds=[...new Set((activities||[]).map(a=>a.usuario_id).filter(Boolean))];
+  const [votes,ballots,nominees,users]=await Promise.all([
+    edition?safeCount("melhores_votos",q=>q.eq("edicao_id",edition.id).eq("status","valido")):null,
+    edition?countWhere("melhores_votos","edicao_id",edition.id):null,
+    edition?safeCount("melhores_indicados",q=>q.eq("edicao_id",edition.id).eq("status","ativo")):null,
+    actorIds.length?safeList("usuarios_admin",()=>db.from("usuarios_admin").select("id,nome").in("id",actorIds)):[]
+  ]);
+  const n=value=>value==null?"—":Number(value).toLocaleString("pt-BR");
+  const esc=escapeHtml;
+  const days=Array.from({length:60},(_,i)=>({key:day(i-59),views:0,clicks:0,partners:0,devices:0,requests:0,reach:0,sessions:new Set(),channels:[0,0,0,0],sources:new Map()}));
+  const buckets=new Map(days.map(d=>[d.key,d]));
+  function bucket(value) {
+    if(!value) return;
+    const key=value.length===10?value:dateKey.format(new Date(value));
+    return buckets.get(key);
+  }
+  for(const e of events||[]) {
+    const d=bucket(e.criado_em); if(!d)continue;
+    if(e.tipo==="page_view"||e.tipo==="app_screen_view") {
+      d.views++;
+      if(e.sessao_hash)d.sessions.add(e.sessao_hash);
+      const isApp=["ios","android"].includes(e.dispositivo)||e.tipo==="app_screen_view"||e.origem==="app"||/^\/app(?:\/|$)/.test(e.pagina||"");
+      const channel=isApp?0:e.dispositivo==="mobile"?1:e.dispositivo==="desktop"?2:3;
+      d.channels[channel]++;
+      const source=e.origem||"Não informada";
+      d.sources.set(source,(d.sources.get(source)||0)+1);
+    } else if(e.tipo==="empresa_whatsapp_click") d.clicks++;
+    else if(["whatsapp_click","external_click"].includes(e.tipo)&&(["guia","guia_comercial","empresa"].includes(e.recurso_tipo)||/^\/guia(?:\/|\.html)/.test(e.pagina||""))) d.clicks++;
+  }
+  for (const send of sends||[]) {const d=bucket(send.enviado_em); if(d)d.reach+=Number(send.total_destinatarios)||0;}
+  const active=plans?.filter(p=>p.status==="ativa" && p.inicio<=today && p.validade>=today);
+  const due=offset=>active?.filter(p=>p.validade>=today&&p.validade<=day(offset)).length;
+  function addStarts(list,key,metric){for(const row of list||[]){const d=bucket(row[key]);if(d)d[metric]++;}}
+  addStarts(active,"inicio","partners");addStarts(push,"criado_em","devices");
+  const colaboradoresNovos = recentCollaborators?.length;
+  const queueSources = [
+    [approvals,"enviado_em","aprovacoes"], [lost,"criado_em","achados_perdidos"],
+    [business,"created_at","submissoes"], [eventSubs,"created_at","submissoes"],
+    [recentCollaborators,"criado_em","colaboradores_voluntarios"]
+  ].filter(([, ,view])=>canOpen(view));
+  for (const [list,key] of queueSources) addStarts(list,key,"requests");
+  const inbox=[
+    ["Aprovações editoriais",approvals?.length,"aprovacoes"],["Achados e Perdidos",lost?.length,"achados_perdidos"],
+    ["Empresas enviadas",business?.length,"submissoes"],["Eventos enviados",eventSubs?.length,"submissoes"],
+    ["Novos colaboradores",colaboradoresNovos,"colaboradores_voluntarios"],
+    ["Campanhas a vencer em 7 dias",expiring,"publicidade"],["Assinaturas a vencer em 7 dias",due(7),"viva_assinaturas"]
+  ].filter(([, ,view])=>canOpen(view));
+  const completeInbox=inbox.every(([,total])=>total!=null);
+  const attention=inbox.reduce((sum,[,total])=>sum+(total||0),0);
+  const hour=Number(new Intl.DateTimeFormat("pt-BR",{timeZone:zone,hour:"numeric",hourCycle:"h23"}).format(now));
+  const name=(painelAccess?.admin?.nome||"").trim().split(/\s+/)[0];
+  const quality=guide?summarizeBusinessQuality(guide):null;
+  const percent=quality?.total?Math.round(100*quality.complete/quality.total):0;
+  const action=(label,view)=>temPermissao(painelAccess.admin,view,"criar")?`<button class="admin-button secondary" data-new="${view}">${label}</button>`:"";
+  const stat=(value,label)=>`<div><strong>${n(value)}</strong><span>${label}</span></div>`;
+  const panel=(title,view,content)=>`<article class="cock-panel cock-pillar"><h3>${renderAdminModuleIcon(view)}${title}</h3>${content}</article>`;
+  const actors=new Map((users||[]).map(u=>[u.id,u.nome]));
+  const relative=new Intl.RelativeTimeFormat("pt-BR",{numeric:"auto"});
+  function ago(time){const minutes=Math.max(0,Math.floor((now-new Date(time))/60000));return minutes<60?relative.format(-minutes,"minute"):minutes<1440?relative.format(-Math.floor(minutes/60),"hour"):relative.format(-Math.floor(minutes/1440),"day");}
+  const windows=edition?[[edition.votacao_inicio,edition.votacao_fim],[edition.votacao_inicio_site,edition.votacao_fim_site || edition.votacao_fim]].filter(([a,b])=>a&&b&&new Date(a)<=now&&now<=new Date(b)):[];
+  const remaining=edition?.status==="votacao_aberta" && windows.length?Math.ceil((Math.max(...windows.map(([,b])=>Date.parse(b)))-now)/dayMs):0;
+  root.innerHTML=`<header class="cock-header"><div><h2>${hour<12?"Bom dia":hour<18?"Boa tarde":"Boa noite"}${name?", "+esc(name):""}.</h2><p>Urânia, SP · ${queriesFailed.size?"Alguns indicadores estão indisponíveis":"Indicadores operacionais atualizados"}</p></div><div class="cock-controls"><div class="cock-range" role="group" aria-label="Período dos indicadores">${[7,14,30].map(v=>`<button type="button" data-period="${v}">${v} dias</button>`).join("")}</div><button class="admin-button secondary" data-retry-module>Atualizar dados</button></div></header>
+  <div class="cock-kpis"></div><div class="cock-data"><article class="cock-panel"><h3>Audiência e conversão</h3><p class="cock-legend"><span>Visualizações</span><span>Cliques comerciais</span></p><div class="cock-plot"></div></article><article class="cock-panel"><h3>Canais e dispositivos</h3><div class="cock-distribution"></div></article></div>
+  <section class="cock-panel"><h3>Central de ação imediata</h3>${inbox.filter(([,v])=>v>0).map(([label,v,view])=>`<button class="cock-inbox" data-view="${view}"><span>${label}</span><b>${n(v)} →</b></button>`).join("")||`<p>${completeInbox?"Tudo em dia! Nenhuma pendência aguardando moderação.":"Contagens de pendências parcialmente indisponíveis."}</p>`}</section>
+  <div class="cock-pillars">
+  ${panel("Negócios & Parceiros Viva","guia_comercial",`<div class="cock-stats">${stat(guide?.filter(g=>g.verificado).length,"Empresas verificadas")}${stat(plans?.filter(p=>p.status==="atrasada" || (p.status==="ativa" && p.validade<today)).length,"Assinaturas atrasadas")}${stat(due(15),"Vencem em 15 dias")}</div><p>${n(quality?.complete)} completos · ${n(quality?quality.total-quality.complete:null)} com campos faltantes</p><progress aria-label="Cadastros completos" max="100" value="${percent}"></progress><small>${quality?n(percent)+"% completos":"Qualidade indisponível"} · ${n(campaigns)} campanhas ativas</small>${action("Nova empresa","guia_comercial")}`)}
+  ${panel("Editorial & Pauta","noticias",`<div class="cock-stats">${stat(weekly,"Publicadas em 7 dias")}${stat(scheduled,"Agendadas")}${stat(review,"Em revisão")}</div><p>${n(published)} publicadas · ${n(drafts)} rascunhos · ${n(stale)} sem edição há 7 dias</p>${action("Nova notícia","noticias")}`)}
+  ${panel("Cidade, Turismo & Agenda","eventos",`<div class="cock-stats">${stat(future,"Próximos eventos")}${stat(tourism,"Atrativos publicados")}${stat(eventosPrincipais,"Eventos principais ativos")}</div><small>${n(eventosEdicoes)} edições no acervo</small>${(nextEvents||[]).map(e=>`<p>${esc(e.titulo)} · ${esc(new Date(e.data_inicio).toLocaleDateString("pt-BR",{timeZone:zone}))}</p>`).join("")}`)}
+  ${panel("Melhores de Urânia","melhores",edition?`<p>${esc(edition.nome)} · ${esc(edition.resultado_publicado_em?"Resultado publicado":edition.status)}</p><div class="cock-stats">${stat(votes,"Votos válidos")}${stat(nominees,"Indicados ativos")}</div>${remaining?`<p>Votação aberta · ${n(remaining)} dia(s) restantes · ${n(votes)} de ${n(ballots)} votos válidos</p><progress aria-label="Parcela de votos válidos" max="100" value="${ballots?100*votes/ballots:0}"></progress>`:""}`:`<p>${editions?"Nenhuma edição registrada.":"Edições indisponíveis."}</p>`)}
+  </div><section class="cock-panel"><h3>Atividades recentes</h3><ol class="cock-log">${(activities||[]).map(a=>`<li><strong>${esc(a.titulo||a.tabela)}</strong><span>${esc(actors.get(a.usuario_id)||"Autoria não informada")} · ${esc(a.acao)} · ${esc(a.tabela)}</span><time>${esc(ago(a.criado_em))}</time></li>`).join("")}</ol>${activities?.length?"":`<p>${activities?"Nenhuma atividade registrada.":"Histórico indisponível."}</p>`}</section>`;
+  function renderPeriod(period){
+    const current=days.slice(-period),previous=days.slice(-2*period,-period);
+    function sum(list,key){return list.reduce((s,d)=>s+d[key],0);}
+    function kpi(title,value,detail,key,trendLabel,available=true,warn=false){
+      const a=sum(current,key),b=sum(previous,key);
+      const change=b?`${a>b?"+":""}${Math.round(100*(a-b)/b)}%`:a?"Sem base anterior":"Sem variação";
+      return `<article class="cock-kpi${warn?" attention":""}"><h3>${title}</h3><strong>${n(value)}</strong><span>${detail}</span>${available?sparkline(current.map(d=>d[key])):""}<small>${available?`${trendLabel} · ${change}`:"Histórico indisponível"}</small></article>`;
+    }
+    const views=sum(current,"views"),visitors=new Set(current.flatMap(d=>[...d.sessions])).size;
+    root.querySelector(".cock-kpis").innerHTML=[
+      kpi("Audiência geral",events?views:null,`${n(events?visitors:null)} sessões únicas`,"views","Visualizações",!!events),
+      kpi("Impacto comercial",events?sum(current,"clicks"):null,"WhatsApp e links de empresas","clicks","Cliques",!!events),
+      kpi("Parceiros Viva",active?.length,`${n(guide?.length)} empresas no Guia`,"partners","Inícios dos planos ativos",!!plans),
+      kpi("Comunidade & App",push?.length,`${n(coupons)} vantagens ativas · ${n(sends?sum(current,"reach"):null)} destinatários nos envios`,"devices","Cadastros de aparelhos ativos",!!push),
+      kpi("Central de atenção",completeInbox?attention:null,"Moderação e vencimentos","requests","Entradas ainda pendentes",completeInbox&&queueSources.every(([list])=>list!==null),attention>0)
+    ].join("");
+    root.querySelector(".cock-plot").innerHTML=events?audienceChart(current):"<p>Audiência indisponível.</p>";
+    const origins=new Map();for(const d of current)for(const [origin,total] of d.sources)origins.set(origin,(origins.get(origin)||0)+total);
+    root.querySelector(".cock-distribution").innerHTML=["App Viva Urânia","Web mobile","Web desktop","Outros"].map((label,i)=>{
+      const total=current.reduce((s,d)=>s+d.channels[i],0),share=views?Math.round(total*100/views):0;
+      return `<div><span>${label}</span><b>${events?share+"%":"—"}</b><progress aria-label="${label}" value="${total}" max="${views||1}"></progress></div>`;
+    }).join("")+`<small>Principais origens: ${[...origins].sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${esc(k)} (${n(v)})`).join(", ")||"sem dados"}</small>`;
+    for(const b of root.querySelectorAll("[data-period]"))b.setAttribute("aria-pressed",String(+b.dataset.period===period));
+  }
+  renderPeriod(7);
+  root.addEventListener("click",event=>{const b=event.target.closest("[data-period]");if(b)renderPeriod(+b.dataset.period);});
 }
 
 async function resourceList(table) {
