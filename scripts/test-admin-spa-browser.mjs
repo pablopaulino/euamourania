@@ -51,7 +51,13 @@ const server = createServer(async (req,res) => {
     }
     if (url.pathname.startsWith("/rest/v1/")) {
       queries.push([req.method, url.pathname, url.search]);
-      const rows = url.pathname.endsWith("/usuarios_admin") ? [{id:"user", nome:"Equipe", funcao:role, ativo:true}] :
+      const today = new Date();
+      const dateKey = new Intl.DateTimeFormat("sv-SE", {timeZone:"America/Sao_Paulo"}).format(today);
+      const inCurrentBand = url.searchParams.getAll("lte").some(value => JSON.parse(value)[1] === dateKey);
+      const rows = url.pathname.endsWith("/analytics_eventos") && inCurrentBand ? [
+        {criado_em:today.toISOString(), tipo:"page_view", pagina:"/noticias/local", dispositivo:"mobile", sessao_hash:"visitante"},
+        {criado_em:today.toISOString(), tipo:"empresa_whatsapp_click", pagina:"/guia"}
+      ] : url.pathname.endsWith("/usuarios_admin") ? [{id:"user", nome:"Equipe", funcao:role, ativo:true}] :
         url.pathname.endsWith("/guia_comercial") ? [{id:"company",nome:"Empresa de teste",status:"publicado"}] :
         url.pathname.endsWith("/noticias") ? [{id:"article", titulo:"Matéria local", slug:"materia-local", status:"rascunho"}] : [];
       res.setHeader("Content-Type","application/json");
@@ -91,22 +97,35 @@ try {
   const before = reads();
   const navCount = await nav.locator("button").count();
   assert.equal(navCount,17);
+  let releaseAnalytics;
+  const slowAnalytics = new Promise(resolve => { releaseAnalytics = resolve; });
+  await page.route("**/rest/v1/analytics_eventos*", async route => {
+    await slowAnalytics;
+    await route.continue();
+  });
   for (const [view, ready] of [["publicidade","#metrics .metric-card strong"],["melhores",".awards-tabs"],["guia_comercial","#resource-search"],["dashboard",".ops-dashboard"]]) {
     await nav.locator('[data-view="' + view + '"]').click();
     await page.locator(ready).first().waitFor();
     assert.equal(await nav.locator(".active").count(),1);
   }
   const eventReads = () => queries.filter(([,path]) => path.endsWith("/analytics_eventos")).length;
+  await page.locator(".cock-pillar .cock-stat-val").first().waitFor();
+  assert.match(await page.locator(".cock-plot").innerText(), /Carregando/);
+  releaseAnalytics();
+  await page.waitForFunction(() => document.querySelectorAll(".cock-point").length === 7);
+  assert.equal(await page.locator(".cock-page-path").innerText(), "/noticias/local");
+  assert.equal(await page.locator(".cock-kpi-val").nth(0).innerText(), "1");
   const initialEventReads = eventReads();
-  for (const days of [14, 30, 7]) {
+  for (const days of [14, 30, 7, 30, 7]) {
     const period = page.locator(`[data-period="${days}"]`);
     await period.click();
     assert.equal(await period.getAttribute("aria-pressed"), "true");
-    assert.equal(await page.locator(".cock-point").count(), days);
+    await page.waitForFunction(n => document.querySelectorAll(".cock-point").length === n, days);
   }
   await page.locator(".cock-point").first().focus();
   assert.equal(await page.locator(".cock-point:focus").count(), 1);
-  assert.equal(eventReads(), initialEventReads);
+  assert.equal(eventReads(), initialEventReads + 2);
+  assert.equal(await page.locator(".cock-kpi-val").nth(1).innerText(), "1");
   const afterDashboard = reads();
   await nav.locator('[data-view="noticias"]').click();
   await news.waitFor();

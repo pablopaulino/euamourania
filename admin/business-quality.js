@@ -207,7 +207,10 @@ export function getBusinessDataQuality(item = {}) {
 }
 
 export function matchesBusinessQualityFilter(item = {}, filter = "all") {
-  const quality = getBusinessDataQuality(item);
+  return matchesQuality(getBusinessDataQuality(item), filter);
+}
+
+function matchesQuality(quality, filter) {
   if (filter === "all") return true;
   if (filter === "complete") return quality.isComplete;
   if (filter === "low_score") return quality.score < 70;
@@ -232,8 +235,8 @@ export function qualityPriorityScore(item = {}, quality = getBusinessDataQuality
 
 export function summarizeBusinessQuality(items = []) {
   const active = items.filter(item => item?.status !== "arquivado");
-  const count = filter => active.filter(item => matchesBusinessQualityFilter(item, filter)).length;
   const scored = active.map(item => getBusinessDataQuality(item));
+  const count = filter => scored.filter(quality => matchesQuality(quality, filter)).length;
   const averageScore = scored.length
     ? Math.round(scored.reduce((sum, quality) => sum + quality.score, 0) / scored.length)
     : 0;

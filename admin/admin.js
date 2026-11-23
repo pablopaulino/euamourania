@@ -471,14 +471,15 @@ function handleWeeklyHoursChange(event){
   updateWeeklySummary(root,name,key);
 }
 
-async function dashboard() {
+let dashboardReadController;
+
+function dashboard() {
   activeModuleKey = "dashboard";
   app.dataset.layout = "dashboard";
   setShellTitle("Visão geral", "Operação, audiência e gestão de Urânia", { moduleKey: "dashboard" });
 
   const root = document.createElement("section");
   root.className = "ops-dashboard cockpit";
-  root.innerHTML = '<div class="loading" style="padding: 2.5rem 0; text-align: center; color: var(--admin-text-secondary);">Carregando cockpit operacional...</div>';
   app.replaceChildren(root);
 
   const db = getSupabase(), now = new Date(), iso = now.toISOString();
@@ -488,31 +489,31 @@ async function dashboard() {
   const day = offset => new Date(Date.parse(today + "T12:00:00Z") + offset * dayMs).toISOString().slice(0, 10);
   const since = day(-59) + "T00:00:00-03:00";
   const week = day(-6) + "T00:00:00-03:00";
-  const queriesFailed = new Set();
+  let controller = dashboardReadController = new AbortController();
+  const querySignal = () => AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]);
 
   async function safeList(table, build, paged = false) {
     try {
       const all = [];
+      const signal = querySignal();
       for (let offset = 0; ; offset += 500) {
-        const query = build();
+        const query = build().abortSignal(signal);
         const { data, error } = await (paged ? query.range(offset, offset + 499) : query);
         if (error) throw error;
         all.push(...(data || []));
         if (!paged || !data || data.length < 500) return all;
       }
     } catch {
-      queriesFailed.add(table);
       return null;
     }
   }
 
   async function safeCount(table, filter = q => q) {
     try {
-      const { count, error } = await filter(db.from(table).select("*", { count: "exact", head: true }));
+      const { count, error } = await filter(db.from(table).select("*", { count: "exact", head: true })).abortSignal(querySignal());
       if (error) throw error;
       return count;
     } catch {
-      queriesFailed.add(table);
       return null;
     }
   }
@@ -520,60 +521,33 @@ async function dashboard() {
   const rows = (table, cols, order, filter = q => q) => safeList(table, () => filter(db.from(table).select(cols)).order(order), true);
   const countWhere = (table, key, value) => safeCount(table, q => q.eq(key, value));
 
-  const [
-    events, plans, guide, push, sends, coupons,
-    weekly, scheduled, drafts, stale, review, published,
-    recentNews, scheduledNews,
-    approvals, lost, business, eventSubs, recentCollaborators,
-    campaigns, expiring, nextEvents, future,
-    eventosPrincipais, eventosEdicoes, tourism,
-    editions, activities
-  ] = await Promise.all([
-    rows("analytics_eventos", "criado_em,tipo,pagina,recurso_tipo,origem,dispositivo,sessao_hash", "id", q => q.gte("criado_em", since).lte("criado_em", iso).in("tipo", ["page_view", "app_screen_view", "whatsapp_click", "external_click", "empresa_whatsapp_click"])),
-    rows("viva_assinaturas", "guia_id,status,inicio,validade", "guia_id"),
-    rows("guia_comercial", "id,nome,nome_fantasia,razao_social,slug,categoria_nome,status,verificado,dados_completos,tem_horario,tem_endereco,tem_whatsapp,tem_imagem", "id", q => q.eq("status", "publicado")),
-    rows("app_push_tokens", "criado_em", "id", q => q.eq("ativo", true)),
-    rows("app_notificacoes", "enviado_em,total_destinatarios", "id", q => q.eq("status", "enviado").gte("enviado_em", since).lte("enviado_em", iso)),
-    safeCount("vantagens", q => q.eq("ativo", true).or(`data_inicio.is.null,data_inicio.lte.${iso}`).or(`data_fim.is.null,data_fim.gte.${iso}`)),
-    safeCount("noticias", q => q.eq("status", "publicado").gte("publicado_em", week).lte("publicado_em", iso)),
-    safeCount("noticias", q => q.eq("status", "publicado").gt("publicado_em", iso)),
-    countWhere("noticias", "status", "rascunho"),
-    safeCount("noticias", q => q.eq("status", "rascunho").lt("atualizado_em", day(-7) + "T00:00:00-03:00")),
-    countWhere("noticias", "status_editorial", "em_revisao"),
-    safeCount("noticias", q => q.eq("status", "publicado").lte("publicado_em", iso)),
-    safeList("noticias", () => db.from("noticias").select("id,titulo,categoria_nome,autor,publicado_em,atualizado_em,status,status_editorial").eq("status", "publicado").lte("publicado_em", iso).order("publicado_em", { ascending: false }).limit(3)),
-    safeList("noticias", () => db.from("noticias").select("id,titulo,categoria_nome,publicado_em").eq("status", "publicado").gt("publicado_em", iso).order("publicado_em", { ascending: true }).limit(2)),
-    rows("solicitacoes_aprovacao", "enviado_em", "id", q => q.eq("status", "pendente")),
-    rows("achados_perdidos", "criado_em", "id", q => q.eq("status", "pendente")),
-    rows("business_submissions", "created_at", "id", q => q.eq("status", "pending")),
-    rows("event_submissions", "created_at", "id", q => q.eq("status", "pending")),
-    rows("colaboradores_voluntarios", "criado_em", "id", q => q.eq("status", "novo")),
-    safeCount("campanhas_publicitarias", q => q.eq("status", "ativo").or(`data_inicio.is.null,data_inicio.lte.${iso}`).or(`data_fim.is.null,data_fim.gte.${iso}`)),
-    safeCount("campanhas_publicitarias", q => q.eq("status", "ativo").gte("data_fim", iso).lte("data_fim", new Date(+now + 7 * dayMs).toISOString())),
-    safeList("eventos", () => db.from("eventos").select("id,titulo,data_inicio,data_fim,local,categoria_nome").eq("status", "publicado").gte("data_inicio", iso).order("data_inicio").limit(3)),
-    safeCount("eventos", q => q.eq("status", "publicado").gte("data_inicio", iso)),
-    countWhere("eventos_principais", "ativo", true),
-    safeCount("eventos_edicoes"),
-    countWhere("turismo", "status", "publicado"),
-    safeList("melhores_edicoes", () => db.from("melhores_edicoes").select("*").order("ano", { ascending: false }).limit(10)),
-    safeList("cms_atividades", () => db.from("cms_atividades").select("titulo,acao,tabela,usuario_id,criado_em").order("criado_em", { ascending: false }).limit(6))
-  ]);
+  const data = {};
+  const ready = new Set();
+  const failed = new Set();
+  const bands = new Map();
+  const boundaries = [0, 14, 28, 60];
+  let period = 7;
+  let scheduledPaint = false;
 
-  const edition = editions?.find(e => ["votacao_aberta", "indicacoes_abertas", "apuracao"].includes(e.status)) || editions?.[0];
-  const actorIds = [...new Set((activities || []).map(a => a.usuario_id).filter(Boolean))];
+  function schedulePaint() {
+    if (scheduledPaint || !root.isConnected) return;
+    scheduledPaint = true;
+    requestAnimationFrame(() => {
+      scheduledPaint = false;
+      if (root.isConnected) paint();
+    });
+  }
 
-  const [votes, ballots, nominees, users] = await Promise.all([
-    edition ? safeCount("melhores_votos", q => q.eq("edicao_id", edition.id).eq("status", "valido")) : null,
-    edition ? countWhere("melhores_votos", "edicao_id", edition.id) : null,
-    edition ? safeCount("melhores_indicados", q => q.eq("edicao_id", edition.id).eq("status", "ativo")) : null,
-    actorIds.length ? safeList("usuarios_admin", () => db.from("usuarios_admin").select("id,nome").in("id", actorIds)) : []
-  ]);
-
-  const n = value => (value == null ? "—" : Number(value).toLocaleString("pt-BR"));
-  const esc = escapeHtml;
+  async function loadGroup(key, fields) {
+    const entries = await Promise.all(Object.entries(fields).map(async ([name, result]) => [name, await result]));
+    Object.assign(data, Object.fromEntries(entries));
+    if (entries.some(([, value]) => value == null)) failed.add(key);
+    ready.add(key);
+    schedulePaint();
+  }
 
   // Days buckets for analytics
-  const days = Array.from({ length: 60 }, (_, i) => ({
+  const audienceDays = Array.from({ length: 60 }, (_, i) => ({
     key: day(i - 59),
     views: 0,
     clicks: 0,
@@ -587,628 +561,746 @@ async function dashboard() {
     pages: new Map()
   }));
 
-  const buckets = new Map(days.map(d => [d.key, d]));
-  function bucket(value) {
+  const buckets = new Map(audienceDays.map(d => [d.key, d]));
+  function dayForValue(value) {
     if (!value) return;
-    const key = value.length === 10 ? value : dateKey.format(new Date(value));
-    return buckets.get(key);
+    return value.length === 10 ? value : dateKey.format(new Date(value));
   }
 
-  for (const e of events || []) {
-    const d = bucket(e.criado_em);
-    if (!d) continue;
-    if (e.tipo === "page_view" || e.tipo === "app_screen_view") {
-      d.views++;
-      if (e.sessao_hash) d.sessions.add(e.sessao_hash);
-      const isApp = ["ios", "android"].includes(e.dispositivo) || e.tipo === "app_screen_view" || e.origem === "app" || /^\/app(?:\/|$)/.test(e.pagina || "");
-      const channel = isApp ? 0 : e.dispositivo === "mobile" ? 1 : e.dispositivo === "desktop" ? 2 : 3;
-      d.channels[channel]++;
-      const source = e.origem || "Não informada";
-      d.sources.set(source, (d.sources.get(source) || 0) + 1);
-      if (e.pagina) {
-        const path = e.pagina.split("?")[0].replace(/\/index\.html$/, "/").replace(/\/$/, "") || "/";
-        d.pages.set(path, (d.pages.get(path) || 0) + 1);
+  function addEvents(events) {
+    for (const e of events || []) {
+      const d = buckets.get(dayForValue(e.criado_em));
+      if (!d) continue;
+      if (e.tipo === "page_view" || e.tipo === "app_screen_view") {
+        d.views++;
+        if (e.sessao_hash) d.sessions.add(e.sessao_hash);
+        const isApp = ["ios", "android"].includes(e.dispositivo) || e.tipo === "app_screen_view" || e.origem === "app" || /^\/app(?:\/|$)/.test(e.pagina || "");
+        const channel = isApp ? 0 : e.dispositivo === "mobile" ? 1 : e.dispositivo === "desktop" ? 2 : 3;
+        d.channels[channel]++;
+        const source = e.origem || "Não informada";
+        d.sources.set(source, (d.sources.get(source) || 0) + 1);
+        if (e.pagina) {
+          const path = e.pagina.split("?")[0].replace(/\/index\.html$/, "/").replace(/\/$/, "") || "/";
+          d.pages.set(path, (d.pages.get(path) || 0) + 1);
+        }
+      } else if (e.tipo === "empresa_whatsapp_click") {
+        d.clicks++;
+      } else if (["whatsapp_click", "external_click"].includes(e.tipo) && (["guia", "guia_comercial", "empresa"].includes(e.recurso_tipo) || /^\/guia(?:\/|\.html)/.test(e.pagina || ""))) {
+        d.clicks++;
       }
-    } else if (e.tipo === "empresa_whatsapp_click") {
-      d.clicks++;
-    } else if (["whatsapp_click", "external_click"].includes(e.tipo) && (["guia", "guia_comercial", "empresa"].includes(e.recurso_tipo) || /^\/guia(?:\/|\.html)/.test(e.pagina || ""))) {
-      d.clicks++;
     }
   }
 
-  for (const send of sends || []) {
-    const d = bucket(send.enviado_em);
-    if (d) d.reach += Number(send.total_destinatarios) || 0;
-  }
-
-  const guideMap = new Map((guide || []).map(g => [g.id, g]));
-  const activePlans = plans?.filter(p => p.status === "ativa" && p.inicio <= today && p.validade >= today) || [];
-  const due = offset => activePlans.filter(p => p.validade >= today && p.validade <= day(offset)).length;
-
-  function addStarts(list, key, metric) {
-    for (const row of list || []) {
-      const d = bucket(row[key]);
-      if (d) d[metric]++;
+  function loadAudience() {
+    for (let i = 1; i < boundaries.length && boundaries[i - 1] < period * 2; i++) {
+      if (bands.has(i)) continue;
+      bands.set(i, undefined);
+      const start = day(1 - boundaries[i]);
+      const end = day(-boundaries[i - 1]);
+      rows("analytics_eventos", "criado_em,tipo,pagina,recurso_tipo,origem,dispositivo,sessao_hash", "id",
+        q => q.gte("dia", start).lte("dia", end).lte("criado_em", iso)
+          .in("tipo", ["page_view", "app_screen_view", "whatsapp_click", "external_click", "empresa_whatsapp_click"]))
+        .then(events => {
+          addEvents(events);
+          bands.set(i, events !== null);
+          schedulePaint();
+        });
     }
   }
-  addStarts(activePlans, "inicio", "partners");
-  addStarts(push, "criado_em", "devices");
 
-  const expiringSubs = activePlans.filter(p => p.validade >= today && p.validade <= day(15));
-  const delayedSubs = plans?.filter(p => p.status === "atrasada" || (p.status === "ativa" && p.validade < today)) || [];
-
-  const colaboradoresNovos = recentCollaborators?.length;
-  const queueSources = [
-    [approvals, "enviado_em", "aprovacoes"],
-    [lost, "criado_em", "achados_perdidos"],
-    [business, "created_at", "submissoes"],
-    [eventSubs, "created_at", "submissoes"],
-    [recentCollaborators, "criado_em", "colaboradores_voluntarios"]
-  ].filter(([, , view]) => canOpen(view));
-
-  for (const [list, key] of queueSources) addStarts(list, key, "requests");
-
-  const inbox = [
-    ["Notícias aguardando aprovação", approvals?.length, "aprovacoes"],
-    ["Achados e Perdidos enviados", lost?.length, "achados_perdidos"],
-    ["Empresas enviadas pelo público", business?.length, "submissoes"],
-    ["Eventos sugeridos pelo público", eventSubs?.length, "submissoes"],
-    ["Novos voluntários inscritos", colaboradoresNovos, "colaboradores_voluntarios"],
-    ["Campanhas vencendo em 7 dias", expiring, "publicidade"],
-    ["Assinaturas vencendo em 7 dias", due(7), "viva_assinaturas"]
-  ].filter(([, , view]) => canOpen(view));
-
-  const completeInbox = inbox.every(([, total]) => total != null);
-  const attention = inbox.reduce((sum, [, total]) => sum + (total || 0), 0);
-
-  const hour = Number(new Intl.DateTimeFormat("pt-BR", { timeZone: zone, hour: "numeric", hourCycle: "h23" }).format(now));
-  const rawAdminName = (painelAccess?.admin?.nome || "").trim().split(/\s+/)[0];
-  const adminName = ["admin", "usuario", "usuário"].includes(rawAdminName.toLowerCase()) ? "" : rawAdminName;
-
-  const quality = guide ? summarizeBusinessQuality(guide) : null;
-  const percent = quality?.total ? Math.round((100 * quality.complete) / quality.total) : 0;
-
-  const actors = new Map((users || []).map(u => [u.id, u.nome]));
-  const relative = new Intl.RelativeTimeFormat("pt-BR", { numeric: "auto" });
-
-  function ago(time) {
-    if (!time) return "sem data";
-    const minutes = Math.max(0, Math.floor((now - new Date(time)) / 60000));
-    return minutes < 60 ? relative.format(-minutes, "minute") : minutes < 1440 ? relative.format(-Math.floor(minutes / 60), "hour") : relative.format(-Math.floor(minutes / 1440), "day");
+  loadAudience();
+  loadGroup("partners", {
+    plans: rows("viva_assinaturas", "guia_id,status,inicio,validade", "guia_id"),
+    guide: rows("guia_comercial", "*,verificado", "id", q => q.eq("status", "publicado")),
+    campaigns: safeCount("campanhas_publicitarias", q => q.eq("status", "ativo").or(`data_inicio.is.null,data_inicio.lte.${iso}`).or(`data_fim.is.null,data_fim.gte.${iso}`)),
+    expiring: safeCount("campanhas_publicitarias", q => q.eq("status", "ativo").gte("data_fim", iso).lte("data_fim", new Date(+now + 7 * dayMs).toISOString()))
+  });
+  loadGroup("community", {
+    push: rows("app_push_tokens", "criado_em", "id", q => q.eq("ativo", true)),
+    sends: rows("app_notificacoes", "enviado_em,total_destinatarios", "id", q => q.eq("status", "enviado").gte("enviado_em", since).lte("enviado_em", iso)),
+    coupons: safeCount("vantagens", q => q.eq("ativo", true).or(`data_inicio.is.null,data_inicio.lte.${iso}`).or(`data_fim.is.null,data_fim.gte.${iso}`))
+  });
+  loadGroup("editorial", {
+    weekly: safeCount("noticias", q => q.eq("status", "publicado").gte("publicado_em", week).lte("publicado_em", iso)),
+    scheduled: safeCount("noticias", q => q.eq("status", "publicado").gt("publicado_em", iso)),
+    drafts: countWhere("noticias", "status", "rascunho"),
+    stale: safeCount("noticias", q => q.eq("status", "rascunho").lt("atualizado_em", day(-7) + "T00:00:00-03:00")),
+    review: countWhere("noticias", "status_editorial", "em_revisao"),
+    published: safeCount("noticias", q => q.eq("status", "publicado").lte("publicado_em", iso)),
+    recentNews: safeList("noticias", () => db.from("noticias").select("id,titulo,categoria_nome,autor,publicado_em,atualizado_em,status,status_editorial").eq("status", "publicado").lte("publicado_em", iso).order("publicado_em", { ascending: false }).limit(3)),
+    scheduledNews: safeList("noticias", () => db.from("noticias").select("id,titulo,categoria_nome,publicado_em").eq("status", "publicado").gt("publicado_em", iso).order("publicado_em", { ascending: true }).limit(2))
+  });
+  loadGroup("moderation", {
+    approvals: rows("solicitacoes_aprovacao", "enviado_em", "id", q => q.eq("status", "pendente")),
+    lost: rows("achados_perdidos", "criado_em", "id", q => q.eq("status", "pendente")),
+    business: rows("business_submissions", "created_at", "id", q => q.eq("status", "pending")),
+    eventSubs: rows("event_submissions", "created_at", "id", q => q.eq("status", "pending")),
+    recentCollaborators: rows("colaboradores_voluntarios", "criado_em", "id", q => q.eq("status", "novo"))
+  });
+  loadGroup("city", {
+    nextEvents: safeList("eventos", () => db.from("eventos").select("id,titulo,data_inicio,data_fim,local,categoria_nome").eq("status", "publicado").gte("data_inicio", iso).order("data_inicio").limit(3)),
+    future: safeCount("eventos", q => q.eq("status", "publicado").gte("data_inicio", iso)),
+    eventosPrincipais: countWhere("eventos_principais", "ativo", true),
+    eventosEdicoes: safeCount("eventos_edicoes"),
+    tourism: countWhere("turismo", "status", "publicado")
+  });
+  async function loadAwards() {
+    const editions = await safeList("melhores_edicoes", () => db.from("melhores_edicoes").select("*").order("ano", { ascending: false }).limit(10));
+    const edition = editions?.find(e => ["votacao_aberta", "indicacoes_abertas", "apuracao"].includes(e.status)) || editions?.[0];
+    data.edition = edition;
+    loadGroup("awards", {
+      editions,
+      votes: edition ? safeCount("melhores_votos", q => q.eq("edicao_id", edition.id).eq("status", "valido")) : 0,
+      ballots: edition ? countWhere("melhores_votos", "edicao_id", edition.id) : 0,
+      nominees: edition ? safeCount("melhores_indicados", q => q.eq("edicao_id", edition.id).eq("status", "ativo")) : 0
+    });
   }
-
-  function formatPageTitle(path) {
-    if (path === "/" || path === "") return "Página Inicial (Home)";
-    if (path.includes("/guia")) return "Guia Comercial & Empresas";
-    if (path.includes("/turismo")) return "Turismo & Atrativos";
-    if (path.includes("/news") || path.includes("/noticia")) return "Portal de Notícias";
-    if (path.includes("/melhores")) return "Melhores de Urânia";
-    if (path.includes("/eventos") || path.includes("/agenda")) return "Agenda de Eventos";
-    if (path.includes("/parceiro")) return "Painel do Parceiro Viva";
-    if (path.includes("/links")) return "Urânia Links";
-    return path;
+  async function loadActivities() {
+    const activities = await safeList("cms_atividades", () => db.from("cms_atividades").select("titulo,acao,tabela,usuario_id,criado_em").order("criado_em", { ascending: false }).limit(6));
+    const actorIds = [...new Set((activities || []).map(a => a.usuario_id).filter(Boolean))];
+    loadGroup("activities", { activities, users: actorIds.length ? safeList("usuarios_admin", () => db.from("usuarios_admin").select("id,nome").in("id", actorIds)) : [] });
   }
+  loadAwards();
+  loadActivities();
 
-  const windows = edition ? [[edition.votacao_inicio, edition.votacao_fim], [edition.votacao_inicio_site, edition.votacao_fim_site || edition.votacao_fim]].filter(([a, b]) => a && b && new Date(a) <= now && now <= new Date(b)) : [];
-  const remaining = edition?.status === "votacao_aberta" && windows.length ? Math.ceil((Math.max(...windows.map(([, b]) => Date.parse(b))) - now) / dayMs) : 0;
+  function paint() {
+    const frame = document.createElement("div");
+    const { plans, guide, push, sends, coupons, weekly, scheduled, drafts, stale, review, published, recentNews, scheduledNews, approvals, lost, business, eventSubs, recentCollaborators, campaigns, expiring, nextEvents, future, eventosPrincipais, eventosEdicoes, tourism, activities, edition, votes, ballots, nominees, users } = data;
+    const required = boundaries.slice(1, boundaries.indexOf(period * 2) + 1).map((_, index) => bands.get(index + 1));
+    const waitingAudience = required.includes(undefined);
+    const events = required.every(value => value === true);
+    const n = value => (value == null ? "—" : Number(value).toLocaleString("pt-BR"));
+    const esc = escapeHtml;
 
-  const editionStatusLabels = {
-    indicacoes_abertas: "Indicações Abertas",
-    indicacoes_encerradas: "Indicações Encerradas",
-    votacao_aberta: "Votação em Andamento",
-    votacao_encerrada: "Votação Encerrada",
-    apuracao: "Apuração Oficial",
-    resultado_publicado: "Resultados Publicados",
-    arquivada: "Edição Concluída"
-  };
+    const days = audienceDays.map(d => ({ ...d }));
+    const buckets = new Map(days.map(d => [d.key, d]));
+    const bucket = value => buckets.get(dayForValue(value));
 
-  root.innerHTML = `
-    <!-- Header Executivo -->
-    <header class="cock-header">
-      <div class="cock-header-title">
-        <h2>${hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite"}${adminName ? ", " + esc(adminName) : ""}.</h2>
-        <div class="cock-header-status">
-          <span class="cock-status-dot ${attention > 0 ? "has-issue" : ""}" aria-hidden="true"></span>
-          <span>${attention > 0 ? `${attention} item(ns) requerem ação` : "Todos os serviços e portais operando normalmente"} · Urânia, SP</span>
+    for (const send of sends || []) {
+      const d = bucket(send.enviado_em);
+      if (d) d.reach += Number(send.total_destinatarios) || 0;
+    }
+
+    const guideMap = new Map((guide || []).map(g => [g.id, g]));
+    const activePlans = plans?.filter(p => p.status === "ativa" && p.inicio <= today && p.validade >= today) || [];
+    const due = offset => activePlans.filter(p => p.validade >= today && p.validade <= day(offset)).length;
+
+    function addStarts(list, key, metric) {
+      for (const row of list || []) {
+        const d = bucket(row[key]);
+        if (d) d[metric]++;
+      }
+    }
+    addStarts(activePlans, "inicio", "partners");
+    addStarts(push, "criado_em", "devices");
+
+    const expiringSubs = activePlans.filter(p => p.validade >= today && p.validade <= day(15));
+    const delayedSubs = plans?.filter(p => p.status === "atrasada" || (p.status === "ativa" && p.validade < today)) || [];
+
+    const colaboradoresNovos = recentCollaborators?.length;
+    const queueSources = [
+      [approvals, "enviado_em", "aprovacoes"],
+      [lost, "criado_em", "achados_perdidos"],
+      [business, "created_at", "submissoes"],
+      [eventSubs, "created_at", "submissoes"],
+      [recentCollaborators, "criado_em", "colaboradores_voluntarios"]
+    ].filter(([, , view]) => canOpen(view));
+
+    for (const [list, key] of queueSources) addStarts(list, key, "requests");
+
+    const inbox = [
+      ["Notícias aguardando aprovação", approvals?.length, "aprovacoes"],
+      ["Achados e Perdidos enviados", lost?.length, "achados_perdidos"],
+      ["Empresas enviadas pelo público", business?.length, "submissoes"],
+      ["Eventos sugeridos pelo público", eventSubs?.length, "submissoes"],
+      ["Novos voluntários inscritos", colaboradoresNovos, "colaboradores_voluntarios"],
+      ["Campanhas vencendo em 7 dias", expiring, "publicidade"],
+      ["Assinaturas vencendo em 7 dias", due(7), "viva_assinaturas"]
+    ].filter(([, , view]) => canOpen(view));
+
+    const completeInbox = inbox.every(([, total]) => total != null);
+    const attention = inbox.reduce((sum, [, total]) => sum + (total || 0), 0);
+
+    const hour = Number(new Intl.DateTimeFormat("pt-BR", { timeZone: zone, hour: "numeric", hourCycle: "h23" }).format(now));
+    const rawAdminName = (painelAccess?.admin?.nome || "").trim().split(/\s+/)[0];
+    const adminName = ["admin", "usuario", "usuário"].includes(rawAdminName.toLowerCase()) ? "" : rawAdminName;
+
+    const quality = guide ? (data.quality ??= summarizeBusinessQuality(guide)) : null;
+    const percent = quality?.total ? Math.round((100 * quality.complete) / quality.total) : 0;
+
+    const actors = new Map((users || []).map(u => [u.id, u.nome]));
+    const relative = new Intl.RelativeTimeFormat("pt-BR", { numeric: "auto" });
+
+    function ago(time) {
+      if (!time) return "sem data";
+      const minutes = Math.max(0, Math.floor((now - new Date(time)) / 60000));
+      return minutes < 60 ? relative.format(-minutes, "minute") : minutes < 1440 ? relative.format(-Math.floor(minutes / 60), "hour") : relative.format(-Math.floor(minutes / 1440), "day");
+    }
+
+    function formatPageTitle(path) {
+      if (path === "/" || path === "") return "Página Inicial (Home)";
+      if (path.includes("/guia")) return "Guia Comercial & Empresas";
+      if (path.includes("/turismo")) return "Turismo & Atrativos";
+      if (path.includes("/news") || path.includes("/noticia")) return "Portal de Notícias";
+      if (path.includes("/melhores")) return "Melhores de Urânia";
+      if (path.includes("/eventos") || path.includes("/agenda")) return "Agenda de Eventos";
+      if (path.includes("/parceiro")) return "Painel do Parceiro Viva";
+      if (path.includes("/links")) return "Urânia Links";
+      return path;
+    }
+
+    const windows = edition ? [[edition.votacao_inicio, edition.votacao_fim], [edition.votacao_inicio_site, edition.votacao_fim_site || edition.votacao_fim]].filter(([a, b]) => a && b && new Date(a) <= now && now <= new Date(b)) : [];
+    const remaining = edition?.status === "votacao_aberta" && windows.length ? Math.ceil((Math.max(...windows.map(([, b]) => Date.parse(b))) - now) / dayMs) : 0;
+
+    const editionStatusLabels = {
+      indicacoes_abertas: "Indicações Abertas",
+      indicacoes_encerradas: "Indicações Encerradas",
+      votacao_aberta: "Votação em Andamento",
+      votacao_encerrada: "Votação Encerrada",
+      apuracao: "Apuração Oficial",
+      resultado_publicado: "Resultados Publicados",
+      arquivada: "Edição Concluída"
+    };
+
+    frame.innerHTML = `
+      <!-- Header Executivo -->
+      <header class="cock-header">
+        <div class="cock-header-title">
+          <h2>${hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite"}${adminName ? ", " + esc(adminName) : ""}.</h2>
+          <div class="cock-header-status">
+            <span class="cock-status-dot ${attention > 0 ? "has-issue" : ""}" aria-hidden="true"></span>
+            <span>${!ready.has("moderation") || !ready.has("partners") ? "Atualizando pendências" : !completeInbox || failed.has("partners") ? "Pendências parcialmente disponíveis" : attention > 0 ? `${attention} item(ns) requerem ação` : "Todos os serviços e portais operando normalmente"} · Urânia, SP</span>
+          </div>
         </div>
-      </div>
-      <div class="cock-controls">
-        <div class="cock-range-picker" role="group" aria-label="Janela temporal de análise">
-          ${[7, 14, 30].map(v => `<button type="button" class="cock-range-btn" data-period="${v}">${v} dias</button>`).join("")}
+        <div class="cock-controls">
+          <div class="cock-range-picker" role="group" aria-label="Janela temporal de análise">
+            ${[7, 14, 30].map(v => `<button type="button" class="cock-range-btn" data-period="${v}">${v} dias</button>`).join("")}
+          </div>
+          <button type="button" class="admin-button secondary cock-btn-refresh" data-retry-module title="Recarregar dados">
+            <span aria-hidden="true">↻</span>
+            <span>Atualizar dados</span>
+          </button>
         </div>
-        <button type="button" class="admin-button secondary cock-btn-refresh" data-retry-module title="Recarregar dados">
-          <span aria-hidden="true">↻</span>
-          <span>Atualizar dados</span>
-        </button>
-      </div>
-    </header>
+      </header>
 
-    <!-- Top 5 KPI Cards -->
-    <section class="cock-kpis" aria-label="Indicadores chave"></section>
+      <!-- Top 5 KPI Cards -->
+      <section class="cock-kpis" aria-label="Indicadores chave"></section>
 
-    <!-- Visual Data Center: Gráfico de Audiência + Top Páginas & Canais -->
-    <section class="cock-analytics-grid">
-      <!-- Painel Gráfico Principal -->
-      <article class="cock-panel cock-plot-panel">
+      <!-- Visual Data Center: Gráfico de Audiência + Top Páginas & Canais -->
+      <section class="cock-analytics-grid">
+        <!-- Painel Gráfico Principal -->
+        <article class="cock-panel cock-plot-panel">
+          <div class="cock-panel-head">
+            <div>
+              <h3>${renderAdminModuleIcon("audience")} Audiência & Conversão Comercial</h3>
+              <p class="cock-panel-subtitle">Visualizações totais comparadas a cliques diretos em WhatsApp e links do comércio local</p>
+            </div>
+            <div class="cock-legend">
+              <span class="cock-legend-item"><span class="cock-legend-dot views" aria-hidden="true"></span>Visualizações</span>
+              <span class="cock-legend-item"><span class="cock-legend-dot clicks" aria-hidden="true"></span>Cliques no Comércio</span>
+            </div>
+          </div>
+          <div class="cock-chart-wrap cock-plot"></div>
+        </article>
+
+        <!-- Painel Lateral: Páginas Mais Lidas & Canais -->
+        <article class="cock-panel cock-side-stack">
+          <!-- Top Páginas -->
+          <div>
+            <div class="cock-subhead">
+              <span>Páginas & Notícias mais acessadas</span>
+              <small style="color:var(--admin-text-secondary);font-size:0.75rem;">no período</small>
+            </div>
+            <div class="cock-top-pages"></div>
+          </div>
+
+          <hr style="border:0;border-top:1px solid var(--admin-border);margin:2px 0;" />
+
+          <!-- Canais de Acesso -->
+          <div>
+            <div class="cock-subhead">
+              <span>Origem & Dispositivos</span>
+            </div>
+            <div class="cock-channel-list cock-distribution"></div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Central de Ação Imediata (Inbox Zero) -->
+      <section class="cock-panel cock-inbox-panel" aria-label="Fila de Ação Imediata">
         <div class="cock-panel-head">
           <div>
-            <h3>${renderAdminModuleIcon("audience")} Audiência & Conversão Comercial</h3>
-            <p class="cock-panel-subtitle">Visualizações totais comparadas a cliques diretos em WhatsApp e links do comércio local</p>
+            <h3 style="color: ${attention > 0 ? "var(--chart-orange)" : "var(--chart-green)"};">
+              ${renderAdminModuleIcon("approval")} Central de Ação Imediata
+            </h3>
+            <p class="cock-panel-subtitle">Submissões públicas, moderação do app, aprovações editoriais e vencimentos comerciais</p>
           </div>
-          <div class="cock-legend">
-            <span class="cock-legend-item"><span class="cock-legend-dot views" aria-hidden="true"></span>Visualizações</span>
-            <span class="cock-legend-item"><span class="cock-legend-dot clicks" aria-hidden="true"></span>Cliques no Comércio</span>
+          ${attention > 0 ? `<span class="cock-inbox-badge" style="background:#fde8dc;color:#9c3c1a;font-size:0.85rem;padding:4px 10px;">${attention} pendência(s)</span>` : ""}
+        </div>
+        ${
+          inbox.filter(([, v]) => v > 0).length > 0
+            ? `<div class="cock-inbox-grid">${inbox
+                .filter(([, v]) => v > 0)
+                .map(
+                  ([label, v, view]) => `
+                  <button type="button" class="cock-inbox-btn" data-view="${view}">
+                    <span>${label}</span>
+                    <span class="cock-inbox-badge">${n(v)}</span>
+                  </button>
+                `
+                )
+                .join("")}</div>`
+            : `<div class="cock-inbox-empty">
+                <span style="font-size:1.3rem;">✨</span>
+                <div>
+                  <strong>Tudo em dia!</strong>
+                  <p style="font-size:0.8rem;color:inherit;opacity:0.9;">Nenhuma submissão pública, aprovação ou anúncio de Achados e Perdidos aguardando moderação.</p>
+                </div>
+              </div>`
+        }
+      </section>
+
+      <!-- Os 4 Grandes Pilares em Grid 2x2 com Conteúdo Real -->
+      <section class="cock-pillars" aria-label="Pilares do Ecossistema">
+
+        <!-- Pilar 1: Negócios & Parceiros Viva -->
+        <article class="cock-panel cock-pillar">
+          <div class="cock-panel-head">
+            <h3>${renderAdminModuleIcon("guide")} Negócios & Parceiros Viva</h3>
+            <span class="cock-tag" style="background:#e4f3ed;color:#136244;">${n(activePlans.length)} planos ativos</span>
           </div>
-        </div>
-        <div class="cock-chart-wrap cock-plot"></div>
-      </article>
 
-      <!-- Painel Lateral: Páginas Mais Lidas & Canais -->
-      <article class="cock-panel cock-side-stack">
-        <!-- Top Páginas -->
-        <div>
-          <div class="cock-subhead">
-            <span>Páginas & Notícias mais acessadas</span>
-            <small style="color:var(--admin-text-secondary);font-size:0.75rem;">no período</small>
+          <div class="cock-stats-row">
+            <div class="cock-stat-item">
+              <span class="cock-stat-val">${n(guide?.length)}</span>
+              <span class="cock-stat-label">Empresas Guia</span>
+            </div>
+            <div class="cock-stat-item">
+              <span class="cock-stat-val">${n(guide?.filter(g => g.verificado).length)}</span>
+              <span class="cock-stat-label">Verificadas</span>
+            </div>
+            <div class="cock-stat-item">
+              <span class="cock-stat-val" style="color:${delayedSubs.length > 0 ? "var(--chart-orange)" : "inherit"};">${n(delayedSubs.length)}</span>
+              <span class="cock-stat-label">Atrasadas</span>
+            </div>
           </div>
-          <div class="cock-top-pages"></div>
-        </div>
 
-        <hr style="border:0;border-top:1px solid var(--admin-border);margin:2px 0;" />
-
-        <!-- Canais de Acesso -->
-        <div>
-          <div class="cock-subhead">
-            <span>Origem & Dispositivos</span>
-          </div>
-          <div class="cock-channel-list cock-distribution"></div>
-        </div>
-      </article>
-    </section>
-
-    <!-- Central de Ação Imediata (Inbox Zero) -->
-    <section class="cock-panel cock-inbox-panel" aria-label="Fila de Ação Imediata">
-      <div class="cock-panel-head">
-        <div>
-          <h3 style="color: ${attention > 0 ? "var(--chart-orange)" : "var(--chart-green)"};">
-            ${renderAdminModuleIcon("approval")} Central de Ação Imediata
-          </h3>
-          <p class="cock-panel-subtitle">Submissões públicas, moderação do app, aprovações editoriais e vencimentos comerciais</p>
-        </div>
-        ${attention > 0 ? `<span class="cock-inbox-badge" style="background:#fde8dc;color:#9c3c1a;font-size:0.85rem;padding:4px 10px;">${attention} pendência(s)</span>` : ""}
-      </div>
-      ${
-        inbox.filter(([, v]) => v > 0).length > 0
-          ? `<div class="cock-inbox-grid">${inbox
-              .filter(([, v]) => v > 0)
-              .map(
-                ([label, v, view]) => `
-                <button type="button" class="cock-inbox-btn" data-view="${view}">
-                  <span>${label}</span>
-                  <span class="cock-inbox-badge">${n(v)}</span>
-                </button>
-              `
-              )
-              .join("")}</div>`
-          : `<div class="cock-inbox-empty">
-              <span style="font-size:1.3rem;">✨</span>
-              <div>
-                <strong>Tudo em dia!</strong>
-                <p style="font-size:0.8rem;color:inherit;opacity:0.9;">Nenhuma submissão pública, aprovação ou anúncio de Achados e Perdidos aguardando moderação.</p>
+          <div class="cock-pillar-body">
+            <!-- Vencimentos de assinaturas -->
+            <div>
+              <div class="cock-subhead" style="margin-bottom:6px;">
+                <span>Assinaturas com atenção</span>
+                <small style="color:var(--admin-text-secondary);font-size:0.75rem;">próximos 15 dias</small>
               </div>
-            </div>`
-      }
-    </section>
+              ${
+                expiringSubs.length > 0 || delayedSubs.length > 0
+                  ? `<div class="cock-expiring-list">
+                      ${[...delayedSubs, ...expiringSubs].slice(0, 3).map(p => {
+                        const comp = guideMap.get(p.guia_id);
+                        const compName = comp?.nome_fantasia || comp?.nome || comp?.razao_social || "Empresa parceira";
+                        const isDelayed = p.status === "atrasada" || (p.status === "ativa" && p.validade < today);
+                        return `
+                          <div class="cock-expiring-item">
+                            <span class="cock-expiring-name">${esc(compName)}</span>
+                            <span class="cock-expiring-date" style="color:${isDelayed ? "#b12d18" : "#a44816"};">
+                              ${isDelayed ? "Atrasada" : `Vence ${new Date(p.validade).toLocaleDateString("pt-BR")}`}
+                            </span>
+                          </div>
+                        `;
+                      }).join("")}
+                    </div>`
+                  : `<p class="cock-panel-subtitle" style="color:var(--chart-green);font-weight:600;">● Nenhuma assinatura vencendo nos próximos 15 dias.</p>`
+              }
+            </div>
 
-    <!-- Os 4 Grandes Pilares em Grid 2x2 com Conteúdo Real -->
-    <section class="cock-pillars" aria-label="Pilares do Ecossistema">
-      
-      <!-- Pilar 1: Negócios & Parceiros Viva -->
-      <article class="cock-panel cock-pillar">
-        <div class="cock-panel-head">
-          <h3>${renderAdminModuleIcon("guide")} Negócios & Parceiros Viva</h3>
-          <span class="cock-tag" style="background:#e4f3ed;color:#136244;">${n(activePlans.length)} planos ativos</span>
-        </div>
+            <!-- Saúde do Catálogo & Chips de Diagnóstico -->
+            <div class="cock-quality-box">
+              <div class="cock-quality-meta">
+                <span>Saúde do Catálogo Comercial</span>
+                <strong>${percent}% preenchidos</strong>
+              </div>
+              <div class="cock-bar-track">
+                <div class="cock-bar-fill" style="width:${percent}%;"></div>
+              </div>
+              <div class="cock-quality-chips">
+                ${quality?.missingImage ? `<button type="button" class="cock-chip-btn" data-view="guia_verificacao" data-quality-filter="missing_image">📷 ${quality.missingImage} sem foto</button>` : ""}
+                ${quality?.missingHours ? `<button type="button" class="cock-chip-btn" data-view="guia_verificacao" data-quality-filter="missing_hours">⏰ ${quality.missingHours} sem horário</button>` : ""}
+                ${quality?.missingWhatsapp ? `<button type="button" class="cock-chip-btn" data-view="guia_verificacao" data-quality-filter="missing_whatsapp">💬 ${quality.missingWhatsapp} sem WhatsApp</button>` : ""}
+                ${quality?.missingAddress ? `<button type="button" class="cock-chip-btn" data-view="guia_verificacao" data-quality-filter="missing_address">📍 ${quality.missingAddress} sem endereço</button>` : ""}
+              </div>
+            </div>
+          </div>
 
-        <div class="cock-stats-row">
-          <div class="cock-stat-item">
-            <span class="cock-stat-val">${n(guide?.length)}</span>
-            <span class="cock-stat-label">Empresas Guia</span>
+          <div class="cock-pillar-actions">
+            <button type="button" class="admin-button secondary" data-new="guia_comercial">+ Cadastrar empresa</button>
+            <button type="button" class="admin-button secondary" data-view="guia_comercial">Abrir Guia</button>
           </div>
-          <div class="cock-stat-item">
-            <span class="cock-stat-val">${n(guide?.filter(g => g.verificado).length)}</span>
-            <span class="cock-stat-label">Verificadas</span>
-          </div>
-          <div class="cock-stat-item">
-            <span class="cock-stat-val" style="color:${delayedSubs.length > 0 ? "var(--chart-orange)" : "inherit"};">${n(delayedSubs.length)}</span>
-            <span class="cock-stat-label">Atrasadas</span>
-          </div>
-        </div>
+        </article>
 
-        <div class="cock-pillar-body">
-          <!-- Vencimentos de assinaturas -->
-          <div>
+        <!-- Pilar 2: Editorial & Pauta -->
+        <article class="cock-panel cock-pillar">
+          <div class="cock-panel-head">
+            <h3>${renderAdminModuleIcon("news")} Editorial & Jornalismo</h3>
+            <span class="cock-tag">${n(published)} publicadas no portal</span>
+          </div>
+
+          <div class="cock-stats-row">
+            <div class="cock-stat-item">
+              <span class="cock-stat-val">${n(weekly)}</span>
+              <span class="cock-stat-label">Últimos 7 dias</span>
+            </div>
+            <div class="cock-stat-item">
+              <span class="cock-stat-val">${n(scheduled)}</span>
+              <span class="cock-stat-label">Agendadas</span>
+            </div>
+            <div class="cock-stat-item">
+              <span class="cock-stat-val">${n(drafts)}</span>
+              <span class="cock-stat-label">Rascunhos</span>
+            </div>
+          </div>
+
+          <div class="cock-pillar-body">
+            <!-- Últimas publicações reais -->
+            <div>
+              <div class="cock-subhead" style="margin-bottom:6px;">
+                <span>Últimas matérias no ar</span>
+                <small style="color:var(--admin-text-secondary);font-size:0.75rem;">clique para editar</small>
+              </div>
+              ${
+                recentNews && recentNews.length > 0
+                  ? `<div class="cock-news-list">
+                      ${recentNews.map(item => `
+                        <a href="#" class="cock-news-item" data-edit="noticias" data-id="${item.id}">
+                          <strong class="cock-news-title">${esc(item.titulo || "Notícia sem título")}</strong>
+                          <div class="cock-news-meta">
+                            <span class="cock-tag">${esc(item.categoria_nome || "Geral")}</span>
+                            <span>${esc(item.autor || "Redação")}</span>
+                            <span>·</span>
+                            <span>${ago(item.publicado_em || item.atualizado_em)}</span>
+                          </div>
+                        </a>
+                      `).join("")}
+                    </div>`
+                  : `<p class="cock-panel-subtitle">Nenhuma notícia publicada recentemente.</p>`
+              }
+            </div>
+
+            <!-- Próxima Agendada -->
+            ${
+              scheduledNews && scheduledNews.length > 0
+                ? `<div class="cock-scheduled-box">
+                    <span aria-hidden="true">⏱️</span>
+                    <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;">
+                      <strong>Programada:</strong> ${esc(scheduledNews[0].titulo)}
+                      <small>(${new Date(scheduledNews[0].publicado_em).toLocaleDateString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: zone })})</small>
+                    </div>
+                  </div>`
+                : ""
+            }
+          </div>
+
+          <div class="cock-pillar-actions">
+            <button type="button" class="admin-button" data-new="noticias">+ Nova notícia</button>
+            <button type="button" class="admin-button secondary" data-view="noticias">Ver todas</button>
+          </div>
+        </article>
+
+        <!-- Pilar 3: Cidade, Turismo & Agenda -->
+        <article class="cock-panel cock-pillar">
+          <div class="cock-panel-head">
+            <h3>${renderAdminModuleIcon("event")} Cidade, Turismo & Agenda</h3>
+            <span class="cock-tag" style="background:#eaf2f8;color:#18537a;">${n(future)} eventos futuros</span>
+          </div>
+
+          <div class="cock-stats-row">
+            <div class="cock-stat-item">
+              <span class="cock-stat-val">${n(future)}</span>
+              <span class="cock-stat-label">Na Agenda</span>
+            </div>
+            <div class="cock-stat-item">
+              <span class="cock-stat-val">${n(tourism)}</span>
+              <span class="cock-stat-label">Atrativos</span>
+            </div>
+            <div class="cock-stat-item">
+              <span class="cock-stat-val">${n(eventosPrincipais)}</span>
+              <span class="cock-stat-label">Grandes Festas</span>
+            </div>
+          </div>
+
+          <div class="cock-pillar-body">
             <div class="cock-subhead" style="margin-bottom:6px;">
-              <span>Assinaturas com atenção</span>
-              <small style="color:var(--admin-text-secondary);font-size:0.75rem;">próximos 15 dias</small>
+              <span>Próximos eventos na cidade</span>
             </div>
             ${
-              expiringSubs.length > 0 || delayedSubs.length > 0
-                ? `<div class="cock-expiring-list">
-                    ${[...delayedSubs, ...expiringSubs].slice(0, 3).map(p => {
-                      const comp = guideMap.get(p.guia_id);
-                      const compName = comp?.nome_fantasia || comp?.nome || comp?.razao_social || "Empresa parceira";
-                      const isDelayed = p.status === "atrasada" || (p.status === "ativa" && p.validade < today);
+              nextEvents && nextEvents.length > 0
+                ? `<div class="cock-events-list">
+                    ${nextEvents.map(e => {
+                      const evtDate = new Date(e.data_inicio);
+                      const dayNum = evtDate.getDate();
+                      const monthName = evtDate.toLocaleDateString("pt-BR", { month: "short", timeZone: zone }).replace(".", "").slice(0, 3).toUpperCase();
                       return `
-                        <div class="cock-expiring-item">
-                          <span class="cock-expiring-name">${esc(compName)}</span>
-                          <span class="cock-expiring-date" style="color:${isDelayed ? "#b12d18" : "#a44816"};">
-                            ${isDelayed ? "Atrasada" : `Vence ${new Date(p.validade).toLocaleDateString("pt-BR")}`}
-                          </span>
+                        <div class="cock-event-item">
+                          <div class="cock-date-badge">
+                            <span class="cock-date-day">${dayNum}</span>
+                            <span class="cock-date-month">${monthName}</span>
+                          </div>
+                          <div class="cock-event-details">
+                            <strong class="cock-event-title">${esc(e.titulo || "Evento")}</strong>
+                            <span class="cock-event-venue">${esc(e.local || "Urânia, SP")}${e.categoria_nome ? " · " + esc(e.categoria_nome) : ""}</span>
+                          </div>
                         </div>
                       `;
                     }).join("")}
                   </div>`
-                : `<p class="cock-panel-subtitle" style="color:var(--chart-green);font-weight:600;">● Nenhuma assinatura vencendo nos próximos 15 dias.</p>`
+                : `<p class="cock-panel-subtitle">Nenhum evento agendado para os próximos dias.</p>`
             }
           </div>
 
-          <!-- Saúde do Catálogo & Chips de Diagnóstico -->
-          <div class="cock-quality-box">
-            <div class="cock-quality-meta">
-              <span>Saúde do Catálogo Comercial</span>
-              <strong>${percent}% preenchidos</strong>
-            </div>
-            <div class="cock-bar-track">
-              <div class="cock-bar-fill" style="width:${percent}%;"></div>
-            </div>
-            <div class="cock-quality-chips">
-              ${quality?.missingImage ? `<button type="button" class="cock-chip-btn" data-view="guia_verificacao" data-quality-filter="missing_image">📷 ${quality.missingImage} sem foto</button>` : ""}
-              ${quality?.missingHours ? `<button type="button" class="cock-chip-btn" data-view="guia_verificacao" data-quality-filter="missing_hours">⏰ ${quality.missingHours} sem horário</button>` : ""}
-              ${quality?.missingWhatsapp ? `<button type="button" class="cock-chip-btn" data-view="guia_verificacao" data-quality-filter="missing_whatsapp">💬 ${quality.missingWhatsapp} sem WhatsApp</button>` : ""}
-              ${quality?.missingAddress ? `<button type="button" class="cock-chip-btn" data-view="guia_verificacao" data-quality-filter="missing_address">📍 ${quality.missingAddress} sem endereço</button>` : ""}
-            </div>
-          </div>
-        </div>
-
-        <div class="cock-pillar-actions">
-          <button type="button" class="admin-button secondary" data-new="guia_comercial">+ Cadastrar empresa</button>
-          <button type="button" class="admin-button secondary" data-view="guia_comercial">Abrir Guia</button>
-        </div>
-      </article>
-
-      <!-- Pilar 2: Editorial & Pauta -->
-      <article class="cock-panel cock-pillar">
-        <div class="cock-panel-head">
-          <h3>${renderAdminModuleIcon("news")} Editorial & Jornalismo</h3>
-          <span class="cock-tag">${n(published)} publicadas no portal</span>
-        </div>
-
-        <div class="cock-stats-row">
-          <div class="cock-stat-item">
-            <span class="cock-stat-val">${n(weekly)}</span>
-            <span class="cock-stat-label">Últimos 7 dias</span>
-          </div>
-          <div class="cock-stat-item">
-            <span class="cock-stat-val">${n(scheduled)}</span>
-            <span class="cock-stat-label">Agendadas</span>
-          </div>
-          <div class="cock-stat-item">
-            <span class="cock-stat-val">${n(drafts)}</span>
-            <span class="cock-stat-label">Rascunhos</span>
-          </div>
-        </div>
-
-        <div class="cock-pillar-body">
-          <!-- Últimas publicações reais -->
-          <div>
-            <div class="cock-subhead" style="margin-bottom:6px;">
-              <span>Últimas matérias no ar</span>
-              <small style="color:var(--admin-text-secondary);font-size:0.75rem;">clique para editar</small>
-            </div>
-            ${
-              recentNews && recentNews.length > 0
-                ? `<div class="cock-news-list">
-                    ${recentNews.map(item => `
-                      <a href="#" class="cock-news-item" data-edit="noticias" data-id="${item.id}">
-                        <strong class="cock-news-title">${esc(item.titulo || "Notícia sem título")}</strong>
-                        <div class="cock-news-meta">
-                          <span class="cock-tag">${esc(item.categoria_nome || "Geral")}</span>
-                          <span>${esc(item.autor || "Redação")}</span>
-                          <span>·</span>
-                          <span>${ago(item.publicado_em || item.atualizado_em)}</span>
-                        </div>
-                      </a>
-                    `).join("")}
-                  </div>`
-                : `<p class="cock-panel-subtitle">Nenhuma notícia publicada recentemente.</p>`
-            }
-          </div>
-
-          <!-- Próxima Agendada -->
-          ${
-            scheduledNews && scheduledNews.length > 0
-              ? `<div class="cock-scheduled-box">
-                  <span aria-hidden="true">⏱️</span>
-                  <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;">
-                    <strong>Programada:</strong> ${esc(scheduledNews[0].titulo)}
-                    <small>(${new Date(scheduledNews[0].publicado_em).toLocaleDateString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: zone })})</small>
-                  </div>
-                </div>`
-              : ""
-          }
-        </div>
-
-        <div class="cock-pillar-actions">
-          <button type="button" class="admin-button" data-new="noticias">+ Nova notícia</button>
-          <button type="button" class="admin-button secondary" data-view="noticias">Ver todas</button>
-        </div>
-      </article>
-
-      <!-- Pilar 3: Cidade, Turismo & Agenda -->
-      <article class="cock-panel cock-pillar">
-        <div class="cock-panel-head">
-          <h3>${renderAdminModuleIcon("event")} Cidade, Turismo & Agenda</h3>
-          <span class="cock-tag" style="background:#eaf2f8;color:#18537a;">${n(future)} eventos futuros</span>
-        </div>
-
-        <div class="cock-stats-row">
-          <div class="cock-stat-item">
-            <span class="cock-stat-val">${n(future)}</span>
-            <span class="cock-stat-label">Na Agenda</span>
-          </div>
-          <div class="cock-stat-item">
-            <span class="cock-stat-val">${n(tourism)}</span>
-            <span class="cock-stat-label">Atrativos</span>
-          </div>
-          <div class="cock-stat-item">
-            <span class="cock-stat-val">${n(eventosPrincipais)}</span>
-            <span class="cock-stat-label">Grandes Festas</span>
-          </div>
-        </div>
-
-        <div class="cock-pillar-body">
-          <div class="cock-subhead" style="margin-bottom:6px;">
-            <span>Próximos eventos na cidade</span>
-          </div>
-          ${
-            nextEvents && nextEvents.length > 0
-              ? `<div class="cock-events-list">
-                  ${nextEvents.map(e => {
-                    const evtDate = new Date(e.data_inicio);
-                    const dayNum = evtDate.getDate();
-                    const monthName = evtDate.toLocaleDateString("pt-BR", { month: "short", timeZone: zone }).replace(".", "").slice(0, 3).toUpperCase();
-                    return `
-                      <div class="cock-event-item">
-                        <div class="cock-date-badge">
-                          <span class="cock-date-day">${dayNum}</span>
-                          <span class="cock-date-month">${monthName}</span>
-                        </div>
-                        <div class="cock-event-details">
-                          <strong class="cock-event-title">${esc(e.titulo || "Evento")}</strong>
-                          <span class="cock-event-venue">${esc(e.local || "Urânia, SP")}${e.categoria_nome ? " · " + esc(e.categoria_nome) : ""}</span>
-                        </div>
-                      </div>
-                    `;
-                  }).join("")}
-                </div>`
-              : `<p class="cock-panel-subtitle">Nenhum evento agendado para os próximos dias.</p>`
-          }
-        </div>
-
-        <div class="cock-pillar-actions">
-          <button type="button" class="admin-button secondary" data-new="eventos">+ Novo evento</button>
-          <button type="button" class="admin-button secondary" data-view="eventos">Ver agenda completa</button>
-        </div>
-      </article>
-
-      <!-- Pilar 4: Prêmio Melhores de Urânia -->
-      <article class="cock-panel cock-pillar">
-        <div class="cock-panel-head">
-          <h3>${renderAdminModuleIcon("award")} Melhores de Urânia</h3>
-          ${edition ? `<span class="cock-tag" style="background:#fef3e7;color:#8a4714;">${edition.ano}</span>` : ""}
-        </div>
-
-        <div class="cock-pillar-body">
-          ${
-            edition
-              ? `
-                <div class="cock-melhores-box">
-                  <div class="cock-melhores-banner">
-                    <div>
-                      <strong class="cock-melhores-name">${esc(edition.nome || `Edição ${edition.ano}`)}</strong>
-                      <p style="font-size:0.78rem;color:var(--admin-text-secondary);margin-top:2px;">
-                        ${edition.resultado_publicado_em ? "Resultados consolidados e publicados" : "Ciclo oficial da premiação"}
-                      </p>
-                    </div>
-                    <span class="cock-melhores-status">${esc(editionStatusLabels[edition.status] || edition.status)}</span>
-                  </div>
-
-                  <div class="cock-stats-row">
-                    <div class="cock-stat-item">
-                      <span class="cock-stat-val">${n(votes)}</span>
-                      <span class="cock-stat-label">Votos válidos</span>
-                    </div>
-                    <div class="cock-stat-item">
-                      <span class="cock-stat-val">${n(nominees)}</span>
-                      <span class="cock-stat-label">Indicados</span>
-                    </div>
-                    <div class="cock-stat-item">
-                      <span class="cock-stat-val">${remaining > 0 ? remaining + "d" : "—"}</span>
-                      <span class="cock-stat-label">${remaining > 0 ? "Restantes" : "Fase"}</span>
-                    </div>
-                  </div>
-
-                  ${
-                    remaining > 0
-                      ? `
-                        <div style="display:flex;flex-direction:column;gap:4px;">
-                          <div style="display:flex;justify-content:space-between;font-size:0.78rem;font-weight:600;">
-                            <span>Ritmo de votação</span>
-                            <span>${n(votes)} votos registrados</span>
-                          </div>
-                          <div class="cock-bar-track">
-                            <div class="cock-bar-fill" style="width:${ballots ? Math.min(100, Math.round((100 * votes) / ballots)) : 100}%;"></div>
-                          </div>
-                        </div>
-                      `
-                      : `<p class="cock-panel-subtitle">Consulte o ranking, histórico de vencedores e certificados emitidos.</p>`
-                  }
-                </div>
-              `
-              : `<p class="cock-panel-subtitle">Nenhuma edição ativa cadastrada no momento.</p>`
-          }
-        </div>
-
-        <div class="cock-pillar-actions">
-          <button type="button" class="admin-button secondary" data-view="melhores">Acessar Melhores de Urânia</button>
-        </div>
-      </article>
-
-    </section>
-
-    <!-- Timeline de Atividades Recentes -->
-    <section class="cock-panel" aria-label="Histórico de Ações">
-      <div class="cock-panel-head">
-        <h3>${renderAdminModuleIcon("media")} Atividades Recentes da Equipe</h3>
-        <span class="cock-panel-subtitle">Registro de auditoria e alterações recentes no CMS</span>
-      </div>
-      ${
-        activities && activities.length > 0
-          ? `
-            <ol class="cock-log-list">
-              ${activities.map(a => `
-                <li class="cock-log-item">
-                  <span class="cock-log-title">${esc(a.titulo || a.tabela || "Alteração no sistema")}</span>
-                  <span class="cock-log-meta">${esc(actors.get(a.usuario_id) || "Equipe Editorial")} · ${esc(a.acao || "atualizou")} · <strong style="text-transform:uppercase;font-size:0.7rem;">${esc(a.tabela || "")}</strong></span>
-                  <time class="cock-log-time">${esc(ago(a.criado_em))}</time>
-                </li>
-              `).join("")}
-            </ol>
-          `
-          : `<p class="cock-panel-subtitle">Nenhuma atividade recente registrada.</p>`
-      }
-    </section>
-  `;
-
-  // Renderizador reativo por período (7d, 14d, 30d)
-  function renderPeriod(period) {
-    const current = days.slice(-period);
-    const previous = days.slice(-2 * period, -period);
-
-    function sum(list, key) {
-      return list.reduce((s, d) => s + d[key], 0);
-    }
-
-    function kpi(title, value, detail, key, colorClass, warn = false) {
-      const a = sum(current, key);
-      const b = sum(previous, key);
-      let changeText = "Sem base";
-      let trendClass = "neutral";
-
-      if (b > 0) {
-        const pct = Math.round((100 * (a - b)) / b);
-        changeText = (pct > 0 ? "+" : "") + pct + "% vs anterior";
-        trendClass = pct > 0 ? "positive" : pct < 0 ? "negative" : "neutral";
-      } else if (a > 0) {
-        changeText = "Em alta";
-        trendClass = "positive";
-      }
-
-      return `
-        <article class="cock-kpi ${warn ? "attention-active" : ""}">
-          <div class="cock-kpi-head">
-            <span class="cock-kpi-title">${title}</span>
-          </div>
-          <strong class="cock-kpi-val">${n(value)}</strong>
-          <span class="cock-kpi-sub">${detail}</span>
-          <div class="cock-kpi-spark-wrap">
-            ${sparkline(current.map(d => d[key]), colorClass)}
-          </div>
-          <div class="cock-kpi-footer">
-            <span class="cock-trend-pill ${trendClass}">${changeText}</span>
-            <small style="color:var(--admin-text-secondary);font-size:0.72rem;">no período</small>
+          <div class="cock-pillar-actions">
+            <button type="button" class="admin-button secondary" data-new="eventos">+ Novo evento</button>
+            <button type="button" class="admin-button secondary" data-view="eventos">Ver agenda completa</button>
           </div>
         </article>
-      `;
-    }
 
-    const views = sum(current, "views");
-    const clicks = sum(current, "clicks");
-    const visitors = new Set(current.flatMap(d => [...d.sessions])).size;
+        <!-- Pilar 4: Prêmio Melhores de Urânia -->
+        <article class="cock-panel cock-pillar">
+          <div class="cock-panel-head">
+            <h3>${renderAdminModuleIcon("award")} Melhores de Urânia</h3>
+            ${edition ? `<span class="cock-tag" style="background:#fef3e7;color:#8a4714;">${edition.ano}</span>` : ""}
+          </div>
 
-    // Atualiza os 5 KPIs do topo
-    root.querySelector(".cock-kpis").innerHTML = [
-      kpi("Audiência Geral", events ? views : null, `${n(events ? visitors : null)} sessões únicas`, "views", "blue"),
-      kpi("Impacto Comercial", events ? clicks : null, "Cliques no WhatsApp e links", "clicks", "green"),
-      kpi("Parceiros Viva", activePlans.length, `${n(guide?.length)} empresas no Guia`, "partners", "purple"),
-      kpi("Comunidade & App", push?.length, `${n(coupons)} vantagens · ${n(sends ? sum(current, "reach") : null)} alcance`, "devices", "orange"),
-      kpi("Atenção & Moderação", completeInbox ? attention : null, attention > 0 ? "Itens aguardando ação" : "Tudo resolvido", "requests", "orange", attention > 0)
-    ].join("");
+          <div class="cock-pillar-body">
+            ${
+              edition
+                ? `
+                  <div class="cock-melhores-box">
+                    <div class="cock-melhores-banner">
+                      <div>
+                        <strong class="cock-melhores-name">${esc(edition.nome || `Edição ${edition.ano}`)}</strong>
+                        <p style="font-size:0.78rem;color:var(--admin-text-secondary);margin-top:2px;">
+                          ${edition.resultado_publicado_em ? "Resultados consolidados e publicados" : "Ciclo oficial da premiação"}
+                        </p>
+                      </div>
+                      <span class="cock-melhores-status">${esc(editionStatusLabels[edition.status] || edition.status)}</span>
+                    </div>
 
-    // Atualiza Gráfico de Linha SVG Principal
-    root.querySelector(".cock-plot").innerHTML = events ? audienceChart(current) : '<div class="cock-empty-chart">Dados de audiência indisponíveis.</div>';
+                    <div class="cock-stats-row">
+                      <div class="cock-stat-item">
+                        <span class="cock-stat-val">${n(votes)}</span>
+                        <span class="cock-stat-label">Votos válidos</span>
+                      </div>
+                      <div class="cock-stat-item">
+                        <span class="cock-stat-val">${n(nominees)}</span>
+                        <span class="cock-stat-label">Indicados</span>
+                      </div>
+                      <div class="cock-stat-item">
+                        <span class="cock-stat-val">${remaining > 0 ? remaining + "d" : "—"}</span>
+                        <span class="cock-stat-label">${remaining > 0 ? "Restantes" : "Fase"}</span>
+                      </div>
+                    </div>
 
-    // Agrega Top 5 Páginas do período
-    const pageAgg = new Map();
-    for (const d of current) {
-      for (const [p, count] of d.pages) {
-        pageAgg.set(p, (pageAgg.get(p) || 0) + count);
+                    ${
+                      remaining > 0
+                        ? `
+                          <div style="display:flex;flex-direction:column;gap:4px;">
+                            <div style="display:flex;justify-content:space-between;font-size:0.78rem;font-weight:600;">
+                              <span>Ritmo de votação</span>
+                              <span>${n(votes)} votos registrados</span>
+                            </div>
+                            <div class="cock-bar-track">
+                              <div class="cock-bar-fill" style="width:${ballots ? Math.min(100, Math.round((100 * votes) / ballots)) : 100}%;"></div>
+                            </div>
+                          </div>
+                        `
+                        : `<p class="cock-panel-subtitle">Consulte o ranking, histórico de vencedores e certificados emitidos.</p>`
+                    }
+                  </div>
+                `
+                : `<p class="cock-panel-subtitle">Nenhuma edição ativa cadastrada no momento.</p>`
+            }
+          </div>
+
+          <div class="cock-pillar-actions">
+            <button type="button" class="admin-button secondary" data-view="melhores">Acessar Melhores de Urânia</button>
+          </div>
+        </article>
+
+      </section>
+
+      <!-- Timeline de Atividades Recentes -->
+      <section class="cock-panel" aria-label="Histórico de Ações">
+        <div class="cock-panel-head">
+          <h3>${renderAdminModuleIcon("media")} Atividades Recentes da Equipe</h3>
+          <span class="cock-panel-subtitle">Registro de auditoria e alterações recentes no CMS</span>
+        </div>
+        ${
+          activities && activities.length > 0
+            ? `
+              <ol class="cock-log-list">
+                ${activities.map(a => `
+                  <li class="cock-log-item">
+                    <span class="cock-log-title">${esc(a.titulo || a.tabela || "Alteração no sistema")}</span>
+                    <span class="cock-log-meta">${esc(actors.get(a.usuario_id) || "Equipe Editorial")} · ${esc(a.acao || "atualizou")} · <strong style="text-transform:uppercase;font-size:0.7rem;">${esc(a.tabela || "")}</strong></span>
+                    <time class="cock-log-time">${esc(ago(a.criado_em))}</time>
+                  </li>
+                `).join("")}
+              </ol>
+            `
+            : `<p class="cock-panel-subtitle">Nenhuma atividade recente registrada.</p>`
+        }
+      </section>
+    `;
+
+    // Renderizador reativo por período (7d, 14d, 30d)
+    function renderPeriod(period) {
+      const current = days.slice(-period);
+      const previous = days.slice(-2 * period, -period);
+
+      function sum(list, key) {
+        return list.reduce((s, d) => s + d[key], 0);
+      }
+
+      function kpi(title, value, detail, key, colorClass, warn = false) {
+        const a = sum(current, key);
+        const b = sum(previous, key);
+        let changeText = "Sem base";
+        let trendClass = "neutral";
+
+        if (b > 0) {
+          const pct = Math.round((100 * (a - b)) / b);
+          changeText = (pct > 0 ? "+" : "") + pct + "% vs anterior";
+          trendClass = pct > 0 ? "positive" : pct < 0 ? "negative" : "neutral";
+        } else if (a > 0) {
+          changeText = "Em alta";
+          trendClass = "positive";
+        }
+
+        return `
+          <article class="cock-kpi ${warn ? "attention-active" : ""}">
+            <div class="cock-kpi-head">
+              <span class="cock-kpi-title">${title}</span>
+            </div>
+            <strong class="cock-kpi-val">${n(value)}</strong>
+            <span class="cock-kpi-sub">${detail}</span>
+            <div class="cock-kpi-spark-wrap">
+              ${sparkline(current.map(d => d[key]), colorClass)}
+            </div>
+            <div class="cock-kpi-footer">
+              <span class="cock-trend-pill ${trendClass}">${changeText}</span>
+              <small style="color:var(--admin-text-secondary);font-size:0.72rem;">no período</small>
+            </div>
+          </article>
+        `;
+      }
+
+      const views = sum(current, "views");
+      const clicks = sum(current, "clicks");
+      const visitors = new Set(current.flatMap(d => [...d.sessions])).size;
+
+      // Atualiza os 5 KPIs do topo
+      frame.querySelector(".cock-kpis").innerHTML = [
+        kpi("Audiência Geral", events ? views : null, `${n(events ? visitors : null)} sessões únicas`, "views", "blue"),
+        kpi("Impacto Comercial", events ? clicks : null, "Cliques no WhatsApp e links", "clicks", "green"),
+        kpi("Parceiros Viva", activePlans.length, `${n(guide?.length)} empresas no Guia`, "partners", "purple"),
+        kpi("Comunidade & App", push?.length, `${n(coupons)} vantagens · ${n(sends ? sum(current, "reach") : null)} alcance`, "devices", "orange"),
+        kpi("Atenção & Moderação", completeInbox ? attention : null, attention > 0 ? "Itens aguardando ação" : "Tudo resolvido", "requests", "orange", attention > 0)
+      ].join("");
+
+      // Atualiza Gráfico de Linha SVG Principal
+      frame.querySelector(".cock-plot").innerHTML = events ? audienceChart(current) : '<div class="cock-empty-chart">Dados de audiência indisponíveis.</div>';
+
+      // Agrega Top 5 Páginas do período
+      const pageAgg = new Map();
+      for (const d of current) {
+        for (const [p, count] of d.pages) {
+          pageAgg.set(p, (pageAgg.get(p) || 0) + count);
+        }
+      }
+      const topPages = [...pageAgg.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+      frame.querySelector(".cock-top-pages").innerHTML =
+        topPages.length > 0
+          ? topPages
+              .map(([path, count], idx) => `
+                <div class="cock-page-row">
+                  <span class="cock-page-rank">#${idx + 1}</span>
+                  <div class="cock-page-info">
+                    <span class="cock-page-name">${esc(formatPageTitle(path))}</span>
+                    <span class="cock-page-path">${esc(path)}</span>
+                  </div>
+                  <span class="cock-page-views">${n(count)} views</span>
+                </div>
+              `)
+              .join("")
+          : '<p class="cock-panel-subtitle" style="padding:4px 0;">Sem visualizações registradas no período.</p>';
+
+      // Agrega Canais & Dispositivos
+      const channelLabels = ["App Viva Urânia", "Web Mobile", "Web Desktop", "Outros"];
+      const channelClasses = ["app", "mobile", "desktop", "other"];
+
+      frame.querySelector(".cock-distribution").innerHTML = channelLabels
+        .map((label, i) => {
+          const total = current.reduce((s, d) => s + d.channels[i], 0);
+          const share = views > 0 ? Math.round((total * 100) / views) : 0;
+          return `
+            <div class="cock-channel-item">
+              <div class="cock-channel-meta">
+                <span class="cock-channel-name">${label}</span>
+                <span class="cock-channel-val">${events ? share + "%" : "—"} (${n(total)})</span>
+              </div>
+              <div class="cock-bar-track">
+                <div class="cock-bar-fill ${channelClasses[i]}" style="width: ${share}%;"></div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      // Atualiza estado visual dos botões de período
+      for (const b of frame.querySelectorAll("[data-period]")) {
+        b.setAttribute("aria-pressed", String(+b.dataset.period === period));
       }
     }
-    const topPages = [...pageAgg.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
 
-    root.querySelector(".cock-top-pages").innerHTML =
-      topPages.length > 0
-        ? topPages
-            .map(([path, count], idx) => `
-              <div class="cock-page-row">
-                <span class="cock-page-rank">#${idx + 1}</span>
-                <div class="cock-page-info">
-                  <span class="cock-page-name">${esc(formatPageTitle(path))}</span>
-                  <span class="cock-page-path">${esc(path)}</span>
-                </div>
-                <span class="cock-page-views">${n(count)} views</span>
-              </div>
-            `)
-            .join("")
-        : '<p class="cock-panel-subtitle" style="padding:4px 0;">Sem visualizações registradas no período.</p>';
-
-    // Agrega Canais & Dispositivos
-    const channelLabels = ["App Viva Urânia", "Web Mobile", "Web Desktop", "Outros"];
-    const channelClasses = ["app", "mobile", "desktop", "other"];
-
-    root.querySelector(".cock-distribution").innerHTML = channelLabels
-      .map((label, i) => {
-        const total = current.reduce((s, d) => s + d.channels[i], 0);
-        const share = views > 0 ? Math.round((total * 100) / views) : 0;
-        return `
-          <div class="cock-channel-item">
-            <div class="cock-channel-meta">
-              <span class="cock-channel-name">${label}</span>
-              <span class="cock-channel-val">${events ? share + "%" : "—"} (${n(total)})</span>
-            </div>
-            <div class="cock-bar-track">
-              <div class="cock-bar-fill ${channelClasses[i]}" style="width: ${share}%;"></div>
-            </div>
-          </div>
-        `;
-      })
-      .join("");
-
-    // Atualiza estado visual dos botões de período
-    for (const b of root.querySelectorAll("[data-period]")) {
-      b.setAttribute("aria-pressed", String(+b.dataset.period === period));
+    renderPeriod(period);
+    const state = (...keys) => keys.some(key => !ready.has(key)) ? "Carregando…" :
+      keys.some(key => failed.has(key)) ? "Dados indisponíveis." : "";
+    function showStatus(node, message, headingSelector) {
+      if (!message) return;
+      const heading = headingSelector && node.querySelector(headingSelector);
+      const notice = document.createElement("p");
+      notice.className = "cock-panel-subtitle";
+      notice.textContent = message;
+      const actions = node.querySelector(".cock-pillar-actions");
+      node.replaceChildren(...[heading, notice, actions].filter(Boolean));
     }
+    const audienceStatus = waitingAudience ? "Carregando audiência…" : events ? "" : "Audiência indisponível.";
+    for (const area of frame.querySelectorAll(".cock-plot, .cock-distribution, .cock-top-pages")) showStatus(area, audienceStatus);
+    const inboxStatus = state("partners", "moderation");
+    const statuses = [audienceStatus, audienceStatus, state("partners"), state("community"), inboxStatus];
+    frame.querySelectorAll(".cock-kpi").forEach((node, i) => showStatus(node, statuses[i], ".cock-kpi-head"));
+    const pillars = ["partners", "editorial", "city", "awards"];
+    frame.querySelectorAll(".cock-pillar").forEach((node, i) => showStatus(node, state(pillars[i]), "h3"));
+    showStatus(frame.querySelector(".cock-inbox-panel"), inboxStatus, "h3");
+    showStatus(frame.lastElementChild, state("activities"), "h3");
+    root.setAttribute("aria-busy", String(ready.size < 7 || waitingAudience));
+    const focusedPeriod = root.contains(document.activeElement) && document.activeElement.dataset.period;
+    Array.from(frame.children).forEach((child, index) => {
+      const previous = root.children[index];
+      if (!previous) root.append(child);
+      else if (!previous.isEqualNode(child)) previous.replaceWith(child);
+    });
+    if (focusedPeriod) root.querySelector(`[data-period="${focusedPeriod}"]`).focus({ preventScroll: true });
   }
 
-  // Inicializa com 7 dias
-  renderPeriod(7);
-
-  // Escuta clique nos botões de período
+  paint();
   root.addEventListener("click", event => {
-    const b = event.target.closest("[data-period]");
-    if (b) renderPeriod(+b.dataset.period);
+    const button = event.target.closest("[data-period]");
+    if (!button || period === Number(button.dataset.period)) return;
+    if (controller.signal.aborted) controller = dashboardReadController = new AbortController();
+    period = Number(button.dataset.period);
+    loadAudience();
+    paint();
   });
 }
 
@@ -1820,6 +1912,8 @@ export async function mount(container, {view, restored, edit, id}) {
 }
 
 export function unmount() {
+  dashboardReadController?.abort();
+  dashboardReadController = null;
   quill?.disable();
   quill = null;
   currentResourceTable = null;
@@ -1860,6 +1954,7 @@ function setActiveNav(view) {
 }
 
 function rememberList() {
+  if (app.querySelector('.cockpit[aria-busy="true"]')) return;
   if (renderedRevision !== revision || Date.now() - mountedAt >= ttl) return;
   if (!app.querySelector(".ops-dashboard, #news-rows, .admin-list-panel, #cat-rows")) return;
   snapshots.set(mountedUrl, {
