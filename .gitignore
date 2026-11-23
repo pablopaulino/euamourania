@@ -1,0 +1,15 @@
+# Ferramentas e capturas opcionais dos testes locais de Catálogos.
+/outputs/catalogos-tools/
+/outputs/catalogos-editor-desktop.png
+/outputs/catalogos-editor-mobile.png
+
+# Artefatos locais de releases, ferramentas e capturas; manter fora do Git.
+/.release/
+/.reels-tools/
+/outputs/
+/supabase/.temp/
+/homologacao/
+/quota-schema.sql
+/.agents/
+
+
