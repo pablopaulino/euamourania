@@ -1,4 +1,4 @@
-import { winnerProfileUrl, obterEdicaoPorAno, listarResultadosPublicos, listarHistoricoVencedoresPublicos, listarComprovantesPublicos } from "../services/melhoresPublicService.js";
+import { mencaoPublica, winnerProfileUrl, obterEdicaoPorAno, listarResultadosPublicos, listarHistoricoVencedoresPublicos, listarComprovantesPublicos } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
 import { montarCentralTransparencia } from "./melhores-transparencia.js";
@@ -97,6 +97,7 @@ function votesLabel(row) {
 
 export function winnerCard(row, winsByKey, edition, demo = false) {
   const data = nomineeData(row);
+  const mention = mencaoPublica(row);
   const initial = esc(data.name.trim().charAt(0).toLocaleUpperCase("pt-BR") || "U");
   const profileUrl = !demo && row.indicado_id ? winnerProfileUrl(edition, row) : "";
   const cardTag = profileUrl ? "a" : "article";
@@ -112,6 +113,7 @@ export function winnerCard(row, winsByKey, edition, demo = false) {
     <div class="awards-winner-body">
       <p class="awards-winner-category">${esc(categoryName(row))}</p>
       <h3>${esc(data.name)}</h3>
+      ${mention ? `<p><em>${esc(mention)}</em></p>` : ""}
       <div class="awards-winner-history">
         <strong>${demo ? "Exemplo de vencedor" : esc(winnerHistoryLabel(row, winsByKey, edition.ano))}</strong>
         <span>${esc(historyHint)}</span>

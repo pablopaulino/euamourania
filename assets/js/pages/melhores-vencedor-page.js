@@ -1,4 +1,4 @@
-import { obterEdicaoPorAno, listarHistoricoVencedoresPublicos, listarResultadosPublicos } from "../services/melhoresPublicService.js";
+import { mencaoPublica, obterEdicaoPorAno, listarHistoricoVencedoresPublicos, listarResultadosPublicos } from "../services/melhoresPublicService.js";
 import { categoryName, esc, formatDate, hallUrl, nomineeData, resultsArePublished, resultsPageUrl, winnerKey, winnerProfileUrl } from "./melhores-resultados-page.js";
 
 function target() {
@@ -53,6 +53,7 @@ async function init() {
     }
 
     const data = nomineeData(winner);
+    const mention = mencaoPublica(winner);
     const initial = esc(data.name.trim().charAt(0).toLocaleUpperCase("pt-BR") || "U");
     setMeta(edition, winner);
     copy.innerHTML = `<span class="awards-public-badge">Vencedor ${esc(String(year))}</span><h1>${esc(data.name)}</h1><p>${esc(categoryName(winner))} · Melhores de Urânia ${esc(String(year))}</p><div class="hero-actions"><a class="button button-secondary" href="${resultsPageUrl(edition)}">Ver resultado da edição</a></div>`;
@@ -76,6 +77,7 @@ async function init() {
       <div class="awards-winner-profile-body">
         <p class="eyebrow">Vencedor da edição ${esc(String(year))}</p>
         <h2>${esc(data.name)}</h2>
+        ${mention ? `<p><em>${esc(mention)}</em></p>` : ""}
         <p>${esc(data.description)}</p>
         <div class="awards-winner-profile-links">
           ${data.guideUrl ? `<a class="button button-primary" href="${esc(data.guideUrl)}">Ver no Guia Comercial</a>` : ""}

@@ -1,4 +1,4 @@
-import { listarEdicoesPublicas, consultarPeriodoVotacao, listarResultadosPublicos, winnerProfileUrl, resultsPageUrl as resultsUrl } from "../services/melhoresPublicService.js";
+import { listarEdicoesPublicas, consultarPeriodoVotacao, listarResultadosPublicos, mencaoPublica, winnerProfileUrl, resultsPageUrl as resultsUrl } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
 
@@ -153,9 +153,13 @@ async function init() {
         const winners = rows.filter(row => row.vencedor && row.publicado)
           .sort((a, b) => String(b.publicado_em || "").localeCompare(String(a.publicado_em || "")) ||
             String(a.melhores_categorias?.nome || "").localeCompare(String(b.melhores_categorias?.nome || ""), "pt-BR"));
-        const markup = winners.map(row => `<li><a href="${winnerProfileUrl(active, row)}">
-          <span>${esc(row.melhores_categorias?.nome)}</span><strong>${esc(row.melhores_indicados?.nome)}</strong>
-        </a></li>`).join("");
+        const markup = winners.map(row => {
+          const mention = mencaoPublica(row);
+          return `<li><a href="${winnerProfileUrl(active, row)}">
+            <span>${esc(row.melhores_categorias?.nome)}</span><strong>${esc(row.melhores_indicados?.nome)}</strong>
+            ${mention ? `<em>${esc(mention)}</em>` : ""}
+          </a></li>`;
+        }).join("");
         const firstResponse = previousMarkup === null;
         if (markup !== previousMarkup) {
           list.innerHTML = markup;
