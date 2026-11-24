@@ -63,13 +63,16 @@ export function categoryName(row) {
 export function nomineeData(row) {
   const nominee = row.melhores_indicados || {};
   const guide = nominee.guia_comercial || {};
+  const place = nominee.turismo;
+  const placeSlug = place?.status === "publicado" && place.slug ? encodeURIComponent(place.slug) : "";
   return {
     nominee,
     guide,
     name: nominee.nome || guide.nome || "Indicado",
     description: nominee.descricao_curta || row.criterio_aplicado || guide.categoria_nome || "Resultado oficial da categoria.",
     img: image(nominee.imagem_url || guide.imagem_url),
-    guideUrl: guide.slug && guide.status === "publicado" ? `/guia/${encodeURIComponent(guide.slug)}` : ""
+    guideUrl: guide.slug && guide.status === "publicado" ? `/guia/${encodeURIComponent(guide.slug)}` : "",
+    tourismUrl: placeSlug ? (localPreview() ? `/turismo-details.html?slug=${placeSlug}` : `/turismo/${placeSlug}`) : ""
   };
 }
 

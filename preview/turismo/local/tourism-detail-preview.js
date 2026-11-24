@@ -4,9 +4,29 @@ import { definirMeta, textoPuro } from "/assets/js/utils.js";
 import { sanitizeArticleHtml } from "/assets/js/security/sanitize-html.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
 import { verifiedName } from "/assets/js/viva-verified.js";
+import { awardLink } from "/assets/js/pages/guide-recognition.js";
+import { winnerProfileUrl } from "/assets/js/services/melhoresPublicService.js";
 import "/preview/guia/banners-preview.js";
 
 const root = document.getElementById("turismo-details");
+window.addEventListener("turismo:renderizado", async ({ detail: { id } }) => {
+  const heading = root.querySelector("h1");
+  if (!heading || !id) return;
+  try {
+    const awards = await fetchPublicRows("rpc/melhores_listar_resultados_publicos", {
+      p_somente_vencedores: true,
+      "melhores_indicados->turismo->>id": `eq.${id}`,
+      select: "indicado_id,melhores_edicoes,melhores_categorias,melhores_indicados,publicado_em",
+      order: "publicado_em.desc"
+    });
+    const links = awards.map(row => awardLink({
+      year: row.melhores_edicoes.ano, categories: [row.melhores_categorias.nome]
+    }, true, winnerProfileUrl(row.melhores_edicoes, row)));
+    heading.after(...links);
+  } catch (error) {
+    console.warn("Reconhecimento do atrativo indisponível:", error.message);
+  }
+});
 const params = new URLSearchParams(location.search);
 const requestedSlug = params.get("slug") || location.pathname.match(/^\/turismo\/([^/]+)\/?$/)?.[1] || "";
 const esc = (value = "") => String(value).replace(/[&<>'"]/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[char]));

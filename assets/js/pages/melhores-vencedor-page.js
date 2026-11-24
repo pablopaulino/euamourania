@@ -80,6 +80,7 @@ async function init() {
         ${mention ? `<p><em>${esc(mention)}</em></p>` : ""}
         <p>${esc(data.description)}</p>
         <div class="awards-winner-profile-links">
+          ${data.tourismUrl ? `<a class="button button-primary" href="${esc(data.tourismUrl)}">Ver atrativo em Turismo</a>` : ""}
           ${data.guideUrl ? `<a class="button button-primary" href="${esc(data.guideUrl)}">Ver no Guia Comercial</a>` : ""}
           <a class="button button-secondary" href="${hallUrl()}">Hall dos vencedores</a>
         </div>

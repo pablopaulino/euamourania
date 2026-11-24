@@ -4,12 +4,12 @@ import { currentGuideRecognitions } from "../services/guideRecognition.js";
 const trophy = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0zM7 5H3v2a4 4 0 0 0 5 4m9-6h4v2a4 4 0 0 1-5 4M12 13v5m-4 3h8m-7 0 1-3h4l1 3"/></svg>';
 const seals = { 2026: "/assets/melhores/selo-vencedor-2026.png" };
 
-function awardLink(award, profile) {
+export function awardLink(award, profile, winnerUrl) {
   const category = award.categories.join(" · ");
   const description = `${category} no Melhores de Urânia ${award.year}`;
   const link = document.createElement("a");
-  link.href = resultsPageUrl({ ano: award.year });
-  link.setAttribute("aria-label", `${description}. Ver resultados da edição.`);
+  link.href = winnerUrl || resultsPageUrl({ ano: award.year });
+  link.setAttribute("aria-label", `${description}. ${winnerUrl ? "Ver perfil do vencedor." : "Ver resultados da edição."}`);
   if (profile) {
     link.className = "guide-recognition";
     link.innerHTML = '<span class="guide-seal"></span><span class="guide-recognition-copy"><small>Reconhecimento oficial</small><strong></strong></span><span aria-hidden="true">→</span>';
