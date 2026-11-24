@@ -1,8 +1,8 @@
-import { obterEdicaoPorAno, listarResultadosPublicos, listarHistoricoVencedoresPublicos, listarComprovantesPublicos } from "../services/melhoresPublicService.js";
+import { winnerProfileUrl, obterEdicaoPorAno, listarResultadosPublicos, listarHistoricoVencedoresPublicos, listarComprovantesPublicos } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
 import { montarCentralTransparencia } from "./melhores-transparencia.js";
-export { resultsPageUrl } from "../services/melhoresPublicService.js";
+export { winnerProfileUrl, resultsPageUrl } from "../services/melhoresPublicService.js";
 
 export const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
@@ -11,9 +11,7 @@ export const resultsArePublished = (edition, results) =>
   || (edition?.status === "apuracao" && results.some(row => row.vencedor && row.publicado === true));
 const localPreview = () => typeof location !== "undefined" && /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 export const hallUrl = () => localPreview() ? "/melhores-de-urania/hall.html" : "/melhores-de-urania/hall/";
-export const winnerProfileUrl = (edition, row) => localPreview()
-  ? `/melhores-de-urania/vencedor.html?ano=${encodeURIComponent(edition.ano)}&id=${encodeURIComponent(row.indicado_id)}`
-  : `/melhores-de-urania/${edition.ano}/vencedores/${encodeURIComponent(row.indicado_id)}/`;
+
 
 function getYear() {
   const match = location.pathname.match(/melhores-de-urania\/(\d{4})\/resultados/);

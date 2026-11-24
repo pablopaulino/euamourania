@@ -4,7 +4,6 @@ const base="/preview/melhores/";
 const header=`<a class="skip-link" href="#conteudo">Pular para o conteúdo</a><header class="site-header"><a class="brand" href="/preview/home/" aria-label="Eu Amo Urânia — início"><img src="/assets/1505%20-%20Urania%20-%20Logo%20Horizontal%20-%201.png" alt="Eu Amo Urânia" width="188" height="55"></a><nav class="main-nav" id="menu-principal" aria-label="Navegação principal"><a href="/preview/home/">Início</a><a href="/preview/noticias/">Notícias</a><a href="/preview/guia/">Guia</a><a href="/preview/turismo/">Turismo</a><a href="/preview/agenda/">Agenda</a><a href="/preview/urania/">Urânia</a><a href="${base}" aria-current="page">Melhores</a></nav><form class="header-search-form" action="/buscar.html" method="get" role="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.8"></circle><path d="m16 16 4.2 4.2"></path></svg><label class="sr-only" for="header-search-input">Buscar no Eu Amo Urânia</label><input id="header-search-input" name="q" type="search" placeholder="O que você procura em Urânia?" autocomplete="off" minlength="2" required><button class="header-search-submit" type="submit">Buscar</button><button class="header-search-close" type="button" aria-label="Fechar busca">×</button></form><div class="header-actions"><button class="search-trigger" type="button" aria-label="Pesquisar no Eu Amo Urânia" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.8"></circle><path d="m16 16 4.2 4.2"></path></svg><span>Buscar</span></button><a class="app-shortcut" data-app-download href="/app.html"><img src="/assets/viva-origem-colorido.svg" alt="" width="22" height="22"><span>Viva Urânia</span></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal"><i></i><i></i><span class="sr-only">Abrir menu</span></button></div></header>`;
 const footer=`<footer class="site-footer"><div class="container footer-main"><div class="footer-brand"><img src="/assets/1505%20-%20Urania%20-%20Logo%20Horizontal%20-%201.png" alt="Eu Amo Urânia" width="1687" height="369"><p>Feito em Urânia, para Urânia.</p></div><nav class="footer-links" aria-label="Navegação do rodapé"><a href="/preview/noticias/">Notícias</a><a href="/preview/guia/">Guia</a><a href="/preview/turismo/">Turismo</a><a href="/preview/agenda/">Agenda</a><a href="${base}">Melhores</a><a href="/quem-somos.html">Quem somos</a><a href="/divulgue">Publicidade</a><a href="/app.html">Viva Urânia</a></nav></div><div class="container footer-bottom"><span>© 2024–<b id="year"></b> Eu Amo Urânia.</span><nav aria-label="Informações legais"><a href="/termos-de-servico.html">Termos de serviço</a><a href="/politica-de-privacidade.html">Privacidade</a></nav></div></footer>`;
 const button=(href,label)=>`<a class="award-primary" href="${href}">${label} <span>→</span></a>`;
-const hero=(eyebrow,title,lead,panel,actions="")=>`<section class="award-hero"><div class="award-shell award-hero-grid"><div><p class="award-eyebrow">${eyebrow}</p><h1>${title}<span>.</span></h1><p class="award-lead">${lead}</p>${actions}</div>${panel}</div></section>`;
 const section=(eyebrow,title,description,content)=>`<section class="award-section"><div class="award-shell"><header class="award-section-head"><div><p class="award-eyebrow">${eyebrow}</p><h2>${title}</h2></div>${description?`<p>${description}</p>`:""}</header>${content}</div></section>`;
 
 const loading='<div class="awards-empty">Carregando informações oficiais…</div>';
@@ -25,7 +24,29 @@ const faqItems={
 };
 const faqSection=page=>section("Dúvidas","Perguntas frequentes.",page==="home"?"Informações claras sobre a premiação.":"Respostas sobre as indicações e a edição.",`<div class="award-faq">${faqItems[page].map(([question,answer])=>`<details><summary>${question}</summary><p>${answer}</p></details>`).join("")}</div>`);
 const functionalPages={
-  home:()=>`<main id="conteudo">${hero("Uma realização Eu Amo Urânia","Melhores de Urânia","Uma premiação anual para reconhecer quem faz a cidade acontecer.",`<article class="award-feature" id="active-edition-card">${loading}</article>`,`<div class="award-actions"><a class="award-primary" id="awards-home-primary" href="#awards-editions">Ver edições</a><a class="award-link" href="#como-funciona">Como funciona ↓</a></div>`)}<section class="award-section" id="awards-home-winners" hidden><div class="award-shell"><header class="award-section-head"><h2></h2></header><ul></ul></div></section>${section("Edições","Histórico da premiação.","Edições oficiais publicadas.",`<div class="awards-editions-grid" id="awards-editions">${loading}</div>`)}<section class="award-section is-soft" id="como-funciona"><div class="award-shell"><h2>Como funciona.</h2><div class="award-process"><article><span>01</span><h3>Preparação</h3><p>O portal define as regras e categorias.</p></article><article><span>02</span><h3>Participação</h3><p>A comunidade indica e vota nas fases abertas.</p></article><article><span>03</span><h3>Apuração</h3><p>Os votos são auditados antes do resultado oficial.</p></article></div></div></section></main>`,
+  home:()=>`<main id="conteudo" class="award-home">
+    <section class="award-home-intro">
+      <div class="award-shell award-home-grid">
+        <div>
+          <h1 id="award-home-title">Melhores de Urânia</h1>
+          <p id="award-home-status" role="status">Carregando a edição…</p>
+          <div class="award-home-actions" id="award-home-actions"></div>
+        </div>
+        <figure id="award-home-cover" hidden></figure>
+      </div>
+    </section>
+    <section class="award-shell award-home-section" id="awards-home-winners" hidden>
+      <h2>Vencedores anunciados</h2><ul></ul>
+    </section>
+    <section class="award-shell award-home-section" id="award-past" hidden>
+      <h2>Edições anteriores</h2><div class="awards-editions-grid" id="awards-editions"></div>
+    </section>
+    <section class="award-shell award-home-section award-home-about" id="como-funciona">
+      <h2>Sobre o prêmio</h2>
+      <div class="award-faq">${faqItems.home.map(([q,a])=>`<details><summary>${q}</summary><p>${a}</p></details>`).join("")}</div>
+      <a class="award-link" href="${/^(localhost|127\.0\.0\.1)$/.test(location.hostname)?"/melhores-de-urania/hall.html":"/melhores-de-urania/hall/"}">Ver histórico dos vencedores</a>
+    </section>
+  </main>`,
   edition:()=>`<main id="conteudo">${functionalHero("edition-copy","edition-panel")}${functionalSection("Edição oficial","edition-hub")}${functionalSection("Votação","vote-area","aria-live='polite'")}<section class="awards-section" id="indicacoes"><div class="award-shell"><header class="awards-section-head"><div><p class="award-eyebrow">Participe</p><h2>Indique quem faz a diferença.</h2></div><p id="indication-status-copy"></p></header><div id="indication-area" aria-live="polite">${loading}</div></div></section><p id="vote-status-copy" class="sr-only"></p></main>`,
   category:()=>`<main id="conteudo">${functionalHero("category-copy","category-panel")}${functionalSection("Indicados","category-nominees")}</main>`,
   permanent:()=>`<main id="conteudo">${functionalHero("permanent-category-copy","permanent-category-panel")}${functionalSection("Histórico da categoria","permanent-category-years")}</main>`,
@@ -38,8 +59,7 @@ const functionalPages={
 };
 const pageModules={home:"melhores-index-page.js",edition:"melhores-edicao-page.js",category:"melhores-categoria-page.js",permanent:"melhores-categoria-permanente-page.js",voting:"melhores-votacao-page.js",results:"melhores-resultados-page.js",hall:"melhores-hall-page.js",winner:"melhores-vencedor-page.js",method:"melhores-metodologia-page.js",rules:"melhores-regulamento-page.js"};
 const app=document.getElementById("awards-preview-app"),page=document.body.dataset.awardsPage||"home";app.innerHTML=header+(functionalPages[page]||functionalPages.home)()+footer;
-if(page==="home") app.querySelector("#awards-home-primary")?.insertAdjacentHTML("afterend",`<a class="award-link" href="${/^(localhost|127\.0\.0\.1)$/.test(location.hostname)?"/melhores-de-urania/hall.html":"/melhores-de-urania/hall/"}">Hall dos vencedores →</a>`);
-if(faqItems[page]) app.querySelector("main")?.insertAdjacentHTML("beforeend",faqSection(page));
+if(page==="edition") app.querySelector("main")?.insertAdjacentHTML("beforeend",faqSection(page));
 const demoMode=new URLSearchParams(location.search).get("demo")==="1"&&(["voting","results"].includes(page)||(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)&&["hall","winner"].includes(page)));
 import(demoMode?"/preview/melhores/awards-demo.js":`/assets/js/pages/${pageModules[page]||pageModules.home}`).catch(error=>console.error("Melhores de Urânia:",error));
 const siteHeader=document.querySelector(".site-header"),menu=document.getElementById("menu-principal"),menuButton=siteHeader?.querySelector(".menu-toggle"),searchTrigger=siteHeader?.querySelector(".search-trigger"),searchInput=document.getElementById("header-search-input");

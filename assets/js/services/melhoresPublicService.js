@@ -1,5 +1,9 @@
 import { fetchPublicRows } from "./publicDataService.js";
 
+export const winnerProfileUrl = (edition, row) => /^(localhost|127\.0\.0\.1)$/.test(globalThis.location?.hostname || "")
+  ? `/melhores-de-urania/vencedor.html?ano=${encodeURIComponent(edition.ano)}&id=${encodeURIComponent(row.indicado_id)}`
+  : `/melhores-de-urania/${encodeURIComponent(edition.ano)}/vencedores/${encodeURIComponent(row.indicado_id)}/`;
+
 export const resultsPageUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(globalThis.location?.hostname || "")
   ? `/melhores-de-urania/resultados.html?ano=${encodeURIComponent(edition.ano)}`
   : `/melhores-de-urania/${encodeURIComponent(edition.ano)}/resultados/`;

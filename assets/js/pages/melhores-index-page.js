@@ -1,4 +1,4 @@
-import { listarEdicoesPublicas, consultarPeriodoVotacao, listarResultadosPublicos, resultsPageUrl as resultsUrl } from "../services/melhoresPublicService.js";
+import { listarEdicoesPublicas, consultarPeriodoVotacao, listarResultadosPublicos, winnerProfileUrl, resultsPageUrl as resultsUrl } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
 
@@ -85,143 +85,108 @@ function editionCard(edition) {
   </article>`;
 }
 
-function setupFaqAccordion() {
-  const items = [...document.querySelectorAll(".awards-faq-item")];
-  if (!items.length) return;
-  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+const title = document.getElementById("award-home-title");
+const status = document.getElementById("award-home-status");
+const actions = document.getElementById("award-home-actions");
+const winnersSection = document.getElementById("awards-home-winners");
 
-  const openItem = (item, summary, panel) => {
-    item.open = true;
-    summary.setAttribute("aria-expanded", "true");
-    if (reduceMotion) {
-      panel.style.height = "auto";
-      return;
-    }
-    panel.style.height = "0px";
-    requestAnimationFrame(() => {
-      panel.style.height = `${panel.scrollHeight}px`;
-    });
-  };
-
-  const closeItem = (item, summary, panel) => {
-    summary.setAttribute("aria-expanded", "false");
-    if (reduceMotion) {
-      panel.style.height = "0px";
-      item.open = false;
-      return;
-    }
-    panel.style.height = `${panel.scrollHeight}px`;
-    requestAnimationFrame(() => {
-      panel.style.height = "0px";
-    });
-    window.setTimeout(() => {
-      if (summary.getAttribute("aria-expanded") === "false") item.open = false;
-    }, 320);
-  };
-
-  items.forEach((item) => {
-    const summary = item.querySelector("summary");
-    const panel = item.querySelector(".awards-faq-panel");
-    if (!summary || !panel) return;
-    summary.setAttribute("role", "button");
-    summary.setAttribute("aria-expanded", "false");
-    panel.style.height = "0px";
-
-    summary.addEventListener("click", (event) => {
-      event.preventDefault();
-      const isExpanded = summary.getAttribute("aria-expanded") === "true";
-      if (isExpanded) closeItem(item, summary, panel);
-      else openItem(item, summary, panel);
-    });
-
-    panel.addEventListener("transitionend", () => {
-      if (summary.getAttribute("aria-expanded") === "true") panel.style.height = "auto";
-    });
-  });
-
-  window.addEventListener("resize", () => {
-    items.filter((item) => item.open).forEach((item) => {
-      const panel = item.querySelector(".awards-faq-panel");
-      if (!panel) return;
-      panel.style.height = "auto";
-    });
-  }, { passive: true });
+function renderPhase(edition) {
+  const phase = phaseDetails(edition);
+  status.textContent = [phase.label, phase.period].filter(Boolean).join(" · ");
+  const primary = phase.action === "Ver vencedores" ? "Ver resultados da edição" : phase.action;
+  const secondary = phase.href === editionUrl(edition) ? "" :
+    `<a class="award-link" href="${editionUrl(edition)}">Sobre a edição</a>`;
+  actions.innerHTML = `<a class="award-home-primary" data-awards-cta href="${phase.href}">${esc(primary)}</a>
+    ${secondary}<button class="award-home-share" type="button" data-share-awards-home>Compartilhar</button>`;
 }
 
 async function init() {
-  setupFaqAccordion();
+  registrarEventoMelhores("melhores_index_view");
   try {
-    registrarEventoMelhores("melhores_index_view");
     const editions = await listarEdicoesPublicas();
-    const list = document.getElementById("awards-editions");
-    const hero = document.getElementById("active-edition-card");
     if (!editions.length) {
-      if (list) list.innerHTML = '<div class="awards-empty">Nenhuma edição pública no momento.</div>';
-      if (hero) hero.innerHTML = '<div class="awards-empty">A próxima edição será anunciada em breve.</div>';
+      status.textContent = "A próxima edição será anunciada em breve.";
       return;
     }
     const active = activeEdition(editions);
-    if (["apuracao", "resultado_publicado", "arquivada"].includes(active.status)) {
-      const results = await listarResultadosPublicos(active.id).catch(() => []);
-      const winners = results.filter(row => row.vencedor === true && row.publicado === true);
-      active.temVencedoresPublicos = winners.length > 0;
-      const section = document.getElementById("awards-home-winners");
-      if (section && winners.length) {
-        section.hidden = false;
-        section.querySelector("h2").textContent = `Vencedores de ${active.ano}`;
-        section.querySelector("ul").innerHTML = winners.map(row => `<li><a href="${resultsUrl(active)}"><strong>${esc(row.melhores_indicados?.nome)}</strong><span>${esc(row.melhores_categorias?.nome)}</span></a></li>`).join("");
-      }
-    } else if (["indicacoes_abertas", "votacao_aberta"].includes(active.status)) {
+    title.textContent = active.nome;
+    setImageMeta(active);
+    const cover = document.getElementById("award-home-cover");
+    const image = img(active.imagem_capa_url);
+    if (image) {
+      cover.innerHTML = `<img src="${image}" width="1600" height="807" alt="">`;
+      cover.hidden = false;
+    }
+    const past = editions.filter(item => item.id !== active.id);
+    if (past.length) {
+      document.getElementById("awards-editions").innerHTML = past.map(editionCard).join("");
+      document.getElementById("award-past").hidden = false;
+    }
+    if (["indicacoes_abertas", "votacao_aberta"].includes(active.status)) {
       const periodState = await consultarPeriodoVotacao(active.id);
       clock = { time: new Date(periodState.agora).getTime(), received: performance.now() };
       active.status = periodState.status;
-      active.votacao_inicio = periodState.votacao_inicio_app;
       active.votacao_inicio_site = periodState.votacao_inicio_site;
       active.votacao_fim = periodState.votacao_fim;
     }
-    const activePhase = phaseDetails(active);
-    const indicating = active.status === "indicacoes_abertas" && withinPeriod(active.indicacoes_inicio, active.indicacoes_fim);
-    const homePrimary = document.getElementById("awards-home-primary");
-    if (homePrimary && (indicating || active.temVencedoresPublicos)) {
-      homePrimary.href = activePhase.href;
-      homePrimary.textContent = activePhase.action;
-    }
-    setImageMeta(active);
-    if (hero) {
-      const image = img(active.imagem_capa_url);
-      hero.innerHTML = `${image ? `<img src="${image}" alt="${esc(active.nome)}">` : ""}
-        <h2>${esc(active.nome)}</h2>
-        <p>${esc(active.descricao || "Acompanhe a edição atual da premiação.")}</p>
-        <div class="awards-status-line">
-          ${indicating ? "" : `<span class="awards-chip ${active.status === "votacao_aberta" ? "open" : ""}">${esc(activePhase.label)}</span>`}
-          ${activePhase.period ? `<span class="awards-chip">${esc(activePhase.period)}</span>` : ""}
-        </div>
-        <p style="margin-top:1rem" class="hero-actions"><a class="button button-primary" href="${activePhase.href}" data-awards-cta data-edition-id="${active.id}">${activePhase.action}</a><button class="button button-secondary" type="button" data-share-awards-home>Compartilhar</button></p>`;
-    }
-    if (list) list.innerHTML = editions.map(editionCard).join("");
-    document.querySelector("[data-share-awards-home]")?.addEventListener("click", async () => {
-      await sharePage({
-        title: "Melhores de Urânia | Eu Amo Urânia",
-        text: `Acompanhe o ${active.nome}.`,
-        url: "/melhores-de-urania/"
+    renderPhase(active);
+    document.getElementById("conteudo").addEventListener("click", event => {
+      const cta = event.target.closest("[data-awards-cta]");
+      if (cta) registrarEventoMelhores("melhores_cta_click", {
+        edicaoId: cta.dataset.editionId || active.id, destino: cta.href, metadados: { origem_cta: "home_melhores" }
       });
-      registrarEventoMelhores("melhores_share_click", {
-        edicaoId: active.id,
-        destino: `${location.origin}/melhores-de-urania/`,
-        metadados: { canal: "native", origem: "home_melhores" }
-      });
+      if (event.target.closest("[data-share-awards-home]")) {
+        sharePage({ title: "Melhores de Urânia", text: `Acompanhe o ${active.nome}.`, url: "/melhores-de-urania/" });
+        registrarEventoMelhores("melhores_share_click", { edicaoId: active.id, destino: location.href, metadados: { origem: "home_melhores" } });
+      }
     });
-    document.querySelectorAll("[data-awards-cta]").forEach(link => {
-      link.addEventListener("click", () => registrarEventoMelhores("melhores_cta_click", {
-        edicaoId: link.dataset.editionId || null,
-        destino: link.href,
-        metadados: { origem_cta: "lista_edicoes" }
-      }));
-    });
+    if (!["apuracao", "resultado_publicado", "arquivada"].includes(active.status)) return;
+
+    const list = winnersSection.querySelector("ul");
+    let pending = false;
+    let previousMarkup = null;
+    async function refreshWinners() {
+      if (pending || document.hidden) return;
+      pending = true;
+      try {
+        const rows = await listarResultadosPublicos(active.id);
+        const winners = rows.filter(row => row.vencedor && row.publicado)
+          .sort((a, b) => String(b.publicado_em || "").localeCompare(String(a.publicado_em || "")) ||
+            String(a.melhores_categorias?.nome || "").localeCompare(String(b.melhores_categorias?.nome || ""), "pt-BR"));
+        const markup = winners.map(row => `<li><a href="${winnerProfileUrl(active, row)}">
+          <span>${esc(row.melhores_categorias?.nome)}</span><strong>${esc(row.melhores_indicados?.nome)}</strong>
+        </a></li>`).join("");
+        const firstResponse = previousMarkup === null;
+        if (markup !== previousMarkup) {
+          list.innerHTML = markup;
+          previousMarkup = markup;
+        }
+        winnersSection.hidden = !winners.length;
+        if (firstResponse || Boolean(active.temVencedoresPublicos) !== Boolean(winners.length)) {
+          active.temVencedoresPublicos = Boolean(winners.length);
+          renderPhase(active);
+        }
+      } catch (error) {
+        console.error("Vencedores da edição:", error);
+        if (previousMarkup === null) {
+          status.textContent = "Não foi possível carregar os vencedores agora.";
+          actions.querySelector("[data-awards-cta]").href = resultsUrl(active);
+          actions.querySelector("[data-awards-cta]").textContent = "Consultar resultados";
+        }
+      } finally {
+        pending = false;
+      }
+    }
+    if (active.status === "apuracao") {
+      setInterval(refreshWinners, 30000);
+      document.addEventListener("visibilitychange", refreshWinners);
+    }
+    await refreshWinners();
   } catch (error) {
     console.error("Melhores de Urânia:", error);
-    document.getElementById("awards-editions").innerHTML = '<div class="awards-empty">Não foi possível carregar as edições agora.</div>';
-    document.getElementById("active-edition-card").innerHTML = '<div class="awards-empty">Não foi possível carregar a edição atual agora.</div>';
+    status.textContent = "Não foi possível carregar a edição.";
+    actions.innerHTML = '<button class="award-home-primary" type="button">Tentar novamente</button>';
+    actions.querySelector("button").onclick = () => location.reload();
   }
 }
 
