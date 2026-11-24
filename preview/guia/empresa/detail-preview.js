@@ -1,3 +1,6 @@
+import { DAYS, parseHours, openingState } from "/assets/js/guideHours.mjs";
+import { watchGuideRecognitions } from "/assets/js/pages/guide-recognition.js";
+import { cardImage } from "/assets/card-images/card-image.mjs";
 import { verifiedName } from "/assets/js/viva-verified.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/publicDataService.js";
 import { definirMeta, textoPuro } from "/assets/js/utils.js";
@@ -52,44 +55,6 @@ function gallery(item) {
     .slice(0, 5);
 }
 
-const DAYS = [
-  ["mon", "Segunda"], ["tue", "Terça"], ["wed", "Quarta"], ["thu", "Quinta"],
-  ["fri", "Sexta"], ["sat", "Sábado"], ["sun", "Domingo"]
-];
-const DAY_INDEX = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-
-function parseHours(raw) {
-  if (typeof raw === "string") { try { raw = JSON.parse(raw); } catch { return []; } }
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return [];
-  return DAYS.map(([key, label]) => {
-    const item = raw[key];
-    if (!item || typeof item !== "object") return null;
-    if (item.closed === true || item.isClosed === true) return { key, label, closed: true, periods: [] };
-    if (item.twenty_four_hours || item.open_24h || item.is_24h || item.all_day) return { key, label, allDay: true, periods: [["00:00", "24:00"]] };
-    const candidates = Array.isArray(item.periods) ? item.periods : Array.isArray(item.shifts) ? item.shifts : [item];
-    const periods = candidates.map(period => [String(period?.open || ""), String(period?.close || "")]).filter(([open, close]) => /^\d{2}:\d{2}$/.test(open) && /^\d{2}:\d{2}$/.test(close));
-    return periods.length ? { key, label, periods } : null;
-  }).filter(Boolean);
-}
-
-function openingState(hours) {
-  if (!hours.length) return null;
-  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/Sao_Paulo", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
-  const weekday = parts.find(part => part.type === "weekday")?.value?.toLowerCase().slice(0, 3);
-  const hour = Number(parts.find(part => part.type === "hour")?.value || 0);
-  const minute = Number(parts.find(part => part.type === "minute")?.value || 0);
-  const today = hours.find(day => day.key === weekday || day.key === DAY_INDEX[new Date().getDay()]);
-  if (!today || today.closed) return { open: false, label: "Fechado agora" };
-  if (today.allDay) return { open: true, label: "Aberto agora", detail: "24 horas" };
-  const value = hour * 60 + minute;
-  const active = today.periods.find(([open, close]) => {
-    const [oh, om] = open.split(":").map(Number), [ch, cm] = close.split(":").map(Number);
-    const start = oh * 60 + om, end = close === "24:00" ? 1440 : ch * 60 + cm;
-    return end >= start ? value >= start && value < end : value >= start || value < end;
-  });
-  return active ? { open: true, label: "Aberto agora", detail: `Fecha às ${active[1].replace(":", "h")}` } : { open: false, label: "Fechado agora" };
-}
-
 function hoursMarkup(item) {
   const hours = parseHours(item.opening_hours);
   if (hours.length) return `<div class="hours-list">${DAYS.map(([key, label]) => {
@@ -101,17 +66,17 @@ function hoursMarkup(item) {
 }
 
 function companyCard(item) {
-  const image = safeImage(item.imagem_url);
+  const image = safeImage(cardImage(item.imagem_url));
   return `<a class="related-company" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="360" height="250" loading="lazy">` : `<span class="related-placeholder">Eu Amo Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco, 80))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
 }
 
 function tourismCard(item) {
-  const image = safeImage(item.imagem_url);
+  const image = safeImage(cardImage(item.imagem_url));
   return `<a class="related-tourism" href="/turismo/${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="420" height="300" loading="lazy">` : ""}<div><small>Descubra Urânia</small><h3>${esc(item.nome)}</h3><span>Conhecer ${icons.arrow}</span></div></a>`;
 }
 
 function newsCard(item, index) {
-  const image = safeImage(item.imagem_url);
+  const image = safeImage(cardImage(item.imagem_url));
   return `<a class="related-news-card${index === 0 ? " is-featured" : ""}" href="/noticias/${encodeURIComponent(item.slug)}">${image ? `<img src="${image}" alt="" width="520" height="330" loading="lazy">` : ""}<div><small>${esc(item.categoria_nome || "Notícias")}</small><h3>${esc(item.titulo)}</h3><p>${esc(truncate(item.resumo || item.conteudo_html, 95))}</p><span>Ler notícia ${icons.arrow}</span></div></a>`;
 }
 
@@ -296,7 +261,7 @@ function configureNewsletter() {
   return true;
 }
 
-render().then(() => Promise.allSettled([
+render().then(() => watchGuideRecognitions(root)).then(() => Promise.allSettled([
   import("/assets/js/pages/site-config-page.js"), import("/assets/js/pages/analytics-page.js"),
   import("/assets/js/pages/newsletter-public.js"), import("/assets/js/pages/google-analytics-page.js"),
   import("/assets/js/pages/smart-app-banner.js"), import("/assets/js/pages/error-monitor.js")

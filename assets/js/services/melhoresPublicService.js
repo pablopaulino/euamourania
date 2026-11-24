@@ -1,5 +1,9 @@
 import { fetchPublicRows } from "./publicDataService.js";
 
+export const resultsPageUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(globalThis.location?.hostname || "")
+  ? `/melhores-de-urania/resultados.html?ano=${encodeURIComponent(edition.ano)}`
+  : `/melhores-de-urania/${encodeURIComponent(edition.ano)}/resultados/`;
+
 const statusPublicos = [
   "indicacoes_abertas",
   "indicacoes_encerradas",

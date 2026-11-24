@@ -1,3 +1,4 @@
+import { cardImage } from "/assets/card-images/card-image.mjs";
 import { callPublicRpc, fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/publicDataService.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
 import { verifiedName } from "/assets/js/viva-verified.js";
@@ -59,7 +60,7 @@ async function renderNews() {
     }, { ttl: 120000 });
     const items = rows.filter(item => safeUrl(item.imagem_url)).slice(0, 3);
     if (!items.length) return fallbackMessage(root, "As notícias da cidade aparecerão aqui.");
-    root.innerHTML = items.map((item, index) => `<a class="news-card" href="${newsUrl(item)}"><img src="${esc(safeUrl(item.imagem_url))}" alt="" width="760" height="560" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><div class="news-copy"><small>${esc(item.categoria_nome || "Notícia")}</small><h3>${esc(item.titulo)}</h3></div></a>`).join("");
+    root.innerHTML = items.map((item, index) => `<a class="news-card" href="${newsUrl(item)}"><img src="${esc(safeUrl(cardImage(item.imagem_url)))}" alt="" width="760" height="560" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><div class="news-copy"><small>${esc(item.categoria_nome || "Notícia")}</small><h3>${esc(item.titulo)}</h3></div></a>`).join("");
   } catch (error) { fallbackMessage(root, "Não foi possível carregar as notícias agora."); }
 }
 
@@ -74,7 +75,7 @@ async function renderBusinesses() {
       limit: "6"
     }, { ttl: 180000 });
     if (!rows.length) return fallbackMessage(root, "Os estabelecimentos do Guia aparecerão aqui.");
-    root.innerHTML = rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${guideUrl(item)}">${safeUrl(item.imagem_url) ? `<img src="${esc(safeUrl(item.imagem_url))}" alt="" width="82" height="82" loading="lazy">` : `<span class="business-placeholder" aria-hidden="true"></span>`}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
+    root.innerHTML = rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${guideUrl(item)}">${safeUrl(item.imagem_url) ? `<img src="${esc(safeUrl(cardImage(item.imagem_url)))}" alt="" width="82" height="82" loading="lazy">` : `<span class="business-placeholder" aria-hidden="true"></span>`}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
   } catch { fallbackMessage(root, "Não foi possível carregar o Guia agora."); }
 }
 
@@ -144,7 +145,7 @@ async function renderTourism() {
     const rows = await fetchPublicRows("turismo", { select: "id,nome,slug,descricao,imagem_url,destaque,categoria_nome", status: "eq.publicado", order: "destaque.desc,nome.asc", limit: "5" }, { ttl: 180000 });
     if (!rows.length) { root.innerHTML = "<span>Os lugares de Urânia aparecerão aqui.</span>"; return; }
     const visual = rows.find(item => safeUrl(item.imagem_url));
-    if (visual) { const image = document.getElementById("tourism-image"); image.src = safeUrl(visual.imagem_url); image.alt = visual.nome || "Lugar para conhecer em Urânia"; }
+    if (visual) { const image = document.getElementById("tourism-image"); image.src = safeUrl(cardImage(visual.imagem_url)); image.alt = visual.nome || "Lugar para conhecer em Urânia"; }
     root.innerHTML = rows.map(item => `<a href="${tourismUrl(item)}"><span>${esc(item.nome)}</span><small>${esc(item.categoria_nome || "Conhecer")}</small></a>`).join("");
   } catch { root.innerHTML = "<span>Não foi possível carregar os lugares agora.</span>"; }
 }

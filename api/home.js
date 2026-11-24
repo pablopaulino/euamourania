@@ -1,3 +1,4 @@
+const { cardImage } = require("../assets/card-images/card-image.mjs");
 const { readFile } = require("node:fs/promises");
 const path = require("node:path");
 const { verifiedName } = require("../lib/viva-verified.js");
@@ -41,7 +42,7 @@ async function fetchPublicRows(table, params, timeout = 6000) {
 }
 
 function homeImage(value, width) {
-  const original = safeImage(value);
+  const original = safeImage(cardImage(value));
   if (!original) return "";
   const url = new URL(original, "https://euamourania.com.br");
   if (url.origin !== new URL(SUPABASE_URL).origin || !url.pathname.includes("/storage/v1/object/public/")) return original;

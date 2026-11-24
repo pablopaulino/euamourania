@@ -2,6 +2,7 @@ import { obterEdicaoPorAno, listarResultadosPublicos, listarHistoricoVencedoresP
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
 import { montarCentralTransparencia } from "./melhores-transparencia.js";
+export { resultsPageUrl } from "../services/melhoresPublicService.js";
 
 export const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
@@ -10,9 +11,6 @@ export const resultsArePublished = (edition, results) =>
   || (edition?.status === "apuracao" && results.some(row => row.vencedor && row.publicado === true));
 const localPreview = () => typeof location !== "undefined" && /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 export const hallUrl = () => localPreview() ? "/melhores-de-urania/hall.html" : "/melhores-de-urania/hall/";
-export const resultsPageUrl = edition => localPreview()
-  ? `/melhores-de-urania/resultados.html?ano=${encodeURIComponent(edition.ano)}`
-  : `/melhores-de-urania/${edition.ano}/resultados/`;
 export const winnerProfileUrl = (edition, row) => localPreview()
   ? `/melhores-de-urania/vencedor.html?ano=${encodeURIComponent(edition.ano)}&id=${encodeURIComponent(row.indicado_id)}`
   : `/melhores-de-urania/${edition.ano}/vencedores/${encodeURIComponent(row.indicado_id)}/`;
@@ -182,8 +180,8 @@ export function renderResults(results, edition, history = [], { demo = false } =
       <p>${demo ? "Nomes e números fictícios para visualizar o formato." : partial ? "Novos vencedores serão anunciados ao longo dos próximos dias." : "Ranking oficial preservado como snapshot histórico da edição."}</p>
     </div>
     <div class="awards-ranking-grid">${[...grouped.values()].map(rows => rankingSection(rows, showVotes, demo)).join("")}</div>
-    ${!demo ? `<p class="awards-results-more"><a href="${hallUrl()}">Ver o Hall de todas as edições →</a></p>` : ""}
-  </section>`}`;
+  </section>`}
+  ${!demo ? `<p class="awards-results-more"><a href="${hallUrl()}">Ver o Hall de todas as edições →</a></p>` : ""}`;
 }
 
 let resultsRefreshInProgress = false;

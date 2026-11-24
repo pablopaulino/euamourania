@@ -1,3 +1,4 @@
+import { cardImage } from "/assets/card-images/card-image.mjs";
 import { fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/publicDataService.js";
 import { definirMeta, textoPuro } from "/assets/js/utils.js";
 import { sanitizeArticleHtml } from "/assets/js/security/sanitize-html.js";
@@ -73,15 +74,15 @@ function mapsUrl(item) { const direct=safeHttp(item.mapa_url); if (direct) retur
 function instagramUrl(value) { if (!value) return ""; if (/^https?:\/\//i.test(value)) return safeHttp(value); const handle=String(value).replace(/^@/,"").replace(/[^a-z0-9._]/gi,""); return handle ? `https://instagram.com/${handle}` : ""; }
 
 function companyCard(item) {
-  const image=safeImage(item.imagem_url);
+  const image=safeImage(cardImage(item.imagem_url));
   return `<a class="place-company-card" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="410" height="270" loading="lazy" decoding="async">` : `<span class="media-placeholder">Guia de Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco,82))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
 }
 function tourismCard(item) {
-  const image=safeImage(item.imagem_url);
+  const image=safeImage(cardImage(item.imagem_url));
   return `<a class="place-tourism-card" href="/preview/turismo/local/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="520" height="360" loading="lazy" decoding="async">` : ""}<div><small>Descubra Urânia</small><h3>${esc(item.nome)}</h3><p>${esc(truncate(item.descricao,75))}</p><span>Conhecer ${icons.arrow}</span></div></a>`;
 }
 function newsCard(item) {
-  const image=safeImage(item.imagem_url);
+  const image=safeImage(cardImage(item.imagem_url));
   return `<a class="place-news-card" href="/noticias/${encodeURIComponent(item.slug)}">${image ? `<img src="${image}" alt="" width="380" height="240" loading="lazy" decoding="async">` : ""}<div><small>${esc(item.categoria_nome || "Notícias")}</small><h3>${esc(item.titulo)}</h3><span>Ler notícia ${icons.arrow}</span></div></a>`;
 }
 function section(kicker,title,description,items,className) {

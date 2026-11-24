@@ -188,3 +188,22 @@
     border-radius: 16px;
   }
 }
+
+#awards-home-winners ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 0 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#awards-home-winners a {
+  display: grid;
+  gap: 4px;
+  padding-block: 12px;
+  border-top: 1px solid #e7e5df;
+  color: inherit;
+  text-decoration: none;
+}
+#awards-home-winners a:hover strong { text-decoration: underline; }
+#awards-home-winners a span { color: #6c5141; font-size: .85rem; }

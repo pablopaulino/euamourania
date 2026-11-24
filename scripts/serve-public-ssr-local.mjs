@@ -42,6 +42,12 @@ function route(pathname) {
     return { handler: renderDetail, query: { tipo: "agenda-list" } };
   }
   const parts = pathname.split("/").filter(Boolean);
+  if (parts[0] === "guia" && parts[1] === "categoria" && parts.length === 3) {
+    return { handler: renderDetail, query: { tipo: "guia-categoria", slug: parts[2] } };
+  }
+  if (parts[0] === "melhores-de-urania" && /^\d{4}$/.test(parts[1]) && parts[2] === "resultados" && parts.length === 3) {
+    return { handler: renderDetail, query: { tipo: "social", mode: "award-results", ano: parts[1] } };
+  }
   if (parts[0] === "noticias" && parts.length === 2) {
     return { handler: renderDetail, query: { tipo: "news", slug: parts[1] } };
   }

@@ -1,7 +1,7 @@
 import { listarEdicoesPublicas, listarResultadosPublicos } from "../services/melhoresPublicService.js";
 import { esc, resultsArePublished, resultsPageUrl, winnerCard, winnerKey } from "./melhores-resultados-page.js";
 
-const complete = edition => edition.status === "resultado_publicado" || edition.status === "arquivada";
+const hasResultsPhase = edition => ["apuracao", "resultado_publicado", "arquivada"].includes(edition.status);
 
 function setMeta() {
   const title = "Hall dos vencedores | Melhores de Urânia";
@@ -24,7 +24,7 @@ async function init() {
   panel.innerHTML = '<h2>Uma história feita pela cidade</h2><p>Os vencedores aparecem aqui somente após a divulgação oficial de cada edição.</p>';
 
   try {
-    const editions = (await listarEdicoesPublicas()).filter(complete).sort((a, b) => Number(b.ano) - Number(a.ano));
+    const editions = (await listarEdicoesPublicas()).filter(hasResultsPhase).sort((a, b) => Number(b.ano) - Number(a.ano));
     const loaded = await Promise.all(editions.map(async edition => ({ edition, results: await listarResultadosPublicos(edition.id) })));
     const published = loaded.filter(({ edition, results }) => resultsArePublished(edition, results));
     const allWinners = published.flatMap(({ edition, results }) => results.filter(row => row.vencedor).map(row => ({ ...row, melhores_edicoes: { ano: edition.ano } })));
@@ -50,7 +50,7 @@ async function init() {
       return `<section class="awards-hall-year" aria-labelledby="awards-hall-${edition.ano}">
         <header class="awards-hall-year-head">
           <div><p class="eyebrow">Edição oficial</p><h2 id="awards-hall-${edition.ano}">${esc(String(edition.ano))}</h2></div>
-          <a href="${resultsPageUrl(edition)}">Ver resultado completo <span aria-hidden="true">→</span></a>
+          <a href="${resultsPageUrl(edition)}">Ver resultados da edição <span aria-hidden="true">→</span></a>
         </header>
         <div class="awards-winners-hall">${winners.map(row => winnerCard(row, winsByKey, edition)).join("")}</div>
       </section>`;

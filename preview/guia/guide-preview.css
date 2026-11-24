@@ -1,3 +1,5 @@
+@import url("/assets/css/guide-recognition.css");
+
 /* Preview isolada do novo Guia — não carregada pela página oficial. */
 .guide-page {
   --guide-warm: #fff7e8;

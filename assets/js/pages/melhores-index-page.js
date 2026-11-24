@@ -1,4 +1,4 @@
-import { listarEdicoesPublicas, consultarPeriodoVotacao } from "../services/melhoresPublicService.js";
+import { listarEdicoesPublicas, consultarPeriodoVotacao, listarResultadosPublicos, resultsPageUrl as resultsUrl } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
 
@@ -16,9 +16,6 @@ const indicationUrl = edition => `${editionUrl(edition)}#indicacoes`;
 const votingUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
   ? `/melhores-de-urania/votacao.html?ano=${encodeURIComponent(edition.ano)}`
   : `${editionUrl(edition)}votacao/`;
-const resultsUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
-  ? `/melhores-de-urania/resultados.html?ano=${encodeURIComponent(edition.ano)}`
-  : `${editionUrl(edition)}resultados/`;
 let clock = null;
 const serverNow = () => clock ? clock.time + (performance.now() - clock.received) : 0;
 const withinPeriod = (start, end) => (!start || serverNow() >= new Date(start).getTime())
@@ -35,6 +32,9 @@ const phaseDetails = edition => {
     period: `Site: ${period(edition.votacao_inicio_site, edition.votacao_fim)}`,
     action: edition.votacao_inicio_site && withinPeriod(edition.votacao_inicio_site, edition.votacao_fim) ? "Votar agora" : "Ver edição",
     href: edition.votacao_inicio_site && withinPeriod(edition.votacao_inicio_site, edition.votacao_fim) ? votingUrl(edition) : editionUrl(edition)
+  };
+  if (edition.status === "apuracao" && edition.temVencedoresPublicos) return {
+    label: "Divulgação em andamento", period: "", action: "Ver vencedores", href: resultsUrl(edition)
   };
   if (edition.status === "resultado_publicado" || (edition.status === "arquivada" && edition.resultado_publicado_em)) return {
     label: edition.status === "arquivada" ? "Edição arquivada" : "Resultado publicado",
@@ -161,18 +161,30 @@ async function init() {
       return;
     }
     const active = activeEdition(editions);
-    const periodState = await consultarPeriodoVotacao(active.id);
-    clock = { time: new Date(periodState.agora).getTime(), received: performance.now() };
-    active.status = periodState.status;
-    active.votacao_inicio = periodState.votacao_inicio_app;
-    active.votacao_inicio_site = periodState.votacao_inicio_site;
-    active.votacao_fim = periodState.votacao_fim;
+    if (["apuracao", "resultado_publicado", "arquivada"].includes(active.status)) {
+      const results = await listarResultadosPublicos(active.id).catch(() => []);
+      const winners = results.filter(row => row.vencedor === true && row.publicado === true);
+      active.temVencedoresPublicos = winners.length > 0;
+      const section = document.getElementById("awards-home-winners");
+      if (section && winners.length) {
+        section.hidden = false;
+        section.querySelector("h2").textContent = `Vencedores de ${active.ano}`;
+        section.querySelector("ul").innerHTML = winners.map(row => `<li><a href="${resultsUrl(active)}"><strong>${esc(row.melhores_indicados?.nome)}</strong><span>${esc(row.melhores_categorias?.nome)}</span></a></li>`).join("");
+      }
+    } else if (["indicacoes_abertas", "votacao_aberta"].includes(active.status)) {
+      const periodState = await consultarPeriodoVotacao(active.id);
+      clock = { time: new Date(periodState.agora).getTime(), received: performance.now() };
+      active.status = periodState.status;
+      active.votacao_inicio = periodState.votacao_inicio_app;
+      active.votacao_inicio_site = periodState.votacao_inicio_site;
+      active.votacao_fim = periodState.votacao_fim;
+    }
     const activePhase = phaseDetails(active);
     const indicating = active.status === "indicacoes_abertas" && withinPeriod(active.indicacoes_inicio, active.indicacoes_fim);
     const homePrimary = document.getElementById("awards-home-primary");
-    if (homePrimary && indicating) {
+    if (homePrimary && (indicating || active.temVencedoresPublicos)) {
       homePrimary.href = activePhase.href;
-      homePrimary.textContent = "Indicar agora";
+      homePrimary.textContent = activePhase.action;
     }
     setImageMeta(active);
     if (hero) {

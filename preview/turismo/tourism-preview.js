@@ -1,3 +1,4 @@
+import { cardImage } from "/assets/card-images/card-image.mjs";
 import { fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/publicDataService.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
 import "/preview/guia/banners-preview.js";
@@ -65,7 +66,7 @@ function compactLocation(address) {
 
 function cardMarkup(item, index) {
   const detail = `/turismo/${encodeURIComponent(item.slug || item.id)}`;
-  const image = safeImage(item.imagem_url);
+  const image = safeImage(cardImage(item.imagem_url));
   const description = compact(item.descricao, 118);
   const route = mapUrl(item);
   const location = compactLocation(item.endereco);
@@ -209,7 +210,7 @@ async function loadTourism() {
     allLoaded = !hasMorePages;
     if (!allItems.length) { container.innerHTML = ""; status.textContent = "Nenhum ponto turístico publicado."; return; }
     const visual = allItems.find(item => item.destaque && item.imagem_url) || allItems.find(item => item.imagem_url);
-    if (visual && heroImage) { heroImage.src = safeImage(visual.imagem_url); heroImage.alt = visual.nome ? `Vista de ${visual.nome}, em Urânia` : "Turismo em Urânia"; }
+    if (visual && heroImage) { heroImage.src = safeImage(cardImage(visual.imagem_url)); heroImage.alt = visual.nome ? `Vista de ${visual.nome}, em Urânia` : "Turismo em Urânia"; }
     visibleCount = PAGE_SIZE;
     render();
   } catch (error) {

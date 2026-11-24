@@ -14,6 +14,7 @@ const ALLOWED_TABLES = new Set([
   "eventos_noticias",
   "eventos_principais",
   "guia_comercial",
+  "app_melhores_vencedores",
   "links",
   "melhores_categorias",
   "melhores_edicoes",
@@ -72,7 +73,7 @@ export async function fetchPublicRows(table, params = {}, { ttl = 120000, timeou
   const url = `${SUPABASE_URL}/rest/v1/${table}?${query}`;
   const liveVerification = table === "guia_comercial" && String(params.select || "").split(",").includes("verificado");
   const freshResults = table === "rpc/melhores_listar_resultados_publicos";
-  const bypassCache = liveVerification || freshResults;
+  const bypassCache = liveVerification || freshResults || table === "app_melhores_vencedores";
   const cached = bypassCache ? null : readStored(url);
   if (cached) return cached;
   if (pending.has(url)) return pending.get(url);

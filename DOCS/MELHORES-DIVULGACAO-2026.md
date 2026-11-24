@@ -10,6 +10,8 @@ A tarefa `melhores-publicacao-agendada`, já existente, conclui o snapshot ofici
 
 A página de resultados consulta o banco sem cache e atualiza a cada 30 segundos enquanto estiver aberta. A publicação pelo Instagram é independente; não existe verificação automática do estado do Instagram.
 
+Desde 23/11, a versão instalada do Viva Urânia pode abrir a lista nativa de vencedores durante a divulgação gradual. Na consulta da campanha feita pelo aplicativo, a API apresenta a etapa de resultado e a data da categoria mais recente já anunciada. A Home usa essa data para mostrar o destaque no dia do anúncio. A lista inclui somente as categorias liberadas, inclusive para quem entra no aplicativo com uma conta administrativa. O painel conserva o status oficial “Em apuração” até a conclusão agendada.
+
 ## Verificação local
 
 `scripts/test-melhores-revelacao.mjs` usa dados fictícios e PGlite. Instale `@electric-sql/pglite` em ambiente de testes ou forneça o módulo pela variável `PGLITE_MODULE`. O teste cobre os 21 horários, transação revertida se uma categoria não corresponder, sigilo, acesso do app, cancelamento e conclusão final. Não utiliza dados de produção.

@@ -1,3 +1,7 @@
+import { watchGuideRecognitions } from "./guide-recognition.js";
+
+watchGuideRecognitions(document.getElementById("guide-category-grid"));
+
 const normalize = value => String(value || "")
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g, "")
