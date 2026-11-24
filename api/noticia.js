@@ -1,4 +1,3 @@
-const { guideAwardMeta } = require("../assets/js/guideAwardMeta.mjs");
 const { verifiedName } = require("../lib/viva-verified.js");
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://omhcpbphvtihqwdkbsbf.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || "sb_publishable_m02B2sC8Ddh4fCtnvsGePg_TqwUanoM";
@@ -152,6 +151,7 @@ async function renderGuia(req, res, slug) {
 }
 
 async function renderGuiaCategoria(req, res, slug) {
+  const { guideAwardMeta } = await import("../assets/js/guideAwardMeta.mjs");
   const [categoriesResponse, guideResponse, config] = await Promise.all([
     fetch(
       `${SUPABASE_URL}/rest/v1/categorias?tipo=eq.guia&status=eq.ativo&select=id,nome,slug,ordem&order=ordem.asc,nome.asc`,
@@ -450,8 +450,10 @@ async function renderIniciativa(req, res, slug) {
 module.exports = async (req, res) => {
   if (req.query.tipo === "social") return require("../lib/social-page.js")(req, res);
   if (req.query.tipo === "news-list") return require("../lib/news-list-ssr.js").renderNewsList(req, res);
-  if (req.query.tipo === "guide-list") return require("../lib/guide-tourism-list-ssr.js").renderGuideList(req, res);
-  if (req.query.tipo === "tourism-list") return require("../lib/guide-tourism-list-ssr.js").renderTourismList(req, res);
+  if (req.query.tipo === "guide-list" || req.query.tipo === "tourism-list") {
+    const { renderGuideList, renderTourismList } = await import("../lib/guide-tourism-list-ssr.mjs");
+    return req.query.tipo === "guide-list" ? renderGuideList(req, res) : renderTourismList(req, res);
+  }
   if (req.query.tipo === "agenda-list") return require("../lib/agenda-list-ssr.js").renderAgendaList(req, res);
   const slug = String(req.query.slug || "").trim();
   if (!/^[a-z0-9-]+$/.test(slug)) {

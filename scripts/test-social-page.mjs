@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 
 const require = createRequire(import.meta.url);
-const handler = require('../lib/social-page.js');
+const handler = require('../api/noticia.js');
 const originalFetch = globalThis.fetch;
 
 globalThis.fetch = async url => {
@@ -22,7 +22,7 @@ globalThis.fetch = async url => {
 async function render(query) {
   let status;
   let html;
-  await handler({ query }, {
+  await handler({ query: { tipo: 'social', ...query } }, {
     setHeader() {},
     status(code) { status = code; return { send(value) { html = value; } }; }
   });
@@ -38,6 +38,8 @@ async function render(query) {
 
 try {
   const award = await render({ mode: 'award-edition', ano: '2026' });
+  const results = await render({ mode: 'award-results', ano: '2026' });
+  assert.equal(results.tag('og:url')[0], 'https://euamourania.com.br/melhores-de-urania/2026/resultados/');
   assert.equal(award.tag('og:image')[0], 'https://example.com/award.jpg');
   assert.equal(award.tag('og:url')[0], 'https://euamourania.com.br/melhores-de-urania/2026/');
   const category = await render({ mode: 'award-category', ano: '2026', slug: 'melhor-academia' });

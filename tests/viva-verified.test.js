@@ -2,7 +2,6 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { verifiedBadge, verifiedName } = require('../lib/viva-verified.js');
-const { guideCard } = require('../lib/guide-tourism-list-ssr.js');
 const { renderGuide } = require('../lib/site-2026-detail-ssr.js');
 
 test('only the boolean true grants the badge; browser and SSR agree', async () => {
@@ -20,7 +19,8 @@ test('only the boolean true grants the badge; browser and SSR agree', async () =
   }
 });
 
-test('published cards and detail titles show verification independently of editorial recommendation', () => {
+test('published cards and detail titles show verification independently of editorial recommendation', async () => {
+  const { guideCard } = await import('../lib/guide-tourism-list-ssr.mjs');
   for (const render of [guideCard, renderGuide]) {
     const base = { id:'fixture', slug:'fixture', nome:'Empresa <teste>', recomendado:true };
     assert.equal(render(base).includes('viva-verified.svg'), false);

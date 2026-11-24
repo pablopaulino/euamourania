@@ -1,8 +1,5 @@
 import assert from "node:assert/strict";
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
-const { renderGuideList, renderTourismList, renderListHtml } = require("../lib/guide-tourism-list-ssr.js");
+import { renderGuideList, renderTourismList, renderListHtml } from "../lib/guide-tourism-list-ssr.mjs";
 const companies = Array.from({ length:7 }, (_, index) => ({
   id: `company-${index}`, slug: `empresa-${index}`, nome: `Empresa ${index}`,
   descricao: index ? "Um serviço em Urânia." : '<script>alert("x")</script>',
@@ -58,7 +55,7 @@ try {
   await renderTourismList({}, tourism);
   assert.equal(guide.statusCode, 200);
   assert.equal(tourism.statusCode, 200);
-  assert.equal(guide.headers["Cache-Control"], "public, s-maxage=60, stale-while-revalidate=60");
+  assert.equal(guide.headers["Cache-Control"], "no-store");
   assert.equal(tourism.headers["Cache-Control"], "public, s-maxage=60, stale-while-revalidate=60");
   assert.match(guide.html, /Empresa 0/);
   assert.match(tourism.html, /Lugar 0/);

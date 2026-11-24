@@ -40,7 +40,8 @@ try{
   ]){
     const {statusCode,body,headers}=await request(tipo,slug);
     must(statusCode===200,`${tipo}: status ${statusCode}`);
-    must(headers["Cache-Control"]==="public, s-maxage=60, stale-while-revalidate=60",`${tipo}: cache longo ou ausente`);
+    const expectedCache=tipo==="guia" ? "no-store" : "public, s-maxage=60, stale-while-revalidate=60";
+    must(headers["Cache-Control"]===expectedCache,`${tipo}: política de cache inesperada`);
     const main=body.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1]||"";
     must(main.includes(`<h1>${title}</h1>`),`${tipo}: título ausente do HTML bruto`);
     must(main.includes(expectedText),`${tipo}: texto principal ausente do HTML bruto`);

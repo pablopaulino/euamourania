@@ -11,6 +11,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Validar páginas públicas com o carregamento de módulos da produção
+        run: |
+          node --no-experimental-require-module scripts/test-home-ssr.mjs
+          node --no-experimental-require-module scripts/test-social-page.mjs
+          node --no-experimental-require-module scripts/test-guide-tourism-list-ssr.mjs
       - run: npm test
       - if: github.ref == 'refs/heads/main'
         run: npm run smoke

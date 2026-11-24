@@ -1,4 +1,3 @@
-const { cardImage } = require("../assets/card-images/card-image.mjs");
 const { readFile } = require("node:fs/promises");
 const path = require("node:path");
 const { verifiedName } = require("../lib/viva-verified.js");
@@ -42,7 +41,7 @@ async function fetchPublicRows(table, params, timeout = 6000) {
 }
 
 function homeImage(value, width) {
-  const original = safeImage(cardImage(value));
+  const original = safeImage(value);
   if (!original) return "";
   const url = new URL(original, "https://euamourania.com.br");
   if (url.origin !== new URL(SUPABASE_URL).origin || !url.pathname.includes("/storage/v1/object/public/")) return original;
@@ -151,6 +150,8 @@ function agendaMarkup(simpleRows, recurringRows, editionRows) {
 }
 
 async function renderPrimaryContent(html) {
+  const { cardImage } = await import("../assets/card-images/card-image.mjs");
+  const withCardImages = rows => rows.map(item => ({ ...item, imagem_url: cardImage(item.imagem_url) }));
   const now = new Date().toISOString();
   const requests = {
     news: fetchPublicRows("noticias", { select: "id,titulo,slug,imagem_url,categoria_nome", status: "eq.publicado", publicado_em: `lte.${now}`, order: "destaque.desc,publicado_em.desc", limit: "8" }),
@@ -171,12 +172,12 @@ async function renderPrimaryContent(html) {
   }));
   const data = Object.fromEntries(entries);
   let rendered = 0;
-  if (data.news) { html = replaceHomeSection(html, "home-news", newsMarkup(data.news)); rendered++; }
-  if (data.businesses) { html = replaceHomeSection(html, "home-businesses", businessMarkup(data.businesses)); rendered++; }
+  if (data.news) { html = replaceHomeSection(html, "home-news", newsMarkup(withCardImages(data.news))); rendered++; }
+  if (data.businesses) { html = replaceHomeSection(html, "home-businesses", businessMarkup(withCardImages(data.businesses))); rendered++; }
   if (data.tourism) {
     html = replaceHomeSection(html, "home-tourism", tourismMarkup(data.tourism));
     const visualSource = data.tourism.find(item => safeImage(item.imagem_url));
-    const visual = visualSource && { ...visualSource, imagem_url: homeImage(visualSource.imagem_url, 900) };
+    const visual = visualSource && { ...visualSource, imagem_url: homeImage(cardImage(visualSource.imagem_url), 900) };
     if (visual) html = html.replace(/(<img id="tourism-image" src=")[^"]*(" alt=")[^"]*(")/, (_, open, middle, close) => `${open}${esc(safeImage(visual.imagem_url))}${middle}${esc(visual.nome || "Lugar para conhecer em Urânia")}${close}`);
     rendered++;
   }
