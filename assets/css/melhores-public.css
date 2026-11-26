@@ -82,7 +82,7 @@
 .award-home-intro, .awards-public-hero { background: var(--award-surface); }
 .award-home-intro figure { display: grid; place-items: center; padding: 0 clamp(0rem, 3vw, 2rem) 1.25rem; }
 .award-home-intro figure .award-home-symbol { max-height: 15rem; object-fit: contain; background: transparent; }
-.award-home-intro figure img[src$="assinatura-2026.png"] { background: transparent; border-radius: 0; }
+.award-home-intro figure img[src$="assinatura-2026.png"] { transform: scale(.95); background: transparent; border-radius: 0; }
 .award-winner-seal { position: absolute; top: .5rem; left: .5rem; width: clamp(2rem, 4vw, 3.375rem); height: auto; }
 .award-nominee-seal { width: 5.9rem; height: auto; margin-bottom: .65rem; }
 .award-home-grid, .awards-public-grid, .awards-winner-profile { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: center; gap: clamp(1.75rem, 6vw, 6rem); }
@@ -91,6 +91,7 @@
   .award-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
   .award-home-grid > :first-child, .award-home-art { display: flex; flex-direction: column; }
   .award-home-art { align-self: stretch; width: 100%; justify-content: space-between; }
+  .award-home-art figure img[src$="assinatura-2026.png"] { transform: translateX(-3%) scale(.95); }
   .award-home-art figure { padding: 0 0 1.5rem; }
   .award-home-grid .award-home-actions { margin-top: auto; padding-top: 1.5rem; }
 }
