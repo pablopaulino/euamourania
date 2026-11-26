@@ -1,4 +1,4 @@
-.banner-zone{position:relative;padding:clamp(.75rem,1.6vw,1.25rem) 0;background:transparent;content-visibility:auto;contain-intrinsic-size:190px}
+.banner-zone{position:relative;min-height:190px;padding:clamp(.75rem,1.6vw,1.25rem) 0;background:transparent;contain:layout style;content-visibility:auto;contain-intrinsic-size:190px}
 .banner-zone+.banner-zone{padding-top:0}
 .banner-list{display:block}
 .ad-zone-inline{grid-column:1/-1;width:100%;margin:clamp(.9rem,2vw,1.45rem) 0;padding:0;background:transparent}
@@ -689,7 +689,12 @@
 
 @media(max-width:650px){
   .banner-zone {
+    min-height: 168px;
     contain-intrinsic-size: 180px;
+  }
+
+  .banner-zone .ad-rotator {
+    min-height: 140px;
   }
 
   .ad-zone-inline .ad-rotator,

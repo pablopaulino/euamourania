@@ -335,11 +335,35 @@
 .award-hall-grid .award-archive-category { padding: 1rem; border: 0; border-radius: 1rem; background: #faf6f0; }
 .award-hall-grid .award-archive-label { color: #C88A2E; font-size: 1.17rem; font-weight: 750; }
 .award-hall-grid .award-archive-entries { grid-template-columns: 1fr; margin-top: .75rem; }
-.award-hall-grid .awards-winner-card { grid-template-columns: clamp(5rem,9vw,7rem) minmax(0,1fr); align-items: center; }
+.award-hall-grid .awards-winner-card { grid-template-columns: minmax(0,1fr); gap: 1rem; }
 .award-hall-grid .awards-winner-photo { aspect-ratio: 1; overflow: hidden; border-radius: 1rem; }
 .award-hall-grid .awards-winner-photo img { display: block; object-fit: cover; }
-.award-hall-grid .hall-winner-badge { top: .35rem; left: .35rem; padding: .14rem .48rem; border-radius: 9999px; background: #C62119; color: white; white-space: nowrap; font-size: .7rem; box-shadow: 0 1px 4px #0002; }
+.award-hall-grid .award-winner-seal { width: clamp(4rem, 7vw, 5.5rem); top: .8rem; left: .8rem; }
 .award-hall-grid .awards-winner-history { margin-top: .45rem; font-size: .85rem; }
 .award-hall-grid .awards-winner-history strong { font-weight: 400; }
-.award-hall-grid .is-clickable .awards-winner-history span { color: var(--award-red-hover); font-weight: 650; }
+.award-hall-grid .is-clickable .awards-winner-history span {
+  display: inline-flex; align-items: center; justify-self: start; gap: .65rem;
+  margin-top: .8rem; min-height: 2.75rem; padding: .55rem 1.1rem;
+  border-radius: 9999px; color: white; background: #C62119; font-weight: 650;
+}
+.award-hall-grid .is-clickable:is(:hover,:focus-visible,:focus-within) .awards-winner-history span { background: var(--award-red-hover); }
 .award-hall-grid .award-archive-nominees li { border: 0; }
+.awards-winner-card.is-clickable { position: relative; }
+.awards-winner-profile-link { color: inherit; text-decoration: none; }
+.awards-winner-profile-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.awards-winner-guide-link, .awards-guide-link {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: 2.75rem;
+  color: var(--award-red-hover);
+  font-size: .875rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.awards-winner-guide-link:is(:hover,:focus-visible), .awards-guide-link:is(:hover,:focus-visible) {
+  text-decoration: underline;
+  text-underline-offset: .18em;
+}

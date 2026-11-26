@@ -62,12 +62,20 @@ function setImageMeta(edition) {
   twitterImage.setAttribute("content", absolute);
 }
 
+function readInitialAwardsData() {
+  try {
+    return JSON.parse(document.getElementById("initial-awards-data")?.textContent || "null");
+  } catch {
+    return null;
+  }
+}
+
 function editionCard(edition) {
   const image = img(edition.imagem_capa_url);
   const phase = phaseDetails(edition);
   const indicating = edition.status === "indicacoes_abertas" && withinPeriod(edition.indicacoes_inicio, edition.indicacoes_fim);
   return `<article class="awards-edition-card">
-    ${image ? `<img src="${image}" alt="${esc(edition.nome)}" loading="lazy">` : ""}
+    ${image ? `<img src="${image}" alt="${esc(edition.nome)}" width="640" height="380" loading="lazy" decoding="async">` : ""}
     <div class="awards-card-body">
       ${indicating ? "" : `<span class="awards-chip ${edition.status === "votacao_aberta" ? "open" : ""}">${esc(phase.label)}</span>`}
       <h3>${esc(edition.nome)}</h3>
@@ -95,18 +103,23 @@ function renderPhase(edition) {
 
 async function init() {
   registrarEventoMelhores("melhores_index_view");
+  const initialData = readInitialAwardsData();
+  const ssrHome = status?.dataset.serverRendered === "true" || actions?.dataset.serverRendered === "true" || winnersSection?.dataset.serverRendered === "true";
   try {
-    const editions = await listarEdicoesPublicas();
+    const liveEditions = await listarEdicoesPublicas().catch(() => null);
+    const editions = Array.isArray(liveEditions) && liveEditions.length
+      ? liveEditions
+      : (Array.isArray(initialData?.editions) ? initialData.editions : []);
     if (!editions.length) {
-      status.textContent = "A próxima edição será anunciada em breve.";
+      if (!ssrHome && status) status.textContent = "A próxima edição será anunciada em breve.";
       return;
     }
     const active = edicaoEmDestaque(editions);
     setImageMeta(active);
     const cover = document.getElementById("award-home-cover");
     const image = Number(active.ano) === 2026 ? "/assets/melhores/assinatura-2026.png" : img(active.imagem_capa_url);
-    if (image) {
-      cover.innerHTML = `<img src="${image}" width="1600" height="807" alt="">`;
+    if (image && cover) {
+      cover.innerHTML = `<img src="${image}" width="1600" height="807" alt="${esc(active.nome || "Melhores de Urânia")}">`;
       cover.hidden = false;
     }
     const past = editions.filter(item => item.id !== active.id);
@@ -115,11 +128,13 @@ async function init() {
       document.getElementById("award-past").hidden = false;
     }
     if (["indicacoes_abertas", "votacao_aberta"].includes(active.status)) {
-      const periodState = await consultarPeriodoVotacao(active.id);
-      clock = { time: new Date(periodState.agora).getTime(), received: performance.now() };
-      active.status = periodState.status;
-      active.votacao_inicio_site = periodState.votacao_inicio_site;
-      active.votacao_fim = periodState.votacao_fim;
+      const periodState = await consultarPeriodoVotacao(active.id).catch(() => null);
+      if (periodState) {
+        clock = { time: new Date(periodState.agora).getTime(), received: performance.now() };
+        active.status = periodState.status;
+        active.votacao_inicio_site = periodState.votacao_inicio_site;
+        active.votacao_fim = periodState.votacao_fim;
+      }
     }
     renderPhase(active);
     document.getElementById("conteudo").addEventListener("click", event => {
@@ -136,7 +151,7 @@ async function init() {
 
     const list = winnersSection.querySelector("ul");
     let pending = false;
-    let previousMarkup = null;
+    let previousMarkup = list?.dataset.serverRendered === "true" ? list.innerHTML : null;
     async function refreshWinners() {
       if (pending || document.hidden) return;
       pending = true;
@@ -151,7 +166,7 @@ async function init() {
           const photo = img(nominee?.imagem_url || nominee?.guia_comercial?.imagem_url);
           const initial = esc(nominee?.nome?.trim().charAt(0) || "U");
           return `<li><a href="${winnerProfileUrl(active, row)}">
-            <div class="award-portrait" aria-hidden="true">${initial}${photo ? `<img src="${photo}" alt="" loading="lazy">` : ""}</div>
+            <div class="award-portrait" aria-hidden="true">${initial}${photo ? `<img src="${photo}" alt="${esc(nominee?.nome || "")}" width="64" height="64" loading="lazy" decoding="async">` : ""}</div>
             <span>${esc(row.melhores_categorias?.nome)}</span><strong>${esc(row.melhores_indicados?.nome)}</strong>
             ${mention ? `<em>${esc(mention)}</em>` : ""}
           </a></li>`;
@@ -168,10 +183,13 @@ async function init() {
         }
       } catch (error) {
         console.error("Vencedores da edição:", error);
-        if (previousMarkup === null) {
+        if (previousMarkup === null && !ssrHome) {
           status.textContent = "Não foi possível carregar os vencedores agora.";
-          actions.querySelector("[data-awards-cta]").href = resultsUrl(active);
-          actions.querySelector("[data-awards-cta]").textContent = "Consultar resultados";
+          const cta = actions.querySelector("[data-awards-cta]");
+          if (cta) {
+            cta.href = resultsUrl(active);
+            cta.textContent = "Consultar resultados";
+          }
         }
       } finally {
         pending = false;
@@ -184,9 +202,11 @@ async function init() {
     await refreshWinners();
   } catch (error) {
     console.error("Melhores de Urânia:", error);
-    status.textContent = "Não foi possível carregar a edição.";
-    actions.innerHTML = '<button class="award-home-primary" type="button">Tentar novamente</button>';
-    actions.querySelector("button").onclick = () => location.reload();
+    if (!ssrHome) {
+      status.textContent = "Não foi possível carregar a edição.";
+      actions.innerHTML = '<button class="award-home-primary" type="button">Tentar novamente</button>';
+      actions.querySelector("button").onclick = () => location.reload();
+    }
   }
 }
 

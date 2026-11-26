@@ -58,18 +58,54 @@ export function categoryName(row) {
   return row?.melhores_categorias?.nome || "Categoria";
 }
 
+function getInitialResultsBootstrap() {
+  try {
+    return JSON.parse(document.getElementById("initial-awards-data")?.textContent || "null");
+  } catch {
+    return null;
+  }
+}
+
+function slugifyResultsCandidate(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function resolveResultsGuideUrl(nominee, name) {
+  if (!nominee) return "";
+  const guide = nominee.guia_comercial;
+  if (guide?.slug && (!guide.status || guide.status === "publicado")) {
+    return `/guia/${encodeURIComponent(guide.slug)}`;
+  }
+  const initial = getInitialResultsBootstrap();
+  const linkedId = nominee.guia_comercial_id || nominee.empresa_id;
+  if (linkedId && initial?.guideSlugs && Object.prototype.hasOwnProperty.call(initial.guideSlugs, String(linkedId))) {
+    return `/guia/${encodeURIComponent(initial.guideSlugs[String(linkedId)])}`;
+  }
+  const candidateSlug = nominee.slug || slugifyResultsCandidate(name || "");
+  if (candidateSlug && initial?.guideNames && Object.prototype.hasOwnProperty.call(initial.guideNames, candidateSlug)) {
+    return `/guia/${encodeURIComponent(initial.guideNames[candidateSlug])}`;
+  }
+  return "";
+}
+
 export function nomineeData(row) {
   const nominee = row.melhores_indicados || {};
   const guide = nominee.guia_comercial || {};
   const place = nominee.turismo;
   const placeSlug = place?.status === "publicado" && place.slug ? encodeURIComponent(place.slug) : "";
+  const name = nominee.nome || guide.nome || "Indicado";
   return {
     nominee,
     guide,
-    name: nominee.nome || guide.nome || "Indicado",
+    name,
     description: nominee.descricao_curta || row.criterio_aplicado || guide.categoria_nome || "Resultado oficial da categoria.",
     img: image(nominee.imagem_url || guide.imagem_url),
-    guideUrl: guide.slug && guide.status === "publicado" ? `/guia/${encodeURIComponent(guide.slug)}` : "",
+    guideUrl: resolveResultsGuideUrl(nominee, name),
     tourismUrl: placeSlug ? (awardLocal() ? `/turismo-details.html?slug=${placeSlug}` : `/turismo/${placeSlug}`) : ""
   };
 }
@@ -101,26 +137,26 @@ export function winnerCard(row, winsByKey, edition, demo = false, hall = false) 
   const mention = mencaoPublica(row);
   const initial = esc(data.name.trim().charAt(0).toLocaleUpperCase("pt-BR") || "U");
   const profileUrl = !demo && row.indicado_id ? winnerProfileUrl(edition, row) : "";
-  const cardTag = profileUrl ? "a" : "article";
-  const cardHref = profileUrl ? ` href="${esc(profileUrl)}" aria-label="Conhecer ${esc(data.name)}, vencedor de ${esc(categoryName(row))} em ${edition.ano}"` : "";
   const cardClass = `awards-winner-card${profileUrl ? " is-clickable" : ""}`;
   const historyHint = demo ? "Prévia ilustrativa" : "Conhecer vencedor";
 
-  return `<${cardTag} class="${cardClass}"${cardHref}>
+  return `<article class="${cardClass}">
     <div class="awards-winner-media">
       <div class="awards-winner-photo"><span class="awards-winner-initial" aria-hidden="true">${initial}</span>${data.img ? `<img src="${data.img}" alt="${esc(data.name)}" loading="lazy" decoding="async" width="640" height="480">` : ""}</div>
-      ${hall ? '<span class="hall-winner-badge">Vencedor</span>' : '<img class="award-winner-seal" src="/assets/melhores/vencedor.png" alt="Vencedor" width="54" height="54" loading="lazy">'}
+      <img class="award-winner-seal" src="/assets/melhores/vencedor.png" alt="Vencedor" width="54" height="54" loading="lazy">
     </div>
     <div class="awards-winner-body">
       <p class="awards-winner-category">${esc(categoryName(row))}</p>
-      <h3>${esc(data.name)}</h3>
+      <h3>${profileUrl ? `<a class="awards-winner-profile-link" href="${esc(profileUrl)}" aria-label="Conhecer ${esc(data.name)}, vencedor de ${esc(categoryName(row))} em ${edition.ano}">${esc(data.name)}</a>` : esc(data.name)}</h3>
       ${mention ? `<p><em>${esc(mention)}</em></p>` : ""}
+      ${!demo && data.tourismUrl ? `<a class="awards-winner-guide-link" href="${esc(data.tourismUrl)}">Ver atrativo em Turismo <span aria-hidden="true">→</span></a>` : ""}
+      ${!demo && data.guideUrl ? `<a class="awards-winner-guide-link" href="${esc(data.guideUrl)}">Ver no Guia Comercial <span aria-hidden="true">→</span></a>` : ""}
       <div class="awards-winner-history">
         <strong>${demo ? "Exemplo de vencedor" : esc(winnerHistoryLabel(row, winsByKey, edition.ano))}</strong>
         <span>${esc(historyHint)}${hall && profileUrl ? ' <i aria-hidden="true">→</i>' : ""}</span>
       </div>
     </div>
-  </${cardTag}>`;
+  </article>`;
 }
 
 function rankingItem(row, showVotes, demo = false) {
@@ -128,7 +164,7 @@ function rankingItem(row, showVotes, demo = false) {
   return `<li class="awards-ranking-item ${row.vencedor ? "is-winner" : ""}">
     <span class="awards-ranking-position">${Number(row.colocacao)}º</span>
     <div>
-      <strong>${esc(data.name)}</strong>
+      <strong>${!demo && data.guideUrl ? `<a href="${esc(data.guideUrl)}">${esc(data.name)}</a>` : esc(data.name)}</strong>
       <small>${row.vencedor ? "Vencedor" : "Indicado"} ${demo ? "na prévia" : "no resultado oficial"}</small>
     </div>
     ${showVotes ? `<span class="awards-ranking-score">${votesLabel(row)}</span>` : ""}
@@ -189,11 +225,13 @@ let resultsRefreshInProgress = false;
 async function init(refresh = false) {
   if (resultsRefreshInProgress) return;
   resultsRefreshInProgress = true;
+  const resultsListEl = document.getElementById("results-list");
+  const hasSsr = resultsListEl?.dataset.serverRendered === "true";
   try {
     const year = getYear();
     const edition = await obterEdicaoPorAno(year);
     if (!edition) {
-      document.getElementById("results-list").innerHTML = '<div class="awards-empty">Edição não encontrada ou ainda não publicada.</div>';
+      if (!hasSsr && resultsListEl) resultsListEl.innerHTML = '<div class="awards-empty">Edição não encontrada ou ainda não publicada.</div>';
       return;
     }
 
@@ -264,7 +302,7 @@ async function init(refresh = false) {
     if (!partial && edition.ano === 2026) montarCentralTransparencia(resultsList, edition, results, comprovantes);
   } catch (error) {
     console.error("Resultados Melhores de Urânia:", error);
-    if (!refresh) document.getElementById("results-list").innerHTML = '<div class="awards-empty">Não foi possível carregar os resultados agora.</div>';
+    if (!refresh && !hasSsr && resultsListEl) resultsListEl.innerHTML = '<div class="awards-empty">Não foi possível carregar os resultados agora.</div>';
   } finally {
     resultsRefreshInProgress = false;
   }

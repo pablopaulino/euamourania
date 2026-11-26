@@ -2,15 +2,17 @@ import { formatarData, gerarSlug, textoPuro } from "/assets/js/utils.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/publicDataService.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
 
+const isPreview = location.pathname.startsWith("/preview/");
 const params = new URLSearchParams(location.search);
-const currentSlug = params.get("categoria") || params.get("slug") || "";
+const currentSlug = params.get("categoria") || params.get("slug") || location.pathname.match(/^\/news\/([^/]+)\/?$/)?.[1] || "";
 const byId = id => document.getElementById(id);
 const title = byId("category-title"), description = byId("category-description"), count = byId("category-count"), total = byId("category-total"), updated = byId("category-updated"), status = byId("category-status"), nav = byId("category-nav"), list = byId("category-news"), featured = byId("category-featured"), feedTitle = byId("category-feed-title"), form = byId("category-search-form"), search = byId("category-search");
 const esc = (value = "") => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 const normalize = value => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const summary = item => (item.resumo || textoPuro(item.conteudo_html || "")).trim();
-const newsUrl = slug => `/preview/noticias/materia/?slug=${encodeURIComponent(slug)}`;
-const categoryUrl = category => `/preview/categorias/?categoria=${encodeURIComponent(gerarSlug(category || "urania"))}`;
+const newsUrl = slug => isPreview ? `/preview/noticias/materia/?slug=${encodeURIComponent(slug)}` : `/noticias/${encodeURIComponent(slug)}`;
+const categoryUrl = category => isPreview ? `/preview/categorias/?categoria=${encodeURIComponent(gerarSlug(category || "urania"))}` : `/news/${encodeURIComponent(gerarSlug(category || "urania"))}/`;
+const allNewsUrl = () => isPreview ? "/preview/noticias/" : "/news/";
 let categoryNews = [], categoryName = "";
 
 function imageMarkup(item, className, priority = false) {
@@ -25,7 +27,7 @@ function card(item) { const text = summary(item); return `<article class="catego
 function renderNav(news, rows) {
   const fromTable = rows.filter(item => normalize(item.tipo) === "noticias" && (!item.status || item.status === "ativo")).map(item => item.nome).filter(Boolean);
   const categories = [...new Set([...fromTable, ...news.map(item => item.categoria_nome).filter(Boolean)])].sort((a,b) => a.localeCompare(b,"pt-BR"));
-  nav.innerHTML = [`<a href="/preview/noticias/">Todas</a>`, ...categories.map(category => `<a class="${gerarSlug(category) === currentSlug ? "active" : ""}" href="${categoryUrl(category)}"${gerarSlug(category) === currentSlug ? ' aria-current="page"' : ""}>${esc(category)}</a>`)].join("");
+  nav.innerHTML = [`<a href="${allNewsUrl()}">Todas</a>`, ...categories.map(category => `<a class="${gerarSlug(category) === currentSlug ? "active" : ""}" href="${categoryUrl(category)}"${gerarSlug(category) === currentSlug ? ' aria-current="page"' : ""}>${esc(category)}</a>`)].join("");
 }
 function render() {
   const term = normalize(search.value.trim());
@@ -47,7 +49,15 @@ function setupChrome() {
 }
 async function init() {
   setupChrome();
-  if (!currentSlug) { location.replace("/preview/noticias/"); return; }
+  if (!currentSlug) { location.replace(allNewsUrl()); return; }
+  let initialState = null;
+  try { initialState = JSON.parse(document.getElementById("initial-category-data")?.textContent || "null"); } catch {}
+  if (initialState?.items && featured?.dataset.serverRendered === "true" && list?.dataset.serverRendered === "true") {
+    categoryName = initialState.categoryName || "";
+    categoryNews = initialState.items || [];
+    Promise.allSettled([import("/assets/js/pages/site-config-page.js"),import("/assets/js/pages/analytics-page.js"),import("/assets/js/pages/google-analytics-page.js"),import("/assets/js/pages/error-monitor.js")]);
+    return;
+  }
   if (!publicSupabaseConfigured()) { status.textContent = "Notícias indisponíveis no momento."; return; }
   try {
     const [news,categories] = await Promise.all([fetchPublicRows("noticias",{select:"id,titulo,slug,resumo,conteudo_html,imagem_url,categoria_nome,publicado_em",status:"eq.publicado",publicado_em:`lte.${new Date().toISOString()}`,order:"publicado_em.desc",limit:"250"}),fetchPublicRows("categorias",{select:"nome,slug,descricao,tipo,status,ordem",status:"eq.ativo",order:"ordem.asc",limit:"100"}).catch(()=>[])]);

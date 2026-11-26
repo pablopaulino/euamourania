@@ -67,13 +67,13 @@ function replaceHomeSection(html, id, markup, state = "true") {
 function newsMarkup(rows) {
   const items = rows.filter(item => safeImage(item.imagem_url)).slice(0, 3);
   if (!items.length) return '<p class="loading">As notícias da cidade aparecerão aqui.</p>';
-  return items.map((item, index) => `<a class="news-card" href="/noticias/${route(item)}"><img ${newsImageAttributes(item.imagem_url)} alt="" width="760" height="560" decoding="async" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><div class="news-copy"><small>${esc(item.categoria_nome || "Notícia")}</small><h3>${esc(item.titulo)}</h3></div></a>`).join("");
+  return items.map((item, index) => `<a class="news-card" href="/noticias/${route(item)}"><img ${newsImageAttributes(item.imagem_url)} alt="${esc(item.titulo || "Notícia de Urânia")}" width="760" height="560" decoding="async" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><div class="news-copy"><small>${esc(item.categoria_nome || "Notícia")}</small><h3>${esc(item.titulo)}</h3></div></a>`).join("");
 }
 
 function businessMarkup(rows) {
   if (!rows.length) return '<p class="loading">Os estabelecimentos do Guia aparecerão aqui.</p>';
   rows = rows.map(item => ({ ...item, imagem_url: homeImage(item.imagem_url, 180) }));
-  return rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${item.slug ? `/guia/${encodeURIComponent(item.slug)}` : `/guia-details.html?slug=${encodeURIComponent(item.id || "")}`}">${safeImage(item.imagem_url) ? `<img src="${esc(safeImage(item.imagem_url))}" alt="" width="82" height="82" loading="lazy">` : '<span class="business-placeholder" aria-hidden="true"></span>'}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
+  return rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${item.slug ? `/guia/${encodeURIComponent(item.slug)}` : `/guia-details.html?slug=${encodeURIComponent(item.id || "")}`}">${safeImage(item.imagem_url) ? `<img src="${esc(safeImage(item.imagem_url))}" alt="${esc(item.nome || "Empresa do Guia de Urânia")}" width="82" height="82" loading="lazy">` : '<span class="business-placeholder" aria-hidden="true"></span>'}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
 }
 
 function tourismMarkup(rows) {
@@ -251,6 +251,14 @@ module.exports = async (req, res) => {
           "https://www.instagram.com/euamourania/",
           "https://www.facebook.com/euamourania"
         ],
+        "publishingPrinciples": `${domain}/news/politica-editorial/`,
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "editorial",
+          "email": "contato@euamourania.com.br",
+          "telephone": "+55-17-97600-5583",
+          "availableLanguage": "Portuguese"
+        },
         "knowsAbout": [
           "Urânia SP",
           "notícias de Urânia",

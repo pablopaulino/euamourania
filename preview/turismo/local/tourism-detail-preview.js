@@ -28,6 +28,10 @@ window.addEventListener("turismo:renderizado", async ({ detail: { id } }) => {
   }
 });
 const params = new URLSearchParams(location.search);
+const isPreview = location.pathname.startsWith("/preview/");
+const tourismListUrl = isPreview ? "/preview/turismo/" : "/turismo.html";
+const guideDetailUrl = value => isPreview ? `/preview/guia/empresa/?slug=${encodeURIComponent(value)}` : `/guia/${encodeURIComponent(value)}`;
+const tourismDetailUrl = value => isPreview ? `/preview/turismo/local/?slug=${encodeURIComponent(value)}` : `/turismo/${encodeURIComponent(value)}`;
 const requestedSlug = params.get("slug") || location.pathname.match(/^\/turismo\/([^/]+)\/?$/)?.[1] || "";
 const esc = (value = "") => String(value).replace(/[&<>'"]/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[char]));
 const safeImage = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//i.test(value || "") ? esc(String(value).startsWith("assets/") ? `/${value}` : value) : "";
@@ -95,11 +99,11 @@ function instagramUrl(value) { if (!value) return ""; if (/^https?:\/\//i.test(v
 
 function companyCard(item) {
   const image=safeImage(cardImage(item.imagem_url));
-  return `<a class="place-company-card" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="410" height="270" loading="lazy" decoding="async">` : `<span class="media-placeholder">Guia de Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco,82))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
+  return `<a class="place-company-card" href="${guideDetailUrl(item.slug || item.id)}">${image ? `<img src="${image}" alt="${esc(item.nome)}" width="410" height="270" loading="lazy" decoding="async">` : `<span class="media-placeholder">Guia de Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco,82))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
 }
 function tourismCard(item) {
   const image=safeImage(cardImage(item.imagem_url));
-  return `<a class="place-tourism-card" href="/preview/turismo/local/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="520" height="360" loading="lazy" decoding="async">` : ""}<div><small>Descubra Urânia</small><h3>${esc(item.nome)}</h3><p>${esc(truncate(item.descricao,75))}</p><span>Conhecer ${icons.arrow}</span></div></a>`;
+  return `<a class="place-tourism-card" href="${tourismDetailUrl(item.slug || item.id)}">${image ? `<img src="${image}" alt="${esc(item.nome)}" width="520" height="360" loading="lazy" decoding="async">` : ""}<div><small>Descubra Urânia</small><h3>${esc(item.nome)}</h3><p>${esc(truncate(item.descricao,75))}</p><span>Conhecer ${icons.arrow}</span></div></a>`;
 }
 function newsCard(item) {
   const image=safeImage(cardImage(item.imagem_url));
@@ -192,7 +196,7 @@ function hydrateServerPlace(item) {
   window.dispatchEvent(new CustomEvent("turismo:renderizado",{detail:{id:item.id}}));
   categoryName(item).then(name=>{
     const badge=root.querySelector(".place-badges a");
-    if(badge){badge.textContent=name;badge.href=`/preview/turismo/?busca=${encodeURIComponent(name)}`;}
+    if(badge){badge.textContent=name;badge.href=`${tourismListUrl}?busca=${encodeURIComponent(name)}`;}
   }).catch(()=>{});
   relatedData(item).then(related=>{
     const target=root.querySelector(".place-relations"); if(!target)return;
@@ -225,13 +229,13 @@ async function render() {
     const actionLinks=[map ? `<a class="visit-action primary" href="${map}" target="_blank" rel="noopener">${icons.map}<span>Abrir no mapa</span>${icons.arrow}</a>`:"", whatsappDigits ? `<a class="visit-action" href="https://wa.me/${whatsappDigits}" target="_blank" rel="noopener">${icons.whatsapp}<span>Falar no WhatsApp</span></a>`:"", instagram ? `<a class="visit-icon" href="${instagram}" target="_blank" rel="noopener" aria-label="Abrir Instagram" title="Instagram">${icons.instagram}</a>`:"", facebook ? `<a class="visit-icon" href="${facebook}" target="_blank" rel="noopener" aria-label="Abrir Facebook" title="Facebook">${icons.facebook}</a>`:"", site ? `<a class="visit-icon" href="${site}" target="_blank" rel="noopener" aria-label="Abrir site oficial" title="Site oficial">${icons.globe}</a>`:""].join("");
 
     root.innerHTML=`<article class="tourism-place" data-tourism-id="${esc(item.id)}">
-      <nav class="place-breadcrumb" aria-label="Navegação estrutural"><a href="/preview/turismo/">Turismo</a><span>/</span><span aria-current="page">${esc(item.nome)}</span></nav>
+      <nav class="place-breadcrumb" aria-label="Navegação estrutural"><a href="${tourismListUrl}">Turismo</a><span>/</span><span aria-current="page">${esc(item.nome)}</span></nav>
       <section class="place-hero">
         <div class="place-hero-media">
           <div class="place-gallery-track" tabindex="0" aria-label="Fotos de ${esc(item.nome)}">${images.map((image,index)=>`<figure class="place-gallery-slide"><img src="${image}" alt="${esc(index ? `${item.nome}, foto ${index + 1}` : item.nome)}" width="900" height="720" ${index ? 'loading="lazy"' : 'fetchpriority="high"'} decoding="async"></figure>`).join("")}</div>
           ${images.length > 1 ? `<div class="place-gallery-controls"><button type="button" data-gallery-prev aria-label="Foto anterior">←</button><span><b data-gallery-current>1</b> / ${images.length}</span><button type="button" data-gallery-next aria-label="Próxima foto">→</button></div>`:""}
         </div>
-        <header class="place-hero-copy"><div class="place-badges"><a href="/preview/turismo/?busca=${encodeURIComponent(category)}">${esc(category)}</a>${item.destaque ? "<strong>Destaque</strong>" : ""}</div><p class="place-kicker">Descubra Urânia</p><h1>${esc(item.nome)}</h1>${item.descricao ? `<p class="place-summary">${esc(truncate(item.descricao,220))}</p>`:""}<div class="place-quick-info">${item.endereco ? `<p>${icons.pin}<span>${esc(firstLine(item.endereco))}</span></p>`:""}${state ? `<p class="opening-state ${state.open ? "is-open":"is-closed"}"><i></i><span><strong>${state.label}</strong>${state.detail ? `<small>${esc(state.detail)}</small>`:""}</span></p>` : item.horario ? `<p>${icons.clock}<span>${esc(truncate(item.horario,75))}</span></p>`:""}</div><div class="hero-actions">${actionLinks}<button class="visit-icon" type="button" data-share-place aria-label="Compartilhar lugar">${icons.share}</button></div></header>
+        <header class="place-hero-copy"><div class="place-badges"><a href="${tourismListUrl}?busca=${encodeURIComponent(category)}">${esc(category)}</a>${item.destaque ? "<strong>Destaque</strong>" : ""}</div><p class="place-kicker">Descubra Urânia</p><h1>${esc(item.nome)}</h1>${item.descricao ? `<p class="place-summary">${esc(truncate(item.descricao,220))}</p>`:""}<div class="place-quick-info">${item.endereco ? `<p>${icons.pin}<span>${esc(firstLine(item.endereco))}</span></p>`:""}${state ? `<p class="opening-state ${state.open ? "is-open":"is-closed"}"><i></i><span><strong>${state.label}</strong>${state.detail ? `<small>${esc(state.detail)}</small>`:""}</span></p>` : item.horario ? `<p>${icons.clock}<span>${esc(truncate(item.horario,75))}</span></p>`:""}</div><div class="hero-actions">${actionLinks}<button class="visit-icon" type="button" data-share-place aria-label="Compartilhar lugar">${icons.share}</button></div></header>
       </section>
 
       <section class="place-main">

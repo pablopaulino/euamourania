@@ -40,6 +40,23 @@ async function init() {
   if (!copy || !panel || !list) return;
 
   setMeta();
+  if (list.dataset.serverRendered === "true") {
+    list.addEventListener("error", event => {
+      if (event.target.matches?.(".award-year-cover img") && !event.target.src.endsWith("/simbolo.png")) event.target.src = "/assets/melhores/simbolo.png";
+      if (event.target.matches?.(".awards-winner-photo img")) event.target.remove();
+    }, true);
+    list.querySelector(".award-year-select")?.addEventListener("click", event => {
+      const selected = event.target.closest("[data-award-year]");
+      if (!selected) return;
+      list.querySelectorAll("[data-award-year]").forEach(button => {
+        const active = button === selected;
+        button.setAttribute("aria-pressed", String(active));
+        const section = document.getElementById(button.getAttribute("aria-controls"));
+        if (section) section.hidden = !active;
+      });
+    });
+    return;
+  }
   copy.innerHTML = `<span class="awards-public-badge">Histórico oficial</span><h1>Hall dos <em class="award-accent">vencedores</em></h1><p>Revisite quem foi reconhecido em cada edição do Melhores de Urânia.</p><div class="hero-actions"><a class="button button-secondary" href="${awardPath()}">Ver premiação</a></div>`;
   panel.innerHTML = '<img src="/assets/melhores/hall-2026.png" width="3510" height="1770" alt="Arte oficial do Prêmio Melhores de Urânia 2026">';
 
@@ -66,7 +83,7 @@ async function init() {
       if (event.target.matches?.(".awards-winner-photo img")) event.target.remove();
     }, true);
     const buttons = published.map(({ edition }, index) =>
-      `<button type="button" data-award-year="${edition.ano}" aria-controls="award-year-${edition.ano}" aria-pressed="${index === 0}"><span class="award-year-cover"><img src="${esc(edition.imagem_capa_url || (Number(edition.ano) === 2026 ? "/assets/melhores/hall-2026.png" : "/assets/melhores/simbolo.png"))}" alt=""></span><span><strong>${edition.ano}</strong><small>${Number(edition.ano) === 2026 ? "Primeira edição" : esc(edition.nome)}</small></span></button>`).join("");
+      `<button type="button" data-award-year="${edition.ano}" aria-controls="award-year-${edition.ano}" aria-pressed="${index === 0}"><span class="award-year-cover"><img src="${esc(edition.imagem_capa_url || (Number(edition.ano) === 2026 ? "/assets/melhores/hall-2026.png" : "/assets/melhores/simbolo.png"))}" alt="${esc(edition.nome)}" width="80" height="50" loading="lazy" decoding="async"></span><span><strong>${edition.ano}</strong><small>${Number(edition.ano) === 2026 ? "Primeira edição" : esc(edition.nome)}</small></span></button>`).join("");
     const years = published.map(({ edition, results }, index) => {
       return `<section class="awards-hall-year" id="award-year-${edition.ano}" aria-labelledby="awards-hall-${edition.ano}"${index ? " hidden" : ""}>
         <header class="awards-hall-year-head">

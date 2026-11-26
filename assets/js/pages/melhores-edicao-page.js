@@ -287,16 +287,53 @@ function renderEditionHub(edition, categories, nominees) {
     </div>`;
 }
 
+function getInitialAwardsBootstrap() {
+  try {
+    return JSON.parse(document.getElementById("initial-awards-data")?.textContent || "null");
+  } catch {
+    return null;
+  }
+}
+
+function slugifyGuideCandidate(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function resolveNomineeGuideUrl(nominee) {
+  if (!nominee) return "";
+  const embedded = nominee.guia_comercial;
+  if (embedded?.slug && (!embedded.status || embedded.status === "publicado")) {
+    return `/guia/${encodeURIComponent(embedded.slug)}`;
+  }
+  const initial = getInitialAwardsBootstrap();
+  const linkedId = nominee.guia_comercial_id || nominee.empresa_id;
+  if (linkedId && initial?.guideSlugs && Object.prototype.hasOwnProperty.call(initial.guideSlugs, String(linkedId))) {
+    return `/guia/${encodeURIComponent(initial.guideSlugs[String(linkedId)])}`;
+  }
+  const candidateSlug = nominee.slug || slugifyGuideCandidate(nominee.nome || "");
+  if (candidateSlug && initial?.guideNames && Object.prototype.hasOwnProperty.call(initial.guideNames, candidateSlug)) {
+    return `/guia/${encodeURIComponent(initial.guideNames[candidateSlug])}`;
+  }
+  return "";
+}
+
 function nomineeCard(edition, category, nominee, open, votedId) {
   const votedList = Array.isArray(votedId) ? votedId : (votedId ? [votedId] : []);
   const voted = votedList.includes(nominee.id);
   const maxChoices = 1;
   const reachedLimit = votedList.length >= maxChoices;
   const img = image(nominee.imagem_url);
+  const guideUrl = resolveNomineeGuideUrl(nominee);
   return `<article class="awards-nominee-card ${open && voted ? "awards-voted" : ""}" data-awards-nominee-card data-edition-id="${edition.id}" data-category-id="${category.id}" data-nominee-id="${nominee.id}">
-    <div class="edition-portrait">${img ? `<img src="${img}" alt="" loading="lazy">` : `<div class="awards-category-nominee-empty" aria-hidden="true">${esc(nominee.nome.trim().charAt(0).toLocaleUpperCase("pt-BR"))}</div>`}</div>
+    <div class="edition-portrait">${img ? `<img src="${img}" alt="${esc(nominee.nome)}" width="640" height="640" loading="lazy" decoding="async">` : `<div class="awards-category-nominee-empty" aria-hidden="true">${esc(nominee.nome.trim().charAt(0).toLocaleUpperCase("pt-BR"))}</div>`}</div>
     <div class="awards-card-body">
       <h3>${esc(nominee.nome)}</h3>
+      ${guideUrl ? `<a class="awards-guide-link" href="${esc(guideUrl)}">Ver no Guia Comercial <span aria-hidden="true">→</span></a>` : ""}
       ${open ? `<button class="button button-primary awards-vote-button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" ${open && !voted && !reachedLimit ? "" : "disabled"}>
         ${voted ? "Voto registrado" : "Votar"}
       </button>` : ""}
@@ -443,12 +480,16 @@ function renderEditionAppInvite(edition) {
 }
 
 async function init() {
+  const hasSsr = document.getElementById("vote-area")?.dataset.serverRendered === "true"
+    || document.getElementById("edition-hub")?.dataset.serverRendered === "true";
   try {
     const year = getYear();
     const edition = await obterEdicaoPorAno(year);
     if (!edition) {
-      document.getElementById("vote-area").innerHTML = '<div class="awards-empty">Edição não encontrada ou ainda não publicada.</div>';
-      document.getElementById("indication-area").innerHTML = '<div class="awards-empty">Indicações indisponíveis para esta edição.</div>';
+      if (!hasSsr) {
+        document.getElementById("vote-area").innerHTML = '<div class="awards-empty">Edição não encontrada ou ainda não publicada.</div>';
+        document.getElementById("indication-area").innerHTML = '<div class="awards-empty">Indicações indisponíveis para esta edição.</div>';
+      }
       return;
     }
     loadTurnstile().catch(() => {});
@@ -496,8 +537,10 @@ async function init() {
     }, 60000);
   } catch (error) {
     console.error("Melhores de Urânia:", error);
-    document.getElementById("vote-area").innerHTML = '<div class="awards-empty">Não foi possível carregar esta edição agora.</div>';
-    document.getElementById("indication-area").innerHTML = '<div class="awards-empty">Não foi possível carregar as indicações agora.</div>';
+    if (!hasSsr) {
+      document.getElementById("vote-area").innerHTML = '<div class="awards-empty">Não foi possível carregar esta edição agora.</div>';
+      document.getElementById("indication-area").innerHTML = '<div class="awards-empty">Não foi possível carregar as indicações agora.</div>';
+    }
   }
 }
 

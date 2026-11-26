@@ -22,6 +22,7 @@ const esc = (v = "") => String(v).replace(/[&<>'"]/g, c => ({
 const safeImage = v => /^https?:\/\//i.test(v || "") || /^\/?assets\//.test(v || "") ? esc(v) : "";
 const placeholder = '<div class="media-placeholder"><img src="/assets/1505 - Urania - Logo Horizontal - 1.png" alt="Eu Amo Urânia" width="190" height="56" loading="lazy" decoding="async"></div>';
 const normalize = v => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const slugify = v => normalize(v).trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
 const PAGE_SIZE = 6;
 const LIST_SELECT = "id,nome,slug,categoria_nome,descricao,imagem_url,whatsapp,endereco,horario,opening_hours,recomendado,verificado";
 const LIST_QUERY = { select: LIST_SELECT, status: "eq.publicado", order: "recomendado.desc,nome.asc" };
@@ -112,17 +113,23 @@ function renderizar(dados) {
 
 function renderizarFiltros(categorias) {
   categoriasAtivas = categorias;
+  const slugsPorNome = new Map(categorias.map(item => [item.nome, item.slug || slugify(item.nome)]));
   const cadastradas = categorias.map(item => item.nome);
   const extras = [...new Set(itens.map(item => item.categoria_nome).filter(Boolean))]
     .filter(nome => !cadastradas.includes(nome))
     .sort((a, b) => a.localeCompare(b, "pt-BR"));
   const nomes = [...cadastradas, ...extras];
-  filters.innerHTML = `<button class="btn-filtro${categoriaAtual ? "" : " ativo"}" type="button" data-category="">Todos</button>${nomes.map(nome => `<button class="btn-filtro${categoriaAtual === nome ? " ativo" : ""}" type="button" data-category="${esc(nome)}">${esc(nome)}</button>`).join("")}`;
+  filters.innerHTML = `<a class="btn-filtro${categoriaAtual ? "" : " ativo"}" href="/guia.html" data-category="">Todos</a>${nomes.map(nome => {
+    const slug = slugsPorNome.get(nome) || slugify(nome);
+    return `<a class="btn-filtro${categoriaAtual === nome ? " ativo" : ""}" href="/guia/categoria/${encodeURIComponent(slug)}" data-category="${esc(nome)}">${esc(nome)}</a>`;
+  }).join("")}`;
 }
 
 filters?.addEventListener("click", event => {
   const button = event.target.closest("[data-category]");
   if (!button) return;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+  event.preventDefault();
   filters.querySelectorAll(".btn-filtro").forEach(item => item.classList.toggle("ativo", item === button));
   categoriaAtual = button.dataset.category;
   aplicarFiltros();

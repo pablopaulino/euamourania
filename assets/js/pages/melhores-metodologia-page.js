@@ -9,8 +9,13 @@ function year() {
 }
 
 async function init() {
-  const edition = await obterEdicaoPorAno(year());
   const content = document.getElementById("method-content");
+  if (content?.dataset.serverRendered === "true") {
+    content.classList.add("awards-document");
+    if (!document.querySelector(".award-document-index")) addDocumentIndex(content);
+    return;
+  }
+  const edition = await obterEdicaoPorAno(year());
   if (!edition) {
     content.innerHTML = "Edição não encontrada.";
     return;

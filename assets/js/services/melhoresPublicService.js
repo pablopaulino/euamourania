@@ -56,11 +56,19 @@ export async function listarCategoriasPublicas(edicaoId) {
 }
 
 export async function listarIndicadosPublicos(edicaoId) {
-  return fetchPublicRows("melhores_indicados", {
-    select: "id,edicao_id,categoria_id,nome,slug,imagem_url,descricao_curta,instagram,whatsapp,site,endereco,status,ordem,aprovado",
-    edicao_id: `eq.${edicaoId}`,
-    order: "ordem.asc,nome.asc"
-  }, { ttl: 60000 });
+  try {
+    return await fetchPublicRows("melhores_indicados", {
+      select: "id,edicao_id,categoria_id,nome,slug,imagem_url,descricao_curta,instagram,whatsapp,site,endereco,status,ordem,aprovado,guia_comercial_id,guia_comercial(id,slug,nome,status)",
+      edicao_id: `eq.${edicaoId}`,
+      order: "ordem.asc,nome.asc"
+    }, { ttl: 60000 });
+  } catch {
+    return fetchPublicRows("melhores_indicados", {
+      select: "id,edicao_id,categoria_id,nome,slug,imagem_url,descricao_curta,instagram,whatsapp,site,endereco,status,ordem,aprovado,guia_comercial_id",
+      edicao_id: `eq.${edicaoId}`,
+      order: "ordem.asc,nome.asc"
+    }, { ttl: 60000 });
+  }
 }
 
 export async function obterCategoriaPublica(edicaoId, slug) {
@@ -83,12 +91,21 @@ export async function listarCategoriasHistoricasPorSlug(slug) {
 }
 
 export async function listarIndicadosPorCategoria(edicaoId, categoriaId) {
-  return fetchPublicRows("melhores_indicados", {
-    select: "id,edicao_id,categoria_id,nome,slug,imagem_url,descricao_curta,instagram,whatsapp,site,endereco,status,ordem,aprovado",
-    edicao_id: `eq.${edicaoId}`,
-    categoria_id: `eq.${categoriaId}`,
-    order: "ordem.asc,nome.asc"
-  }, { ttl: 60000 });
+  try {
+    return await fetchPublicRows("melhores_indicados", {
+      select: "id,edicao_id,categoria_id,nome,slug,imagem_url,descricao_curta,instagram,whatsapp,site,endereco,status,ordem,aprovado,guia_comercial_id,guia_comercial(id,slug,nome,status)",
+      edicao_id: `eq.${edicaoId}`,
+      categoria_id: `eq.${categoriaId}`,
+      order: "ordem.asc,nome.asc"
+    }, { ttl: 60000 });
+  } catch {
+    return fetchPublicRows("melhores_indicados", {
+      select: "id,edicao_id,categoria_id,nome,slug,imagem_url,descricao_curta,instagram,whatsapp,site,endereco,status,ordem,aprovado,guia_comercial_id",
+      edicao_id: `eq.${edicaoId}`,
+      categoria_id: `eq.${categoriaId}`,
+      order: "ordem.asc,nome.asc"
+    }, { ttl: 60000 });
+  }
 }
 
 export async function listarResultadosPublicos(edicaoId) {

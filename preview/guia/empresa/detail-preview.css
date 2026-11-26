@@ -14,7 +14,7 @@
 .business-intro { position:relative; z-index:2; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; margin-left:-38px; padding:62px 62px 58px 76px; border-radius:32px 0 0 32px; background:#fff; box-shadow:-14px 0 35px rgba(54,37,22,.06); }
 .business-badges { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:30px; }
 .business-badges a,.business-badges strong { display:inline-flex; align-items:center; min-height:28px; padding:6px 11px; border-radius:999px; font-size:.68rem; font-weight:800; letter-spacing:.075em; text-decoration:none; text-transform:uppercase; }
-.business-badges a { color:#874317; background:#fff2e8; }.business-badges strong { color:#866311; background:#fff5cf; }
+.business-badges a { color:#874317; background:#fff2e8; }.business-badges a.business-award-link,.business-badges strong { color:#866311; background:#fff5cf; }
 .business-kicker,.section-kicker,.detail-section-heading p { margin:0 0 12px; color:var(--orange); font-size:.72rem; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
 .business-intro h1 { max-width:650px; margin:0; font-size:clamp(2.55rem,4.6vw,4.65rem); line-height:.96; letter-spacing:-.055em; }
 .business-summary { max-width:570px; margin:24px 0 0; color:#5f625e; font-size:1.03rem; line-height:1.7; }

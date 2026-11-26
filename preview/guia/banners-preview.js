@@ -207,8 +207,9 @@ function insertAdSenseZone(position, slot, target, where = "beforebegin", inline
   const element = typeof target === "string" ? document.querySelector(target) : target;
   if (!element) return false;
   const classes = `banner-zone ad-zone adsense-zone ${inline ? "ad-zone-inline" : ""}`;
-  const unit = `<div class="adsense-unit"><span class="adsense-label">Publicidade</span><ins class="adsbygoogle" style="display:block" data-ad-client="${adsense.client}" data-ad-slot="${slot}" data-ad-format="auto" data-full-width-responsive="true"></ins></div>`;
-  element.insertAdjacentHTML(where, `<aside class="${classes}" data-banner="${position}" data-ad-provider="google" aria-label="Publicidade do Google">${inline ? unit : `<div class="container banner-list">${unit}</div>`}</aside>`);
+  const reservedHeight = inline ? "220px" : "250px";
+  const unit = `<div class="adsense-unit" style="min-height:${reservedHeight}"><span class="adsense-label">Publicidade</span><ins class="adsbygoogle" style="display:block;min-height:180px" data-ad-client="${adsense.client}" data-ad-slot="${slot}" data-ad-format="auto" data-full-width-responsive="true"></ins></div>`;
+  element.insertAdjacentHTML(where, `<aside class="${classes}" data-banner="${position}" data-ad-provider="google" aria-label="Publicidade do Google" style="min-height:${reservedHeight}">${inline ? unit : `<div class="container banner-list">${unit}</div>`}</aside>`);
   const zone = document.querySelector(`[data-banner="${position}"][data-ad-provider="google"]`);
   if (!zone) return false;
   adsenseAttempted.add(position);
@@ -234,8 +235,8 @@ function zoneMarkup(position, items, inline = false) {
   const controls = slides.length > 1
     ? `<div class="ad-rotator-controls"><div class="ad-rotator-dots">${slides.map((_, index) => `<button type="button" data-ad-index="${index}" class="${index === 0 ? "active" : ""}" aria-label="Ver anúncio ${index + 1}"></button>`).join("")}</div></div>`
     : "";
-  const rotator = `<div class="ad-rotator" data-ad-current="0">${slides.join("")}${controls}</div>`;
-  return `<aside class="banner-zone ad-zone ${inline ? "ad-zone-inline" : ""}${listingPositions.has(position) ? " ad-zone-listing" : ""}" data-banner="${position}" aria-label="Publicidade">${inline ? rotator : `<div class="container banner-list">${rotator}</div>`}</aside>`;
+  const rotator = `<div class="ad-rotator" data-ad-current="0" style="min-height:${inline ? "132px" : "180px"}">${slides.join("")}${controls}</div>`;
+  return `<aside class="banner-zone ad-zone ${inline ? "ad-zone-inline" : ""}${listingPositions.has(position) ? " ad-zone-listing" : ""}" data-banner="${position}" aria-label="Publicidade" style="min-height:${inline ? "132px" : "180px"}">${inline ? rotator : `<div class="container banner-list">${rotator}</div>`}</aside>`;
 }
 
 function observeImpression(node, position) {

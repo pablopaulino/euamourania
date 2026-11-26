@@ -17,53 +17,76 @@ const slugify = value => String(value || "")
   .replace(/\s+/g, "-")
   .replace(/-+/g, "-");
 
+const PAGE_SIZE = 1000;
+const MAX_PAGES = 50;
+
+async function fetchPaginated(buildUrl, { throwOnError = false, label = "consulta" } = {}) {
+  const all = [];
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const response = await fetch(buildUrl(PAGE_SIZE, page * PAGE_SIZE), {
+      headers: { apikey: SUPABASE_KEY }
+    });
+    if (!response.ok) {
+      if (throwOnError) throw new Error(`Falha ao carregar ${label}`);
+      return all;
+    }
+    const batch = await response.json();
+    if (!Array.isArray(batch) || !batch.length) break;
+    all.push(...batch);
+    if (batch.length < PAGE_SIZE) break;
+  }
+  return all;
+}
+
 async function rows(table, select, order, filters = []) {
-  const query = new URLSearchParams({
-    select,
-    status: "eq.publicado",
-    order
-  });
-  filters.forEach(([key, value]) => query.append(key, value));
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
-    headers: { apikey: SUPABASE_KEY }
-  });
-  if (!response.ok) throw new Error(`Falha ao carregar ${table}`);
-  return response.json();
+  return fetchPaginated((limit, offset) => {
+    const query = new URLSearchParams({
+      select,
+      status: "eq.publicado",
+      order,
+      limit: String(limit),
+      offset: String(offset)
+    });
+    filters.forEach(([key, value]) => query.append(key, value));
+    return `${SUPABASE_URL}/rest/v1/${table}?${query}`;
+  }, { throwOnError: true, label: table });
 }
 
 async function melhoresRows() {
-  const query = new URLSearchParams({
-    select: "id,ano,status,atualizado_em,imagem_capa_url,resultado_publicado_em",
-    status: "in.(indicacoes_abertas,indicacoes_encerradas,votacao_aberta,votacao_encerrada,apuracao,resultado_publicado,arquivada)",
-    order: "ano.desc"
+  return fetchPaginated((limit, offset) => {
+    const query = new URLSearchParams({
+      select: "id,ano,status,atualizado_em,imagem_capa_url,resultado_publicado_em",
+      status: "in.(indicacoes_abertas,indicacoes_encerradas,votacao_aberta,votacao_encerrada,apuracao,resultado_publicado,arquivada)",
+      order: "ano.desc",
+      limit: String(limit),
+      offset: String(offset)
+    });
+    return `${SUPABASE_URL}/rest/v1/melhores_edicoes?${query}`;
   });
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/melhores_edicoes?${query}`, {
-    headers: { apikey: SUPABASE_KEY }
-  });
-  if (!response.ok) return [];
-  return response.json();
 }
 
 async function melhoresCategoriasRows() {
-  const query = new URLSearchParams({
-    select: "slug,atualizado_em,edicao_id,melhores_edicoes!inner(id,ano,status)",
-    order: "ordem.asc"
+  return fetchPaginated((limit, offset) => {
+    const query = new URLSearchParams({
+      select: "slug,atualizado_em,edicao_id,melhores_edicoes!inner(id,ano,status)",
+      order: "ordem.asc",
+      limit: String(limit),
+      offset: String(offset)
+    });
+    query.append("melhores_edicoes.status", "in.(indicacoes_abertas,indicacoes_encerradas,votacao_aberta,votacao_encerrada,apuracao,resultado_publicado,arquivada)");
+    return `${SUPABASE_URL}/rest/v1/melhores_categorias?${query}`;
   });
-  query.append("melhores_edicoes.status", "in.(indicacoes_abertas,indicacoes_encerradas,votacao_aberta,votacao_encerrada,apuracao,resultado_publicado,arquivada)");
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/melhores_categorias?${query}`, {
-    headers: { apikey: SUPABASE_KEY }
-  });
-  if (!response.ok) return [];
-  return response.json();
 }
 
 async function optionalRows(table, params) {
-  const query = new URLSearchParams(params);
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
-    headers: { apikey: SUPABASE_KEY }
+  return fetchPaginated((limit, offset) => {
+    const query = new URLSearchParams({
+      ...params,
+      limit: String(limit),
+      offset: String(offset)
+    });
+    return `${SUPABASE_URL}/rest/v1/${table}?${query}`;
   });
-  if (!response.ok) return [];
-  return response.json();
 }
 
 module.exports = async (req, res) => {
@@ -93,7 +116,7 @@ module.exports = async (req, res) => {
       );
     }
 
-    const [guia, guiaCategorias, turismo, eventos, eventPrincipals, eventEditions, melhores, melhoresCategorias, melhoresVencedores] = await Promise.all([
+    const [guia, guiaCategorias, turismo, iniciativas, eventos, eventPrincipals, eventEditions, melhores, melhoresCategorias, melhoresVencedores] = await Promise.all([
       rows("guia_comercial", "slug,atualizado_em,imagem_url,categoria_id,categoria_nome", "atualizado_em.desc"),
       optionalRows("categorias", {
         select: "id,nome,slug,criado_em",
@@ -102,6 +125,11 @@ module.exports = async (req, res) => {
         order: "ordem.asc,nome.asc"
       }),
       rows("turismo", "slug,atualizado_em,imagem_url", "atualizado_em.desc"),
+      optionalRows("iniciativas_comunitarias", {
+        select: "slug,atualizado_em,imagem_capa_url",
+        status: "eq.publicado",
+        order: "destaque.desc,atualizado_em.desc"
+      }).catch(() => []),
       rows("eventos", "slug,atualizado_em", "atualizado_em.desc"),
       optionalRows("eventos_principais", {
         select: "id,slug,atualizado_em,imagem_capa_url",
@@ -125,13 +153,14 @@ module.exports = async (req, res) => {
       { path: "/news/", priority: "0.9", changefreq: "daily" },
       { path: "/guia.html", priority: "0.85", changefreq: "weekly" },
       { path: "/turismo.html", priority: "0.85", changefreq: "weekly" },
+      { path: "/iniciativas/", priority: "0.75", changefreq: "weekly" },
       { path: "/eventos/", priority: "0.8", changefreq: "weekly" },
       { path: awardPath(), priority: "0.8", changefreq: "weekly" },
       { path: "/app", priority: "0.75", changefreq: "monthly" },
       { path: "/app/parceiros", priority: "0.7", changefreq: "weekly" },
       { path: "/app/seja-parceiro", priority: "0.7", changefreq: "monthly" },
       { path: "/divulgue", priority: "0.7", changefreq: "monthly" },
-      { path: "/links/", priority: "0.6", changefreq: "monthly" },
+      { path: "/links", priority: "0.6", changefreq: "monthly" },
       { path: "/colabore/", priority: "0.6", changefreq: "monthly" },
       { path: "/quem-somos.html", priority: "0.6", changefreq: "monthly" },
       { path: "/news/sobre-publicacoes/", priority: "0.5", changefreq: "yearly" },
@@ -223,6 +252,11 @@ module.exports = async (req, res) => {
         loc: `${DOMAIN}/turismo/${item.slug}`,
         lastmod: item.atualizado_em,
         image: imageTag(item)
+      })),
+      ...iniciativas.filter(item => item.slug).map(item => ({
+        loc: `${DOMAIN}/iniciativas/${encodeURIComponent(item.slug)}`,
+        lastmod: item.atualizado_em,
+        image: item.imagem_capa_url ? `<image:image><image:loc>${xml(new URL(item.imagem_capa_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
       })),
       ...eventos.map(item => ({
         loc: `${DOMAIN}/eventos/agenda/${item.slug}`,

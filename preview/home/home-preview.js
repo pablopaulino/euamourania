@@ -61,7 +61,7 @@ async function renderNews() {
     }, { ttl: 120000 });
     const items = rows.filter(item => safeUrl(item.imagem_url)).slice(0, 3);
     if (!items.length) return fallbackMessage(root, "As notícias da cidade aparecerão aqui.");
-    root.innerHTML = items.map((item, index) => `<a class="news-card" href="${newsUrl(item)}"><img src="${esc(safeUrl(cardImage(item.imagem_url)))}" alt="" width="760" height="560" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><div class="news-copy"><small>${esc(item.categoria_nome || "Notícia")}</small><h3>${esc(item.titulo)}</h3></div></a>`).join("");
+    root.innerHTML = items.map((item, index) => `<a class="news-card" href="${newsUrl(item)}"><img src="${esc(safeUrl(cardImage(item.imagem_url)))}" alt="${esc(item.titulo || "Notícia de Urânia")}" width="760" height="560" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><div class="news-copy"><small>${esc(item.categoria_nome || "Notícia")}</small><h3>${esc(item.titulo)}</h3></div></a>`).join("");
   } catch (error) { fallbackMessage(root, "Não foi possível carregar as notícias agora."); }
 }
 
@@ -76,7 +76,7 @@ async function renderBusinesses() {
       limit: "6"
     }, { ttl: 180000 });
     if (!rows.length) return fallbackMessage(root, "Os estabelecimentos do Guia aparecerão aqui.");
-    root.innerHTML = rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${guideUrl(item)}">${safeUrl(item.imagem_url) ? `<img src="${esc(safeUrl(cardImage(item.imagem_url)))}" alt="" width="82" height="82" loading="lazy">` : `<span class="business-placeholder" aria-hidden="true"></span>`}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
+    root.innerHTML = rows.map(item => `<a class="business-card${item.recomendado ? " is-featured" : ""}" href="${guideUrl(item)}">${safeUrl(item.imagem_url) ? `<img src="${esc(safeUrl(cardImage(item.imagem_url)))}" alt="${esc(item.nome || "Empresa do Guia de Urânia")}" width="82" height="82" loading="lazy">` : `<span class="business-placeholder" aria-hidden="true"></span>`}${item.recomendado ? '<span class="recommended">Recomendado</span>' : ""}<small>${esc(item.categoria_nome || "Guia da cidade")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(shorten(item.descricao, 92) || "Conheça este lugar no Guia de Urânia.")}</p></a>`).join("");
   } catch { fallbackMessage(root, "Não foi possível carregar o Guia agora."); }
 }
 
@@ -164,7 +164,11 @@ function campaignsForPositions(items, preferences) {
   return positioned.length ? positioned : active;
 }
 function trackCampaign(item, type) { if (item?.id) callPublicRpc("registrar_evento_publicidade", { p_campanha: item.id, p_tipo: type }, { timeout: 4000, keepalive: true }).catch(() => {}); }
-function renderAdMedia(root, item) { const image = safeUrl(item?.imagem_url || item?.logo_empresa_url); root.innerHTML = image ? `<img src="${esc(image)}" alt="${esc(item.empresa_anunciante || item.nome || "Publicidade")}" loading="lazy">` : ""; }
+function renderAdMedia(root, item, variant = "small") {
+  const image = safeUrl(item?.imagem_url || item?.logo_empresa_url);
+  const dims = variant === "partner" ? 'width="640" height="360"' : 'width="108" height="78"';
+  root.innerHTML = image ? `<img src="${esc(image)}" alt="${esc(item.empresa_anunciante || item.nome || "Publicidade")}" ${dims} loading="lazy" decoding="async">` : "";
+}
 
 async function renderAds() {
   try {
@@ -210,7 +214,7 @@ async function renderAds() {
         window.setTimeout(() => {
           document.getElementById("partner-title").textContent = campaign.empresa_anunciante || campaign.nome || "Parceiro de Urânia";
           document.getElementById("partner-text").textContent = campaign.nome && campaign.nome !== campaign.empresa_anunciante ? campaign.nome : "Uma iniciativa que também faz parte da cidade.";
-          renderAdMedia(document.getElementById("partner-media"), campaign);
+          renderAdMedia(document.getElementById("partner-media"), campaign, "partner");
           const link = document.getElementById("partner-link");
           link.href = safeUrl(campaign.link_destino) || "#";
           link.querySelector("span").textContent = campaign.texto_botao || "Conhecer";
@@ -237,7 +241,7 @@ async function renderAwards() {
     document.getElementById("awards-text").textContent = shorten(item.descricao, 180) || `${item.nome || "Melhores de Urânia"} ${item.ano || ""}`.trim();
     const link = document.getElementById("awards-link");
     if (item.ano) link.href = awardPath("edition", { year: item.ano });
-    if (safeUrl(item.imagem_capa_url)) document.getElementById("awards-media").innerHTML = `<img src="${esc(safeUrl(item.imagem_capa_url))}" alt="${esc(item.nome || "Melhores de Urânia")}" loading="lazy">`;
+    if (safeUrl(item.imagem_capa_url)) document.getElementById("awards-media").innerHTML = `<img src="${esc(safeUrl(item.imagem_capa_url))}" alt="${esc(item.nome || "Melhores de Urânia")}" width="640" height="380" loading="lazy" decoding="async">`;
     root.hidden = false;
   } catch {}
 }

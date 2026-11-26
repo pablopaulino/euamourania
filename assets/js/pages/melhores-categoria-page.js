@@ -42,14 +42,51 @@ function statusLabel(status = "") {
   return labels[status] || String(status || "Status a confirmar").replaceAll("_", " ");
 }
 
+function getInitialAwardsBootstrap() {
+  try {
+    return JSON.parse(document.getElementById("initial-awards-data")?.textContent || "null");
+  } catch {
+    return null;
+  }
+}
+
+function slugifyGuideCandidate(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function resolveCategoryNomineeGuideUrl(item) {
+  if (!item) return "";
+  const embedded = item.guia_comercial;
+  if (embedded?.slug && (!embedded.status || embedded.status === "publicado")) {
+    return `/guia/${encodeURIComponent(embedded.slug)}`;
+  }
+  const initial = getInitialAwardsBootstrap();
+  const linkedId = item.guia_comercial_id || item.empresa_id;
+  if (linkedId && initial?.guideSlugs && Object.prototype.hasOwnProperty.call(initial.guideSlugs, String(linkedId))) {
+    return `/guia/${encodeURIComponent(initial.guideSlugs[String(linkedId)])}`;
+  }
+  const candidateSlug = item.slug || slugifyGuideCandidate(item.nome || "");
+  if (candidateSlug && initial?.guideNames && Object.prototype.hasOwnProperty.call(initial.guideNames, candidateSlug)) {
+    return `/guia/${encodeURIComponent(initial.guideNames[candidateSlug])}`;
+  }
+  return "";
+}
+
 function nomineeCard(item, year) {
   const img = image(item.imagem_url);
+  const guideUrl = resolveCategoryNomineeGuideUrl(item);
   return `<article class="awards-nominee-card awards-category-nominee-card">
-    ${img ? `<img src="${img}" alt="" loading="lazy">` : `<div class="awards-category-nominee-empty" aria-hidden="true">${esc(item.nome.trim().charAt(0).toLocaleUpperCase("pt-BR"))}</div>`}
+    ${img ? `<img src="${img}" alt="${esc(item.nome)}" width="640" height="380" loading="lazy" decoding="async">` : `<div class="awards-category-nominee-empty" aria-hidden="true">${esc(item.nome.trim().charAt(0).toLocaleUpperCase("pt-BR"))}</div>`}
     <div class="awards-card-body">
       ${Number(year) === 2026 ? '<img class="award-nominee-seal" src="/assets/melhores/indicado-2026.png" alt="Indicado em 2026" width="95" height="30" loading="lazy">' : ""}
       <h3>${esc(item.nome)}</h3>
       ${item.descricao_curta ? `<p>${esc(item.descricao_curta)}</p>` : ""}
+      ${guideUrl ? `<a class="awards-guide-link" href="${esc(guideUrl)}">Ver no Guia Comercial <span aria-hidden="true">→</span></a>` : ""}
     </div>
   </article>`;
 }
@@ -68,25 +105,41 @@ function setMeta(edition, category) {
 async function init() {
   const { ano, slug } = params();
   const nomineesContainer = document.getElementById("category-nominees");
-  const edition = await obterEdicaoPorAno(ano);
+  const isSsr = nomineesContainer?.dataset.serverRendered === "true";
+  if (isSsr) {
+    const initial = getInitialAwardsBootstrap();
+    document.querySelector("[data-share-category]")?.addEventListener("click", async () => {
+      const title = initial?.category?.nome && initial?.edition?.nome
+        ? `${initial.category.nome} | ${initial.edition.nome}`
+        : document.title;
+      await sharePage({ title, text: `Veja a categoria no Melhores de Urânia.`, url: location.href });
+    });
+  }
+  const edition = await obterEdicaoPorAno(ano).catch(() => null);
   if (edition) {
-    const periodState = await consultarPeriodoVotacao(edition.id);
-    clock = { time: new Date(periodState.agora).getTime(), received: performance.now() };
-    edition.status = periodState.status;
-    edition.votacao_inicio_site = periodState.votacao_inicio_site;
-    edition.votacao_fim = periodState.votacao_fim;
+    const periodState = await consultarPeriodoVotacao(edition.id).catch(() => null);
+    if (periodState) {
+      clock = { time: new Date(periodState.agora).getTime(), received: performance.now() };
+      edition.status = periodState.status;
+      edition.votacao_inicio_site = periodState.votacao_inicio_site;
+      edition.votacao_fim = periodState.votacao_fim;
+    }
   }
   if (!edition) {
-    nomineesContainer.innerHTML = '<div class="awards-empty">Edição não encontrada.</div>';
+    if (!isSsr && nomineesContainer) nomineesContainer.innerHTML = '<div class="awards-empty">Edição não encontrada.</div>';
     return;
   }
-  const category = await obterCategoriaPublica(edition.id, slug);
+  const category = await obterCategoriaPublica(edition.id, slug).catch(() => null);
   if (!category) {
-    nomineesContainer.innerHTML = '<div class="awards-empty">Categoria não encontrada.</div>';
+    if (!isSsr && nomineesContainer) nomineesContainer.innerHTML = '<div class="awards-empty">Categoria não encontrada.</div>';
     return;
   }
 
-  const nominees = await listarIndicadosPorCategoria(edition.id, category.id);
+  const nominees = await listarIndicadosPorCategoria(edition.id, category.id).catch(() => null);
+  if (!Array.isArray(nominees)) {
+    if (!isSsr && nomineesContainer) nomineesContainer.innerHTML = '<div class="awards-empty">Não foi possível carregar esta categoria.</div>';
+    return;
+  }
   const votingOpen = isVotingOpen(edition);
   const categoryVoteUrl = awardPath("voting", { year: edition.ano, slug: category.slug });
   const editionUrl = awardPath("edition", { year: edition.ano });

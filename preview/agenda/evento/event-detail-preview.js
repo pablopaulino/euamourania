@@ -75,7 +75,7 @@ async function render(){
     definirMeta({titulo:`${item.titulo} | Eu Amo Urânia`,descricao:summary.slice(0,160),imagem:image||"/assets/compartilhamento-logo.png",url:canonical});
     structuredData(item,image,canonical);
     root.innerHTML=`<article class="event-detail" data-event-id="${esc(item.id)}">
-      <nav class="event-breadcrumb" aria-label="Navegação estrutural"><a href="/preview/agenda/">Agenda</a><span>/</span><span aria-current="page">${esc(item.titulo)}</span></nav>
+      <nav class="event-breadcrumb" aria-label="Navegação estrutural"><a href="${location.pathname.startsWith("/preview/")?"/preview/agenda/":"/eventos/"}">Agenda</a><span>/</span><span aria-current="page">${esc(item.titulo)}</span></nav>
       <section class="event-detail-hero${image?" has-image":" no-image"}">
         ${image?`<div class="event-detail-media"><img src="${image}" alt="${esc(item.titulo)}" width="1200" height="820" fetchpriority="high" decoding="async"></div>`:"<div class=\"event-detail-media event-detail-placeholder\"><span>Agenda de Urânia</span></div>"}
         <time class="event-date-signature" datetime="${esc(date.iso)}" aria-label="${esc(`${date.long}${date.time?` às ${date.time}`:""}`)}"><strong>${esc(date.day)}</strong><span>${esc(date.month)}</span><small>${esc(date.weekday)}</small></time>

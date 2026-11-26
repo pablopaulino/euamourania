@@ -41,7 +41,7 @@ function yearCard(row) {
   const img = image(row.imagem_url || edition.imagem_capa_url);
   const href = awardPath("category", { year: edition.ano, slug: row.slug });
   return `<article class="awards-edition-card">
-    ${img ? `<img src="${img}" alt="${esc(row.nome)} ${esc(edition.ano)}" loading="lazy">` : ""}
+    ${img ? `<img src="${img}" alt="${esc(row.nome)} ${esc(edition.ano)}" width="640" height="380" loading="lazy" decoding="async">` : ""}
     <div class="awards-card-body">
       <span class="awards-chip ${edition.status === "votacao_aberta" ? "open" : ""}">${esc(statusLabel(edition.status))}</span>
       <h3>${esc(edition.nome || `Edição ${edition.ano}`)}</h3>
@@ -54,6 +54,28 @@ function yearCard(row) {
 async function init() {
   const slug = getSlug();
   const years = document.getElementById("permanent-category-years");
+  if (years?.dataset.serverRendered === "true") {
+    let initial = null;
+    try {
+      initial = JSON.parse(document.getElementById("initial-awards-data")?.textContent || "null");
+    } catch {
+      initial = null;
+    }
+    const firstRow = initial?.rows?.[0];
+    const categoryName = firstRow?.nome || document.querySelector("#permanent-category-copy h1")?.textContent?.trim() || "Categoria";
+    const count = Array.isArray(initial?.rows) ? initial.rows.length : years.querySelectorAll(".awards-edition-card").length;
+    registrarEventoMelhores("melhores_permanent_category_view", {
+      metadados: { categoria_slug: firstRow?.slug || slug, edicoes: count }
+    });
+    document.querySelector("[data-share-category]")?.addEventListener("click", async () => {
+      await sharePage({
+        title: `${categoryName} | Melhores de Urânia`,
+        text: `Veja o histórico da categoria ${categoryName} no Melhores de Urânia.`,
+        url: location.href
+      });
+    });
+    return;
+  }
   try {
     const rows = (await listarCategoriasHistoricasPorSlug(slug))
       .sort((a, b) => Number(b.melhores_edicoes?.ano || 0) - Number(a.melhores_edicoes?.ano || 0));

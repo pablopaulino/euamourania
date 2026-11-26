@@ -27,6 +27,14 @@ async function init() {
   const content = document.getElementById("winner-content");
   if (!copy || !panel || !content) return;
   const { year, id } = target();
+  if (content.dataset.serverRendered === "true") {
+    content.addEventListener("error", event => {
+      if (event.target instanceof HTMLImageElement && event.target.closest(".awards-winner-photo")) {
+        event.target.remove();
+      }
+    }, true);
+    return;
+  }
   if (!year || !id) {
     content.innerHTML = '<div class="awards-empty">Vencedor não encontrado.</div>';
     return;

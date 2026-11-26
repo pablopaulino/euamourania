@@ -88,9 +88,12 @@ const functionalPages={
   rules:()=>`<main id="conteudo">${functionalHero("rules-copy","rules-panel")}<section class="awards-section"><div class="award-shell"><article id="rules-content">${loading}</article></div></section></main>`
 };
 const pageModules={home:"melhores-index-page.js",edition:"melhores-edicao-page.js",category:"melhores-categoria-page.js",permanent:"melhores-categoria-permanente-page.js",voting:"melhores-votacao-page.js",results:"melhores-resultados-page.js",hall:"melhores-hall-page.js",winner:"melhores-vencedor-page.js",method:"melhores-metodologia-page.js",rules:"melhores-regulamento-page.js"};
-const app=document.getElementById("awards-preview-app");app.innerHTML=header+(functionalPages[page]||functionalPages.home)()+footer;
-if(page==="edition") app.querySelector("main")?.insertAdjacentHTML("beforeend",faqSection(page));
+const app=document.getElementById("awards-preview-app");
 const demoMode = isAwardDemo(page);
+if (app?.dataset.serverRendered !== "true" || demoMode) {
+  app.innerHTML=header+(functionalPages[page]||functionalPages.home)()+footer;
+  if(page==="edition") app.querySelector("main")?.insertAdjacentHTML("beforeend",faqSection(page));
+}
 import(demoMode?`${awardPreviewBase}/awards-demo.js`:`/assets/js/pages/${pageModules[page]||pageModules.home}`).catch(error=>console.error("Melhores de Urânia:",error));
 if (!year && !demoMode) {
   import("/assets/js/services/melhoresPublicService.js").then(async ({ edicaoEmDestaque, listarEdicoesPublicas }) => {

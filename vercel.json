@@ -105,6 +105,15 @@
     { "source": "/news-detalhes.html", "destination": "/news/", "permanent": true },
     { "source": "/news-details.html", "destination": "/news/", "permanent": true },
     {
+      "source": "/guia-details.html",
+      "has": [
+        { "type": "query", "key": "slug", "value": "(?<empresa>[a-z0-9-]+)" }
+      ],
+      "destination": "/guia/:empresa",
+      "permanent": true
+    },
+    { "source": "/guia-details.html", "destination": "/guia.html", "permanent": true },
+    {
       "source": "/turismo-details.html",
       "has": [
         { "type": "query", "key": "slug", "value": "(?<slug>[a-z0-9-]+)" }
@@ -142,7 +151,8 @@
     { "src": "^/news/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=news-list" },
     { "src": "^/guia\\.html$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=guide-list" },
     { "src": "^/turismo\\.html$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=tourism-list" },
-    { "src": "^/eventos/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=agenda-list" }
+    { "src": "^/eventos/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=agenda-list" },
+    { "src": "^/iniciativas/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=initiatives-list" }
   ],
   "rewrites": [
     { "source": "/divulgacao", "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "destination": "/parceiro/divulgacao.html" },
@@ -166,6 +176,7 @@
     { "source": "/turismo.html", "destination": "/api/noticia?tipo=tourism-list" },
     { "source": "/eventos", "destination": "/api/noticia?tipo=agenda-list" },
     { "source": "/eventos/", "destination": "/api/noticia?tipo=agenda-list" },
+    { "source": "/iniciativas/", "destination": "/api/noticia?tipo=initiatives-list" },
     { "source": "/melhores-de-urania", "destination": "/api/noticia?tipo=social&mode=award-home" },
     { "source": "/melhores-de-urania/", "destination": "/api/noticia?tipo=social&mode=award-home" },
     { "source": "/admin", "destination": "/admin/index.html" },
@@ -256,11 +267,11 @@
     { "source": "/noticias/feed.xml", "destination": "/api/rss" },
     {
       "source": "/news/:categoria((?!sobre-publicacoes$|politica-editorial$|correcoes-transparencia-contato$|feed\\.xml$)[a-z0-9-]+)",
-      "destination": "/categorias/index.html?categoria=:categoria"
+      "destination": "/api/noticia?tipo=news-category&categoria=:categoria"
     },
     {
       "source": "/news/:categoria((?!sobre-publicacoes$|politica-editorial$|correcoes-transparencia-contato$|feed\\.xml$)[a-z0-9-]+)/",
-      "destination": "/categorias/index.html?categoria=:categoria"
+      "destination": "/api/noticia?tipo=news-category&categoria=:categoria"
     },
     { "source": "/noticias/:slug", "destination": "/api/noticia?slug=:slug" },
     { "source": "/guia/categoria/:slug", "destination": "/api/noticia?tipo=guia-categoria&slug=:slug" },

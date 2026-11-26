@@ -6,6 +6,8 @@ const esc = (value = "") => String(value ?? "").replace(/[&<>"']/g, char => ({
 }[char]));
 const clean = value => String(value || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 const leakedAdminText = value => /Exibir na listagem|Salvar iniciativa|Formas de ajuda/i.test(value || "");
+const isPreview = location.pathname.startsWith("/preview/");
+const initiativesUrl = isPreview ? "/preview/iniciativas/" : "/iniciativas/";
 const slug = new URLSearchParams(location.search).get("slug") || location.pathname.match(/^\/iniciativas\/([^/]+)\/?$/)?.[1] || "";
 const root = document.getElementById("initiative-detail-root");
 
@@ -77,9 +79,34 @@ function imageFallback(event) {
   event.target.parentElement?.classList.add("has-fallback");
 }
 
+function bindInteractions(title, summary, shareUrl) {
+  root?.addEventListener("click", async event => {
+    const pix = event.target.closest("[data-pix]");
+    if (pix) {
+      await navigator.clipboard.writeText(pix.dataset.pix);
+      pix.textContent = "Chave Pix copiada";
+      return;
+    }
+    if (event.target.closest("[data-share]")) {
+      if (navigator.share) await navigator.share({ title, text: summary, url: shareUrl });
+      else await navigator.clipboard.writeText(shareUrl);
+    }
+  });
+}
+
 async function init() {
   setupChrome();
-  root.addEventListener("error", imageFallback, true);
+  root?.addEventListener("error", imageFallback, true);
+  const serverNode = root?.dataset.serverRendered === "true" ? root : root?.querySelector('[data-server-rendered="true"]');
+  if (serverNode) {
+    const itemSlug = serverNode.dataset.initiativeSlug || slug;
+    const title = root.querySelector("h1")?.textContent?.trim() || document.title;
+    const summary = root.querySelector(".initiative-profile-copy > p")?.textContent?.trim() || "";
+    const shareUrl = `https://euamourania.com.br/iniciativas/${encodeURIComponent(itemSlug)}`;
+    bindInteractions(title, summary, shareUrl);
+    Promise.allSettled([import("/assets/js/pages/site-config-page.js"), import("/assets/js/pages/analytics-page.js"), import("/assets/js/pages/google-analytics-page.js"), import("/assets/js/pages/error-monitor.js")]);
+    return;
+  }
   try {
     const { data: item, error } = await getSupabase().from("iniciativas_comunitarias").select("*").eq("slug", slug).eq("status", "publicado").maybeSingle();
     if (error || !item) throw error || new Error("not-found");
@@ -95,7 +122,7 @@ async function init() {
     document.title = `${item.titulo} | Iniciativas de Urânia`;
     root.className = "";
     root.innerHTML = `
-      <div class="initiative-detail-breadcrumb initiative-shell"><a href="/preview/iniciativas/">Iniciativas</a><span>/</span><span>${esc(item.titulo)}</span></div>
+      <div class="initiative-detail-breadcrumb initiative-shell"><a href="${initiativesUrl}">Iniciativas</a><span>/</span><span>${esc(item.titulo)}</span></div>
       <section class="initiative-profile initiative-shell">
         <figure class="initiative-profile-media"><img src="${esc(image)}" alt="${esc(item.titulo)}" width="1400" height="1000" fetchpriority="high" decoding="async"><figcaption>Uma iniciativa de Urânia</figcaption></figure>
         <div class="initiative-profile-copy">
@@ -110,24 +137,13 @@ async function init() {
         <article class="initiative-story"><p class="initiative-eyebrow">História e propósito</p><h2>Uma ideia que cuida do que está perto.</h2><div class="initiative-story-text"><p>${esc(description)}</p></div></article>
         <aside class="initiative-help" id="como-ajudar"><p class="initiative-eyebrow">Faça parte</p><h2>Como participar.</h2><p class="initiative-help-intro">Cada iniciativa tem seu próprio jeito de receber apoio. Confira os canais informados pelos responsáveis.</p>${helpMarkup(help)}${help.length ? "<small>O Eu Amo Urânia apenas divulga a iniciativa e não processa transferências.</small>" : ""}</aside>
       </section>
-      <section class="initiative-community-note"><div class="initiative-shell"><p>Quando a cidade se mobiliza, todo mundo fica mais perto.</p><a href="/preview/iniciativas/">Ver todas as iniciativas <b>→</b></a></div></section>`;
+      <section class="initiative-community-note"><div class="initiative-shell"><p>Quando a cidade se mobiliza, todo mundo fica mais perto.</p><a href="${initiativesUrl}">Ver todas as iniciativas <b>→</b></a></div></section>`;
 
-    root.addEventListener("click", async event => {
-      const pix = event.target.closest("[data-pix]");
-      if (pix) {
-        await navigator.clipboard.writeText(pix.dataset.pix);
-        pix.textContent = "Chave Pix copiada";
-        return;
-      }
-      if (event.target.closest("[data-share]")) {
-        if (navigator.share) await navigator.share({ title: item.titulo, text: summary, url: shareUrl });
-        else await navigator.clipboard.writeText(shareUrl);
-      }
-    });
+    bindInteractions(item.titulo, summary, shareUrl);
   } catch (error) {
     console.warn(error);
     root.className = "initiative-detail-loading";
-    root.innerHTML = '<h1>Iniciativa não encontrada</h1><p><a href="/preview/iniciativas/">Voltar para iniciativas</a></p>';
+    root.innerHTML = `<h1>Iniciativa não encontrada</h1><p><a href="${initiativesUrl}">Voltar para iniciativas</a></p>`;
   }
   Promise.allSettled([import("/assets/js/pages/site-config-page.js"), import("/assets/js/pages/analytics-page.js"), import("/assets/js/pages/google-analytics-page.js"), import("/assets/js/pages/error-monitor.js")]);
 }

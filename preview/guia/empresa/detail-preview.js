@@ -3,7 +3,7 @@ import { watchGuideRecognitions } from "/assets/js/pages/guide-recognition.js";
 import { cardImage } from "/assets/card-images/card-image.mjs";
 import { verifiedName } from "/assets/js/viva-verified.js";
 import { fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/publicDataService.js";
-import { definirMeta, textoPuro } from "/assets/js/utils.js";
+import { definirMeta, gerarSlug, textoPuro } from "/assets/js/utils.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
 import "../banners-preview.js";
 
@@ -13,6 +13,9 @@ const safeImage = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.t
 const safeHttp = value => /^https?:\/\//i.test(value || "") ? esc(value) : "";
 const fallbackImage = "/assets/1505 - Urania - Logo Horizontal - 1.png";
 const params = new URLSearchParams(location.search);
+const isPreview = location.pathname.startsWith("/preview/");
+const guideListUrl = isPreview ? "/preview/guia/" : "/guia.html";
+const guideCategoryUrl = category => isPreview ? `/preview/guia/?busca=${encodeURIComponent(category)}` : `/guia/categoria/${encodeURIComponent(gerarSlug(category))}`;
 const requestedSlug = params.get("slug") || location.pathname.match(/^\/guia\/([^/]+)\/?$/)?.[1] || "";
 const nowIso = () => new Date().toISOString();
 const truncate = (value = "", length = 115) => {
@@ -67,7 +70,7 @@ function hoursMarkup(item) {
 
 function companyCard(item) {
   const image = safeImage(cardImage(item.imagem_url));
-  return `<a class="related-company" href="/preview/guia/empresa/?slug=${encodeURIComponent(item.slug || item.id)}">${image ? `<img src="${image}" alt="" width="360" height="250" loading="lazy">` : `<span class="related-placeholder">Eu Amo Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco, 80))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
+  return `<a class="related-company" href="${guideDetailUrl(item.slug || item.id)}">${image ? `<img src="${image}" alt="${esc(item.nome)}" width="360" height="250" loading="lazy">` : `<span class="related-placeholder">Eu Amo Urânia</span>`}<div><small>${esc(item.categoria_nome || "Guia")}</small><h3>${verifiedName(esc(item.nome), item.verificado)}</h3><p>${esc(truncate(item.descricao || item.endereco, 80))}</p><span>Ver empresa ${icons.arrow}</span></div></a>`;
 }
 
 function tourismCard(item) {
@@ -148,7 +151,7 @@ function hydrateServerBusiness(item) {
   window.dispatchEvent(new CustomEvent("guia:renderizado",{detail:{id:item.id}}));
   relatedData(item).then(related=>{
     const target=root.querySelector("#guide-related-ssr"); if(!target)return;
-    target.innerHTML=`${related.companies.length ? `<section class="detail-related detail-container">${sectionHeading("Mais no Guia",`Outras opções em ${item.categoria_nome || "Urânia"}`,"Empresas e serviços que também podem ajudar você.","/preview/guia/")}<div class="company-related-grid">${related.companies.map(companyCard).join("")}</div></section>` : ""}${related.tourism.length ? `<section class="tourism-related"><div class="detail-container">${sectionHeading("Descubra Urânia","Tem sempre algo para conhecer.","Lugares, sabores e experiências perto de você.","/turismo.html")}<div class="tourism-related-grid">${related.tourism.map(tourismCard).join("")}</div></div></section>` : ""}${related.news.length ? `<section class="detail-related detail-container">${sectionHeading("Agora em Urânia","O que está acontecendo na cidade.","Informação local, direta e feita para quem vive aqui.","/news/")}<div class="news-related-grid">${related.news.map(newsCard).join("")}</div></section>` : ""}`;
+    target.innerHTML=`${related.companies.length ? `<section class="detail-related detail-container">${sectionHeading("Mais no Guia",`Outras opções em ${item.categoria_nome || "Urânia"}`,"Empresas e serviços que também podem ajudar você.",guideListUrl)}<div class="company-related-grid">${related.companies.map(companyCard).join("")}</div></section>` : ""}${related.tourism.length ? `<section class="tourism-related"><div class="detail-container">${sectionHeading("Descubra Urânia","Tem sempre algo para conhecer.","Lugares, sabores e experiências perto de você.","/turismo.html")}<div class="tourism-related-grid">${related.tourism.map(tourismCard).join("")}</div></div></section>` : ""}${related.news.length ? `<section class="detail-related detail-container">${sectionHeading("Agora em Urânia","O que está acontecendo na cidade.","Informação local, direta e feita para quem vive aqui.","/news/")}<div class="news-related-grid">${related.news.map(newsCard).join("")}</div></section>` : ""}`;
   }).catch(error=>console.warn("Conteúdos relacionados indisponíveis",error));
 }
 
@@ -186,7 +189,7 @@ async function render() {
           ${images.length > 1 ? `<div class="business-gallery" aria-label="Galeria de ${esc(item.nome)}">${images.map((image, index) => `<button type="button" class="gallery-thumb${index === 0 ? " active" : ""}" data-image="${image}" aria-label="Ver imagem ${index + 1}"><img src="${image}" alt="" width="72" height="72" loading="lazy"></button>`).join("")}</div>` : ""}
         </div>
         <div class="business-intro">
-          <div class="business-badges">${item.categoria_nome ? `<a href="/preview/guia/?busca=${encodeURIComponent(item.categoria_nome)}">${esc(item.categoria_nome)}</a>` : ""}${item.recomendado_editorial || item.recomendado ? `<strong>Recomendado</strong>` : ""}</div>
+          <div class="business-badges">${item.categoria_nome ? `<a href="${guideCategoryUrl(item.categoria_nome)}">${esc(item.categoria_nome)}</a>` : ""}${item.recomendado_editorial || item.recomendado ? `<strong>Recomendado</strong>` : ""}</div>
           <p class="business-kicker">Guia de Urânia</p>
           <h1>${verifiedName(esc(item.nome), item.verificado)}</h1>
           ${item.descricao ? `<p class="business-summary">${esc(item.descricao)}</p>` : ""}
@@ -209,7 +212,7 @@ async function render() {
         ${structuredHours.length || item.horario ? `<aside class="hours-panel"><div class="hours-title">${icons.clock}<div><p>Horários</p><h2>Quando encontrar aberto</h2></div></div>${hoursMarkup(item)}</aside>` : ""}
       </section>
 
-      ${related.companies.length ? `<section class="detail-related detail-container">${sectionHeading("Mais no Guia", `Outras opções em ${item.categoria_nome || "Urânia"}`, "Empresas e serviços que também podem ajudar você.", "/preview/guia/")}<div class="company-related-grid">${related.companies.map(companyCard).join("")}</div></section>` : ""}
+      ${related.companies.length ? `<section class="detail-related detail-container">${sectionHeading("Mais no Guia", `Outras opções em ${item.categoria_nome || "Urânia"}`, "Empresas e serviços que também podem ajudar você.", guideListUrl)}<div class="company-related-grid">${related.companies.map(companyCard).join("")}</div></section>` : ""}
       ${related.tourism.length ? `<section class="tourism-related"><div class="detail-container">${sectionHeading("Descubra Urânia", "Tem sempre algo para conhecer.", "Lugares, sabores e experiências perto de você.", "/turismo.html")}<div class="tourism-related-grid">${related.tourism.map(tourismCard).join("")}</div></div></section>` : ""}
       ${related.news.length ? `<section class="detail-related detail-container">${sectionHeading("Agora em Urânia", "O que está acontecendo na cidade.", "Informação local, direta e feita para quem vive aqui.", "/news/")}<div class="news-related-grid">${related.news.map(newsCard).join("")}</div></section>` : ""}
     </article>`;

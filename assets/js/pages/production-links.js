@@ -25,7 +25,7 @@ function dynamicRoute(url) {
   if (url.pathname === "/preview/agenda/evento/" && slug) return `/eventos/agenda/${encodeURIComponent(slug)}`;
   if (url.pathname === "/preview/agenda/tradicao/" && slug) return `/eventos/${encodeURIComponent(slug)}`;
   if (url.pathname === "/preview/agenda/edicao/" && slug && year) return `/eventos/${encodeURIComponent(slug)}/${encodeURIComponent(year)}`;
-  if (url.pathname === "/preview/categorias/" && category) return `/news/${encodeURIComponent(category)}`;
+  if (url.pathname === "/preview/categorias/" && category) return `/news/${encodeURIComponent(category)}/`;
   return awardFromPreview(url);
 }
 

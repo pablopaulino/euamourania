@@ -158,14 +158,15 @@ function editionUrl(edition) {
   return awardPath("edition", { year: edition.ano });
 }
 
-function setMeta(edition, suffix = "Votação") {
+function setMeta(edition, suffix = "Votação", path = hubUrl(edition), customDescription = "") {
   const title = `${suffix} | ${edition.nome}`;
-  const description = `Participe da votação oficial do ${edition.nome}.`;
-  const canonical = `${location.origin}${hubUrl(edition)}`;
+  const description = customDescription || `Participe da votação oficial do ${edition.nome}.`;
+  const canonical = new URL(path, "https://euamourania.com.br").href;
   document.title = `${title} | Eu Amo Urânia`;
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);
   document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
   document.querySelector('meta[property="og:description"]')?.setAttribute("content", description);
+  document.querySelector('meta[property="og:url"]')?.setAttribute("content", canonical);
   document.querySelector('link[rel="canonical"]')?.setAttribute("href", canonical);
   document.querySelector('meta[property="og:image"]')?.setAttribute("content", new URL(edition.imagem_capa_url || "/assets/compartilhamento-logo.png", location.origin).href);
 }
@@ -284,7 +285,7 @@ function progressCard(edition, categories, nominees) {
 }
 
 export function renderHub(edition, categories, nominees) {
-  setMeta(edition, "Central da votação");
+  setMeta(edition, "Central da votação", hubUrl(edition));
   const open = isVotingOpen(edition);
   if (!open) {
     const ended = edition.votacao_fim && serverNow() > new Date(edition.votacao_fim).getTime();
@@ -360,7 +361,10 @@ export function renderCategory(edition, categories, nominees, slug) {
     root.innerHTML = `<div class="awards-empty">Categoria não encontrada nesta edição.</div>`;
     return;
   }
-  setMeta(edition, category.nome);
+  const categoryDescription = category.descricao
+    ? `Vote na categoria ${category.nome} no ${edition.nome}. ${category.descricao}`.slice(0, 200)
+    : `Vote na categoria ${category.nome} da edição oficial do ${edition.nome}.`;
+  setMeta(edition, `Votação — ${category.nome}`, votingUrl(edition, category), categoryDescription);
   const open = isVotingOpen(edition);
   const progress = progressFor(edition, categories, nominees);
   const items = nominees.filter(item => item.categoria_id === category.id);

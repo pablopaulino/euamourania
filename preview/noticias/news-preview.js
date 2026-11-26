@@ -35,7 +35,7 @@ const esc = (value = "") => String(value).replace(/[&<>'"]/g, char => ({ "&":"&a
 const normalize = value => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const short = (value = "", limit = 150) => { const text=String(value || "").trim(); return text.length > limit ? `${text.slice(0,limit).trim()}…` : text; };
 const newsUrl = slug => `/noticias/${encodeURIComponent(slug)}`;
-const categoryUrl = category => `/news/${encodeURIComponent(gerarSlug(category || "urania"))}`;
+const categoryUrl = category => `/news/${encodeURIComponent(gerarSlug(category || "urania"))}/`;
 const imageUrl = (value, options) => /^https?:\/\//i.test(value || "") || /^\/?assets\//i.test(value || "") ? esc(responsiveImage(value, options)) : fallbackImage;
 const categoryLink = value => `<a href="${categoryUrl(value)}">${esc(value || "Urânia")}</a>`;
 
@@ -215,7 +215,9 @@ async function loadNews() {
   } catch(error) { console.error(error); if(!hasServerContent){featured.innerHTML=""; status.textContent="Não foi possível carregar as notícias agora.";} }
 }
 
-document.querySelectorAll('a[href="/news/sobre-publicacoes/"]').forEach(link=>link.href="/preview/noticias/sobre-publicacoes/");
-document.querySelectorAll('a[href="/news/politica-editorial/"]').forEach(link=>link.href="/preview/noticias/politica-editorial/");
-document.querySelectorAll('a[href="/news/correcoes-transparencia-contato/"]').forEach(link=>link.href="/preview/noticias/correcoes-transparencia-contato/");
+if (location.pathname.startsWith("/preview/")) {
+  document.querySelectorAll('a[href="/news/sobre-publicacoes/"]').forEach(link=>link.href="/preview/noticias/sobre-publicacoes/");
+  document.querySelectorAll('a[href="/news/politica-editorial/"]').forEach(link=>link.href="/preview/noticias/politica-editorial/");
+  document.querySelectorAll('a[href="/news/correcoes-transparencia-contato/"]').forEach(link=>link.href="/preview/noticias/correcoes-transparencia-contato/");
+}
 loadNews();
