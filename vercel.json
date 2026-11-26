@@ -12,20 +12,13 @@
   ],
   "redirects": [
     {
-      "source": "/melhores-de-urania/:path*",
-      "has": [
-        { "type": "host", "value": "melhores.euamourania.com.br" }
-      ],
-      "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
-      "permanent": true
-    },
-    {
       "source": "/",
       "has": [
         { "type": "host", "value": "melhores.euamourania.com.br" }
       ],
       "destination": "https://euamourania.com.br/melhores-de-urania/",
-      "permanent": true
+      "permanent": true,
+      "statusCode": 308
     },
     {
       "source": "/:path*",
@@ -33,7 +26,26 @@
         { "type": "host", "value": "melhores.euamourania.com.br" }
       ],
       "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
-      "permanent": true
+      "permanent": true,
+      "statusCode": 308
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "host", "value": "melhoresdeurania.euamourania.com.br" }
+      ],
+      "destination": "https://euamourania.com.br/melhores-de-urania/",
+      "permanent": true,
+      "statusCode": 308
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "host", "value": "melhoresdeurania.euamourania.com.br" }
+      ],
+      "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
+      "permanent": true,
+      "statusCode": 308
     },
     {
       "source": "/parceiro/index.html",
@@ -146,6 +158,8 @@
     { "source": "/categorias/:categoria/", "destination": "/news/:categoria", "permanent": true }
   ],
   "routes": [
+    { "src": "^/(?<path>.*)$", "has": [{ "type": "host", "value": "melhores.euamourania.com.br" }], "status": 308, "headers": { "Location": "https://euamourania.com.br/melhores-de-urania/$path" } },
+    { "src": "^/(?<path>.*)$", "has": [{ "type": "host", "value": "melhoresdeurania.euamourania.com.br" }], "status": 308, "headers": { "Location": "https://euamourania.com.br/melhores-de-urania/$path" } },
     { "src": "^/$", "methods": ["GET", "HEAD"], "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "dest": "/parceiro/index.html" },
     { "src": "^/$", "methods": ["GET", "HEAD"], "dest": "/api/home" },
     { "src": "^/news/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=news-list" },
