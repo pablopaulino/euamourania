@@ -16,7 +16,7 @@ function categoriesFor(edition, results, winsByKey) {
     return `<section class="award-archive-category">
       <h3 class="award-archive-label">${esc(categoryName(rows[0]))}</h3>
       <div class="award-archive-entries">
-        ${winners.map(row => winnerCard(row, winsByKey, edition)).join("")}
+        ${winners.map(row => winnerCard(row, winsByKey, edition, false, true)).join("")}
         ${nominees.length ? `<div class="award-archive-nominees"><h4>Demais indicados</h4><ul>${nominees.map(row => `<li>${esc(nomineeData(row).name)}</li>`).join("")}</ul></div>` : ""}
       </div>
     </section>`;
@@ -41,7 +41,7 @@ async function init() {
 
   setMeta();
   copy.innerHTML = `<span class="awards-public-badge">Histórico oficial</span><h1>Hall dos <em class="award-accent">vencedores</em></h1><p>Revisite quem foi reconhecido em cada edição do Melhores de Urânia.</p><div class="hero-actions"><a class="button button-secondary" href="${awardPath()}">Ver premiação</a></div>`;
-  panel.hidden = true;
+  panel.innerHTML = '<img src="/assets/melhores/hall-2026.png" width="3510" height="1770" alt="Arte oficial do Prêmio Melhores de Urânia 2026">';
 
   try {
     const editions = (await listarEdicoesPublicas()).filter(hasResultsPhase).sort((a, b) => Number(b.ano) - Number(a.ano));
@@ -62,17 +62,18 @@ async function init() {
     }
 
     list.addEventListener("error", event => {
+      if (event.target.matches?.(".award-year-cover img") && !event.target.src.endsWith("/simbolo.png")) event.target.src = "/assets/melhores/simbolo.png";
       if (event.target.matches?.(".awards-winner-photo img")) event.target.remove();
     }, true);
     const buttons = published.map(({ edition }, index) =>
-      `<button type="button" data-award-year="${edition.ano}" aria-controls="award-year-${edition.ano}" aria-pressed="${index === 0}">${edition.ano}</button>`).join("");
+      `<button type="button" data-award-year="${edition.ano}" aria-controls="award-year-${edition.ano}" aria-pressed="${index === 0}"><span class="award-year-cover"><img src="${esc(edition.imagem_capa_url || (Number(edition.ano) === 2026 ? "/assets/melhores/hall-2026.png" : "/assets/melhores/simbolo.png"))}" alt=""></span><span><strong>${edition.ano}</strong><small>${Number(edition.ano) === 2026 ? "Primeira edição" : esc(edition.nome)}</small></span></button>`).join("");
     const years = published.map(({ edition, results }, index) => {
       return `<section class="awards-hall-year" id="award-year-${edition.ano}" aria-labelledby="awards-hall-${edition.ano}"${index ? " hidden" : ""}>
         <header class="awards-hall-year-head">
           <div><p class="eyebrow">Edição oficial</p><h2 id="awards-hall-${edition.ano}">${esc(String(edition.ano))}</h2></div>
-          <a href="${resultsPageUrl(edition)}">Ver resultados da edição <span aria-hidden="true">→</span></a>
+          <a class="button button-secondary" href="${resultsPageUrl(edition)}">Ver resultados da edição <span aria-hidden="true">→</span></a>
         </header>
-        ${categoriesFor(edition, results, winsByKey)}
+        <div class="award-hall-grid">${categoriesFor(edition, results, winsByKey)}</div>
       </section>`;
     }).join("");
     list.innerHTML = `<div class="award-year-select" role="group" aria-label="Ano da edição">${buttons}</div>${years}`;

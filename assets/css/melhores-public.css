@@ -315,3 +315,31 @@
 @media (max-width: 48rem) {
   .award-document-layout { grid-template-columns: minmax(0,1fr); gap: 1.5rem; }
 }
+
+/* Hall dos vencedores */
+#hall-panel { padding: 0; border: 0; }
+#hall-panel > img { width: min(100%, 30rem); height: auto; margin: auto; }
+#hall-copy .award-accent { color: #C62119; }
+#hall-copy .button, #hall-list .button { border-radius: 9999px; }
+#hall-list .award-year-select { display: grid; grid-template-columns: repeat(auto-fill,minmax(min(100%,17rem),1fr)); gap: .8rem; border: 0; padding: .3rem; }
+#hall-list .award-year-select button { display: flex; align-items: center; gap: 1rem; padding: .7rem; text-align: left; background: #faf6f0; border: 1px solid transparent; border-radius: 1rem; }
+#hall-list .award-year-select button[aria-pressed="true"] { border-color: #C62119; background: white; }
+.award-year-cover { width: 5rem; aspect-ratio: 1.6; border-radius: .75rem; overflow: hidden; background: var(--award-surface); }
+.award-year-cover img { width: 100%; height: 100%; object-fit: cover; }
+.award-year-select strong, .award-year-select small { display: block; }
+.award-year-select strong { font-size: 1.35rem; }
+.award-year-select small { color: var(--award-muted); }
+#hall-list .awards-hall-year-head h2 { border: 0; }
+.award-hall-grid { display: grid; gap: 1rem; }
+@media (min-width: 48rem) { .award-hall-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+.award-hall-grid .award-archive-category { padding: 1rem; border: 0; border-radius: 1rem; background: #faf6f0; }
+.award-hall-grid .award-archive-label { color: #C88A2E; font-size: 1.17rem; font-weight: 750; }
+.award-hall-grid .award-archive-entries { grid-template-columns: 1fr; margin-top: .75rem; }
+.award-hall-grid .awards-winner-card { grid-template-columns: clamp(5rem,9vw,7rem) minmax(0,1fr); align-items: center; }
+.award-hall-grid .awards-winner-photo { aspect-ratio: 1; overflow: hidden; border-radius: 1rem; }
+.award-hall-grid .awards-winner-photo img { display: block; object-fit: cover; }
+.award-hall-grid .hall-winner-badge { top: .35rem; left: .35rem; padding: .14rem .48rem; border-radius: 9999px; background: #C62119; color: white; white-space: nowrap; font-size: .7rem; box-shadow: 0 1px 4px #0002; }
+.award-hall-grid .awards-winner-history { margin-top: .45rem; font-size: .85rem; }
+.award-hall-grid .awards-winner-history strong { font-weight: 400; }
+.award-hall-grid .is-clickable .awards-winner-history span { color: var(--award-red-hover); font-weight: 650; }
+.award-hall-grid .award-archive-nominees li { border: 0; }

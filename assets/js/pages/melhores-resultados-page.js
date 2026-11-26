@@ -96,7 +96,7 @@ function votesLabel(row) {
   return `${votes} voto${votes === 1 ? "" : "s"}`;
 }
 
-export function winnerCard(row, winsByKey, edition, demo = false) {
+export function winnerCard(row, winsByKey, edition, demo = false, hall = false) {
   const data = nomineeData(row);
   const mention = mencaoPublica(row);
   const initial = esc(data.name.trim().charAt(0).toLocaleUpperCase("pt-BR") || "U");
@@ -109,7 +109,7 @@ export function winnerCard(row, winsByKey, edition, demo = false) {
   return `<${cardTag} class="${cardClass}"${cardHref}>
     <div class="awards-winner-media">
       <div class="awards-winner-photo"><span class="awards-winner-initial" aria-hidden="true">${initial}</span>${data.img ? `<img src="${data.img}" alt="${esc(data.name)}" loading="lazy" decoding="async" width="640" height="480">` : ""}</div>
-      <img class="award-winner-seal" src="/assets/melhores/vencedor.png" alt="Vencedor" width="54" height="54" loading="lazy">
+      ${hall ? '<span class="hall-winner-badge">Vencedor</span>' : '<img class="award-winner-seal" src="/assets/melhores/vencedor.png" alt="Vencedor" width="54" height="54" loading="lazy">'}
     </div>
     <div class="awards-winner-body">
       <p class="awards-winner-category">${esc(categoryName(row))}</p>
@@ -117,7 +117,7 @@ export function winnerCard(row, winsByKey, edition, demo = false) {
       ${mention ? `<p><em>${esc(mention)}</em></p>` : ""}
       <div class="awards-winner-history">
         <strong>${demo ? "Exemplo de vencedor" : esc(winnerHistoryLabel(row, winsByKey, edition.ano))}</strong>
-        <span>${esc(historyHint)}</span>
+        <span>${esc(historyHint)}${hall && profileUrl ? ' <i aria-hidden="true">→</i>' : ""}</span>
       </div>
     </div>
   </${cardTag}>`;
