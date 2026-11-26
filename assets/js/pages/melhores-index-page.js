@@ -86,10 +86,10 @@ const winnersSection = document.getElementById("awards-home-winners");
 function renderPhase(edition) {
   const phase = phaseDetails(edition);
   status.textContent = [phase.label, phase.period].filter(Boolean).join(" · ");
-  const primary = phase.action === "Ver vencedores" ? "Ver resultados da edição" : phase.action;
+  const primary = phase.action === "Ver vencedores" ? "Ver resultados" : phase.action;
   const secondary = phase.href === editionUrl(edition) ? "" :
     `<a class="award-link" href="${editionUrl(edition)}">Sobre a edição</a>`;
-  actions.innerHTML = `<a class="award-home-primary" data-awards-cta href="${phase.href}">${esc(primary)}</a>
+  actions.innerHTML = `<a class="award-home-primary" data-awards-cta href="${phase.href}">${esc(primary)} <span aria-hidden="true">→</span></a>
     ${secondary}<button class="award-home-share" type="button" data-share-awards-home>Compartilhar</button>`;
 }
 

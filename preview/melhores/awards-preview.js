@@ -26,8 +26,8 @@ const header = `
 const footer = `
   <footer class="award-footer">
     <div class="award-shell award-footer-inner">
-      <p>Uma realização <a href="https://euamourania.com.br/">Eu Amo Urânia</a></p>
-      <a data-app-download href="https://euamourania.com.br/app">Viva Urânia</a>
+      <div class="award-credit"><img src="/assets/melhores/simbolo.png" alt="" width="36" height="40"><p><small>Uma realização</small><a href="https://euamourania.com.br/">Eu Amo Urânia</a></p></div>
+      <a data-app-download href="https://euamourania.com.br/app">Conheça o app Viva Urânia <span aria-hidden="true">↗</span></a>
     </div>
   </footer>`;
 function parentLink() {
@@ -78,7 +78,7 @@ const functionalPages={
       </div>
     </section>
     <section class="award-shell award-home-section" id="awards-home-winners" hidden>
-      <h2>Vencedores anunciados</h2><ul></ul>
+      <h2>Vencedores <em class="award-accent">anunciados</em></h2><ul></ul>
     </section>
     <section class="award-shell award-home-section" id="award-past" hidden>
       <h2>Edições anteriores</h2><div class="awards-editions-grid" id="awards-editions"></div>

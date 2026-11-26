@@ -41,7 +41,7 @@
 .vote-step-actions { margin-top: 1.6rem; }
 .vote-action-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .7rem; padding-block: .9rem; border-block: 1px solid var(--award-line); background: var(--award-white); }
 .vote-step-links { padding-top: .75rem; }
-.vote-step-links button, .vote-finish-later { border: 0; background: none; text-decoration: underline; text-underline-offset: .25em; min-height: 2.75rem; }
+.vote-step-links button, .vote-finish-later { border: 0; background: none; color: var(--award-red-hover); font-weight: 600; min-height: 2.75rem; }
 .vote-confirmation, .vote-saved-state, .vote-announcement, .vote-app-invite { padding: 1rem; background: var(--award-surface); }
 .vote-saved-state, .vote-saved-nominee, .vote-confirmation, .vote-app-invite { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 .vote-saved-copy, .vote-app-invite > div { flex: 1 1 15rem; }
