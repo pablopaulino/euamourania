@@ -12,7 +12,7 @@ const header = `
   <header class="award-header">
     <div class="award-shell award-header-inner">
       <a class="award-wordmark" href="${home}" aria-label="Prêmio Melhores de Urânia, início">
-        <span>Prêmio</span><strong>Melhores de Urânia</strong>
+        <img class="award-symbol" src="/assets/melhores/simbolo.png" width="35" height="39" alt=""><span class="award-brand-name"><small>Prêmio</small><strong>Melhores de Urânia</strong></span>
       </a>
       <nav id="menu-principal" class="award-nav" aria-label="Navegação do prêmio">
         <a href="${home}"${active("home")}>Início</a>
@@ -58,7 +58,7 @@ const functionalPages={
           <p id="award-home-status" role="status">Carregando a edição…</p>
           <div class="award-home-actions" id="award-home-actions"></div>
         </div>
-        <figure id="award-home-cover" hidden></figure>
+        <figure id="award-home-cover"><img class="award-home-symbol" src="/assets/melhores/simbolo.png" alt="" width="1602" height="1771"></figure>
       </div>
     </section>
     <section class="award-shell award-home-section" id="awards-home-winners" hidden>

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { renderResults, resultsArePublished, winnerCard } from "../assets/js/pages/melhores-resultados-page.js";
+import { nomineeData, renderResults, resultsArePublished, winnerCard } from "../assets/js/pages/melhores-resultados-page.js";
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+assert.equal(nomineeData({ melhores_indicados: { turismo: { status: "publicado", slug: "vale" } } }).tourismUrl, "/turismo/vale");
 const migration = read("supabase/migrations/20261010_melhores_integridade_historico.sql");
 const publicService = read("assets/js/services/melhoresPublicService.js");
 const adminService = read("assets/js/services/melhoresService.js");

@@ -115,7 +115,7 @@ async function init() {
     }
     setImageMeta(active);
     const cover = document.getElementById("award-home-cover");
-    const image = img(active.imagem_capa_url);
+    const image = Number(active.ano) === 2026 ? "/assets/melhores/assinatura-2026.png" : img(active.imagem_capa_url);
     if (image) {
       cover.innerHTML = `<img src="${image}" width="1600" height="807" alt="">`;
       cover.hidden = false;

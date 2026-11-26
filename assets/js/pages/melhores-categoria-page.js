@@ -42,11 +42,12 @@ function statusLabel(status = "") {
   return labels[status] || String(status || "Status a confirmar").replaceAll("_", " ");
 }
 
-function nomineeCard(item) {
+function nomineeCard(item, year) {
   const img = image(item.imagem_url);
   return `<article class="awards-nominee-card awards-category-nominee-card">
     ${img ? `<img src="${img}" alt="" loading="lazy">` : `<div class="awards-category-nominee-empty" aria-hidden="true">${esc(item.nome.trim().charAt(0).toLocaleUpperCase("pt-BR"))}</div>`}
     <div class="awards-card-body">
+      ${Number(year) === 2026 ? '<img class="award-nominee-seal" src="/assets/melhores/indicado-2026.png" alt="Indicado em 2026" width="95" height="30" loading="lazy">' : ""}
       <h3>${esc(item.nome)}</h3>
       ${item.descricao_curta ? `<p>${esc(item.descricao_curta)}</p>` : ""}
     </div>
@@ -125,7 +126,7 @@ async function init() {
         </div>
         <p>${nominees.length} nome${nominees.length === 1 ? "" : "s"} publicado${nominees.length === 1 ? "" : "s"} nesta edição.</p>
       </div>
-      <div class="awards-nominee-grid">${nominees.map(nomineeCard).join("")}</div>`
+      <div class="awards-nominee-grid">${nominees.map(item => nomineeCard(item, edition.ano)).join("")}</div>`
     : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>';
 
   document.querySelector("[data-share-category]")?.addEventListener("click", async () => {

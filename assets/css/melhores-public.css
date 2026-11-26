@@ -1,14 +1,14 @@
 .awards-preview-page {
   --award-white: #fff;
-  --award-surface: #F7F6F4;
+  --award-surface: #FFF5EB;
   --award-media: #F3F2EF;
   --award-line: #EAE7E2;
   --award-ink: #181615;
   --award-muted: #6B6560;
-  --award-red: #C62119;
+  --award-red: #E21414;
   --award-red-hover: #9E1812;
-  --award-amber: #C88A2E;
-  --award-label: #805518;
+  --award-amber: #FF8B00;
+  --award-label: #864300;
   --award-radius: 1rem;
   --award-space: clamp(2.75rem, 6vw, 5.75rem);
   margin: 0;
@@ -51,8 +51,8 @@
 .award-header-inner, .award-footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
 .award-header-inner { min-height: 5rem; }
 .award-footer-inner { min-height: 6rem; color: var(--award-muted); font-size: .875rem; }
-.award-wordmark { flex: none; text-decoration: none; line-height: 1; }
-.award-wordmark span { display: block; margin-bottom: .3rem; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; }
+.award-wordmark { display: inline-flex; align-items: center; gap: .65rem; flex: none; text-decoration: none; line-height: 1; }
+.award-wordmark small { display: block; margin-bottom: .3rem; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; }
 .award-wordmark strong { font-size: 1.05rem; letter-spacing: -.035em; }
 .award-nav { display: flex; align-items: stretch; gap: clamp(.75rem, 2.5vw, 2rem); }
 .award-nav a { display: grid; align-items: center; min-height: 2.75rem; padding-block: .4rem; border-bottom: 2px solid transparent; text-decoration: none; font-size: .875rem; font-weight: 650; }
@@ -72,6 +72,12 @@
   display: flex; align-items: center; gap: .7rem; flex-wrap: wrap;
 }
 .award-home-intro, .awards-public-hero { padding-block: var(--award-space); }
+.award-home-intro, .awards-public-hero { background: var(--award-surface); }
+.award-home-intro figure { display: grid; place-items: center; padding: clamp(1rem, 3vw, 3rem); }
+.award-home-intro figure .award-home-symbol { max-height: 15rem; object-fit: contain; background: transparent; }
+.award-home-intro figure img[src$="assinatura-2026.png"] { background: transparent; border-radius: 0; }
+.award-winner-seal { position: absolute; top: .5rem; left: .5rem; width: clamp(2rem, 4vw, 3.375rem); height: auto; }
+.award-nominee-seal { width: 5.9rem; height: auto; margin-bottom: .65rem; }
 .award-home-grid, .awards-public-grid, .awards-winner-profile { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: center; gap: clamp(1.75rem, 6vw, 6rem); }
 .award-home-grid:has(figure[hidden]), .awards-public-grid:not(:has(.awards-public-panel > :not(.awards-empty))) { grid-template-columns: 1fr; }
 .award-home-intro p, .awards-public-copy > p { margin-top: 1.25rem; color: var(--award-muted); font-size: 1.06rem; }

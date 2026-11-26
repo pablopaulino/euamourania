@@ -3,8 +3,8 @@
   --trans-ink: var(--award-ink, #181615);
   --trans-muted: var(--award-muted, #6B6560);
   --trans-line: var(--award-line, #EAE7E2);
-  --trans-label: var(--award-label, #805518);
-  --trans-red: var(--award-red, #C62119);
+  --trans-label: var(--award-label, #864300);
+  --trans-red: var(--award-red, #E21414);
   color: var(--trans-ink);
   margin: 0 0 64px;
   padding: 38px 0 0;
@@ -66,7 +66,7 @@
 .trans-panel { margin-top: 10px; padding: 0; border-top: 1px solid var(--trans-line); background: transparent; }
 .trans-panel > summary { display: flex; min-height: 62px; align-items: center; justify-content: space-between; gap: 18px; font-size: 14px; }
 .trans-panel > p { max-width: 860px; margin: 0; padding: 0 0 16px; }
-.trans-note { margin: 0; padding: 20px; border: 1px solid var(--trans-line); border-radius: 18px; background: var(--award-surface, #F7F6F4); }
+.trans-note { margin: 0; padding: 20px; border: 1px solid var(--trans-line); border-radius: 18px; background: var(--award-surface, #FFF5EB); }
 .trans-print-date { margin-top: 30px; font-size: 12px !important; }
 @media (max-width: 700px) {
   .trans-central { margin-bottom: 45px; padding-top: 28px; }

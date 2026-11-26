@@ -70,7 +70,7 @@ export function nomineeData(row) {
     description: nominee.descricao_curta || row.criterio_aplicado || guide.categoria_nome || "Resultado oficial da categoria.",
     img: image(nominee.imagem_url || guide.imagem_url),
     guideUrl: guide.slug && guide.status === "publicado" ? `/guia/${encodeURIComponent(guide.slug)}` : "",
-    tourismUrl: placeSlug ? (localPreview() ? `/turismo-details.html?slug=${placeSlug}` : `/turismo/${placeSlug}`) : ""
+    tourismUrl: placeSlug ? (awardLocal() ? `/turismo-details.html?slug=${placeSlug}` : `/turismo/${placeSlug}`) : ""
   };
 }
 
@@ -109,7 +109,7 @@ export function winnerCard(row, winsByKey, edition, demo = false) {
   return `<${cardTag} class="${cardClass}"${cardHref}>
     <div class="awards-winner-media">
       <div class="awards-winner-photo"><span class="awards-winner-initial" aria-hidden="true">${initial}</span>${data.img ? `<img src="${data.img}" alt="${esc(data.name)}" loading="lazy" decoding="async" width="640" height="480">` : ""}</div>
-      <span>Vencedor</span>
+      <img class="award-winner-seal" src="/assets/melhores/vencedor.png" alt="Vencedor" width="54" height="54" loading="lazy">
     </div>
     <div class="awards-winner-body">
       <p class="awards-winner-category">${esc(categoryName(row))}</p>

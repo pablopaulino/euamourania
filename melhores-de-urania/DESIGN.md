@@ -3,15 +3,15 @@ name: Prêmio Melhores de Urânia
 description: Sistema visual da experiência pública do Prêmio e de suas prévias.
 colors:
   canvas: "#FFFFFF"
-  surface: "#F7F6F4"
+  surface: "#FFF5EB"
   media: "#F3F2EF"
   divider: "#EAE7E2"
   text: "#181615"
   secondary: "#6B6560"
-  action: "#C62119"
+  action: "#E21414"
   action-hover: "#9E1812"
-  amber: "#C88A2E"
-  label-text: "#805518"
+  amber: "#FF8B00"
+  label-text: "#864300"
 typography:
   body:
     fontFamily: "Inter, sans-serif"
