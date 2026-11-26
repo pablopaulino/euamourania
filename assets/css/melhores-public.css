@@ -91,8 +91,7 @@
   .award-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
   .award-home-grid > :first-child, .award-home-art { display: flex; flex-direction: column; }
   .award-home-art { align-self: stretch; width: 100%; justify-content: space-between; }
-  .award-home-art figure img[src$="assinatura-2026.png"] { transform: translateX(-3%) scale(.95); }
-  .award-home-art figure { padding: 0 0 1.5rem; }
+  .award-home-art figure { flex: 1; align-content: center; padding: 0 0 1.5rem; }
   .award-home-grid .award-home-actions { margin-top: auto; padding-top: 1.5rem; }
 }
 .award-home-grid:has(figure[hidden]), .awards-public-grid:not(:has(.awards-public-panel > :not(.awards-empty))) { grid-template-columns: 1fr; }
