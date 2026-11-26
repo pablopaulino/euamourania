@@ -1,0 +1,8 @@
+<h2>Redefinir sua senha</h2>
+<p>Recebemos um pedido para alterar a senha da sua conta no Eu Amo Urânia. Abra o link para escolher uma nova senha.</p>
+{{ if eq .RedirectTo "https://parceiros.euamourania.com.br/login" }}
+<p><a href="{{ .ConfirmationURL }}">Redefinir minha senha</a></p>
+{{ else }}
+<p><a href="https://euamourania.com.br/app/redefinir-senha#token_hash={{ .TokenHash }}">Redefinir minha senha</a></p>
+{{ end }}
+<p>Se você não pediu essa alteração, pode ignorar este e-mail.</p>
