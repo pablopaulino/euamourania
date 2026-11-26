@@ -73,7 +73,7 @@
 }
 .awards-preview-page :is(.button, .award-home-share):hover { background: var(--award-surface); }
 .awards-preview-page :is(.button-primary, .award-home-primary) { background: var(--award-red); border-color: var(--award-red); color: var(--award-white); }
-.awards-preview-page :is(.button-primary, .award-home-primary):hover:not(:disabled) { background: var(--award-red-hover); border-color: var(--award-red-hover); }
+.awards-preview-page :is(.button-primary, .award-home-primary):is(:hover, :focus-visible):not(:disabled) { background: var(--award-red-hover); border-color: var(--award-red-hover); color: var(--award-white); }
 .awards-preview-page .button:disabled { color: var(--award-muted); background: var(--award-surface); border-color: var(--award-line); }
 .hero-actions, .award-home-actions, .awards-category-panel-actions, .awards-winner-profile-links, .awards-form-actions, .awards-status-line {
   display: flex; align-items: center; gap: .7rem; flex-wrap: wrap;
