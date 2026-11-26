@@ -12,7 +12,7 @@ const header = `
   <header class="award-header">
     <div class="award-shell award-header-inner">
       <a class="award-wordmark" href="${home}" aria-label="Prêmio Melhores de Urânia, início">
-        <img class="award-symbol" src="/assets/melhores/simbolo.png" width="35" height="39" alt=""><span class="award-brand-name"><small>Prêmio</small><strong>Melhores de Urânia</strong></span>
+        <img src="/assets/melhores/assinatura-2026.png" width="108" height="42" alt="">
       </a>
       <nav id="menu-principal" class="award-nav" aria-label="Navegação do prêmio">
         <a href="${home}"${active("home")}>Início</a>
@@ -20,14 +20,14 @@ const header = `
         <a id="award-nav-voting" href="${year ? awardPath("voting", { year, local }) : home}"${active("voting")}>Votação</a>
         <a href="${awardPath("hall", { local })}"${active("hall", "permanent", "winner", "results")}>Edições</a>
       </nav>
-      <a class="award-back" href="https://euamourania.com.br/">← Eu Amo Urânia</a>
+      <a class="award-back" href="https://euamourania.com.br/">Eu Amo Urânia</a>
     </div>
   </header>`;
 const footer = `
   <footer class="award-footer">
     <div class="award-shell award-footer-inner">
-      <div class="award-credit"><img src="/assets/melhores/simbolo.png" alt="" width="36" height="40"><p><small>Uma realização</small><a href="https://euamourania.com.br/">Eu Amo Urânia</a></p></div>
-      <a data-app-download href="https://euamourania.com.br/app"><img src="/assets/logo-viva-urania-coracao.svg" width="40" height="40" alt=""><span><small>Conheça o app</small><strong>Viva Urânia</strong></span></a>
+      <div class="award-credit"><p><small>Uma realização</small><a href="https://euamourania.com.br/"><img src="/assets/1505%20-%20Urania%20-%20Logo%20Horizontal%20-%201.png" width="144" height="32" alt="Eu Amo Urânia"></a></p></div>
+      <a data-app-download href="https://euamourania.com.br/app"><img src="/assets/viva-origem-colorido.svg" width="40" height="40" alt=""><span><small>Conheça o app</small><strong>Viva Urânia</strong></span></a>
     </div>
   </footer>`;
 function parentLink() {
