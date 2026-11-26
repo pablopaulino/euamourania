@@ -27,7 +27,7 @@ const footer = `
   <footer class="award-footer">
     <div class="award-shell award-footer-inner">
       <div class="award-credit"><img src="/assets/melhores/simbolo.png" alt="" width="36" height="40"><p><small>Uma realização</small><a href="https://euamourania.com.br/">Eu Amo Urânia</a></p></div>
-      <a data-app-download href="https://euamourania.com.br/app">Conheça o app Viva Urânia <span aria-hidden="true">↗</span></a>
+      <a data-app-download href="https://euamourania.com.br/app"><img src="/assets/logo-viva-urania-coracao.svg" width="40" height="40" alt=""><span><small>Conheça o app</small><strong>Viva Urânia</strong></span></a>
     </div>
   </footer>`;
 function parentLink() {
@@ -56,12 +56,12 @@ const faqItems={
 };
 function faqSection(page) {
   const questions = faqItems[page].map(([question, answer]) =>
-    `<details><summary>${question}</summary><p>${answer}</p></details>`
+    `<details name="award-questions"><summary>${question}</summary><p>${answer}</p></details>`
   ).join("");
   const destination = page === "edition" && year ? awardPath("rules", { year, local }) : awardPath("hall", { local });
   const label = page === "edition" && year ? "Consultar regulamento" : "Ver histórico dos vencedores";
   return `<section class="award-help" id="como-funciona"><div class="award-shell award-help-grid">
-    <header><h2>Perguntas <em class="award-accent">frequentes</em></h2><a class="award-link" href="${destination}">${label} →</a></header>
+    <header><h2>Perguntas <em class="award-accent">frequentes</em></h2>${page === "edition" ? `<a class="award-link" href="${destination}">${label}</a>` : ""}</header>
     <div class="award-faq">${questions}</div>
   </div></section>`;
 }
@@ -70,15 +70,15 @@ const functionalPages={
     <section class="award-home-intro">
       <div class="award-shell award-home-grid">
         <div>
-          <h1 id="award-home-title"><em class="award-accent">Melhores</em> de Urânia</h1>
+          <h1 id="award-home-title">Quem faz a diferença em <em class="award-accent">Urânia</em></h1>
           <p id="award-home-status" role="status">Carregando a edição…</p>
           <div class="award-home-actions" id="award-home-actions"></div>
         </div>
-        <figure id="award-home-cover"><img class="award-home-symbol" src="/assets/melhores/simbolo.png" alt="" width="1602" height="1771"></figure>
+        <div class="award-home-art"><figure id="award-home-cover"><img class="award-home-symbol" src="/assets/melhores/simbolo.png" alt="" width="1602" height="1771"></figure><div id="award-home-tools"></div></div>
       </div>
     </section>
     <section class="award-shell award-home-section" id="awards-home-winners" hidden>
-      <h2>Vencedores <em class="award-accent">anunciados</em></h2><ul></ul>
+      <h2>Vencedores <em class="award-accent">anunciados</em></h2><ul></ul><a class="award-history-link" href="${awardPath("hall", { local })}">Histórico dos vencedores</a>
     </section>
     <section class="award-shell award-home-section" id="award-past" hidden>
       <h2>Edições anteriores</h2><div class="awards-editions-grid" id="awards-editions"></div>

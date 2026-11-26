@@ -78,7 +78,7 @@ function editionCard(edition) {
   </article>`;
 }
 
-const title = document.getElementById("award-home-title");
+const editionTools = document.getElementById("award-home-tools");
 const status = document.getElementById("award-home-status");
 const actions = document.getElementById("award-home-actions");
 const winnersSection = document.getElementById("awards-home-winners");
@@ -89,8 +89,8 @@ function renderPhase(edition) {
   const primary = phase.action === "Ver vencedores" ? "Ver resultados" : phase.action;
   const secondary = phase.href === editionUrl(edition) ? "" :
     `<a class="award-link" href="${editionUrl(edition)}">Sobre a edição</a>`;
-  actions.innerHTML = `<a class="award-home-primary" data-awards-cta href="${phase.href}">${esc(primary)} <span aria-hidden="true">→</span></a>
-    ${secondary}<button class="award-home-share" type="button" data-share-awards-home>Compartilhar</button>`;
+  actions.innerHTML = `<a class="award-home-primary" data-awards-cta href="${phase.href}">${esc(primary)} <span aria-hidden="true">→</span></a>`;
+  editionTools.innerHTML = `${secondary}<button class="award-home-share" type="button" data-share-awards-home>Compartilhar</button>`;
 }
 
 async function init() {
@@ -102,17 +102,6 @@ async function init() {
       return;
     }
     const active = edicaoEmDestaque(editions);
-    title.replaceChildren();
-    const name = String(active.nome || "Melhores de Urânia");
-    const emphasis = /Melhores/i.exec(name);
-    if (emphasis) {
-      const accent = document.createElement("em");
-      accent.className = "award-accent";
-      accent.textContent = emphasis[0];
-      title.append(name.slice(0, emphasis.index), accent, name.slice(emphasis.index + emphasis[0].length));
-    } else {
-      title.textContent = name;
-    }
     setImageMeta(active);
     const cover = document.getElementById("award-home-cover");
     const image = Number(active.ano) === 2026 ? "/assets/melhores/assinatura-2026.png" : img(active.imagem_capa_url);
@@ -158,7 +147,11 @@ async function init() {
             String(a.melhores_categorias?.nome || "").localeCompare(String(b.melhores_categorias?.nome || ""), "pt-BR"));
         const markup = winners.map(row => {
           const mention = mencaoPublica(row);
+          const nominee = row.melhores_indicados;
+          const photo = img(nominee?.imagem_url || nominee?.guia_comercial?.imagem_url);
+          const initial = esc(nominee?.nome?.trim().charAt(0) || "U");
           return `<li><a href="${winnerProfileUrl(active, row)}">
+            <div class="award-portrait" aria-hidden="true">${initial}${photo ? `<img src="${photo}" alt="" loading="lazy">` : ""}</div>
             <span>${esc(row.melhores_categorias?.nome)}</span><strong>${esc(row.melhores_indicados?.nome)}</strong>
             ${mention ? `<em>${esc(mention)}</em>` : ""}
           </a></li>`;
