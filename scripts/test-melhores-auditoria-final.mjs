@@ -53,7 +53,7 @@ must(publicService.includes("obterCategoriaPublica") && publicService.includes("
 for (const file of ["melhores-de-urania/categoria.html", "melhores-de-urania/regulamento.html", "melhores-de-urania/metodologia.html", "assets/js/pages/melhores-categoria-page.js", "assets/js/pages/melhores-regulamento-page.js", "assets/js/pages/melhores-metodologia-page.js"]) {
   must(fs.existsSync(path.join(root, file)), `Arquivo público ausente: ${file}`);
 }
-must(sitemap.includes("melhoresCategoriasRows") && sitemap.includes("/regulamento/") && sitemap.includes("/metodologia/"), "Sitemap deve incluir categorias, regulamento e metodologia");
+must(sitemap.includes("melhoresCategoriasRows") && sitemap.includes('awardPath("rules"') && sitemap.includes('awardPath("method"'), "Sitemap deve incluir categorias, regulamento e metodologia");
 must(read("vercel.json").includes("/melhores-de-urania/:ano/categorias/:categoria"), "Vercel deve ter rewrite para categoria pública");
 must(pkg.scripts["test:melhores-auditoria-final"], "package.json deve expor test:melhores-auditoria-final");
 must(pkg.scripts.test.includes("test-melhores-auditoria-final.mjs"), "npm test deve incluir auditoria final");

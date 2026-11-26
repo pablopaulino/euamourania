@@ -3,6 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+import { awardSocialQuery } from "../assets/js/melhoresRoutes.mjs";
 
 // Emulates the public Vercel rewrites locally for visual and raw-HTML checks.
 // It is intentionally not part of the production routing or deployment.
@@ -45,9 +46,8 @@ function route(pathname) {
   if (parts[0] === "guia" && parts[1] === "categoria" && parts.length === 3) {
     return { handler: renderDetail, query: { tipo: "guia-categoria", slug: parts[2] } };
   }
-  if (parts[0] === "melhores-de-urania" && /^\d{4}$/.test(parts[1]) && parts[2] === "resultados" && parts.length === 3) {
-    return { handler: renderDetail, query: { tipo: "social", mode: "award-results", ano: parts[1] } };
-  }
+  const awardsQuery = awardSocialQuery(pathname);
+  if (awardsQuery) return { handler: renderDetail, query: awardsQuery };
   if (parts[0] === "noticias" && parts.length === 2) {
     return { handler: renderDetail, query: { tipo: "news", slug: parts[1] } };
   }

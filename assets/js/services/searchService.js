@@ -1,3 +1,4 @@
+import { awardPath } from "../melhoresRoutes.mjs";
 import { fetchPublicRows } from "./publicDataService.js";
 import { EDITORIAL_POLICY_PAGES } from "../editorialPolicies.js";
 
@@ -184,7 +185,7 @@ function staticPages() {
       id: "pagina-melhores",
       title: "Melhores de Urânia",
       description: "Votação, categorias, indicados e resultados do Melhores de Urânia.",
-      url: "/melhores-de-urania/",
+      url: awardPath(),
       category: "Melhores de Urânia",
       meta: "Votação popular",
       actionLabel: "Abrir votação",

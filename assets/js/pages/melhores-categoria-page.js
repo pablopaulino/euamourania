@@ -1,3 +1,4 @@
+import { awardPath, readAwardRoute } from "../melhoresRoutes.mjs";
 import { obterEdicaoPorAno, obterCategoriaPublica, listarIndicadosPorCategoria, consultarPeriodoVotacao } from "../services/melhoresPublicService.js";
 import { sharePage } from "../services/shareService.js";
 
@@ -7,12 +8,8 @@ let clock = null;
 const serverNow = () => clock ? clock.time + (performance.now() - clock.received) : 0;
 
 function params() {
-  const path = location.pathname.match(/melhores-de-urania\/(\d{4})\/categorias\/([^/]+)/);
-  const query = new URLSearchParams(location.search);
-  return {
-    ano: Number(path?.[1] || query.get("ano") || new Date().getFullYear()),
-    slug: path?.[2] ? decodeURIComponent(path[2]) : query.get("categoria") || ""
-  };
+  const { year, slug } = readAwardRoute();
+  return { ano: Number(year || new Date().getFullYear()), slug };
 }
 
 function isVotingOpen(edition) {
@@ -48,7 +45,7 @@ function statusLabel(status = "") {
 function nomineeCard(item) {
   const img = image(item.imagem_url);
   return `<article class="awards-nominee-card awards-category-nominee-card">
-    ${img ? `<img src="${img}" alt="${esc(item.nome)}" loading="lazy">` : `<div class="awards-category-nominee-empty">Eu Amo Urânia</div>`}
+    ${img ? `<img src="${img}" alt="" loading="lazy">` : `<div class="awards-category-nominee-empty" aria-hidden="true">${esc(item.nome.trim().charAt(0).toLocaleUpperCase("pt-BR"))}</div>`}
     <div class="awards-card-body">
       <h3>${esc(item.nome)}</h3>
       ${item.descricao_curta ? `<p>${esc(item.descricao_curta)}</p>` : ""}
@@ -57,7 +54,7 @@ function nomineeCard(item) {
 }
 
 function setMeta(edition, category) {
-  const canonical = `${location.origin}/melhores-de-urania/${edition.ano}/categorias/${category.slug}/`;
+  const canonical = `${location.origin}${awardPath("category", { year: edition.ano, slug: category.slug })}`;
   const description = (category.descricao || `Conheça os indicados da categoria ${category.nome} no ${edition.nome}.`).slice(0, 155);
   document.title = `${category.nome} | ${edition.nome} | Eu Amo Urânia`;
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);
@@ -90,8 +87,8 @@ async function init() {
 
   const nominees = await listarIndicadosPorCategoria(edition.id, category.id);
   const votingOpen = isVotingOpen(edition);
-  const categoryVoteUrl = `/melhores-de-urania/${edition.ano}/votacao/${encodeURIComponent(category.slug)}/`;
-  const editionUrl = `/melhores-de-urania/${edition.ano}/`;
+  const categoryVoteUrl = awardPath("voting", { year: edition.ano, slug: category.slug });
+  const editionUrl = awardPath("edition", { year: edition.ano });
 
   setMeta(edition, category);
 
@@ -101,7 +98,7 @@ async function init() {
     <p>${esc(category.descricao || "Conheça os indicados desta categoria.")}</p>
     <div class="hero-actions">
       <a class="button button-primary" href="${votingOpen ? categoryVoteUrl : editionUrl}">${votingOpen ? "Votar nesta categoria" : "Ver edição"}</a>
-      <a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/votacao/">Central da votação</a>
+      <a class="button button-secondary" href="${awardPath("voting", { year: edition.ano })}">Central da votação</a>
       <button class="button button-secondary" type="button" data-share-category>Compartilhar</button>
     </div>`;
 
@@ -116,8 +113,8 @@ async function init() {
     <p>${votingOpen ? `Votação aberta até ${esc(formatDate(edition.votacao_fim))}.` : "Esta página permanece como referência pública da categoria nesta edição."}</p>
     <div class="awards-category-panel-actions">
       <a class="button button-primary" href="${votingOpen ? categoryVoteUrl : editionUrl}">${votingOpen ? "Votar agora" : "Ver página da edição"}</a>
-      <a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/regulamento/">Regulamento</a>
-      <a class="button button-secondary" href="/melhores-de-urania/categorias/${encodeURIComponent(category.slug)}/">Histórico</a>
+      <a class="button button-secondary" href="${awardPath("rules", { year: edition.ano })}">Regulamento</a>
+      <a class="button button-secondary" href="${awardPath("permanent", { slug: category.slug })}">Histórico</a>
     </div>`;
 
   nomineesContainer.innerHTML = nominees.length

@@ -1,4 +1,5 @@
-import { listarEdicoesPublicas, consultarPeriodoVotacao, listarResultadosPublicos, mencaoPublica, winnerProfileUrl, resultsPageUrl as resultsUrl } from "../services/melhoresPublicService.js";
+import { awardPath, awardLocal } from "../melhoresRoutes.mjs";
+import { edicaoEmDestaque, listarEdicoesPublicas, consultarPeriodoVotacao, listarResultadosPublicos, mencaoPublica, winnerProfileUrl, resultsPageUrl as resultsUrl } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
 
@@ -9,13 +10,9 @@ const statusLabel = value => ({
   votacao_encerrada: "Votação encerrada",
   apuracao: "Apuração"
 }[value] || String(value || "").replaceAll("_", " "));
-const editionUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
-  ? `/melhores-de-urania/edicao.html?ano=${encodeURIComponent(edition.ano)}`
-  : `/melhores-de-urania/${encodeURIComponent(edition.ano)}/`;
+const editionUrl = edition => awardPath("edition", { year: edition.ano, local: awardLocal() });
 const indicationUrl = edition => `${editionUrl(edition)}#indicacoes`;
-const votingUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
-  ? `/melhores-de-urania/votacao.html?ano=${encodeURIComponent(edition.ano)}`
-  : `${editionUrl(edition)}votacao/`;
+const votingUrl = edition => awardPath("voting", { year: edition.ano, local: awardLocal() });
 let clock = null;
 const serverNow = () => clock ? clock.time + (performance.now() - clock.received) : 0;
 const withinPeriod = (start, end) => (!start || serverNow() >= new Date(start).getTime())
@@ -49,10 +46,6 @@ function period(start, end) {
   if (!start && !end) return "Período a confirmar";
   const format = value => value ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "America/Sao_Paulo" }).format(new Date(value)) : "a confirmar";
   return `${format(start)} — ${format(end)}`;
-}
-
-function activeEdition(editions) {
-  return editions.find(item => item.status === "indicacoes_abertas" || item.status === "votacao_aberta") || editions[0];
 }
 
 function setImageMeta(edition) {
@@ -108,8 +101,18 @@ async function init() {
       status.textContent = "A próxima edição será anunciada em breve.";
       return;
     }
-    const active = activeEdition(editions);
-    title.textContent = active.nome;
+    const active = edicaoEmDestaque(editions);
+    title.replaceChildren();
+    const name = String(active.nome || "Melhores de Urânia");
+    const emphasis = /Melhores/i.exec(name);
+    if (emphasis) {
+      const accent = document.createElement("em");
+      accent.className = "award-accent";
+      accent.textContent = emphasis[0];
+      title.append(name.slice(0, emphasis.index), accent, name.slice(emphasis.index + emphasis[0].length));
+    } else {
+      title.textContent = name;
+    }
     setImageMeta(active);
     const cover = document.getElementById("award-home-cover");
     const image = img(active.imagem_capa_url);
@@ -136,7 +139,7 @@ async function init() {
         edicaoId: cta.dataset.editionId || active.id, destino: cta.href, metadados: { origem_cta: "home_melhores" }
       });
       if (event.target.closest("[data-share-awards-home]")) {
-        sharePage({ title: "Melhores de Urânia", text: `Acompanhe o ${active.nome}.`, url: "/melhores-de-urania/" });
+        sharePage({ title: "Melhores de Urânia", text: `Acompanhe o ${active.nome}.`, url: awardPath() });
         registrarEventoMelhores("melhores_share_click", { edicaoId: active.id, destino: location.href, metadados: { origem: "home_melhores" } });
       }
     });

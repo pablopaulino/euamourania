@@ -205,6 +205,7 @@ function replaceStructuredData(html, graph) {
 }
 
 module.exports = async (req, res) => {
+  const { awardPath, awardOrigin } = await import("../assets/js/melhoresRoutes.mjs");
   try {
     if (req.method === "POST" && req.query?.acao === "public-submission") {
       const result = await handlePublicSubmission(req);
@@ -299,7 +300,7 @@ module.exports = async (req, res) => {
           { "@type": "ListItem", "position": 3, "name": "Guia Comercial de Urânia", "url": `${domain}/guia.html` },
           { "@type": "ListItem", "position": 4, "name": "Turismo em Urânia", "url": `${domain}/turismo.html` },
           { "@type": "ListItem", "position": 5, "name": "Eventos em Urânia", "url": `${domain}/eventos/` },
-          { "@type": "ListItem", "position": 6, "name": "Melhores de Urânia", "url": `${domain}/melhores-de-urania/` },
+          { "@type": "ListItem", "position": 6, "name": "Melhores de Urânia", "url": `${awardOrigin}${awardPath()}` },
           { "@type": "ListItem", "position": 7, "name": "Iniciativas da Comunidade", "url": `${domain}/iniciativas/` },
           { "@type": "ListItem", "position": 8, "name": "Aplicativo Viva Urânia", "url": `${domain}/app` }
         ]

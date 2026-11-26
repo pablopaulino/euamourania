@@ -1,3 +1,4 @@
+import { awardPath, readAwardRoute } from "../melhoresRoutes.mjs";
 import { listarCategoriasHistoricasPorSlug } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { sharePage } from "../services/shareService.js";
@@ -6,9 +7,7 @@ const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&":
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
 
 function getSlug() {
-  const match = location.pathname.match(/melhores-de-urania\/categorias\/([^/]+)/);
-  const query = new URLSearchParams(location.search).get("categoria");
-  return match?.[1] ? decodeURIComponent(match[1]) : (query || "");
+  return readAwardRoute().slug;
 }
 
 function statusLabel(status = "") {
@@ -28,7 +27,7 @@ function setMeta(category, rows) {
   const edition = rows[0]?.melhores_edicoes || {};
   const title = `${category.nome} | Melhores de Urânia`;
   const description = (category.descricao || `Confira o histórico da categoria ${category.nome} e acompanhe os nomes que ajudam a movimentar Urânia.`).slice(0, 155);
-  const canonical = `${location.origin}/melhores-de-urania/categorias/${category.slug}/`;
+  const canonical = `${location.origin}${awardPath("permanent", { slug: category.slug })}`;
   document.title = `${title} | Eu Amo Urânia`;
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);
   document.querySelector('link[rel="canonical"]')?.setAttribute("href", canonical);
@@ -40,7 +39,7 @@ function setMeta(category, rows) {
 function yearCard(row) {
   const edition = row.melhores_edicoes || {};
   const img = image(row.imagem_url || edition.imagem_capa_url);
-  const href = `/melhores-de-urania/${edition.ano}/categorias/${encodeURIComponent(row.slug)}/`;
+  const href = awardPath("category", { year: edition.ano, slug: row.slug });
   return `<article class="awards-edition-card">
     ${img ? `<img src="${img}" alt="${esc(row.nome)} ${esc(edition.ano)}" loading="lazy">` : ""}
     <div class="awards-card-body">
@@ -73,7 +72,7 @@ async function init() {
       <p>${esc(category.descricao || "Confira o histórico desta categoria e acompanhe os nomes que ajudam a movimentar Urânia.")}</p>
       <div class="hero-actions">
         <button class="button button-primary" type="button" data-share-category>Compartilhar categoria</button>
-        <a class="button button-secondary" href="/melhores-de-urania/">Ver prêmio</a>
+        <a class="button button-secondary" href="${awardPath()}">Ver prêmio</a>
       </div>`;
     document.getElementById("permanent-category-panel").innerHTML = `
       <h2>${esc(rows.length)} edição${rows.length === 1 ? "" : "es"}</h2>

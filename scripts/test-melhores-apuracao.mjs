@@ -62,14 +62,14 @@ must(adminJs.includes("Votos do Instagram") && adminJs.includes("Revisar e publi
 must(publicService.includes("listarResultadosPublicos"), "Serviço público sem resultados oficiais");
 must(resultsHtml.includes("awards-preview.js") && publicRenderer.includes('results:"melhores-resultados-page.js"'), "Página pública de resultados ausente");
 must(resultsJs.includes("listarResultadosPublicos") && publicService.includes("rpc/melhores_listar_resultados_publicos"), "Página de resultados não consome a leitura pública sanitizada do snapshot oficial");
-must(publicRenderer.includes('demoMode?"/preview/melhores/awards-demo.js"'), "Prévia demonstrativa não está isolada da página pública");
+must(publicRenderer.includes('const demoMode = isAwardDemo(page);') && publicRenderer.includes("awards-demo.js"), "Prévia demonstrativa não está isolada da página pública");
 must(demoRenderer.includes("renderHub") && demoRenderer.includes("renderResults") && !demoRenderer.includes("enviarVotoMelhores"), "Prévia deve reutilizar a apresentação sem enviar votos");
 must(publicService.includes('"resultado_publicado"') && publicService.includes('"arquivada"'), "Edições arquivadas precisam continuar no histórico público");
 must(indexJs.includes('action: "Ver resultados"') && indexJs.includes("resultsUrl(edition)"), "Histórico anual precisa abrir os resultados da edição");
 must(editionJs.includes('edition.status === "resultado_publicado" || (edition.status === "arquivada" && edition.resultado_publicado_em)'), "Edição arquivada com resultado precisa manter acesso aos resultados");
 must(resultsJs.includes("awards-winner-initial") && resultsJs.includes('resultsList.addEventListener("error"'), "Card do vencedor precisa de fallback para imagem ausente ou quebrada");
 must(vercel.includes("/melhores-de-urania/:ano/resultados"), "Rewrite de resultados ausente");
-must(sitemap.includes("/resultados/"), "Sitemap não inclui resultados publicados");
+must(sitemap.includes('awardPath("results"'), "Sitemap não inclui resultados publicados");
 must(docs.includes("Fase 3") && docs.includes("melhores_instagram_votos") && docs.includes("pontuação_final"), "Documentação da Fase 3 incompleta");
 
 console.log("Melhores de Urânia Fase 3 validado: Instagram, apuração, resultado oficial e página pública.");

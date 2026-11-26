@@ -46,8 +46,8 @@ must(indexPage.includes("listarEdicoesPublicas"), "Página principal não carreg
 must(editionPage.includes("enviarVotoMelhores") && editionPage.includes("localStorage"), "Página de edição não registra voto com feedback local");
 must(css.includes(".awards-public-hero") && css.includes(".awards-nominee-card"), "CSS público incompleto");
 must(vercel.includes("/melhores-de-urania/:ano"), "Rewrite amigável da edição ausente");
-must(sitemap.includes("melhoresRows") && sitemap.includes("/melhores-de-urania/"), "Sitemap não inclui Melhores de Urânia");
-must((script.includes("Melhores de Ur&acirc;nia") && script.includes("/melhores-de-urania/")) || publicRenderer.includes('href="${base}" aria-current="page">Melhores</a>'), "Menu público não inclui Melhores de Urânia");
+must(sitemap.includes("melhoresRows") && sitemap.includes("path: awardPath()"), "Sitemap não inclui Melhores de Urânia");
+must((script.includes("Melhores de Ur&acirc;nia") && script.includes("/melhores-de-urania/")) || publicRenderer.includes('aria-label="Navegação do prêmio"'), "Menu público não inclui Melhores de Urânia");
 must(docs.includes("Fase 2") && docs.includes("MELHORES_VOTO_SECRET"), "Documentação da Fase 2 incompleta");
 
 console.log("Melhores de Urânia Fase 2 validado: páginas públicas, API segura, rotas, sitemap e documentação.");

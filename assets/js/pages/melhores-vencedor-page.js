@@ -1,13 +1,10 @@
+import { awardPath, readAwardRoute } from "../melhoresRoutes.mjs";
 import { mencaoPublica, obterEdicaoPorAno, listarHistoricoVencedoresPublicos, listarResultadosPublicos } from "../services/melhoresPublicService.js";
 import { categoryName, esc, formatDate, hallUrl, nomineeData, resultsArePublished, resultsPageUrl, winnerKey, winnerProfileUrl } from "./melhores-resultados-page.js";
 
 function target() {
-  const match = location.pathname.match(/melhores-de-urania\/(\d{4})\/vencedores\/([^/]+)/);
-  const params = new URLSearchParams(location.search);
-  return {
-    year: Number(match?.[1] || params.get("ano")),
-    id: match?.[2] || params.get("id") || ""
-  };
+  const { year, id } = readAwardRoute();
+  return { year: Number(year), id };
 }
 
 function setMeta(edition, row) {
@@ -21,7 +18,7 @@ function setMeta(edition, row) {
   document.querySelector('meta[property="og:description"]')?.setAttribute("content", summary);
   document.querySelector('meta[property="og:image"]')?.setAttribute("content", imageUrl);
   document.querySelector('meta[name="twitter:image"]')?.setAttribute("content", imageUrl);
-  document.querySelector('link[rel="canonical"]')?.setAttribute("href", `${location.origin}/melhores-de-urania/${edition.ano}/vencedores/${encodeURIComponent(row.indicado_id)}/`);
+  document.querySelector('link[rel="canonical"]')?.setAttribute("href", `${location.origin}${awardPath("winner", { year: edition.ano, id: row.indicado_id })}`);
 }
 
 async function init() {
@@ -47,7 +44,7 @@ async function init() {
       : null;
     if (!winner) {
       copy.innerHTML = `<span class="awards-public-badge">Melhores de Urânia ${esc(String(year))}</span><h1>Vencedor ainda não disponível</h1><p>Este perfil será exibido somente após a divulgação oficial do resultado.</p>`;
-      panel.innerHTML = `<h2>Edição ${esc(String(year))}</h2><p>Acompanhe a premiação e suas etapas na página oficial da edição.</p><a href="/melhores-de-urania/${year}/">Ver edição →</a>`;
+      panel.innerHTML = `<h2>Edição ${esc(String(year))}</h2><p>Acompanhe a premiação e suas etapas na página oficial da edição.</p><a href="${awardPath("edition", { year: year })}">Ver edição →</a>`;
       content.innerHTML = '<div class="awards-empty">Nenhum perfil de vencedor publicado neste endereço.</div>';
       return;
     }

@@ -7,13 +7,13 @@
   width: min(860px, calc(100% - 48px));
   margin: 1.2rem auto 0;
   padding: .6rem 0;
-  border-bottom: 1px solid #e9e5df;
+  border-bottom: 1px solid var(--award-line);
   background: transparent;
-  color: #67635e;
+  color: var(--award-muted);
   font-size: .75rem;
 }
 .awards-demo-banner strong {
-  color: #ca5c00;
+  color: var(--award-muted);
   font-size: .7rem;
   letter-spacing: .09em;
 }
@@ -23,7 +23,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #292522;
+  color: var(--award-ink);
   cursor: pointer;
   font: inherit;
   font-size: .73rem;
@@ -31,13 +31,13 @@
   text-decoration: none;
 }
 .awards-demo-banner nav a:hover,
-.awards-demo-banner nav button:hover { color: #c94a13; }
+.awards-demo-banner nav button:hover { color: var(--award-muted); }
 .awards-demo-banner nav a:focus-visible,
-.awards-demo-banner nav button:focus-visible { outline: 2px solid #f6932d; outline-offset: 3px; }
+.awards-demo-banner nav button:focus-visible { outline: 2px solid var(--award-ink); outline-offset: 3px; }
 .awards-demo-banner [role="status"] {
   flex-basis: 100%;
   margin: 0;
-  color: #a84913;
+  color: var(--award-ink);
   font-weight: 700;
 }
 .awards-demo-banner [role="status"]:empty { display: none; }

@@ -1,7 +1,27 @@
+import { awardPath } from "../melhoresRoutes.mjs";
 import { listarEdicoesPublicas, listarResultadosPublicos } from "../services/melhoresPublicService.js";
-import { esc, resultsArePublished, resultsPageUrl, winnerCard, winnerKey } from "./melhores-resultados-page.js";
+import { categoryName, esc, nomineeData, resultsArePublished, resultsPageUrl, winnerCard, winnerKey } from "./melhores-resultados-page.js";
 
 const hasResultsPhase = edition => ["apuracao", "resultado_publicado", "arquivada"].includes(edition.status);
+
+function categoriesFor(edition, results, winsByKey) {
+  const groups = new Map();
+  results.forEach(row => {
+    if (!groups.has(row.categoria_id)) groups.set(row.categoria_id, []);
+    groups.get(row.categoria_id).push(row);
+  });
+  return [...groups.values()].map(rows => {
+    const winners = rows.filter(row => row.vencedor);
+    const nominees = edition.status === "apuracao" ? [] : rows.filter(row => !row.vencedor);
+    return `<section class="award-archive-category">
+      <h3 class="award-archive-label">${esc(categoryName(rows[0]))}</h3>
+      <div class="award-archive-entries">
+        ${winners.map(row => winnerCard(row, winsByKey, edition)).join("")}
+        ${nominees.length ? `<div class="award-archive-nominees"><h4>Demais indicados</h4><ul>${nominees.map(row => `<li>${esc(nomineeData(row).name)}</li>`).join("")}</ul></div>` : ""}
+      </div>
+    </section>`;
+  }).join("");
+}
 
 function setMeta() {
   const title = "Hall dos vencedores | Melhores de Urânia";
@@ -10,7 +30,7 @@ function setMeta() {
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);
   document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
   document.querySelector('meta[property="og:description"]')?.setAttribute("content", description);
-  document.querySelector('link[rel="canonical"]')?.setAttribute("href", `${location.origin}/melhores-de-urania/hall/`);
+  document.querySelector('link[rel="canonical"]')?.setAttribute("href", `${location.origin}${awardPath("hall")}`);
 }
 
 async function init() {
@@ -20,8 +40,8 @@ async function init() {
   if (!copy || !panel || !list) return;
 
   setMeta();
-  copy.innerHTML = '<span class="awards-public-badge">Histórico oficial</span><h1>Hall dos vencedores</h1><p>Um lugar para revisitar quem foi reconhecido em cada edição do Melhores de Urânia.</p><div class="hero-actions"><a class="button button-secondary" href="/melhores-de-urania/">Ver premiação</a></div>';
-  panel.innerHTML = '<h2>Uma história feita pela cidade</h2><p>Os vencedores aparecem aqui somente após a divulgação oficial de cada edição.</p>';
+  copy.innerHTML = `<span class="awards-public-badge">Histórico oficial</span><h1>Hall dos <em class="award-accent">vencedores</em></h1><p>Revisite quem foi reconhecido em cada edição do Melhores de Urânia.</p><div class="hero-actions"><a class="button button-secondary" href="${awardPath()}">Ver premiação</a></div>`;
+  panel.hidden = true;
 
   try {
     const editions = (await listarEdicoesPublicas()).filter(hasResultsPhase).sort((a, b) => Number(b.ano) - Number(a.ano));
@@ -44,17 +64,27 @@ async function init() {
     list.addEventListener("error", event => {
       if (event.target.matches?.(".awards-winner-photo img")) event.target.remove();
     }, true);
-    list.innerHTML = published.map(({ edition, results }) => {
-      const winners = results.filter(row => row.vencedor);
-      if (!winners.length) return "";
-      return `<section class="awards-hall-year" aria-labelledby="awards-hall-${edition.ano}">
+    const buttons = published.map(({ edition }, index) =>
+      `<button type="button" data-award-year="${edition.ano}" aria-controls="award-year-${edition.ano}" aria-pressed="${index === 0}">${edition.ano}</button>`).join("");
+    const years = published.map(({ edition, results }, index) => {
+      return `<section class="awards-hall-year" id="award-year-${edition.ano}" aria-labelledby="awards-hall-${edition.ano}"${index ? " hidden" : ""}>
         <header class="awards-hall-year-head">
           <div><p class="eyebrow">Edição oficial</p><h2 id="awards-hall-${edition.ano}">${esc(String(edition.ano))}</h2></div>
           <a href="${resultsPageUrl(edition)}">Ver resultados da edição <span aria-hidden="true">→</span></a>
         </header>
-        <div class="awards-winners-hall">${winners.map(row => winnerCard(row, winsByKey, edition)).join("")}</div>
+        ${categoriesFor(edition, results, winsByKey)}
       </section>`;
     }).join("");
+    list.innerHTML = `<div class="award-year-select" role="group" aria-label="Ano da edição">${buttons}</div>${years}`;
+    list.querySelector(".award-year-select").addEventListener("click", event => {
+      const selected = event.target.closest("[data-award-year]");
+      if (!selected) return;
+      list.querySelectorAll("[data-award-year]").forEach(button => {
+        const active = button === selected;
+        button.setAttribute("aria-pressed", String(active));
+        document.getElementById(button.getAttribute("aria-controls")).hidden = !active;
+      });
+    });
   } catch (error) {
     console.error("Hall dos vencedores:", error);
     list.innerHTML = '<div class="awards-empty">Não foi possível carregar o Hall agora. Tente novamente mais tarde.</div>';

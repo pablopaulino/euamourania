@@ -1,3 +1,4 @@
+import { awardPath, awardLocal, readAwardRoute } from "../melhoresRoutes.mjs";
 import { obterEdicaoPorAno, listarCategoriasPublicas, listarIndicadosPublicos, enviarVotoMelhores, enviarIndicacaoMelhores, consultarPeriodoVotacao } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 import { getAppDownloadConfig } from "../services/appDownloadConfig.js";
@@ -16,13 +17,9 @@ const appHref = () => {
   return /^https:\/\//.test(href || "") ? href : "https://euamourania.com.br/app";
 };
 const key = editionId => `euamourania:melhores:votos:${editionId}`;
-const resultsUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
-  ? `/melhores-de-urania/resultados.html?ano=${encodeURIComponent(edition.ano)}`
-  : `/melhores-de-urania/${encodeURIComponent(edition.ano)}/resultados/`;
+const resultsUrl = edition => awardPath("results", { year: edition.ano, local: awardLocal() });
 function getYear() {
-  const match = location.pathname.match(/melhores-de-urania\/(\d{4})/);
-  const query = new URLSearchParams(location.search).get("ano");
-  return Number(match?.[1] || query || new Date().getFullYear());
+  return Number(readAwardRoute().year || new Date().getFullYear());
 }
 
 function readVotes(editionId) {
@@ -190,7 +187,7 @@ function setMeta(edition) {
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);
   document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
   document.querySelector('meta[property="og:description"]')?.setAttribute("content", description);
-  const canonical = `${location.origin}/melhores-de-urania/${edition.ano}/`;
+  const canonical = `${location.origin}${awardPath("edition", { year: edition.ano })}`;
   document.querySelector('link[rel="canonical"]')?.setAttribute("href", canonical);
   document.querySelector('meta[property="og:image"]')?.setAttribute("content", new URL(edition.imagem_capa_url || "/assets/AD3A1763-min%20(1).jpg", location.origin).href);
 }
@@ -202,7 +199,7 @@ function renderHeroOld(edition, open) {
     copy.innerHTML = `<span class="awards-public-badge">Uma realização Eu Amo Urânia</span>
       <h1>${esc(edition.nome)}</h1>
       <p>${esc(edition.descricao || "Escolha seus favoritos nas categorias da premiação.")}</p>
-      <div class="hero-actions"><a class="button button-primary" href="#vote-area" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Votar agora" : "Ver indicados"}</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/regulamento/" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/metodologia/" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a></div>`;
+      <div class="hero-actions"><a class="button button-primary" href="#vote-area" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Votar agora" : "Ver indicados"}</a><a class="button button-secondary" href="${awardPath("rules", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="${awardPath("method", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a></div>`;
   }
   if (panel) {
     const cover = image(edition.imagem_capa_url);
@@ -223,12 +220,12 @@ function renderHero(edition, open) {
   const panel = document.getElementById("edition-panel");
   if (copy) {
     const primaryAction = open
-      ? `<a class="button button-primary" href="/melhores-de-urania/${edition.ano}/votacao/" data-awards-edition-cta data-edition-id="${edition.id}">Participar da votação</a>`
+      ? `<a class="button button-primary" href="${awardPath("voting", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Participar da votação</a>`
       : "";
     copy.innerHTML = `<span class="awards-public-badge">Uma realiza\u00e7\u00e3o Eu Amo Ur\u00e2nia</span>
       <h1>${esc(edition.nome)}</h1>
       <p>${esc(edition.descricao || "Escolha seus favoritos nas categorias da premia\u00e7\u00e3o.")}</p>
-      <div class="hero-actions">${primaryAction}<a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/regulamento/" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="/melhores-de-urania/${edition.ano}/metodologia/" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a><button class="button button-secondary" type="button" data-share-edition data-edition-id="${edition.id}">Compartilhar</button></div>`;
+      <div class="hero-actions">${primaryAction}<a class="button button-secondary" href="${awardPath("rules", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="${awardPath("method", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a><button class="button button-secondary" type="button" data-share-edition data-edition-id="${edition.id}">Compartilhar</button></div>`;
   }
   if (panel) {
     const cover = image(edition.imagem_capa_url);
@@ -273,7 +270,7 @@ function phaseInfo(edition) {
       label: "Votação aberta",
       title: "Vote nos seus favoritos",
       text: `Período no site: ${formatPeriod(edition.votacao_inicio_site, edition.votacao_fim)}.`,
-      href: `/melhores-de-urania/${edition.ano}/votacao/`,
+      href: awardPath("voting", { year: edition.ano }),
       cta: "Participar da votação"
     };
   }
@@ -293,7 +290,7 @@ function phaseInfo(edition) {
     label: statusLabel(edition.status),
     title: "Acompanhe a edição",
     text: "Veja as informações oficiais, regulamento, metodologia e categorias desta edição.",
-    href: `/melhores-de-urania/${edition.ano}/regulamento/`,
+    href: awardPath("rules", { year: edition.ano }),
     cta: "Ver regulamento"
   };
 }
@@ -314,19 +311,19 @@ function renderEditionHub(edition, categories, nominees) {
       eyebrow: "Categorias",
       title: categories.length ? `${categories.length} categorias` : "Categorias",
       text: categories.length ? `${nominees.length} indicado${nominees.length === 1 ? "" : "s"} publicado${nominees.length === 1 ? "" : "s"} até agora.` : "As categorias serão exibidas quando estiverem disponíveis publicamente.",
-      href: categories[0] ? `/melhores-de-urania/${edition.ano}/categorias/${encodeURIComponent(categories[0].slug)}/` : ""
+      href: categories[0] ? awardPath("category", { year: edition.ano, slug: categories[0].slug }) : ""
     },
     {
       eyebrow: "Regras",
       title: "Regulamento",
       text: "Critérios, participação, prazos e regras oficiais da edição.",
-      href: `/melhores-de-urania/${edition.ano}/regulamento/`
+      href: awardPath("rules", { year: edition.ano })
     },
     {
       eyebrow: "Apuração",
       title: "Metodologia",
       text: "Como os votos e pesos são considerados na premiação.",
-      href: `/melhores-de-urania/${edition.ano}/metodologia/`
+      href: awardPath("method", { year: edition.ano })
     }
   ];
   if (hasResults) {
@@ -361,7 +358,7 @@ function nomineeCard(edition, category, nominee, open, votedId) {
   const reachedLimit = votedList.length >= maxChoices;
   const img = image(nominee.imagem_url);
   return `<article class="awards-nominee-card ${voted ? "awards-voted" : ""}" data-awards-nominee-card data-edition-id="${edition.id}" data-category-id="${category.id}" data-nominee-id="${nominee.id}">
-    ${img ? `<img src="${img}" alt="${esc(nominee.nome)}" loading="lazy">` : ""}
+    ${img ? `<img src="${img}" alt="" loading="lazy">` : `<div class="awards-category-nominee-empty" aria-hidden="true">${esc(nominee.nome.trim().charAt(0).toLocaleUpperCase("pt-BR"))}</div>`}
     <div class="awards-card-body">
       <h3>${esc(nominee.nome)}</h3>
       <button class="button button-primary awards-vote-button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" ${open && !voted && !reachedLimit ? "" : "disabled"}>
@@ -381,10 +378,10 @@ function renderVoting(edition, categories, nominees) {
     return;
   }
   if (section) section.hidden = false;
+  let closedCallout = "";
   if (!open && edition.votacao_fim && serverNow() > new Date(edition.votacao_fim).getTime()) {
     const gradual = Number(edition.ano) === 2026 && new Date(edition.divulgacao_em).getTime() === Date.parse("2026-11-23T13:00:00Z");
-    area.innerHTML = `<article class="awards-edition-vote-callout"><div><p class="eyebrow">Votação encerrada</p><h3>Obrigado por participar.</h3><p>${gradual ? "Os vencedores são anunciados de 23 a 29 de novembro, às 10h, 15h e 20h (horário de Brasília)." : "A votação terminou. Acompanhe as informações oficiais desta edição."}</p></div><a class="button button-primary" href="${resultsUrl(edition)}">Acompanhar resultados</a></article>`;
-    return;
+    closedCallout = `<article class="awards-edition-vote-callout"><div><p class="eyebrow">Votação encerrada</p><h3>Obrigado por participar.</h3><p>${gradual ? "Os vencedores são anunciados de 23 a 29 de novembro, às 10h, 15h e 20h (horário de Brasília)." : "A votação terminou. Acompanhe as informações oficiais desta edição."}</p></div><a class="button button-primary" href="${resultsUrl(edition)}">Acompanhar resultados</a></article>`;
   }
   {
     const votes = readVotes(edition.id);
@@ -394,10 +391,10 @@ function renderVoting(edition, categories, nominees) {
       statusCopy.textContent = "A votação acontece em uma central própria, com progresso por categoria e navegação contínua.";
     }
     if (!categories.length) {
-      area.innerHTML = '<div class="awards-empty">Nenhuma categoria pública nesta edição.</div>';
+      area.innerHTML = closedCallout || '<div class="awards-empty">Nenhuma categoria pública nesta edição.</div>';
       return;
     }
-    const callout = `<article class="awards-edition-vote-callout">
+    const callout = closedCallout || `<article class="awards-edition-vote-callout">
       <div>
         <p class="eyebrow">Ambiente de votação</p>
         <h3>${open ? "Vote do seu jeito" : "Conheça os indicados"}</h3>
@@ -408,7 +405,7 @@ function renderVoting(edition, categories, nominees) {
         <span><strong>${nominees.length}</strong><small>indicados</small></span>
         <span><strong>${completed}</strong><small>votadas neste aparelho</small></span>
       </div>
-      <a class="button button-primary" href="/melhores-de-urania/${edition.ano}/votacao/" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Abrir central" : "Ver período de votação"}</a>
+      <a class="button button-primary" href="${awardPath("voting", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Abrir central" : "Ver período de votação"}</a>
     </article>`;
     const grouped = new Map(categories.map(category => [category.id, nominees.filter(n => n.categoria_id === category.id)]));
     area.innerHTML = `${callout}<aside class="awards-category-nav" aria-label="Categorias">${categories.map((category, index) => {
@@ -419,7 +416,7 @@ function renderVoting(edition, categories, nominees) {
         ${categories.map(category => {
           const items = grouped.get(category.id) || [];
           return `<section class="awards-nominee-group" id="categoria-${category.id}">
-            <header><h3><a class="awards-link" href="/melhores-de-urania/${edition.ano}/categorias/${encodeURIComponent(category.slug)}/">${esc(category.nome)}</a></h3><p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p></header>
+            <header><h3><a class="awards-link" href="${awardPath("category", { year: edition.ano, slug: category.slug })}">${esc(category.nome)}</a></h3><p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p></header>
             ${items.length ? `<div class="awards-nominee-grid" tabindex="0" role="region" aria-label="Indicados de ${esc(category.nome)}">${items.map(nominee => nomineeCard(edition, category, nominee, open, votesFor(votes, category.id))).join("")}</div>` : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>'}
           </section>`;
         }).join("")}
@@ -444,7 +441,7 @@ function renderVoting(edition, categories, nominees) {
       ${categories.map(category => {
         const items = grouped.get(category.id) || [];
         return `<section class="awards-nominee-group" id="categoria-${category.id}">
-          <header><h3><a class="awards-link" href="/melhores-de-urania/${edition.ano}/categorias/${encodeURIComponent(category.slug)}/">${esc(category.nome)}</a></h3><p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p></header>
+          <header><h3><a class="awards-link" href="${awardPath("category", { year: edition.ano, slug: category.slug })}">${esc(category.nome)}</a></h3><p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p></header>
           ${items.length ? `<div class="awards-nominee-grid" tabindex="0" role="region" aria-label="Indicados de ${esc(category.nome)}">${items.map(nominee => nomineeCard(edition, category, nominee, open, votesFor(votes, category.id))).join("")}</div>` : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>'}
         </section>`;
       }).join("")}
@@ -496,6 +493,7 @@ function renderIndications(edition, categories) {
   }
   area.innerHTML = `<form class="awards-indication-form" id="awards-indication-form" data-edition-id="${edition.id}">
     <input type="text" name="website" tabindex="-1" autocomplete="off" class="awards-honeypot" aria-hidden="true">
+    <progress class="full award-indication-progress" max="2" value="1" aria-label="Campos obrigatórios preenchidos"></progress>
     <div>
       <label for="indication-category">Categoria *</label>
       <select id="indication-category" name="categoria_id" required>
@@ -506,9 +504,14 @@ function renderIndications(edition, categories) {
       <label for="indication-name">Nome indicado *</label>
       <input id="indication-name" name="nome_indicado" type="text" maxlength="160" placeholder="Nome da empresa, pessoa ou projeto" required>
     </div>
-    <p class="full awards-indication-note">As sugestões passam por análise conforme o <a href="/melhores-de-urania/${edition.ano}/regulamento/">regulamento da edição</a>.</p>
+    <p class="full awards-indication-note">As sugestões passam por análise conforme o <a href="${awardPath("rules", { year: edition.ano })}">regulamento da edição</a>.</p>
     <div class="full awards-form-actions"><button class="button button-primary" type="submit">Enviar indicação</button></div>
   </form>`;
+  const form = area.querySelector("#awards-indication-form");
+  const progress = form.querySelector(".award-indication-progress");
+  form.addEventListener("input", () => {
+    progress.value = Number(Boolean(form.elements.categoria_id.value)) + Number(Boolean(form.elements.nome_indicado.value.trim()));
+  });
 }
 
 function orderSectionsForPhase(edition) {

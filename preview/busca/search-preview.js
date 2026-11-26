@@ -1,3 +1,4 @@
+import { awardPath, awardPreviewBase } from "/assets/js/melhoresRoutes.mjs";
 import { searchPortal, searchTypeCounts } from "/assets/js/services/searchService.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
 import { verifiedName } from "/assets/js/viva-verified.js";
@@ -30,7 +31,7 @@ function previewUrl(item) {
   if (item.type === "evento" && parts[0] === "eventos" && parts[1] && parts[2]) return `/preview/agenda/edicao/?slug=${encodeURIComponent(parts[1])}&ano=${encodeURIComponent(parts[2])}`;
   if (item.type === "evento" && parts[0] === "eventos" && parts[1]) return `/preview/agenda/tradicao/?slug=${encodeURIComponent(parts[1])}`;
   if (item.url === "/urania/") return "/preview/urania/";
-  if (item.url === "/melhores-de-urania/") return "/preview/melhores/";
+  if (item.url === awardPath()) return `${awardPreviewBase}/`;
   if (item.url === "/quem-somos.html") return "/preview/quem-somos/";
   if (item.url === "/colabore/") return "/preview/colabore/";
   if (item.url === "/divulgue" || item.url === "/divulgue/") return "/preview/divulgue/";

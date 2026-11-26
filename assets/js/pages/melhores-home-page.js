@@ -1,10 +1,11 @@
+import { awardPath } from "../melhoresRoutes.mjs";
 import { listarEdicoesPublicas } from "../services/melhoresPublicService.js";
 import { registrarEventoMelhores } from "../services/melhoresAnalyticsService.js";
 
 const esc = (value = "") => String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 const image = value => /^https?:\/\//i.test(value || "") || /^\/?assets\//.test(value || "") ? esc(value) : "";
 const statusLabel = value => String(value || "").replaceAll("_", " ");
-const url = edition => `/melhores-de-urania/${encodeURIComponent(edition.ano)}/`;
+const url = edition => awardPath("edition", { year: edition.ano });
 
 function pickEdition(editions) {
   return editions.find(item => item.status === "votacao_aberta")
@@ -18,7 +19,7 @@ function render(edition) {
   if (!anchor || document.querySelector("[data-awards-home]")) return;
   const cover = image(edition.imagem_capa_url);
   const isResults = edition.status === "resultado_publicado";
-  const href = isResults ? `/melhores-de-urania/${encodeURIComponent(edition.ano)}/resultados/` : url(edition);
+  const href = isResults ? awardPath("results", { year: edition.ano }) : url(edition);
   const section = document.createElement("section");
   section.className = "home-awards";
   section.dataset.awardsHome = "true";
@@ -29,7 +30,7 @@ function render(edition) {
       <p>${esc(edition.descricao || "Acompanhe a premiação que valoriza empresas, profissionais e experiências da nossa cidade.")}</p>
       <div class="home-awards-actions">
         <a class="button button-primary" href="${href}" data-awards-home-cta data-edition-id="${edition.id}">${isResults ? "Ver resultados" : "Participar agora"}</a>
-        <a class="button button-secondary" href="/melhores-de-urania/" data-awards-home-cta data-edition-id="${edition.id}">Todas as edições</a>
+        <a class="button button-secondary" href="${awardPath()}" data-awards-home-cta data-edition-id="${edition.id}">Todas as edições</a>
       </div>
     </div>
     <div class="home-awards-card">

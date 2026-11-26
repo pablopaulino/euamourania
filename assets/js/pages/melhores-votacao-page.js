@@ -1,3 +1,4 @@
+import { awardPath, readAwardRoute, isAwardDemo } from "../melhoresRoutes.mjs";
 import {
   obterEdicaoPorAno,
   listarCategoriasPublicas,
@@ -63,15 +64,11 @@ function appInvite(edition, compact = false, afterVote = false) {
 }
 
 function getYear() {
-  const match = location.pathname.match(/melhores-de-urania\/(\d{4})/);
-  const query = new URLSearchParams(location.search).get("ano");
-  return Number(match?.[1] || query || new Date().getFullYear());
+  return Number(readAwardRoute().year || new Date().getFullYear());
 }
 
 function getCategorySlug() {
-  const match = location.pathname.match(/melhores-de-urania\/\d{4}\/votacao\/([^/?#]+)/);
-  const query = new URLSearchParams(location.search).get("categoria");
-  return match?.[1] ? decodeURIComponent(match[1]) : (query || "");
+  return readAwardRoute().slug;
 }
 
 function readVotes(editionId) {
@@ -150,15 +147,15 @@ function prefetchCategoryImages(category, nominees) {
 }
 
 function votingUrl(edition, category) {
-  return `/melhores-de-urania/${edition.ano}/votacao/${encodeURIComponent(category.slug)}/`;
+  return awardPath("voting", { year: edition.ano, slug: category.slug });
 }
 
 function hubUrl(edition) {
-  return `/melhores-de-urania/${edition.ano}/votacao/`;
+  return awardPath("voting", { year: edition.ano });
 }
 
 function editionUrl(edition) {
-  return `/melhores-de-urania/${edition.ano}/`;
+  return awardPath("edition", { year: edition.ano });
 }
 
 function setMeta(edition, suffix = "Votação") {
@@ -301,7 +298,7 @@ export function renderHub(edition, categories, nominees) {
         <h1>${ended ? "Obrigado por participar." : esc(edition.nome)}</h1>
         <p>${ended ? "A votação terminou. Agradecemos a todos que ajudaram a reconhecer quem faz Urânia acontecer." : `A votação pelo site ainda não começou. Período previsto: ${esc(formatDate(edition.votacao_inicio_site))} até ${esc(formatDate(edition.votacao_fim))}.`}</p>
         ${ended && !published ? `<div class="vote-announcement"><span>Divulgação dos vencedores</span><strong>${esc(announcement)}</strong><small>Horário de Brasília. ${gradual ? "Acompanhe os anúncios na página de resultados." : "A apuração está em conferência."}</small></div>` : ""}
-        <a class="button button-primary vote-primary" href="${published || gradual ? `/melhores-de-urania/${encodeURIComponent(edition.ano)}/resultados/` : editionUrl(edition)}">${published ? "Ver resultado oficial" : gradual ? "Acompanhar resultados" : "Acompanhar a edição"}</a>
+        <a class="button button-primary vote-primary" href="${published || gradual ? awardPath("results", { year: edition.ano }) : editionUrl(edition)}">${published ? "Ver resultado oficial" : gradual ? "Acompanhar resultados" : "Acompanhar a edição"}</a>
       </section>${appInvite(edition)}`;
     return;
   }
@@ -372,7 +369,7 @@ export function renderCategory(edition, categories, nominees, slug) {
   const votedNames = categoryVotes.map(id => items.find(item => item.id === id)?.nome).filter(Boolean);
   const nextHref = nextToVisit ? votingUrl(edition, nextToVisit) : `${hubUrl(edition)}?concluido=1`;
   const categoryShareUrl = `${location.origin}${votingUrl(edition, category)}`;
-  const demo = location.pathname.startsWith("/preview/melhores/") && new URLSearchParams(location.search).get("demo") === "1";
+  const demo = isAwardDemo();
   const feedback = demo ? "Escolha simulada nesta prévia. Nenhum voto oficial foi enviado." : voteFeedback.get(`${edition.id}:${category.id}`) || "Sua escolha foi recebida.";
   const selectedNominee = categoryVotes.length === 1 ? items.find(item => item.id === categoryVotes[0]) : null;
   const selectedImage = image(selectedNominee?.imagem_url);
@@ -382,7 +379,7 @@ export function renderCategory(edition, categories, nominees, slug) {
     return;
   }
 
-  if (!reachedLimit && items.length) prepareVerification();
+  if (!demo && !reachedLimit && items.length) prepareVerification();
   prefetchCategoryImages(nextToVisit, nominees);
 
   root.innerHTML = `
@@ -465,10 +462,11 @@ function renderCompletion(edition, categories, nominees) {
       <a class="vote-finish-app" href="${esc(appDestination())}" target="_blank" rel="noopener noreferrer"><img src="/assets/viva-origem-colorido.svg" alt="" width="38" height="38"><span><strong>${/iPad|iPhone|iPod/i.test(navigator.userAgent || "") ? "Conhecer o Viva Urânia" : "Baixar o Viva Urânia"}</strong><small>Acompanhe o prêmio pelo aplicativo</small></span><span aria-hidden="true">↗</span></a>
       <button type="button" class="vote-finish-later" data-close-finish>Agora não</button>
     </dialog>`;
-  if (location.pathname.startsWith("/preview/melhores/") && new URLSearchParams(location.search).get("demo") === "1") return;
   const dialog = root.querySelector(".vote-finish-dialog");
+  dialog.addEventListener("close", () => root.querySelector(".vote-complete [data-share-voting]")?.focus());
   root.querySelectorAll("[data-close-finish]").forEach(button => button.addEventListener("click", () => dialog.close()));
-  if (showCompletionPrompt) { showCompletionPrompt = false; dialog.showModal(); }
+  if (showCompletionPrompt || isAwardDemo()) { showCompletionPrompt = false; dialog.showModal(); }
+  if (isAwardDemo()) return;
   root.querySelectorAll("[data-share-voting]").forEach(button => button.addEventListener("click", async () => {
     registrarEventoMelhores("melhores_share_click", {
       edicaoId: edition.id,
@@ -640,4 +638,4 @@ async function init() {
   }
 }
 
-if (!(location.pathname.startsWith("/preview/melhores/") && new URLSearchParams(location.search).get("demo") === "1")) init();
+if (!isAwardDemo()) init();

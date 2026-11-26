@@ -1,3 +1,4 @@
+import { awardLocal, awardPath } from "../melhoresRoutes.mjs";
 import { fetchPublicRows } from "./publicDataService.js";
 
 // A menção vem no selo do resultado divulgado. Os selos comuns de classificação não são menções.
@@ -6,13 +7,11 @@ export function mencaoPublica(row) {
   return row.publicado === true && row.vencedor === true && /^“.+”$/u.test(selo || "") ? selo : "";
 }
 
-export const winnerProfileUrl = (edition, row) => /^(localhost|127\.0\.0\.1)$/.test(globalThis.location?.hostname || "")
-  ? `/melhores-de-urania/vencedor.html?ano=${encodeURIComponent(edition.ano)}&id=${encodeURIComponent(row.indicado_id)}`
-  : `/melhores-de-urania/${encodeURIComponent(edition.ano)}/vencedores/${encodeURIComponent(row.indicado_id)}/`;
+export const winnerProfileUrl = (edition, row) => awardPath("winner", {
+  year: edition.ano, id: row.indicado_id, local: awardLocal()
+});
 
-export const resultsPageUrl = edition => /^(localhost|127\.0\.0\.1)$/.test(globalThis.location?.hostname || "")
-  ? `/melhores-de-urania/resultados.html?ano=${encodeURIComponent(edition.ano)}`
-  : `/melhores-de-urania/${encodeURIComponent(edition.ano)}/resultados/`;
+export const resultsPageUrl = edition => awardPath("results", { year: edition.ano, local: awardLocal() });
 
 const statusPublicos = [
   "indicacoes_abertas",
@@ -23,6 +22,10 @@ const statusPublicos = [
   "resultado_publicado",
   "arquivada"
 ];
+
+export function edicaoEmDestaque(editions) {
+  return editions.find(item => item.status === "indicacoes_abertas" || item.status === "votacao_aberta") || editions[0];
+}
 
 export async function listarEdicoesPublicas() {
   const status = statusPublicos.join(",");

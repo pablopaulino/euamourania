@@ -41,7 +41,7 @@ assert.ok(admin.includes("Histórico preservado") && admin.includes("desempate_v
 assert.ok(social.includes('"award-hall"') && social.includes('"award-winner"'), "Metadados iniciais do Hall/perfil ausentes.");
 assert.ok(sitemap.includes("melhoresVencedoresUrls"), "Perfis publicados ausentes do sitemap.");
 assert.ok(routes.includes("mode=award-hall") && routes.includes("mode=award-winner"), "Rotas do Hall/perfil ausentes.");
-assert.ok(preview.includes('"hall","winner"') && demo.includes('demoPage === "hall"') && demo.includes('demoPage === "winner"'), "Prévias isoladas do Hall/perfil ausentes.");
+assert.ok(preview.includes("isAwardDemo(page)") && demo.includes('demoPage === "hall"') && demo.includes('demoPage === "winner"'), "Prévias isoladas do Hall/perfil ausentes.");
 
 const nomineeId = "11111111-1111-4111-8111-111111111111";
 const edition = { ano: 2026, status: "resultado_publicado", resultado_publicado_em: "2026-12-01T18:00:00Z", mostrar_votos_publicamente: false };

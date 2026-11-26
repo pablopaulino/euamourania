@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
+import { awardBase, awardOrigin, awardSocialQuery, awardTemplate, awardSocialPages } from '../assets/js/melhoresRoutes.mjs';
 
 const require = createRequire(import.meta.url);
 const handler = require('../api/noticia.js');
@@ -66,6 +67,19 @@ try {
     assert.match(html, /<meta property="og:image" content="https:\/\//, `${file}: og:image não usa HTTPS público`);
   }
   const vercel = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
+  for (const route of vercel.rewrites.filter(item => item.source.startsWith(awardBase))) {
+    const pathname = route.source.replace(':ano', '2026').replace(':categoria', 'melhor-academia').replace(':indicado', 'indicado-1');
+    const query = awardSocialQuery(pathname);
+    assert.ok(query, `${pathname}: rota pública ausente no helper`);
+    assert.match(route.destination, new RegExp(`mode=${query.mode}(?:&|$)`));
+    const template = readFileSync(new URL(`..${awardTemplate(awardSocialPages[query.mode])}`, import.meta.url), 'utf8');
+    assert.match(template, /id="awards-preview-app"/);
+    assert.doesNotMatch(template, /home-preview\.css/);
+    if (pathname.endsWith('/')) {
+      const page = await render(query);
+      assert.equal(page.tag('og:url')[0], awardOrigin + pathname);
+    }
+  }
   for (const route of ['/melhores-de-urania/:ano/', '/eventos/agenda/:slug', '/eventos/:slug/:ano']) {
     assert.ok(vercel.rewrites.some(item => item.source === route && item.destination.startsWith('/api/noticia?tipo=social&')),
       `${route}: metadados server-side não ligados à URL pública`);

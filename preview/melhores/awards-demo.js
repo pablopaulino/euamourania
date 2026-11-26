@@ -1,20 +1,24 @@
+import { awardLocal, awardPath, awardPreviewBase, awardSocialQuery, readAwardRoute } from "/assets/js/melhoresRoutes.mjs";
+
 // Prévia visual isolada: estes dados nunca são enviados ao Supabase.
-const demoBase = "/preview/melhores/";
+const demoBase = `${awardPreviewBase}/`;
 const demoStyle = document.createElement("link");
 demoStyle.rel = "stylesheet";
 demoStyle.href = `${demoBase}awards-demo.css`;
 document.head.append(demoStyle);
 const votingLink = `${demoBase}votacao/?demo=1`;
 const resultsLink = `${demoBase}resultados/?demo=1`;
-const localDemo = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-const hallLink = "/melhores-de-urania/hall.html?demo=1";
-const profileLink = "/melhores-de-urania/vencedor.html?demo=1";
+const localDemo = awardLocal();
+const hallLink = `${awardPath("hall", { local: true })}?demo=1`;
+const profileLink = `${awardPath("winner", { local: true })}?demo=1`;
 const edition = {
   id: "demo-edition",
   ano: 2026,
   nome: "Melhores de Urânia 2026",
   descricao: "Uma amostra visual da premiação, sem votação nem resultado oficial.",
   status: "votacao_aberta",
+  votacao_inicio_site: new Date(Date.now() - 86400000).toISOString(),
+  votacao_fim: new Date(Date.now() + 86400000).toISOString(),
   resultado_publicado_em: "2026-12-20T15:00:00-03:00"
 };
 const categories = [
@@ -122,11 +126,10 @@ if (votingPage) {
       });
       return;
     }
-    const link = event.target.closest('a[href^="/melhores-de-urania/"]');
-    if (!link) return;
+    const link = event.target.closest("a[href]");
+    if (!link || link.origin !== location.origin || awardSocialQuery(link.pathname)?.mode !== "award-voting") return;
     event.preventDefault();
-    const match = link.pathname.match(/\/votacao\/([^/]+)\/?$/);
-    const slug = match?.[1] || "";
+    const { slug } = readAwardRoute(link);
     const url = new URL(votingLink, location.origin);
     if (slug) url.searchParams.set("categoria", slug);
     if (new URL(link.href).searchParams.has("concluido")) url.searchParams.set("concluido", "1");

@@ -1,3 +1,4 @@
+import { awardPath } from "/assets/js/melhoresRoutes.mjs";
 import { cardImage } from "/assets/card-images/card-image.mjs";
 import { callPublicRpc, fetchPublicRows, publicSupabaseConfigured } from "/assets/js/services/publicDataService.js";
 import { getAppDownloadConfig } from "/assets/js/services/appDownloadConfig.js";
@@ -234,7 +235,8 @@ async function renderAwards() {
     const item = rows[0]; if (!item) return;
     const root = document.getElementById("home-awards");
     document.getElementById("awards-text").textContent = shorten(item.descricao, 180) || `${item.nome || "Melhores de Urânia"} ${item.ano || ""}`.trim();
-    const link = document.getElementById("awards-link"); if (item.slug) link.href = `/melhores-de-urania/${encodeURIComponent(item.slug)}/`;
+    const link = document.getElementById("awards-link");
+    if (item.ano) link.href = awardPath("edition", { year: item.ano });
     if (safeUrl(item.imagem_capa_url)) document.getElementById("awards-media").innerHTML = `<img src="${esc(safeUrl(item.imagem_capa_url))}" alt="${esc(item.nome || "Melhores de Urânia")}" loading="lazy">`;
     root.hidden = false;
   } catch {}

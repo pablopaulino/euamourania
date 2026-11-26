@@ -67,6 +67,7 @@ async function optionalRows(table, params) {
 }
 
 module.exports = async (req, res) => {
+  const { awardPath, awardOrigin } = await import("../assets/js/melhoresRoutes.mjs");
   try {
     const type = req.query.type === "news" ? "news" : "standard";
     const now = new Date();
@@ -125,7 +126,7 @@ module.exports = async (req, res) => {
       { path: "/guia.html", priority: "0.85", changefreq: "weekly" },
       { path: "/turismo.html", priority: "0.85", changefreq: "weekly" },
       { path: "/eventos/", priority: "0.8", changefreq: "weekly" },
-      { path: "/melhores-de-urania/", priority: "0.8", changefreq: "weekly" },
+      { path: awardPath(), priority: "0.8", changefreq: "weekly" },
       { path: "/app", priority: "0.75", changefreq: "monthly" },
       { path: "/app/parceiros", priority: "0.7", changefreq: "weekly" },
       { path: "/app/seja-parceiro", priority: "0.7", changefreq: "monthly" },
@@ -160,19 +161,19 @@ module.exports = async (req, res) => {
     const edicoesComVencedores = new Set(melhoresVencedores.map(item => item.edicao_id));
     const melhoresUrls = melhores.flatMap(item => {
       const base = [{
-        loc: `${DOMAIN}/melhores-de-urania/${item.ano}/`,
+        loc: `${awardOrigin}${awardPath("edition", { year: item.ano })}`,
         lastmod: item.atualizado_em,
         image: item.imagem_capa_url ? `<image:image><image:loc>${xml(new URL(item.imagem_capa_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
       }, {
-        loc: `${DOMAIN}/melhores-de-urania/${item.ano}/regulamento/`,
+        loc: `${awardOrigin}${awardPath("rules", { year: item.ano })}`,
         lastmod: item.atualizado_em
       }, {
-        loc: `${DOMAIN}/melhores-de-urania/${item.ano}/metodologia/`,
+        loc: `${awardOrigin}${awardPath("method", { year: item.ano })}`,
         lastmod: item.atualizado_em
       }];
       if ((item.status === "resultado_publicado" || item.status === "arquivada") && edicoesComVencedores.has(item.id)) {
         base.push({
-          loc: `${DOMAIN}/melhores-de-urania/${item.ano}/resultados/`,
+          loc: `${awardOrigin}${awardPath("results", { year: item.ano })}`,
           lastmod: item.atualizado_em,
           image: item.imagem_capa_url ? `<image:image><image:loc>${xml(new URL(item.imagem_capa_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
         });
@@ -182,7 +183,7 @@ module.exports = async (req, res) => {
     const melhoresVencedoresUrls = melhoresVencedores
       .filter(item => item.indicado_id && /^\d{4}$/.test(String(item.melhores_edicoes?.ano || "")))
       .map(item => ({
-        loc: `${DOMAIN}/melhores-de-urania/${item.melhores_edicoes.ano}/vencedores/${item.indicado_id}/`,
+        loc: `${awardOrigin}${awardPath("winner", { year: item.melhores_edicoes.ano, id: item.indicado_id })}`,
         lastmod: item.publicado_em,
         image: item.melhores_indicados?.imagem_url ? `<image:image><image:loc>${xml(new URL(item.melhores_indicados.imagem_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
       }));
@@ -238,15 +239,15 @@ module.exports = async (req, res) => {
         image: (item.banner_url || item.cartaz_url) ? `<image:image><image:loc>${xml(new URL(item.banner_url || item.cartaz_url, `${DOMAIN}/`).href)}</image:loc></image:image>` : ""
       })),
       ...melhoresCategorias.map(item => ({
-        loc: `${DOMAIN}/melhores-de-urania/${item.melhores_edicoes?.ano}/categorias/${item.slug}/`,
+        loc: `${awardOrigin}${awardPath("category", { year: item.melhores_edicoes?.ano, slug: item.slug })}`,
         lastmod: item.atualizado_em
       })),
       ...melhoresCategoriasPermanentes.map(item => ({
-        loc: `${DOMAIN}/melhores-de-urania/categorias/${item.slug}/`,
+        loc: `${awardOrigin}${awardPath("permanent", { slug: item.slug })}`,
         lastmod: item.lastmod
       })),
       ...melhoresUrls,
-      ...(melhoresVencedoresUrls.length ? [{ loc: `${DOMAIN}/melhores-de-urania/hall/`, lastmod: melhoresVencedores.map(item => item.publicado_em).filter(Boolean).sort().at(-1) }] : []),
+      ...(melhoresVencedoresUrls.length ? [{ loc: `${awardOrigin}${awardPath("hall")}`, lastmod: melhoresVencedores.map(item => item.publicado_em).filter(Boolean).sort().at(-1) }] : []),
       ...melhoresVencedoresUrls
     ];
     const urls = all.map(item =>
