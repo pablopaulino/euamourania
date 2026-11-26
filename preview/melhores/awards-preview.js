@@ -84,8 +84,8 @@ const functionalPages={
   results:()=>`<main id="conteudo">${functionalHero("results-copy","results-panel")}${functionalSection("Resultados","results-list")}</main>`,
   hall:()=>`<main id="conteudo">${functionalHero("hall-copy","hall-panel")}${functionalSection("Edições publicadas","hall-list")}</main>`,
   winner:()=>`<main id="conteudo">${functionalHero("winner-copy","winner-panel")}${functionalSection("Perfil do vencedor","winner-content")}</main>`,
-  method:()=>`<main id="conteudo">${functionalHero("method-copy","method-panel")}${functionalSection("Metodologia","method-content")}</main>`,
-  rules:()=>`<main id="conteudo">${functionalHero("rules-copy","rules-panel")}${functionalSection("Regulamento","rules-content")}</main>`
+  method:()=>`<main id="conteudo">${functionalHero("method-copy","method-panel")}<section class="awards-section"><div class="award-shell"><article id="method-content">${loading}</article></div></section></main>`,
+  rules:()=>`<main id="conteudo">${functionalHero("rules-copy","rules-panel")}<section class="awards-section"><div class="award-shell"><article id="rules-content">${loading}</article></div></section></main>`
 };
 const pageModules={home:"melhores-index-page.js",edition:"melhores-edicao-page.js",category:"melhores-categoria-page.js",permanent:"melhores-categoria-permanente-page.js",voting:"melhores-votacao-page.js",results:"melhores-resultados-page.js",hall:"melhores-hall-page.js",winner:"melhores-vencedor-page.js",method:"melhores-metodologia-page.js",rules:"melhores-regulamento-page.js"};
 const app=document.getElementById("awards-preview-app");app.innerHTML=header+(functionalPages[page]||functionalPages.home)()+footer;

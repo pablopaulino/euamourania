@@ -248,3 +248,26 @@ function escapeDocumentHtml(value = "") {
   const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
   return String(value).replace(/[&<>"']/g, char => map[char]);
 }
+
+export function addDocumentIndex(content) {
+  const headings = [...content.querySelectorAll("h3")];
+  if (!headings.length) return;
+  const index = document.createElement("details");
+  index.className = "award-document-index";
+  index.open = matchMedia("(min-width: 48.01rem)").matches;
+  const summary = document.createElement("summary");
+  summary.textContent = "Neste documento";
+  const nav = document.createElement("nav");
+  nav.setAttribute("aria-label", "Seções do documento");
+  headings.forEach((heading, position) => {
+    heading.id = `secao-${position + 1}`;
+    const link = document.createElement("a");
+    link.href = `#${heading.id}`;
+    link.textContent = heading.textContent;
+    nav.append(link);
+  });
+  index.append(summary, nav);
+  content.parentElement.classList.add("award-document-layout");
+  content.before(index);
+  if (/^#secao-\d+$/.test(location.hash)) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+}

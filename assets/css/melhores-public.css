@@ -223,10 +223,10 @@
 .award-footer-inner [data-app-download] { padding: .55rem 1rem; border-radius: 1rem; background: var(--award-surface); }
 .award-footer-inner [data-app-download] :is(small,strong) { display: block; color: var(--award-ink); }
 @supports selector(details::details-content) {
-  @media (prefers-reduced-motion: no-preference) {
-    .award-faq details { interpolate-size: allow-keywords; }
-    .award-faq details::details-content { overflow: hidden; block-size: 0; opacity: 0; transition: block-size .22s ease, opacity .22s ease, content-visibility .22s allow-discrete; }
-    .award-faq details[open]::details-content { block-size: auto; opacity: 1; }
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .awards-preview-page details { interpolate-size: allow-keywords; }
+    .awards-preview-page details::details-content { overflow: hidden; block-size: 0; opacity: 0; transition: block-size .22s ease, opacity .22s ease, content-visibility .22s allow-discrete; }
+    .awards-preview-page details[open]::details-content { block-size: auto; opacity: 1; }
   }
 }
 .awards-preview-page .award-home-primary { border-radius: 2rem; padding-inline: 1.35rem; }
@@ -302,4 +302,16 @@
   #vote-area:has(> .awards-category-nav) { grid-template-columns: minmax(0, 1fr); }
   #vote-area .awards-category-nav { position: static; flex-direction: row; }
   #vote-area .awards-category-nav button { flex: 0 0 auto; max-width: 12rem; }
+}
+
+:is([data-awards-page="rules"], [data-awards-page="method"]) .award-accent { color: #C62119; }
+:is(#rules-panel,#method-panel) { padding: clamp(1.25rem,3vw,2rem); background: white; border: 0; border-radius: 1rem; }
+:is(#rules-panel,#method-panel) .button { border-radius: 9999px; }
+.award-document-layout { display: grid; grid-template-columns: minmax(12rem,1fr) minmax(0,3fr); gap: clamp(2rem,6vw,5rem); align-items: start; }
+.award-document-index { display: grid; align-content: start; gap: .4rem; padding: 1rem; border-radius: 1rem; background: var(--award-surface); }
+.award-document-index summary { padding: .5rem; font-weight: 700; }
+.award-document-index a { display: block; padding: .55rem; font-size: .9rem; line-height: 1.4; }
+.awards-document h3 { scroll-margin-top: 1.5rem; }
+@media (max-width: 48rem) {
+  .award-document-layout { grid-template-columns: minmax(0,1fr); gap: 1.5rem; }
 }
