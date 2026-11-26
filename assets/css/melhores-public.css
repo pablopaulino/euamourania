@@ -87,6 +87,13 @@
 .award-nominee-seal { width: 5.9rem; height: auto; margin-bottom: .65rem; }
 .award-home-grid, .awards-public-grid, .awards-winner-profile { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: center; gap: clamp(1.75rem, 6vw, 6rem); }
 .award-home-art { align-self: start; width: min(100%, 27rem); justify-self: center; }
+@media (min-width: 48.01rem) {
+  .award-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+  .award-home-grid > :first-child, .award-home-art { display: flex; flex-direction: column; }
+  .award-home-art { align-self: stretch; width: 100%; justify-content: space-between; }
+  .award-home-art figure { padding: 0 0 1.5rem; }
+  .award-home-grid .award-home-actions { margin-top: auto; padding-top: 1.5rem; }
+}
 .award-home-grid:has(figure[hidden]), .awards-public-grid:not(:has(.awards-public-panel > :not(.awards-empty))) { grid-template-columns: 1fr; }
 .award-home-intro p, .awards-public-copy > p { margin-top: 1.25rem; color: var(--award-muted); font-size: 1.06rem; }
 .award-home-actions, .awards-public-copy .hero-actions { margin-top: 1.5rem; }
@@ -192,7 +199,22 @@
 #awards-home-winners li a > span { color: var(--award-label); font-size: .8rem; }
 #awards-home-winners li a > strong { font-size: 1.2rem; }
 #awards-home-winners li a > em { color: var(--award-muted); }
-.award-history-link { display: flex; width: 100%; overflow-wrap: normal; font-size: 1.125rem; align-items: center; min-height: 2.75rem; padding-inline: 1rem; border: 1px solid var(--award-line); border-radius: 2rem; font-weight: 600; }
+.awards-preview-page .award-history-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: clamp(4rem, 6vw, 5rem);
+  padding: .9rem 1rem;
+  border: 2px solid var(--award-red);
+  border-radius: 1rem;
+  color: var(--award-red-hover);
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  font-weight: 700;
+  text-align: center;
+  overflow-wrap: normal;
+}
+.award-history-link:is(:hover, :focus-visible) { background: var(--award-surface); }
 #award-home-tools { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .65rem; font-size: .875rem; font-weight: 600; }
 #award-home-tools :is(a,button) { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .6rem 1rem; border: 1px solid var(--award-line); border-radius: 2rem; background: white; color: var(--award-ink); font-weight: 600; }
 #award-home-tools :is(a,button):hover, .award-back:hover { border-color: var(--award-red); color: var(--award-red-hover); }
