@@ -30,14 +30,6 @@ const footer = `
       <a data-app-download href="https://euamourania.com.br/app"><img src="/assets/viva-origem-colorido.svg" width="40" height="40" alt=""><span><small>Conheça o app</small><strong>Viva Urânia</strong></span></a>
     </div>
   </footer>`;
-function parentLink() {
-  if (page === "home") return "";
-  const archived = ["permanent", "hall"].includes(page);
-  const parent = page === "winner" ? "results" : page === "permanent" ? "hall" : page === "edition" || page === "hall" || !year ? "home" : "edition";
-  const label = parent === "results" ? "Resultados da edição" : parent === "hall" ? "Edições" : parent === "edition" && !archived ? `Edição ${year}` : "Início do prêmio";
-  return `<div class="award-parent"><div class="award-shell"><a href="${awardPath(parent, { year, local })}"><span aria-hidden="true">←</span> ${label}</a></div></div>`;
-}
-
 const loading='<div class="awards-empty">Carregando informações oficiais…</div>';
 const functionalHero=(copyId,panelId)=>`<section class="awards-public-hero"><div class="award-shell awards-public-grid"><div class="awards-public-copy" id="${copyId}"></div><article class="awards-public-panel" id="${panelId}">${loading}</article></div></section>`;
 const functionalSection=(title,id,extra="")=>`<section class="awards-section"><div class="award-shell"><header class="awards-section-head"><h2>${title}</h2></header><div id="${id}" ${extra}>${loading}</div></div></section>`;
@@ -96,7 +88,7 @@ const functionalPages={
   rules:()=>`<main id="conteudo">${functionalHero("rules-copy","rules-panel")}${functionalSection("Regulamento","rules-content")}</main>`
 };
 const pageModules={home:"melhores-index-page.js",edition:"melhores-edicao-page.js",category:"melhores-categoria-page.js",permanent:"melhores-categoria-permanente-page.js",voting:"melhores-votacao-page.js",results:"melhores-resultados-page.js",hall:"melhores-hall-page.js",winner:"melhores-vencedor-page.js",method:"melhores-metodologia-page.js",rules:"melhores-regulamento-page.js"};
-const app=document.getElementById("awards-preview-app");app.innerHTML=header+parentLink()+(functionalPages[page]||functionalPages.home)()+footer;
+const app=document.getElementById("awards-preview-app");app.innerHTML=header+(functionalPages[page]||functionalPages.home)()+footer;
 if(page==="edition") app.querySelector("main")?.insertAdjacentHTML("beforeend",faqSection(page));
 const demoMode = isAwardDemo(page);
 import(demoMode?`${awardPreviewBase}/awards-demo.js`:`/assets/js/pages/${pageModules[page]||pageModules.home}`).catch(error=>console.error("Melhores de Urânia:",error));

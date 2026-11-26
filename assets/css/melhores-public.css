@@ -142,9 +142,7 @@
 .awards-nominee-group > header p { color: var(--award-muted); margin-top: .35rem; }
 .awards-empty, .awards-alert { padding: 1rem 0; color: var(--award-muted); }
 .awards-alert { border-block: 1px solid var(--award-line); }
-.award-parent, .award-help { background: var(--award-surface); }
-.award-parent a { display: inline-flex; gap: .55rem; align-items: center; min-height: 2.75rem; font-size: .875rem; text-decoration: none; }
-.award-parent a:hover { color: var(--award-red-hover); }
+.award-help { background: var(--award-surface); }
 .award-help { padding-block: var(--award-space); }
 .award-help-grid { display: grid; grid-template-columns: 1fr 1.6fr; gap: clamp(2rem, 6vw, 6rem); }
 .award-help h2 em { display: block; margin-block: .15em .6em; }
