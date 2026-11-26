@@ -17,8 +17,7 @@
         { "type": "host", "value": "melhores.euamourania.com.br" }
       ],
       "destination": "https://euamourania.com.br/melhores-de-urania/",
-      "permanent": true,
-      "statusCode": 308
+      "permanent": true
     },
     {
       "source": "/:path*",
@@ -26,8 +25,7 @@
         { "type": "host", "value": "melhores.euamourania.com.br" }
       ],
       "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
-      "permanent": true,
-      "statusCode": 308
+      "permanent": true
     },
     {
       "source": "/",
@@ -35,8 +33,7 @@
         { "type": "host", "value": "melhoresdeurania.euamourania.com.br" }
       ],
       "destination": "https://euamourania.com.br/melhores-de-urania/",
-      "permanent": true,
-      "statusCode": 308
+      "permanent": true
     },
     {
       "source": "/:path*",
@@ -44,8 +41,7 @@
         { "type": "host", "value": "melhoresdeurania.euamourania.com.br" }
       ],
       "destination": "https://euamourania.com.br/melhores-de-urania/:path*",
-      "permanent": true,
-      "statusCode": 308
+      "permanent": true
     },
     {
       "source": "/parceiro/index.html",
@@ -158,10 +154,10 @@
     { "source": "/categorias/:categoria/", "destination": "/news/:categoria", "permanent": true }
   ],
   "routes": [
-    { "src": "^/$", "has": [{ "type": "host", "value": "melhores.euamourania.com.br" }], "dest": "https://euamourania.com.br/melhores-de-urania/", "status": 308 },
-    { "src": "^/(?<path>.+)$", "has": [{ "type": "host", "value": "melhores.euamourania.com.br" }], "dest": "https://euamourania.com.br/melhores-de-urania/$path", "status": 308 },
-    { "src": "^/$", "has": [{ "type": "host", "value": "melhoresdeurania.euamourania.com.br" }], "dest": "https://euamourania.com.br/melhores-de-urania/", "status": 308 },
-    { "src": "^/(?<path>.+)$", "has": [{ "type": "host", "value": "melhoresdeurania.euamourania.com.br" }], "dest": "https://euamourania.com.br/melhores-de-urania/$path", "status": 308 },
+    { "src": "^/$", "has": [{ "type": "host", "value": "melhores.euamourania.com.br" }], "headers": { "Location": "https://euamourania.com.br/melhores-de-urania/" }, "status": 308 },
+    { "src": "^/(?<path>.+)$", "has": [{ "type": "host", "value": "melhores.euamourania.com.br" }], "headers": { "Location": "https://euamourania.com.br/melhores-de-urania/$path" }, "status": 308 },
+    { "src": "^/$", "has": [{ "type": "host", "value": "melhoresdeurania.euamourania.com.br" }], "headers": { "Location": "https://euamourania.com.br/melhores-de-urania/" }, "status": 308 },
+    { "src": "^/(?<path>.+)$", "has": [{ "type": "host", "value": "melhoresdeurania.euamourania.com.br" }], "headers": { "Location": "https://euamourania.com.br/melhores-de-urania/$path" }, "status": 308 },
     { "src": "^/$", "methods": ["GET", "HEAD"], "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "dest": "/parceiro/index.html" },
     { "src": "^/$", "methods": ["GET", "HEAD"], "dest": "/api/home" },
     { "src": "^/news/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=news-list" },
