@@ -275,3 +275,33 @@
 .awards-edition-app-invite p, .awards-post-vote p { color: var(--award-muted); }
 .awards-post-vote { grid-column: 1 / -1; }
 .awards-post-close { margin-left: auto; background: none; border: 0; width: 2.75rem; height: 2.75rem; order: 1; }
+
+/* Edição e indicados */
+[data-awards-page="edition"] .award-accent { color: #C62119; }
+[data-awards-page="edition"] .awards-section { border: 0; padding-block: clamp(2rem, 4vw, 3.5rem); }
+#edition-copy .button { border-radius: 2rem; }
+#edition-copy .button-secondary { background: white; color: var(--award-ink); border: 1px solid var(--award-line); }
+#edition-copy .button-secondary:hover { background: var(--award-surface); border-color: var(--award-red); }
+#edition-panel { display: grid; justify-items: center; align-content: center; gap: 1.25rem; padding: 0; border: 0; }
+#edition-panel > img { width: min(90%, 24rem); margin: 0; background: transparent; border-radius: 0; }
+#edition-panel .awards-chip { padding: .4rem .9rem; border-radius: 2rem; background: white; color: var(--award-label); }
+#edition-panel .awards-edition-app-invite { width: 100%; margin: 0; background: white; border-radius: 1rem; }
+#edition-hub .awards-hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: .85rem; margin: 0; }
+#edition-hub .awards-hub-card, #indication-area > :is(form,.awards-alert,.awards-empty) {
+  background: var(--award-surface); border: 0; border-radius: 1rem; padding: clamp(1.15rem, 2vw, 1.75rem);
+}
+#edition-hub .awards-hub-card span { color: var(--award-label); font-size: .8rem; }
+#edition-hub .awards-hub-card strong { font-size: 1.2rem; }
+#edition-hub .awards-hub-card small { color: var(--award-muted); font-size: .9rem; }
+#indicacoes .awards-section-head { display: block; }
+#indication-status-copy:empty { display: none; }
+#vote-area .awards-category-nav { gap: .4rem; }
+#vote-area .awards-category-nav button { border: 0; border-radius: .85rem; background: #faf8f5; padding: .75rem 1rem; }
+#vote-area .awards-category-nav button.active { background: var(--award-surface); color: #C62119; font-weight: 700; }
+.edition-portrait { aspect-ratio: 1; overflow: hidden; border-radius: 1rem; background: var(--award-media); }
+.edition-portrait img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 48rem) {
+  #vote-area:has(> .awards-category-nav) { grid-template-columns: minmax(0, 1fr); }
+  #vote-area .awards-category-nav { position: static; flex-direction: row; }
+  #vote-area .awards-category-nav button { flex: 0 0 auto; max-width: 12rem; }
+}

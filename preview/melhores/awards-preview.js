@@ -16,7 +16,7 @@ const header = `
       </a>
       <nav id="menu-principal" class="award-nav" aria-label="Navegação do prêmio">
         <a href="${home}"${active("home")}>Início</a>
-        <a id="award-nav-nominees" href="${year ? awardPath("edition", { year, local }) + "#vote-area" : home + "#award-past"}"${active("category")}>Indicados</a>
+        <a id="award-nav-nominees" href="${year ? awardPath("edition", { year, local }) + "#vote-area" : home + "#award-past"}"${active("edition", "category")}>Indicados</a>
         <a id="award-nav-voting" href="${year ? awardPath("voting", { year, local }) : home}"${active("voting")}>Votação</a>
         <a href="${awardPath("hall", { local })}"${active("hall", "permanent", "winner", "results")}>Edições</a>
       </nav>
@@ -85,7 +85,7 @@ const functionalPages={
     </section>
     ${faqSection("home")}
   </main>`,
-  edition:()=>`<main id="conteudo">${functionalHero("edition-copy","edition-panel")}${functionalSection("Edição oficial","edition-hub")}${functionalSection("Votação","vote-area","aria-live='polite'")}<section class="awards-section" id="indicacoes"><div class="award-shell"><header class="awards-section-head"><div><p class="award-eyebrow">Participe</p><h2>Indique quem faz a diferença.</h2></div><p id="indication-status-copy"></p></header><div id="indication-area" aria-live="polite">${loading}</div></div></section><p id="vote-status-copy" class="sr-only"></p></main>`,
+  edition:()=>`<main id="conteudo">${functionalHero("edition-copy","edition-panel")}${functionalSection("Sobre a edição","edition-hub")}${functionalSection('Conheça os <em class="award-accent">indicados</em>',"vote-area","aria-live='polite'")}<section class="awards-section" id="indicacoes"><div class="award-shell"><header class="awards-section-head"><div><p class="award-eyebrow">Participe</p><h2>Indique quem faz a <em class="award-accent">diferença</em></h2></div><p id="indication-status-copy"></p></header><div id="indication-area" aria-live="polite">${loading}</div></div></section><p id="vote-status-copy" class="sr-only"></p></main>`,
   category:()=>`<main id="conteudo">${functionalHero("category-copy","category-panel")}${functionalSection("Indicados","category-nominees")}</main>`,
   permanent:()=>`<main id="conteudo">${functionalHero("permanent-category-copy","permanent-category-panel")}${functionalSection("Histórico da categoria","permanent-category-years")}</main>`,
   voting:()=>`<main id="conteudo"><section class="awards-section"><div class="award-shell" id="awards-voting-root">${loading}</div></section></main>`,

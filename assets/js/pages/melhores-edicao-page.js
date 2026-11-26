@@ -76,10 +76,6 @@ function statusLabel(status = "") {
   return labels[status] || String(status || "Status a confirmar").replaceAll("_", " ");
 }
 
-function editionTitle(edition) {
-  return Number(edition?.ano) === 2026 ? "Primeira edi\u00e7\u00e3o" : `Edi\u00e7\u00e3o ${edition?.ano || ""}`.trim();
-}
-
 function isVotingOpen(edition) {
   const now = serverNow();
   return edition?.status === "votacao_aberta"
@@ -192,67 +188,17 @@ function setMeta(edition) {
   document.querySelector('meta[property="og:image"]')?.setAttribute("content", new URL(edition.imagem_capa_url || "/assets/AD3A1763-min%20(1).jpg", location.origin).href);
 }
 
-function renderHeroOld(edition, open) {
-  const copy = document.getElementById("edition-copy");
-  const panel = document.getElementById("edition-panel");
-  if (copy) {
-    copy.innerHTML = `<span class="awards-public-badge">Uma realização Eu Amo Urânia</span>
-      <h1>${esc(edition.nome)}</h1>
-      <p>${esc(edition.descricao || "Escolha seus favoritos nas categorias da premiação.")}</p>
-      <div class="hero-actions"><a class="button button-primary" href="#vote-area" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Votar agora" : "Ver indicados"}</a><a class="button button-secondary" href="${awardPath("rules", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="${awardPath("method", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a></div>`;
-  }
-  if (panel) {
-    const cover = image(edition.imagem_capa_url);
-    panel.innerHTML = `${cover ? `<img src="${cover}" alt="${esc(edition.nome)}">` : ""}
-      <h2>Status da edição</h2>
-      <div class="awards-status-line">
-        <span class="awards-chip ${open ? "open" : "closed"}">${esc(edition.status.replaceAll("_", " "))}</span>
-        <span class="awards-chip">App: ${esc(formatDate(edition.votacao_inicio))}</span>
-        <span class="awards-chip">Site: ${esc(formatDate(edition.votacao_inicio_site))}</span>
-      </div>
-      <p><strong>Encerramento:</strong> ${esc(formatDate(edition.votacao_fim || edition.encerramento_em))}</p>
-      <p><strong>Pesos:</strong> Site + app ${Number(edition.peso_site || 0)}% · Instagram ${Number(edition.peso_instagram || 0)}%</p>`;
-  }
-}
-
-function renderHero(edition, open) {
-  const copy = document.getElementById("edition-copy");
-  const panel = document.getElementById("edition-panel");
-  if (copy) {
-    const primaryAction = open
-      ? `<a class="button button-primary" href="${awardPath("voting", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Participar da votação</a>`
-      : "";
-    copy.innerHTML = `<span class="awards-public-badge">Uma realiza\u00e7\u00e3o Eu Amo Ur\u00e2nia</span>
-      <h1>${esc(edition.nome)}</h1>
-      <p>${esc(edition.descricao || "Escolha seus favoritos nas categorias da premia\u00e7\u00e3o.")}</p>
-      <div class="hero-actions">${primaryAction}<a class="button button-secondary" href="${awardPath("rules", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="${awardPath("method", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a><button class="button button-secondary" type="button" data-share-edition data-edition-id="${edition.id}">Compartilhar</button></div>`;
-  }
-  if (panel) {
-    const cover = image(edition.imagem_capa_url);
-    const indicationOpen = isIndicationOpen(edition);
-    const phaseClass = open || indicationOpen ? "open" : "closed";
-    panel.innerHTML = `${cover ? `<img src="${cover}" alt="${esc(edition.nome)}">` : ""}
-      <p class="awards-edition-kicker">Edi\u00e7\u00e3o oficial</p>
-      <h2 class="awards-edition-title">${esc(editionTitle(edition))}</h2>
-      <div class="awards-status-line awards-status-line-compact">
-        <span class="awards-chip ${phaseClass}">${esc(statusLabel(edition.status))}</span>
-      </div>
-      <p class="awards-edition-note">Acompanhe a fase ativa da premia\u00e7\u00e3o.</p>`;
-  }
-}
-
-function enrichHeroStats(edition, categories, nominees) {
-  if (!isVotingOpen(edition)) return;
-  const copy = document.getElementById("edition-copy");
-  if (!copy) return;
-  const stats = document.createElement("div");
-  stats.className = "awards-mini-stats";
-  stats.innerHTML = `
-    <span><strong>${esc(edition.ano)}</strong><small>Edição</small></span>
-    <span><strong>${categories.length}</strong><small>Categorias</small></span>
-    <span><strong>${nominees.length}</strong><small>Indicados</small></span>
-  `;
-  copy.append(stats);
+function renderHero(edition) {
+  const phase = phaseInfo(edition);
+  const title = esc(edition.nome || `Melhores de Urânia ${edition.ano}`).replace(/Urânia/i, '<em class="award-accent">$&</em>');
+  const primaryAction = phase.cta === "Ver regulamento" ? "" :
+    `<a class="button button-primary" href="${phase.href}" data-awards-edition-cta data-edition-id="${edition.id}">${esc(phase.cta)}</a>`;
+  document.getElementById("edition-copy").innerHTML = `<h1>${title}</h1><p>${esc(phase.text)}</p>
+    <div class="hero-actions">${primaryAction}<a class="button button-secondary" href="${awardPath("rules", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Regulamento</a><a class="button button-secondary" href="${awardPath("method", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">Metodologia</a><button class="button button-secondary" type="button" data-share-edition data-edition-id="${edition.id}">Compartilhar</button></div>`;
+  const cover = Number(edition.ano) === 2026 ? "/assets/melhores/assinatura-2026.png" : image(edition.imagem_capa_url);
+  document.getElementById("edition-panel").innerHTML = `
+    ${cover ? `<img src="${cover}" alt="">` : ""}
+    <span class="awards-chip">${esc(phase.label)}</span>`;
 }
 
 function phaseInfo(edition) {
@@ -286,6 +232,12 @@ function phaseInfo(edition) {
   if (Number(edition.ano) === 2026 && edition.status === "apuracao" && new Date(edition.divulgacao_em).getTime() === Date.parse("2026-11-23T13:00:00Z")) {
     return { label: "Divulgação dos vencedores", title: "Acompanhe os vencedores", text: "De 23 a 29 de novembro, às 10h, 15h e 20h, no horário de Brasília.", href: resultsUrl(edition), cta: "Ver resultados" };
   }
+  if (edition.status === "votacao_aberta" && edition.votacao_inicio_site && serverNow() < new Date(edition.votacao_inicio_site).getTime()) {
+    return { label: "Votação no site em breve", text: `A votação pelo site começa em ${formatDate(edition.votacao_inicio_site)}.`, href: "#vote-area", cta: "Ver indicados" };
+  }
+  if (edition.votacao_fim && serverNow() > new Date(edition.votacao_fim).getTime()) {
+    return { label: statusLabel(edition.status), text: "A votação terminou. Acompanhe a divulgação dos resultados desta edição.", href: resultsUrl(edition), cta: "Ver resultados" };
+  }
   return {
     label: statusLabel(edition.status),
     title: "Acompanhe a edição",
@@ -299,8 +251,6 @@ function renderEditionHub(edition, categories, nominees) {
   const hub = document.getElementById("edition-hub");
   if (!hub) return;
   hub.classList.add("awards-edition-hub");
-  const phase = phaseInfo(edition);
-  const hasResults = edition.status === "resultado_publicado" || (edition.status === "arquivada" && edition.resultado_publicado_em);
   const links = [
     {
       eyebrow: "Cronograma",
@@ -311,7 +261,7 @@ function renderEditionHub(edition, categories, nominees) {
       eyebrow: "Categorias",
       title: categories.length ? `${categories.length} categorias` : "Categorias",
       text: categories.length ? `${nominees.length} indicado${nominees.length === 1 ? "" : "s"} publicado${nominees.length === 1 ? "" : "s"} até agora.` : "As categorias serão exibidas quando estiverem disponíveis publicamente.",
-      href: categories[0] ? awardPath("category", { year: edition.ano, slug: categories[0].slug }) : ""
+      href: categories.length ? "#vote-area" : ""
     },
     {
       eyebrow: "Regras",
@@ -326,21 +276,7 @@ function renderEditionHub(edition, categories, nominees) {
       href: awardPath("method", { year: edition.ano })
     }
   ];
-  if (hasResults) {
-    links.unshift({
-      eyebrow: "Oficial",
-      title: "Resultados",
-      text: "Vencedores e colocações oficiais desta edição.",
-      href: resultsUrl(edition)
-    });
-  }
   hub.innerHTML = `
-    <article class="awards-phase-card">
-      <span class="awards-phase-label">${esc(phase.label)}</span>
-      <h2>${esc(phase.title)}</h2>
-      <p>${esc(phase.text)}</p>
-      <a class="button button-primary" href="${phase.href}" data-awards-edition-cta data-edition-id="${edition.id}">${esc(phase.cta)}</a>
-    </article>
     <div class="awards-hub-grid">
       ${links.map(item => `
         <${item.href ? `a href="${item.href}"` : "article"} class="awards-hub-card">
@@ -357,13 +293,13 @@ function nomineeCard(edition, category, nominee, open, votedId) {
   const maxChoices = 1;
   const reachedLimit = votedList.length >= maxChoices;
   const img = image(nominee.imagem_url);
-  return `<article class="awards-nominee-card ${voted ? "awards-voted" : ""}" data-awards-nominee-card data-edition-id="${edition.id}" data-category-id="${category.id}" data-nominee-id="${nominee.id}">
-    ${img ? `<img src="${img}" alt="" loading="lazy">` : `<div class="awards-category-nominee-empty" aria-hidden="true">${esc(nominee.nome.trim().charAt(0).toLocaleUpperCase("pt-BR"))}</div>`}
+  return `<article class="awards-nominee-card ${open && voted ? "awards-voted" : ""}" data-awards-nominee-card data-edition-id="${edition.id}" data-category-id="${category.id}" data-nominee-id="${nominee.id}">
+    <div class="edition-portrait">${img ? `<img src="${img}" alt="" loading="lazy">` : `<div class="awards-category-nominee-empty" aria-hidden="true">${esc(nominee.nome.trim().charAt(0).toLocaleUpperCase("pt-BR"))}</div>`}</div>
     <div class="awards-card-body">
       <h3>${esc(nominee.nome)}</h3>
-      <button class="button button-primary awards-vote-button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" ${open && !voted && !reachedLimit ? "" : "disabled"}>
-        ${voted ? "Voto registrado" : open ? "Votar" : "Votação fechada"}
-      </button>
+      ${open ? `<button class="button button-primary awards-vote-button" data-vote data-edition="${edition.id}" data-category="${category.id}" data-nominee="${nominee.id}" data-max-choices="${maxChoices}" ${open && !voted && !reachedLimit ? "" : "disabled"}>
+        ${voted ? "Voto registrado" : "Votar"}
+      </button>` : ""}
     </div>
   </article>`;
 }
@@ -378,52 +314,6 @@ function renderVoting(edition, categories, nominees) {
     return;
   }
   if (section) section.hidden = false;
-  let closedCallout = "";
-  if (!open && edition.votacao_fim && serverNow() > new Date(edition.votacao_fim).getTime()) {
-    const gradual = Number(edition.ano) === 2026 && new Date(edition.divulgacao_em).getTime() === Date.parse("2026-11-23T13:00:00Z");
-    closedCallout = `<article class="awards-edition-vote-callout"><div><p class="eyebrow">Votação encerrada</p><h3>Obrigado por participar.</h3><p>${gradual ? "Os vencedores são anunciados de 23 a 29 de novembro, às 10h, 15h e 20h (horário de Brasília)." : "A votação terminou. Acompanhe as informações oficiais desta edição."}</p></div><a class="button button-primary" href="${resultsUrl(edition)}">Acompanhar resultados</a></article>`;
-  }
-  {
-    const votes = readVotes(edition.id);
-    const completed = categories.filter(category => votesFor(votes, category.id).length > 0).length;
-    const statusCopy = document.getElementById("vote-status-copy");
-    if (statusCopy) {
-      statusCopy.textContent = "A votação acontece em uma central própria, com progresso por categoria e navegação contínua.";
-    }
-    if (!categories.length) {
-      area.innerHTML = closedCallout || '<div class="awards-empty">Nenhuma categoria pública nesta edição.</div>';
-      return;
-    }
-    const callout = closedCallout || `<article class="awards-edition-vote-callout">
-      <div>
-        <p class="eyebrow">Ambiente de votação</p>
-        <h3>${open ? "Vote do seu jeito" : "Conheça os indicados"}</h3>
-        <p>${open ? "Use a central para acompanhar o progresso ou vote direto nas categorias abaixo." : "Confira as categorias e os indicados publicados. A votação pelo site ainda não começou."}</p>
-      </div>
-      <div class="awards-edition-vote-stats">
-        <span><strong>${categories.length}</strong><small>categorias</small></span>
-        <span><strong>${nominees.length}</strong><small>indicados</small></span>
-        <span><strong>${completed}</strong><small>votadas neste aparelho</small></span>
-      </div>
-      <a class="button button-primary" href="${awardPath("voting", { year: edition.ano })}" data-awards-edition-cta data-edition-id="${edition.id}">${open ? "Abrir central" : "Ver período de votação"}</a>
-    </article>`;
-    const grouped = new Map(categories.map(category => [category.id, nominees.filter(n => n.categoria_id === category.id)]));
-    area.innerHTML = `${callout}<aside class="awards-category-nav" aria-label="Categorias">${categories.map((category, index) => {
-      const total = grouped.get(category.id)?.length || 0;
-      return `<button type="button" data-scroll-category="${category.id}" class="${index === 0 ? "active" : ""}"><span>${esc(category.nome)}</span><small>${total} indicado${total === 1 ? "" : "s"}</small></button>`;
-    }).join("")}</aside>
-      <div class="awards-nominees">
-        ${categories.map(category => {
-          const items = grouped.get(category.id) || [];
-          return `<section class="awards-nominee-group" id="categoria-${category.id}">
-            <header><h3><a class="awards-link" href="${awardPath("category", { year: edition.ano, slug: category.slug })}">${esc(category.nome)}</a></h3><p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p></header>
-            ${items.length ? `<div class="awards-nominee-grid" tabindex="0" role="region" aria-label="Indicados de ${esc(category.nome)}">${items.map(nominee => nomineeCard(edition, category, nominee, open, votesFor(votes, category.id))).join("")}</div>` : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>'}
-          </section>`;
-        }).join("")}
-      </div>`;
-    observeNomineeImpressions();
-    return;
-  }
   const votes = readVotes(edition.id);
   document.getElementById("vote-status-copy").textContent = open
     ? "Escolha um indicado por categoria. O sistema registra seu voto com validação segura."
@@ -441,7 +331,7 @@ function renderVoting(edition, categories, nominees) {
       ${categories.map(category => {
         const items = grouped.get(category.id) || [];
         return `<section class="awards-nominee-group" id="categoria-${category.id}">
-          <header><h3><a class="awards-link" href="${awardPath("category", { year: edition.ano, slug: category.slug })}">${esc(category.nome)}</a></h3><p>${esc(category.descricao || "Escolha seu indicado favorito.")}</p></header>
+          <header><h3><a class="awards-link" href="${awardPath("category", { year: edition.ano, slug: category.slug })}">${esc(category.nome)}</a></h3><p>${open ? esc(category.descricao || "Escolha seu indicado favorito.") : `${items.length} indicado${items.length === 1 ? "" : "s"}`}</p></header>
           ${items.length ? `<div class="awards-nominee-grid" tabindex="0" role="region" aria-label="Indicados de ${esc(category.nome)}">${items.map(nominee => nomineeCard(edition, category, nominee, open, votesFor(votes, category.id))).join("")}</div>` : '<div class="awards-empty">Nenhum indicado publicado nesta categoria.</div>'}
         </section>`;
       }).join("")}
@@ -481,7 +371,7 @@ function renderIndications(edition, categories) {
   if (copy) {
     copy.textContent = open
       ? "Escolha a categoria e informe quem merece participar. A equipe analisa antes de virar indicado oficial."
-      : "As indicações públicas não estão abertas agora. Acompanhe as datas da edição.";
+      : "";
   }
   if (!open) {
     area.innerHTML = `<div class="awards-alert"><strong>Indicações fechadas.</strong><br>Período: ${esc(formatDate(edition.indicacoes_inicio))} até ${esc(formatDate(edition.indicacoes_fim))}.</div>`;
@@ -523,7 +413,7 @@ function orderSectionsForPhase(edition) {
     hero.after(indicationSection);
     return;
   }
-  indicationSection.after(voteSection);
+  voteSection.after(indicationSection);
 }
 
 function renderEditionAppInvite(edition) {
@@ -549,7 +439,7 @@ function renderEditionAppInvite(edition) {
   card.setAttribute("aria-label", "Viva Urânia");
   card.innerHTML = `<div><strong>${esc(copy[0])}</strong><p>${esc(copy[1])}</p>${ios ? "<small>O aplicativo ainda não está disponível para iOS.</small>" : ""}</div>
     <a href="${esc(appHref())}" target="_blank" rel="noopener noreferrer">${esc(ios ? "Conhecer o Viva Urânia" : copy[2])} ↗</a>`;
-  document.querySelector(".awards-public-hero")?.after(card);
+  if (appOpen && !ended && !siteOpen) document.getElementById("edition-panel")?.append(card);
 }
 
 async function init() {
@@ -579,8 +469,8 @@ async function init() {
       metadados: { ano: edition.ano, status: edition.status, votacao_aberta: open }
     });
     setMeta(edition);
-    renderHero(edition, open);
-    enrichHeroStats(edition, categories, nominees);
+    renderHero(edition);
+
     renderEditionHub(edition, categories, nominees);
     orderSectionsForPhase(edition);
     renderEditionAppInvite(edition);
