@@ -293,13 +293,17 @@ export function renderHub(edition, categories, nominees) {
     const announcement = gradual ? "De 23 a 29 de novembro, às 10h, 15h e 20h" : edition.divulgacao_em ? formatDate(edition.divulgacao_em) : "Data a ser informada";
     root.innerHTML = `
       <section class="vote-closed">
-        ${awardBrand(edition)}
-        <p class="vote-kicker">${ended ? "Votação encerrada" : "Votação oficial"}</p>
-        <h1>${ended ? "Obrigado por participar." : esc(edition.nome)}</h1>
-        <p>${ended ? "A votação terminou. Agradecemos a todos que ajudaram a reconhecer quem faz Urânia acontecer." : `A votação pelo site ainda não começou. Período previsto: ${esc(formatDate(edition.votacao_inicio_site))} até ${esc(formatDate(edition.votacao_fim))}.`}</p>
-        ${ended && !published ? `<div class="vote-announcement"><span>Divulgação dos vencedores</span><strong>${esc(announcement)}</strong><small>Horário de Brasília. ${gradual ? "Acompanhe os anúncios na página de resultados." : "A apuração está em conferência."}</small></div>` : ""}
-        <a class="button button-primary vote-primary" href="${published || gradual ? awardPath("results", { year: edition.ano }) : editionUrl(edition)}">${published ? "Ver resultado oficial" : gradual ? "Acompanhar resultados" : "Acompanhar a edição"}</a>
-      </section>${appInvite(edition)}`;
+        <div class="vote-closed-grid award-shell"><div class="vote-closed-copy">
+          <p class="vote-kicker">${ended ? "Votação encerrada" : "Votação oficial"}</p>
+          <h1>${ended ? 'Obrigado por <em class="award-accent">participar</em>.' : esc(edition.nome)}</h1>
+          <p>${ended ? "A votação terminou. Obrigado por ajudar a reconhecer quem faz a diferença em Urânia." : `A votação pelo site ainda não começou. Período previsto: ${esc(formatDate(edition.votacao_inicio_site))} até ${esc(formatDate(edition.votacao_fim))}.`}</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="${ended || published ? awardPath("results", { year: edition.ano }) : editionUrl(edition)}">${ended || published ? "Acompanhar resultados" : "Acompanhar a edição"} <span aria-hidden="true">→</span></a>
+            <a class="button button-secondary" href="${editionUrl(edition)}#vote-area">Ver indicados</a>
+          </div></div>
+          <img class="vote-edition-logo" src="${Number(edition.ano) === 2026 ? "/assets/melhores/assinatura-2026.png" : "/assets/melhores/simbolo.png"}" alt="Prêmio Melhores de Urânia">
+        </div>
+      </section><div class="award-shell vote-closed-info">${ended && !published ? `<div class="vote-announcement"><span>Divulgação dos vencedores</span><strong>${esc(announcement)}</strong><small>Horário de Brasília. ${gradual ? "Acompanhe os anúncios na página de resultados." : "A apuração está em conferência."}</small></div>` : ""}${appInvite(edition)}</div>`;
     return;
   }
 
@@ -456,7 +460,7 @@ function renderCompletion(edition, categories, nominees) {
       <button type="button" class="vote-finish-close" aria-label="Fechar" data-close-finish>×</button>
       <span class="vote-finish-check" aria-hidden="true">✓</span>
       <p class="vote-kicker">Participação concluída</p>
-      <h2 id="vote-finish-title">Seu voto faz a diferença!</h2>
+      <h2 id="vote-finish-title">Seu voto faz a <em class="award-accent">diferença</em>!</h2>
       <p id="vote-finish-description">Obrigado por participar. Convide mais pessoas para votar e acompanhe o prêmio no Viva Urânia.</p>
       <button class="button button-primary vote-primary" type="button" data-share-voting>Convidar para votar <span aria-hidden="true">→</span></button>
       <a class="vote-finish-app" href="${esc(appDestination())}" target="_blank" rel="noopener noreferrer"><img src="/assets/viva-origem-colorido.svg" alt="" width="38" height="38"><span><strong>${/iPad|iPhone|iPod/i.test(navigator.userAgent || "") ? "Conhecer o Viva Urânia" : "Baixar o Viva Urânia"}</strong><small>Acompanhe o prêmio pelo aplicativo</small></span><span aria-hidden="true">↗</span></a>

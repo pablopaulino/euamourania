@@ -72,11 +72,11 @@ if (votingPage) {
     else renderHub(edition, categories, nominees);
     notice.textContent = "";
   };
-  showCategory(new URLSearchParams(location.search).get("categoria"));
+  showCategory(readAwardRoute().slug);
   main.addEventListener("click", event => {
     if (event.target.closest("[data-reset-demo]")) {
       localStorage.removeItem(demoVoteKey);
-      const slug = new URLSearchParams(location.search).get("categoria");
+      const slug = readAwardRoute().slug;
       const url = new URL(votingLink, location.origin);
       if (slug) url.searchParams.set("categoria", slug);
       history.replaceState({}, "", url);
@@ -91,7 +91,7 @@ if (votingPage) {
       const stored = JSON.parse(localStorage.getItem(demoVoteKey) || "{}");
       stored[vote.dataset.category] = [vote.dataset.nominee];
       localStorage.setItem(demoVoteKey, JSON.stringify(stored));
-      showCategory(new URLSearchParams(location.search).get("categoria"));
+      showCategory(readAwardRoute().slug);
       notice.textContent = "Voto simulado apenas nesta prévia. Nenhum dado foi enviado.";
       document.querySelector(".vote-confirmation")?.scrollIntoView({
         behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
@@ -114,7 +114,7 @@ if (votingPage) {
     const share = event.target.closest("[data-share-category]");
     if (share) {
       const demoUrl = new URL(votingLink, location.origin);
-      demoUrl.searchParams.set("categoria", new URLSearchParams(location.search).get("categoria") || "");
+      demoUrl.searchParams.set("categoria", readAwardRoute().slug || "");
       if (!navigator.clipboard?.writeText) {
         notice.textContent = "Esta é apenas uma prévia visual; o compartilhamento oficial virá na votação.";
         return;
@@ -137,7 +137,7 @@ if (votingPage) {
     showCategory(slug);
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
-  window.addEventListener("popstate", () => showCategory(new URLSearchParams(location.search).get("categoria")));
+  window.addEventListener("popstate", () => showCategory(readAwardRoute().slug));
 } else if (demoPage === "hall") {
   const { esc, winnerCard } = await import("/assets/js/pages/melhores-resultados-page.js");
   const winners = results.filter(row => row.vencedor);

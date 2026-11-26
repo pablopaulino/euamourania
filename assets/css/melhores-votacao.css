@@ -1,4 +1,3 @@
-[data-awards-page="voting"] .award-header-inner { min-height: 4.25rem; }
 [data-awards-page="voting"] main .awards-section { border-top: 0; padding-top: clamp(1.25rem, 4vw, 3.25rem); }
 #awards-voting-root { width: min(100% - clamp(2rem, 8vw, 8rem), 60rem); }
 .vote-brand { display: none; }
@@ -15,7 +14,7 @@
 .vote-hub-list h2 { margin-bottom: 1.3rem; }
 .vote-category-row {
   display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: .7rem 1.2rem;
-  min-height: 3.4rem; padding: .8rem .25rem; border-top: 1px solid var(--award-line); text-decoration: none;
+  min-height: 3.4rem; padding: 1rem 1.25rem; background: var(--award-surface); border-radius: 1rem; text-decoration: none;
 }
 .vote-category-row:hover { background: var(--award-surface); }
 .vote-category-row small, .vote-step-nav span, .vote-action-caption { color: var(--award-muted); }
@@ -31,15 +30,15 @@
   position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1;
   border-radius: var(--award-radius); overflow: hidden; background: var(--award-media);
 }
-.vote-nominee-media img, .vote-saved-photo img { width: 100%; height: 100%; object-fit: contain; }
+.vote-nominee-media img, .vote-saved-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .vote-nominee-empty { color: var(--award-muted); font-size: 2rem; font-weight: 700; }
-.vote-nominee-check { display: none; position: absolute; top: .55rem; right: .55rem; padding: .12rem .45rem; border-radius: .3rem; background: var(--award-ink); color: white; }
+.vote-nominee-check { display: none; position: absolute; top: .55rem; right: .55rem; padding: .12rem .45rem; border-radius: .3rem; background: var(--award-red); color: white; }
 .vote-nominee-button:not(:disabled):hover .vote-nominee-media { outline: 1px solid var(--award-muted); outline-offset: 2px; }
-.vote-nominee:is(.is-active,.is-voted) .vote-nominee-media { outline: 2px solid var(--award-ink); outline-offset: 2px; }
+.vote-nominee:is(.is-active,.is-voted) .vote-nominee-media { outline: 2px solid var(--award-red); outline-offset: 2px; }
 .vote-nominee:is(.is-active,.is-voted) .vote-nominee-check { display: block; }
 .vote-nominee-name { font-size: .93rem; font-weight: 700; }
 .vote-step-actions { margin-top: 1.6rem; }
-.vote-action-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .7rem; padding-block: .9rem; border-block: 1px solid var(--award-line); background: var(--award-white); }
+.vote-action-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .7rem; padding-block: .9rem; border: 0; background: var(--award-white); }
 .vote-step-links { padding-top: .75rem; }
 .vote-step-links button, .vote-finish-later { border: 0; background: none; color: var(--award-red-hover); font-weight: 600; min-height: 2.75rem; }
 .vote-confirmation, .vote-saved-state, .vote-announcement, .vote-app-invite { padding: 1rem; background: var(--award-surface); }
@@ -71,4 +70,30 @@
   .vote-category-row small { grid-row: 2; grid-column: 1; }
   .vote-category-arrow { grid-column: 2; grid-row: 1 / 3; }
   .vote-action-bar { align-items: stretch; flex-direction: column; }
+}
+
+[data-awards-page="voting"] main { --award-red: #C62119; }
+[data-awards-page="voting"] main :is(.button, button, .vote-app-invite a) { border-radius: 9999px; }
+[data-awards-page="voting"] .awards-section:has(.vote-closed) { padding-top: 0; }
+#awards-voting-root:has(.vote-closed) { width: 100%; }
+.vote-closed { display: block; background: var(--award-surface); padding-block: var(--award-space); }
+.vote-closed-grid { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: clamp(2rem, 5vw, 5rem); }
+.vote-closed-copy { display: grid; gap: 1.15rem; }
+.vote-closed-copy > p { color: var(--award-muted); }
+.vote-closed-copy .vote-kicker { color: var(--award-label); text-transform: uppercase; letter-spacing: .085em; }
+.vote-edition-logo { width: min(100%, 27rem); justify-self: center; }
+.vote-closed-info { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,22rem),1fr)); gap: 1rem; margin-block: 2rem; }
+.vote-announcement, .vote-app-invite, .vote-saved-state, .vote-confirmation { padding: clamp(1.25rem,3vw,2rem); border-radius: 1rem; background: #FAF6F0; }
+.vote-closed-info .vote-app-invite { margin: 0; }
+.vote-announcement span { color: var(--award-label); }
+.vote-announcement strong { margin-block: .5rem; }
+.vote-app-invite a, .vote-finish-later, .vote-step-links button { display: inline-flex; align-items: center; min-height: 2.75rem; padding: .5rem 1rem; background: white; border: 1px solid var(--award-line); }
+.vote-category-list { display: grid; gap: .6rem; }
+.vote-category-row:hover { background: #faead9; }
+.vote-hub-hero .vote-progress-track { order: -2; }
+.vote-hub-hero .vote-hub-progress { order: -3; }
+.vote-progress-track { border-radius: 9999px; }
+@media (max-width: 48rem) {
+  .vote-closed-grid { grid-template-columns: 1fr; }
+  .vote-edition-logo { width: min(70%, 20rem); }
 }
