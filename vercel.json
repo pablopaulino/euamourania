@@ -247,6 +247,7 @@
     { "source": "/eventos/:slug/", "destination": "/api/noticia?tipo=social&mode=event-main&slug=:slug" },
     { "source": "/links", "destination": "/links/index.html" },
     { "source": "/app", "destination": "/app.html" },
+    { "source": "/app/redefinir-senha", "destination": "/app/redefinir-senha.html" },
     { "source": "/app/parceiros", "destination": "/app/parceiros.html" },
     { "source": "/app/seja-parceiro", "destination": "/app/seja-parceiro.html" },
     { "source": "/divulgue", "destination": "/divulgue.html" },
@@ -274,6 +275,13 @@
     { "source": "/rss.xml", "destination": "/api/rss" }
   ],
   "headers": [
+    {
+      "source": "/app/redefinir-senha(.*)",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "frame-ancestors 'none'" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
     {
       "source": "/preview/(.*)",
       "headers": [
