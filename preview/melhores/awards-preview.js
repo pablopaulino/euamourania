@@ -30,7 +30,13 @@ const footer = `
       <a data-app-download href="https://euamourania.com.br/app">Viva Urânia</a>
     </div>
   </footer>`;
-const section=(eyebrow,title,description,content)=>`<section class="award-section"><div class="award-shell"><header class="award-section-head"><div><p class="award-eyebrow">${eyebrow}</p><h2>${title}</h2></div>${description?`<p>${description}</p>`:""}</header>${content}</div></section>`;
+function parentLink() {
+  if (page === "home") return "";
+  const archived = ["permanent", "hall"].includes(page);
+  const parent = page === "winner" ? "results" : page === "permanent" ? "hall" : page === "edition" || page === "hall" || !year ? "home" : "edition";
+  const label = parent === "results" ? "Resultados da edição" : parent === "hall" ? "Edições" : parent === "edition" && !archived ? `Edição ${year}` : "Início do prêmio";
+  return `<div class="award-parent"><div class="award-shell"><a href="${awardPath(parent, { year, local })}"><span aria-hidden="true">←</span> ${label}</a></div></div>`;
+}
 
 const loading='<div class="awards-empty">Carregando informações oficiais…</div>';
 const functionalHero=(copyId,panelId)=>`<section class="awards-public-hero"><div class="award-shell awards-public-grid"><div class="awards-public-copy" id="${copyId}"></div><article class="awards-public-panel" id="${panelId}">${loading}</article></div></section>`;
@@ -48,7 +54,17 @@ const faqItems={
     ["Onde encontro as regras e as datas?","O regulamento e o cronograma ficam disponíveis nesta página da edição."]
   ]
 };
-const faqSection=page=>section("Dúvidas","Perguntas frequentes.",page==="home"?"Informações claras sobre a premiação.":"Respostas sobre as indicações e a edição.",`<div class="award-faq">${faqItems[page].map(([question,answer])=>`<details><summary>${question}</summary><p>${answer}</p></details>`).join("")}</div>`);
+function faqSection(page) {
+  const questions = faqItems[page].map(([question, answer]) =>
+    `<details><summary>${question}</summary><p>${answer}</p></details>`
+  ).join("");
+  const destination = page === "edition" && year ? awardPath("rules", { year, local }) : awardPath("hall", { local });
+  const label = page === "edition" && year ? "Consultar regulamento" : "Ver histórico dos vencedores";
+  return `<section class="award-help" id="como-funciona"><div class="award-shell award-help-grid">
+    <header><h2>Perguntas <em class="award-accent">frequentes</em></h2><a class="award-link" href="${destination}">${label} →</a></header>
+    <div class="award-faq">${questions}</div>
+  </div></section>`;
+}
 const functionalPages={
   home:()=>`<main id="conteudo" class="award-home">
     <section class="award-home-intro">
@@ -67,11 +83,7 @@ const functionalPages={
     <section class="award-shell award-home-section" id="award-past" hidden>
       <h2>Edições anteriores</h2><div class="awards-editions-grid" id="awards-editions"></div>
     </section>
-    <section class="award-shell award-home-section award-home-about" id="como-funciona">
-      <h2>Sobre o prêmio</h2>
-      <div class="award-faq">${faqItems.home.map(([q,a])=>`<details><summary>${q}</summary><p>${a}</p></details>`).join("")}</div>
-      <a class="award-link" href="${awardPath("hall", { local })}">Ver histórico dos vencedores</a>
-    </section>
+    ${faqSection("home")}
   </main>`,
   edition:()=>`<main id="conteudo">${functionalHero("edition-copy","edition-panel")}${functionalSection("Edição oficial","edition-hub")}${functionalSection("Votação","vote-area","aria-live='polite'")}<section class="awards-section" id="indicacoes"><div class="award-shell"><header class="awards-section-head"><div><p class="award-eyebrow">Participe</p><h2>Indique quem faz a diferença.</h2></div><p id="indication-status-copy"></p></header><div id="indication-area" aria-live="polite">${loading}</div></div></section><p id="vote-status-copy" class="sr-only"></p></main>`,
   category:()=>`<main id="conteudo">${functionalHero("category-copy","category-panel")}${functionalSection("Indicados","category-nominees")}</main>`,
@@ -84,7 +96,7 @@ const functionalPages={
   rules:()=>`<main id="conteudo">${functionalHero("rules-copy","rules-panel")}${functionalSection("Regulamento","rules-content")}</main>`
 };
 const pageModules={home:"melhores-index-page.js",edition:"melhores-edicao-page.js",category:"melhores-categoria-page.js",permanent:"melhores-categoria-permanente-page.js",voting:"melhores-votacao-page.js",results:"melhores-resultados-page.js",hall:"melhores-hall-page.js",winner:"melhores-vencedor-page.js",method:"melhores-metodologia-page.js",rules:"melhores-regulamento-page.js"};
-const app=document.getElementById("awards-preview-app");app.innerHTML=header+(functionalPages[page]||functionalPages.home)()+footer;
+const app=document.getElementById("awards-preview-app");app.innerHTML=header+parentLink()+(functionalPages[page]||functionalPages.home)()+footer;
 if(page==="edition") app.querySelector("main")?.insertAdjacentHTML("beforeend",faqSection(page));
 const demoMode = isAwardDemo(page);
 import(demoMode?`${awardPreviewBase}/awards-demo.js`:`/assets/js/pages/${pageModules[page]||pageModules.home}`).catch(error=>console.error("Melhores de Urânia:",error));

@@ -32,12 +32,15 @@ try {
     const mobile = width === 375;
     assert.ok(mobile ? state.nav.bottom <= state.group.top + 1 : state.nav.right <= state.group.left + 1,
       `posição da navegação de categorias em ${width}px`);
-    assert.ok(state.cards.every(card => Math.abs(card.top - state.cards[0].top) < 1), "indicados na mesma linha");
+    if (width > 768) assert.ok(state.cards.every(card => Math.abs(card.top - state.cards[0].top) < 1), "indicados na mesma linha");
     assert.ok(Math.abs(state.image.width - state.image.height) < 1, "moldura quadrada");
     assert.equal(state.fit, "contain", "logo completo dentro da moldura");
     assert.ok(state.overflow <= 1, "sem rolagem horizontal na página");
     assert.ok(mobile ? state.navScrollableX : state.navScrollableY, "categorias com rolagem própria");
-    if (mobile) assert.ok(state.gridScrollable, "indicados com rolagem própria no celular");
+    if (mobile) {
+      assert.equal(state.gridScrollable, false, "todos os indicados cabem na largura disponível");
+      assert.ok(state.cards.at(-1).top > state.cards[0].top, "indicados distribuídos em linhas");
+    }
   }
   console.log("Layout: categorias responsivas, molduras neutras e rolagem validada em computador, tablet e celular.");
 } finally {
