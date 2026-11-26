@@ -694,7 +694,22 @@ module.exports = async (req, res) => {
   }
   if (req.query.tipo === "agenda-list") return require("../lib/agenda-list-ssr.js").renderAgendaList(req, res);
   if (req.query.tipo === "news-category") return require("../lib/news-category-ssr.js").renderNewsCategory(req, res);
-  if (req.query.tipo === "initiatives-list") return require("../lib/initiatives-list-ssr.js").renderInitiativesList(req, res);
+  if (req.query.tipo === "initiatives-list") {
+    try {
+      return await require("../lib/initiatives-list-ssr.js").renderInitiativesList(req, res);
+    } catch (error) {
+      console.error("initiatives-list:", error);
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "no-store");
+      try {
+        const html = require("node:fs").readFileSync(require("node:path").resolve(__dirname, "../iniciativas/index.html"), "utf8")
+          .replace('action="/preview/busca/"', 'action="/buscar.html"');
+        return res.status(200).send(html);
+      } catch {
+        return res.status(200).send('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=/iniciativas/index.html"></head><body></body></html>');
+      }
+    }
+  }
   const slug = String(req.query.slug || "").trim();
   if (!/^[a-z0-9-]+$/.test(slug)) {
     return res.status(404).send(req.query.tipo === "guia" ? "Empresa não encontrada" : "Notícia não encontrada");

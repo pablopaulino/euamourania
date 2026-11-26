@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/noticia.js": {
-      "includeFiles": "{preview/**/*,news/index.html,guia.html,turismo.html,melhores-de-urania/**/*.html,eventos/**/*.html}"
+      "includeFiles": "{preview/**/*,news/index.html,guia.html,turismo.html,iniciativas/index.html,categorias/index.html,melhores-de-urania/**/*.html,eventos/**/*.html}"
     }
   },
   "crons": [

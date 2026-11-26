@@ -128,6 +128,7 @@ module.exports = async (req, res) => {
       optionalRows("iniciativas_comunitarias", {
         select: "slug,atualizado_em,imagem_capa_url",
         status: "eq.publicado",
+        exibir_na_listagem: "eq.true",
         order: "destaque.desc,atualizado_em.desc"
       }).catch(() => []),
       rows("eventos", "slug,atualizado_em", "atualizado_em.desc"),
