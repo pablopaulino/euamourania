@@ -150,7 +150,7 @@ export function winnerCard(row, winsByKey, edition, demo = false, hall = false) 
       <h3>${profileUrl ? `<a class="awards-winner-profile-link" href="${esc(profileUrl)}" aria-label="Conhecer ${esc(data.name)}, vencedor de ${esc(categoryName(row))} em ${edition.ano}">${esc(data.name)}</a>` : esc(data.name)}</h3>
       ${mention ? `<p><em>${esc(mention)}</em></p>` : ""}
       ${!demo && data.tourismUrl ? `<a class="awards-winner-guide-link" href="${esc(data.tourismUrl)}">Ver atrativo em Turismo <span aria-hidden="true">→</span></a>` : ""}
-      ${!demo && data.guideUrl ? `<a class="awards-winner-guide-link" href="${esc(data.guideUrl)}">Ver no Guia Comercial <span aria-hidden="true">→</span></a>` : ""}
+      ${!demo && !hall && data.guideUrl ? `<a class="awards-winner-guide-link" href="${esc(data.guideUrl)}">Ver no Guia Comercial <span aria-hidden="true">→</span></a>` : ""}
       <div class="awards-winner-history">
         <strong>${demo ? "Exemplo de vencedor" : esc(winnerHistoryLabel(row, winsByKey, edition.ano))}</strong>
         <span>${esc(historyHint)}${hall && profileUrl ? ' <i aria-hidden="true">→</i>' : ""}</span>
