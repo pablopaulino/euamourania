@@ -149,8 +149,7 @@ export function winnerCard(row, winsByKey, edition, demo = false, hall = false) 
       <p class="awards-winner-category">${esc(categoryName(row))}</p>
       <h3>${profileUrl ? `<a class="awards-winner-profile-link" href="${esc(profileUrl)}" aria-label="Conhecer ${esc(data.name)}, vencedor de ${esc(categoryName(row))} em ${edition.ano}">${esc(data.name)}</a>` : esc(data.name)}</h3>
       ${mention ? `<p><em>${esc(mention)}</em></p>` : ""}
-      ${!demo && data.tourismUrl ? `<a class="awards-winner-guide-link" href="${esc(data.tourismUrl)}">Ver atrativo em Turismo <span aria-hidden="true">→</span></a>` : ""}
-      ${!demo && !hall && data.guideUrl ? `<a class="awards-winner-guide-link" href="${esc(data.guideUrl)}">Ver no Guia Comercial <span aria-hidden="true">→</span></a>` : ""}
+      ${hall && !demo && data.tourismUrl ? `<a class="awards-winner-guide-link" href="${esc(data.tourismUrl)}">Ver atrativo em Turismo <span aria-hidden="true">→</span></a>` : ""}
       <div class="awards-winner-history">
         <strong>${demo ? "Exemplo de vencedor" : esc(winnerHistoryLabel(row, winsByKey, edition.ano))}</strong>
         <span>${esc(historyHint)}${hall && profileUrl ? ' <i aria-hidden="true">→</i>' : ""}</span>
@@ -242,6 +241,7 @@ async function init(refresh = false) {
 
     const results = await listarResultadosPublicos(edition.id);
     const published = resultsArePublished(edition, results);
+    const titleAccent = esc(edition.nome || `Melhores de Urânia ${edition.ano}`).replace(/Urânia/i, '<em class="award-accent">$&</em>');
     setMeta(edition, published);
     if (!published) {
       const phase = {
@@ -251,7 +251,7 @@ async function init(refresh = false) {
         votacao_encerrada: "Votação encerrada",
         apuracao: "Apuração"
       }[edition.status] || "Edição em andamento";
-      document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">${esc(phase)}</span><h1>${esc(edition.nome)}</h1><p>Os resultados desta edição ainda não estão disponíveis. A divulgação oficial acontecerá depois da apuração.</p><div class="hero-actions"><a class="button button-secondary" href="${awardPath("edition", { year: edition.ano })}">Acompanhar edição</a></div>`;
+      document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">${esc(phase)}</span><h1>${titleAccent}</h1><p>Os resultados desta edição ainda não estão disponíveis. A divulgação oficial acontecerá depois da apuração.</p><div class="hero-actions"><a class="button button-secondary" href="${awardPath("edition", { year: edition.ano })}">Acompanhar edição</a></div>`;
       document.getElementById("results-panel").innerHTML = `<h2>Edição ${esc(String(edition.ano))}</h2><p>Assim que os resultados forem publicados, os vencedores de cada categoria aparecerão aqui.</p><div class="awards-status-line"><span class="awards-chip">${esc(phase)}</span></div>`;
       document.getElementById("results-list").innerHTML = '<div class="awards-empty">Nenhum resultado oficial publicado para esta edição.</div>';
       if (["votacao_encerrada", "apuracao"].includes(edition.status)) {
@@ -276,7 +276,7 @@ async function init(refresh = false) {
         : Promise.resolve(null)
     ]);
     const publishedAt = results.find(row => row.publicado_em)?.publicado_em || edition.resultado_publicado_em;
-    document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">${partial ? "Divulgação em andamento" : "Resultado oficial"}</span><h1>${esc(edition.nome)}</h1><p>${partial ? "Os vencedores são anunciados aos poucos, nos horários oficiais. Confira as categorias já divulgadas." : esc(edition.descricao || "Conheça os nomes reconhecidos pela comunidade nesta edição do Melhores de Urânia.")}</p><div class="hero-actions"><button class="button button-primary" type="button" data-share-results>Compartilhar resultados</button><a class="button button-secondary" href="${awardPath("edition", { year: edition.ano })}">Ver edição</a></div>`;
+    document.getElementById("results-copy").innerHTML = `<span class="awards-public-badge">${partial ? "Divulgação em andamento" : "Resultado oficial"}</span><h1>${titleAccent}</h1><p>${partial ? "Os vencedores são anunciados aos poucos, nos horários oficiais. Confira as categorias já divulgadas." : esc(edition.descricao || "Conheça os nomes reconhecidos pela comunidade nesta edição do Melhores de Urânia.")}</p><div class="hero-actions"><button class="button button-primary" type="button" data-share-results>Compartilhar resultados</button><a class="button button-secondary" href="${awardPath("edition", { year: edition.ano })}">Ver edição</a></div>`;
     document.getElementById("results-panel").innerHTML = `<h2>Edição ${esc(String(edition.ano))}</h2><p>${partial ? "Acompanhe as novas categorias anunciadas a cada dia." : "Resultado oficial preservado no histórico da premiação."}</p><div class="awards-status-line"><span class="awards-chip open">${partial ? "Divulgação em andamento" : "Resultado publicado"}</span>${!partial && publishedAt ? `<span class="awards-chip">Publicado em ${esc(formatDate(publishedAt))}</span>` : ""}</div>`;
     document.querySelector("[data-share-results]")?.addEventListener("click", async () => {
       await sharePage({
