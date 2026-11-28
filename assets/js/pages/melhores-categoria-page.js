@@ -148,7 +148,7 @@ async function init() {
 
   document.getElementById("category-copy").innerHTML = `
     <span class="awards-public-badge">Categoria ${esc(edition.ano)}</span>
-    <h1>${esc(category.nome)}</h1>
+    <h1><em class="award-accent">${esc(category.nome)}</em></h1>
     <p>${esc(category.descricao || "Conheça os indicados desta categoria.")}</p>
     <div class="hero-actions">
       <a class="button button-primary" href="${votingOpen ? categoryVoteUrl : editionUrl}">${votingOpen ? "Votar nesta categoria" : "Ver edição"}</a>
@@ -175,7 +175,7 @@ async function init() {
     ? `<div class="awards-section-head awards-category-list-head">
         <div>
           <p class="eyebrow">Indicados</p>
-          <h2>Participantes da categoria</h2>
+          <h2>Participantes da <em class="award-accent">categoria</em></h2>
         </div>
         <p>${nominees.length} nome${nominees.length === 1 ? "" : "s"} publicado${nominees.length === 1 ? "" : "s"} nesta edição.</p>
       </div>

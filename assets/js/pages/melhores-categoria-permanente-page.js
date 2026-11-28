@@ -90,14 +90,14 @@ async function init() {
     });
     document.getElementById("permanent-category-copy").innerHTML = `
       <span class="awards-public-badge">Histórico da categoria</span>
-      <h1>${esc(category.nome)}</h1>
+      <h1><em class="award-accent">${esc(category.nome)}</em></h1>
       <p>${esc(category.descricao || "Confira o histórico desta categoria e acompanhe os nomes que ajudam a movimentar Urânia.")}</p>
       <div class="hero-actions">
         <button class="button button-primary" type="button" data-share-category>Compartilhar categoria</button>
         <a class="button button-secondary" href="${awardPath()}">Ver prêmio</a>
       </div>`;
     document.getElementById("permanent-category-panel").innerHTML = `
-      <h2>${esc(rows.length)} edição${rows.length === 1 ? "" : "es"}</h2>
+      <h2>${esc(rows.length)} ${rows.length === 1 ? "edição" : "edições"}</h2>
       <p>Histórico público e organizado para acompanhar a evolução desta categoria ao longo dos anos.</p>
       <div class="awards-status-line">
         <span class="awards-chip">Mais recente: ${esc(rows[0]?.melhores_edicoes?.ano || "")}</span>

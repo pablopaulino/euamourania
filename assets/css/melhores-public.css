@@ -367,3 +367,60 @@
   text-decoration: underline;
   text-underline-offset: .18em;
 }
+
+/* Páginas de consulta e resultados do prêmio */
+:is([data-awards-page="category"], [data-awards-page="permanent"], [data-awards-page="winner"], [data-awards-page="results"]) {
+  --award-red: #c62119;
+}
+:is(#category-copy, #permanent-category-copy, #winner-copy, #results-copy) h1 {
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+:is(#category-panel, #permanent-category-panel, #winner-panel, #results-panel) {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 0;
+  border-radius: 1rem;
+  background: var(--award-white);
+}
+:is(#category-panel, #permanent-category-panel, #winner-panel, #results-panel) h2 {
+  color: var(--award-red);
+  font: italic 400 clamp(2rem, 4vw, 3rem)/1.06 "Instrument Serif", Georgia, serif;
+}
+:is([data-awards-page="category"], [data-awards-page="permanent"], [data-awards-page="winner"], [data-awards-page="results"]) main .button {
+  width: fit-content;
+  border-radius: 9999px;
+}
+:is([data-awards-page="category"], [data-awards-page="permanent"], [data-awards-page="winner"], [data-awards-page="results"]) .awards-section {
+  border: 0;
+}
+#category-nominees .awards-nominee-card, #permanent-category-years .awards-edition-card,
+#winner-content .awards-winner-profile, #results-list :is(.awards-winner-card, .awards-ranking-group) {
+  padding: clamp(.9rem, 2vw, 1.5rem);
+  border: 0;
+  border-radius: 1rem;
+  background: var(--award-surface);
+}
+#category-nominees .awards-nominee-card > img, #permanent-category-years .awards-edition-card > img,
+:is(#winner-content, #results-list) .awards-winner-photo img {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 1rem;
+}
+#permanent-category-years { grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
+#permanent-category-years .awards-edition-card > img { aspect-ratio: 2 / 1; }
+#results-list .awards-winners-hall { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#results-list .award-winner-seal { width: clamp(4rem, 7vw, 5.5rem); }
+#results-list .is-clickable .awards-winner-history span {
+  justify-self: start;
+  padding: .75rem 1.25rem;
+  margin-top: .75rem;
+  border-radius: 9999px;
+  background: var(--award-red);
+  color: white;
+  font-weight: 650;
+}
+#results-list .is-clickable:is(:hover, :focus-within) .awards-winner-history span { background: var(--award-red-hover); }
+@media (max-width: 48rem) {
+  #results-list .awards-winners-hall { grid-template-columns: 1fr; }
+}

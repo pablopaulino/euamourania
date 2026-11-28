@@ -61,8 +61,8 @@ async function init() {
     const mention = mencaoPublica(winner);
     const initial = esc(data.name.trim().charAt(0).toLocaleUpperCase("pt-BR") || "U");
     setMeta(edition, winner);
-    copy.innerHTML = `<span class="awards-public-badge">Vencedor ${esc(String(year))}</span><h1>${esc(data.name)}</h1><p>${esc(categoryName(winner))} · Melhores de Urânia ${esc(String(year))}</p><div class="hero-actions"><a class="button button-secondary" href="${resultsPageUrl(edition)}">Ver resultado da edição</a></div>`;
-    panel.innerHTML = `<h2>Reconhecimento oficial</h2><p>Um registro permanente da conquista nesta edição da premiação.</p><div class="awards-status-line"><span class="awards-chip">${esc(categoryName(winner))}</span>${winner.publicado_em ? `<span class="awards-chip">Publicado em ${esc(formatDate(winner.publicado_em))}</span>` : ""}</div>`;
+    copy.innerHTML = `<span class="awards-public-badge">Vencedor ${esc(String(year))}</span><h1><em class="award-accent">${esc(data.name)}</em></h1><p>${esc(categoryName(winner))} · Melhores de Urânia ${esc(String(year))}</p><div class="hero-actions"><a class="button button-secondary" href="${resultsPageUrl(edition)}">Ver resultado da edição</a></div>`;
+    panel.innerHTML = `<h2>Reconhecimento <em>oficial</em></h2><p>Um registro permanente da conquista nesta edição da premiação.</p><div class="awards-status-line"><span class="awards-chip">${esc(categoryName(winner))}</span>${winner.publicado_em ? `<span class="awards-chip">Publicado em ${esc(formatDate(winner.publicado_em))}</span>` : ""}</div>`;
 
     let otherWins = [];
     const key = winnerKey(winner);

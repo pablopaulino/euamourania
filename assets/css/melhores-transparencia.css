@@ -95,3 +95,15 @@
   .trans-track, .trans-track i { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .trans-print-date { padding-top: 8px; border-top: 1px solid #ccc; }
 }
+
+@media screen {
+  .trans-central { border: 0; }
+  .trans-cards { gap: .75rem; border: 0; }
+  .trans-cards > div, .trans-cards > div + div, .trans-proof {
+    padding: 1rem;
+    border: 0;
+    border-radius: 1rem;
+    background: var(--award-surface, #fff5eb);
+  }
+  .trans-tools button, .trans-tools select { border-radius: 9999px; }
+}
