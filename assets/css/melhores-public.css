@@ -435,3 +435,67 @@
 @media (max-width: 48rem) {
   #results-list .awards-winners-hall { grid-template-columns: 1fr; }
 }
+
+.award-menu-toggle { display: none; }
+#award-navigation { display: contents; }
+
+@media (max-width: 768px) {
+  .awards-preview-page {
+    --award-space: clamp(1.5rem, 5vw, 2.25rem);
+    --award-red: #c62119;
+    --award-amber: #c88a2e;
+  }
+  .award-header { position: relative; z-index: 10; }
+  .award-header-inner:has(.award-menu-toggle) {
+    position: relative; display: flex; align-items: center; justify-content: space-between;
+    min-height: 4rem; padding-block: .5rem;
+  }
+  .award-wordmark img { width: 6.5rem; }
+  .award-menu-toggle {
+    display: inline-flex; align-items: center; gap: .5rem; min-height: 44px;
+    padding: .45rem 1rem; border: 1px solid var(--award-line); border-radius: 9999px;
+    background: white; font-weight: 650;
+  }
+  #award-navigation {
+    display: none; position: absolute; inset: calc(100% + .25rem) 0 auto auto;
+    width: min(100%, 20rem); padding: .75rem; border: 1px solid var(--award-line);
+    border-radius: 1rem; background: white; box-shadow: 0 .6rem 1.5rem rgb(24 22 21 / .1);
+    max-height: calc(100dvh - 5rem); overflow-y: auto;
+  }
+  .award-menu-toggle[aria-expanded="true"] + #award-navigation { display: grid; gap: .65rem; }
+  #award-navigation .award-nav { display: grid; grid-area: auto; gap: .2rem; }
+  #award-navigation .award-nav a { padding-inline: .9rem; min-height: 44px; border-radius: .75rem; }
+  #award-navigation .award-back { grid-area: auto; justify-self: start; }
+  .award-footer-inner { display: grid; gap: .7rem; min-height: auto; padding-block: 1.25rem; }
+  .award-credit p, .award-footer-inner [data-app-download] {
+    display: flex; align-items: center; gap: 1rem; min-width: 0; padding: .8rem 1rem;
+  }
+  .award-credit small { order: 1; margin: 0; }
+  .award-credit a { display: inline-flex; align-items: center; min-height: 44px; }
+  .award-credit img { width: 7rem; }
+  .award-footer-inner [data-app-download] img { flex: none; }
+  .award-home-grid, .awards-public-grid { gap: 1.25rem; }
+  .awards-preview-page main h1 { font-size: clamp(2.1rem, 8.6vw, 3.35rem); line-height: 1.06; }
+  .award-home-art { width: 100%; }
+  .award-home-art figure { padding: 0 0 .75rem; }
+  .award-home-art figure img, #edition-panel > img, #hall-panel > img {
+    max-height: clamp(6rem, 17vh, 10rem); width: auto; max-width: 100%; object-fit: contain;
+  }
+  .awards-public-copy > p, .award-home-intro p { margin-top: .85rem; }
+  .awards-preview-page main :is(.button,.award-home-primary,.award-home-share,.award-history-link) {
+    min-height: 44px; max-width: 100%; border-radius: 9999px; text-align: center;
+  }
+  #vote-area .awards-category-nav {
+    position: static; display: flex; flex-direction: row; flex-wrap: nowrap; min-width: 0;
+    max-width: 100%; gap: 8px; overflow-x: auto; padding: .3rem; overscroll-behavior-x: contain;
+  }
+  #vote-area .awards-category-nav button { min-height: 44px; flex: 0 0 auto; }
+  .award-hall-grid, .awards-winner-profile, .award-document-layout { grid-template-columns: minmax(0,1fr); }
+  .awards-nominee-grid, .vote-nominees { gap: .75rem; }
+  #permanent-category-years .awards-edition-card > img { aspect-ratio: 1; object-fit: cover; }
+  .award-help summary, .award-document-index a { min-height: 44px; }
+}
+@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .award-menu-toggle[aria-expanded="true"] + #award-navigation { animation: award-menu-in .16s ease-out; }
+}
+@keyframes award-menu-in { from { opacity: 0; transform: translateY(-.3rem); } }

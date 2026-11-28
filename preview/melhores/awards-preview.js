@@ -94,6 +94,36 @@ if (app?.dataset.serverRendered !== "true" || demoMode) {
   app.innerHTML=header+(functionalPages[page]||functionalPages.home)()+footer;
   if(page==="edition") app.querySelector("main")?.insertAdjacentHTML("beforeend",faqSection(page));
 }
+function setupMobileMenu() {
+  const header = app.querySelector(".award-header-inner");
+  const nav = header.querySelector(".award-nav");
+  const back = header.querySelector(".award-back");
+  const panel = document.createElement("div");
+  panel.id = "award-navigation";
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "award-menu-toggle";
+  toggle.setAttribute("aria-controls", panel.id);
+  toggle.setAttribute("aria-expanded", "false");
+  toggle.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Menu';
+  header.append(toggle, panel);
+  panel.append(nav, back);
+  const close = () => toggle.setAttribute("aria-expanded", "false");
+  toggle.addEventListener("click", () => toggle.setAttribute("aria-expanded", String(toggle.getAttribute("aria-expanded") !== "true")));
+  document.addEventListener("click", event => {
+    if (!header.contains(event.target) || event.target.closest("a")) close();
+  });
+  document.addEventListener("focusin", event => { if (!header.contains(event.target)) close(); });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+      close();
+      toggle.focus();
+    }
+  });
+  matchMedia("(max-width: 768px)").addEventListener("change", close);
+  window.addEventListener("pageshow", close);
+}
+setupMobileMenu();
 import(demoMode?`${awardPreviewBase}/awards-demo.js`:`/assets/js/pages/${pageModules[page]||pageModules.home}`).catch(error=>console.error("Melhores de Urânia:",error));
 if (!year && !demoMode) {
   import("/assets/js/services/melhoresPublicService.js").then(async ({ edicaoEmDestaque, listarEdicoesPublicas }) => {
