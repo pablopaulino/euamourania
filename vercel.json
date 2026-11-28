@@ -160,6 +160,7 @@
     { "src": "^/(?<path>.+)$", "has": [{ "type": "host", "value": "melhoresdeurania.euamourania.com.br" }], "headers": { "Location": "https://euamourania.com.br/melhores-de-urania/$path" }, "status": 308 },
     { "src": "^/$", "methods": ["GET", "HEAD"], "has": [{ "type": "host", "value": "parceiros.euamourania.com.br" }], "dest": "/parceiro/index.html" },
     { "src": "^/$", "methods": ["GET", "HEAD"], "dest": "/api/home" },
+    { "src": "^/melhores-de-urania/(?:index\\.html)?$|^/melhores-de-urania$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=social&mode=award-home" },
     { "src": "^/news/?$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=news-list" },
     { "src": "^/guia\\.html$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=guide-list" },
     { "src": "^/turismo\\.html$", "methods": ["GET", "HEAD"], "dest": "/api/noticia?tipo=tourism-list" },

@@ -40,6 +40,7 @@ export function formatAnnouncement(value) {
 }
 
 function setMeta(edition, published) {
+  if (document.getElementById("awards-preview-app")?.dataset.serverRendered === "true") return;
   const title = `${published ? "Resultados" : "Edição"} ${edition.ano} | Melhores de Urânia`;
   const description = (published
     ? edition.metodologia || edition.descricao || "Conheça os vencedores do Melhores de Urânia."

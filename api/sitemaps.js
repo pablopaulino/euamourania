@@ -201,7 +201,8 @@ module.exports = async (req, res) => {
         loc: `${awardOrigin}${awardPath("method", { year: item.ano })}`,
         lastmod: item.atualizado_em
       }];
-      if ((item.status === "resultado_publicado" || item.status === "arquivada") && edicoesComVencedores.has(item.id)) {
+      base.push({ loc: `${awardOrigin}${awardPath("voting", { year: item.ano })}`, lastmod: item.atualizado_em });
+      if (edicoesComVencedores.has(item.id)) {
         base.push({
           loc: `${awardOrigin}${awardPath("results", { year: item.ano })}`,
           lastmod: item.atualizado_em,
@@ -275,6 +276,10 @@ module.exports = async (req, res) => {
       })),
       ...melhoresCategorias.map(item => ({
         loc: `${awardOrigin}${awardPath("category", { year: item.melhores_edicoes?.ano, slug: item.slug })}`,
+        lastmod: item.atualizado_em
+      })),
+      ...melhoresCategorias.map(item => ({
+        loc: `${awardOrigin}${awardPath("voting", { year: item.melhores_edicoes.ano, slug: item.slug })}`,
         lastmod: item.atualizado_em
       })),
       ...melhoresCategoriasPermanentes.map(item => ({

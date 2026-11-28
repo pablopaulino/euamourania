@@ -8,6 +8,7 @@ function target() {
 }
 
 function setMeta(edition, row) {
+  if (document.getElementById("awards-preview-app")?.dataset.serverRendered === "true") return;
   const { name, description, img } = nomineeData(row);
   const title = `${name} — vencedor ${edition.ano} | Melhores de Urânia`;
   const summary = `${name} venceu ${categoryName(row)} no Melhores de Urânia ${edition.ano}. ${description}`.slice(0, 155);

@@ -24,6 +24,7 @@ function statusLabel(status = "") {
 }
 
 function setMeta(category, rows) {
+  if (document.getElementById("awards-preview-app")?.dataset.serverRendered === "true") return;
   const edition = rows[0]?.melhores_edicoes || {};
   const title = `${category.nome} | Melhores de Urânia`;
   const description = (category.descricao || `Confira o histórico da categoria ${category.nome} e acompanhe os nomes que ajudam a movimentar Urânia.`).slice(0, 155);

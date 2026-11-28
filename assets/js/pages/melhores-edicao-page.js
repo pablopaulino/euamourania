@@ -177,6 +177,7 @@ function showPostVotePanel(editionId, voteButton) {
 }
 
 function setMeta(edition) {
+  if (document.getElementById("awards-preview-app")?.dataset.serverRendered === "true") return;
   const title = `${edition.nome} | Melhores de Urânia`;
   const description = (edition.descricao || "Participe da votação popular do Eu Amo Urânia.").slice(0, 155);
   document.title = `${title} | Eu Amo Urânia`;

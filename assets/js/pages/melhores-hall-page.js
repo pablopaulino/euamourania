@@ -24,6 +24,7 @@ function categoriesFor(edition, results, winsByKey) {
 }
 
 function setMeta() {
+  if (document.getElementById("awards-preview-app")?.dataset.serverRendered === "true") return;
   const title = "Hall dos vencedores | Melhores de Urânia";
   const description = "Conheça os vencedores oficiais de cada edição do Melhores de Urânia.";
   document.title = `${title} | Eu Amo Urânia`;

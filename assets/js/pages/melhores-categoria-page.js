@@ -92,6 +92,7 @@ function nomineeCard(item, year) {
 }
 
 function setMeta(edition, category) {
+  if (document.getElementById("awards-preview-app")?.dataset.serverRendered === "true") return;
   const canonical = `${location.origin}${awardPath("category", { year: edition.ano, slug: category.slug })}`;
   const description = (category.descricao || `Conheça os indicados da categoria ${category.nome} no ${edition.nome}.`).slice(0, 155);
   document.title = `${category.nome} | ${edition.nome} | Eu Amo Urânia`;

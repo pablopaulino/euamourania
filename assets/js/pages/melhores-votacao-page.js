@@ -160,7 +160,7 @@ function editionUrl(edition) {
 
 function setMeta(edition, suffix = "Votação", path = hubUrl(edition), customDescription = "") {
   const title = `${suffix} | ${edition.nome}`;
-  const description = customDescription || `Participe da votação oficial do ${edition.nome}.`;
+  const description = customDescription || (isVotingOpen(edition) ? `Participe da votação oficial do ${edition.nome}.` : `Consulte a situação da votação e as informações oficiais do ${edition.nome}.`);
   const canonical = new URL(path, "https://euamourania.com.br").href;
   document.title = `${title} | Eu Amo Urânia`;
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);
@@ -361,7 +361,9 @@ export function renderCategory(edition, categories, nominees, slug) {
     root.innerHTML = `<div class="awards-empty">Categoria não encontrada nesta edição.</div>`;
     return;
   }
-  const categoryDescription = category.descricao
+  const categoryDescription = !isVotingOpen(edition)
+    ? `Consulte a situação da votação de ${category.nome} e os indicados do ${edition.nome}.`
+    : category.descricao
     ? `Vote na categoria ${category.nome} no ${edition.nome}. ${category.descricao}`.slice(0, 200)
     : `Vote na categoria ${category.nome} da edição oficial do ${edition.nome}.`;
   setMeta(edition, `Votação — ${category.nome}`, votingUrl(edition, category), categoryDescription);
