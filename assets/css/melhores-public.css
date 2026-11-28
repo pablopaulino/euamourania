@@ -332,13 +332,24 @@
 #hall-list .awards-hall-year-head h2 { border: 0; }
 .award-hall-grid { display: grid; gap: 1rem; }
 @media (min-width: 48rem) { .award-hall-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (min-width: 64rem) { .award-hall-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 .award-hall-grid .award-archive-category { padding: 1rem; border: 0; border-radius: 1rem; background: #faf6f0; }
-.award-hall-grid .award-archive-label { color: #C88A2E; font-size: 1.17rem; font-weight: 750; }
+.award-hall-grid .award-archive-label {
+  color: var(--award-label);
+  font-size: clamp(1.25rem, 1.6vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
+@media (min-width: 48rem) {
+  .award-hall-grid .award-archive-label { min-height: 2.4em; align-content: center; }
+}
 .award-hall-grid .award-archive-entries { grid-template-columns: 1fr; margin-top: .75rem; }
 .award-hall-grid .awards-winner-card { grid-template-columns: minmax(0,1fr); gap: 1rem; }
 .award-hall-grid .awards-winner-photo { aspect-ratio: 1; overflow: hidden; border-radius: 1rem; }
 .award-hall-grid .awards-winner-photo img { display: block; object-fit: cover; }
-.award-hall-grid .award-winner-seal { width: clamp(4rem, 7vw, 5.5rem); top: .8rem; left: .8rem; }
+.award-hall-grid .award-winner-seal { width: clamp(4rem, 6vw, 5rem); top: .8rem; left: .8rem; border-radius: 50%; }
 .award-hall-grid .awards-winner-history { margin-top: .45rem; font-size: .85rem; }
 .award-hall-grid .awards-winner-history strong { font-weight: 400; }
 .award-hall-grid .is-clickable .awards-winner-history span {
